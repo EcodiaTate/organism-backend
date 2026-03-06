@@ -9,15 +9,13 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.thymos.triage import (
+from primitives.common import new_id, utc_now
+from systems.thymos.triage import (
     IncidentDeduplicator,
     ResponseRouter,
     SeverityScorer,
 )
-from ecodiaos.systems.thymos.types import (
+from systems.thymos.types import (
     Incident,
     IncidentClass,
     IncidentSeverity,
@@ -98,6 +96,101 @@ class TestIncidentDeduplicator:
         assert resolved is inc
         assert dedup.active_count == 0
 
+    # ─── T4 Re-emission Tests ─────────────────────────────────────────
+
+    def test_occurrence_count_carried_forward_on_window_expiry(self):
+        """When the dedup window expires, occurrence_count must survive."""
+        from datetime import timedelta
+
+        dedup = IncidentDeduplicator()
+        inc1 = _make_incident(fingerprint="carry_fp")
+        dedup.deduplicate(inc1)
+
+        # Simulate 5 duplicates within window
+        for _ in range(5):
+            dup = _make_incident(fingerprint="carry_fp")
+            dedup.deduplicate(dup)
+        assert inc1.occurrence_count == 6
+
+        # Create one after the window expires (>60s for CRASH class)
+        post_window = _make_incident(fingerprint="carry_fp")
+        post_window.timestamp = inc1.timestamp + timedelta(seconds=120)
+        result = dedup.deduplicate(post_window)
+
+        assert result is not None  # New incident (window expired)
+        assert result.occurrence_count == 7  # 6 + 1, NOT reset to 1
+        assert result.first_seen == inc1.timestamp  # first_seen preserved
+
+    def test_t4_reemission_on_threshold(self):
+        """When occurrence_count hits T4 threshold, dedup returns the incident."""
+        dedup = IncidentDeduplicator()
+        inc1 = _make_incident(fingerprint="t4_fp")
+        dedup.deduplicate(inc1)
+
+        # Feed 5 duplicates (count goes 2,3,4,5,6)
+        results = []
+        for _ in range(5):
+            dup = _make_incident(fingerprint="t4_fp")
+            results.append(dedup.deduplicate(dup))
+
+        # First 4 duplicates should be None, 5th should re-emit (count=6)
+        assert all(r is None for r in results[:4])
+        assert results[4] is inc1
+        assert inc1.occurrence_count == 6
+
+    def test_t4_reemission_only_once(self):
+        """Re-emission must happen exactly once per fingerprint."""
+        dedup = IncidentDeduplicator()
+        inc1 = _make_incident(fingerprint="once_fp")
+        dedup.deduplicate(inc1)
+
+        reemit_count = 0
+        for _ in range(20):
+            dup = _make_incident(fingerprint="once_fp")
+            if dedup.deduplicate(dup) is not None:
+                reemit_count += 1
+
+        assert reemit_count == 1  # Exactly one re-emission
+
+    def test_t4_reemission_lower_threshold_for_attribute_errors(self):
+        """AttributeErrors should re-emit at the lower threshold (3)."""
+        dedup = IncidentDeduplicator()
+        inc1 = _make_incident(fingerprint="attr_fp")
+        inc1.error_type = "AttributeError"
+        dedup.deduplicate(inc1)
+
+        results = []
+        for _ in range(5):
+            dup = _make_incident(fingerprint="attr_fp")
+            dup.error_type = "AttributeError"
+            results.append(dedup.deduplicate(dup))
+
+        # Should re-emit at count=3 (occurrence 3), not 6
+        assert results[0] is None  # count=2
+        assert results[1] is inc1  # count=3 → re-emit
+        assert results[2] is None  # count=4, already re-emitted
+
+    def test_resolve_clears_reemit_tracking(self):
+        """Resolving an incident should clear the re-emission flag."""
+        dedup = IncidentDeduplicator()
+        inc1 = _make_incident(fingerprint="resolve_reemit")
+        dedup.deduplicate(inc1)
+
+        # Push to threshold
+        for _ in range(5):
+            dedup.deduplicate(_make_incident(fingerprint="resolve_reemit"))
+
+        assert "resolve_reemit" in dedup._t4_reemitted
+
+        # Resolve
+        dedup.resolve("resolve_reemit")
+        assert "resolve_reemit" not in dedup._t4_reemitted
+
+        # New incident with same fingerprint should start fresh
+        inc2 = _make_incident(fingerprint="resolve_reemit")
+        result = dedup.deduplicate(inc2)
+        assert result is inc2
+
 
 # ─── SeverityScorer ────────────────────────────────────────────────
 
@@ -162,3 +255,33 @@ class TestResponseRouter:
             incident = _make_incident(severity=severity)
             tier = router.route(incident)
             assert isinstance(tier, RepairTier)
+
+    def test_noop_incident_escalated_to_novel_fix_on_recurrence(self):
+        """A LOW severity incident with occurrence_count > 5 within 600s
+        must escalate to NOVEL_FIX (T4)."""
+        from datetime import timedelta
+
+        router = ResponseRouter()
+        incident = _make_incident(
+            severity=IncidentSeverity.LOW,
+            occurrence_count=6,
+        )
+        incident.first_seen = incident.timestamp - timedelta(seconds=300)
+
+        tier = router.route(incident)
+        assert tier == RepairTier.NOVEL_FIX
+
+    def test_attribute_error_escalated_at_lower_threshold(self):
+        """AttributeError with count > 2 within 600s must escalate to T4."""
+        from datetime import timedelta
+
+        router = ResponseRouter()
+        incident = _make_incident(
+            severity=IncidentSeverity.LOW,
+            occurrence_count=3,
+        )
+        incident.error_type = "AttributeError"
+        incident.first_seen = incident.timestamp - timedelta(seconds=60)
+
+        tier = router.route(incident)
+        assert tier == RepairTier.NOVEL_FIX

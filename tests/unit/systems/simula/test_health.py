@@ -6,12 +6,14 @@ Tests syntax checking, import validation, and test execution.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-from ecodiaos.systems.simula.health import HealthChecker
+from systems.simula.health import HealthChecker
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
 

@@ -8,13 +8,11 @@ Covers:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.thymos.prescription import RepairPrescriber, RepairValidator
-from ecodiaos.systems.thymos.types import (
+from primitives.common import new_id, utc_now
+from systems.thymos.prescription import RepairPrescriber, RepairValidator
+from systems.thymos.types import (
     Diagnosis,
     Incident,
     IncidentClass,

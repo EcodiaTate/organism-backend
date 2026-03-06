@@ -12,11 +12,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.clients.llm import LLMProvider, LLMResponse
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.common import new_id
-from ecodiaos.systems.atune.types import SalienceVector, WorkspaceBroadcast
-from ecodiaos.systems.nova.policy_generator import (
+from clients.llm import LLMProvider, LLMResponse
+from primitives.affect import AffectState
+from primitives.common import new_id
+from systems.atune.types import SalienceVector, WorkspaceBroadcast
+from systems.nova.policy_generator import (
     DO_NOTHING_EFE,
     PolicyGenerator,
     _parse_policy_response,
@@ -24,8 +24,7 @@ from ecodiaos.systems.nova.policy_generator import (
     make_do_nothing_policy,
     procedure_to_policy,
 )
-from ecodiaos.systems.nova.types import BeliefState, Goal, GoalSource, Policy
-
+from systems.nova.types import BeliefState, Goal, GoalSource, Policy
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 
@@ -109,7 +108,7 @@ class TestDoNothingPolicy:
         assert policy.time_horizon == "immediate"
 
     def test_do_nothing_efe_constant(self) -> None:
-        assert DO_NOTHING_EFE == pytest.approx(-0.10)
+        assert pytest.approx(-0.10) == DO_NOTHING_EFE
 
 
 # ─── Procedure Matching ───────────────────────────────────────────
@@ -164,7 +163,7 @@ class TestProcedureMatching:
         assert result["success_rate"] >= 0.8
 
     def test_procedure_to_policy_creates_valid_policy(self) -> None:
-        from ecodiaos.systems.nova.policy_generator import _PROCEDURE_TEMPLATES
+        from systems.nova.policy_generator import _PROCEDURE_TEMPLATES
         template = _PROCEDURE_TEMPLATES[0]
         policy = procedure_to_policy(template)
         assert isinstance(policy, Policy)

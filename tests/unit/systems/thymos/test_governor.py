@@ -10,11 +10,9 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.thymos.governor import HealingGovernor
-from ecodiaos.systems.thymos.types import (
+from primitives.common import new_id, utc_now
+from systems.thymos.governor import HealingGovernor
+from systems.thymos.types import (
     HealingMode,
     Incident,
     IncidentClass,
@@ -178,3 +176,48 @@ class TestHealingGovernor:
             gov.register_incident(_make_incident())
         gov.should_diagnose(_make_incident())
         assert gov.storm_activations == 1
+
+    # ─── T4 Budget Tests (Cytokine Storm Prevention) ───────────────────────
+
+    def test_can_submit_t4_when_under_limit(self):
+        gov = HealingGovernor()
+        assert gov.can_submit_t4_proposal() is True
+
+    def test_can_submit_t4_denied_at_concurrent_limit(self):
+        gov = HealingGovernor()
+        # Use up the 3 concurrent slots
+        gov.begin_t4_proposal()
+        gov.begin_t4_proposal()
+        gov.begin_t4_proposal()
+        assert gov.can_submit_t4_proposal() is False
+
+    def test_can_submit_t4_denied_at_hourly_limit(self):
+        gov = HealingGovernor()
+        # Use up all 5 hourly slots
+        for _ in range(5):
+            gov.begin_t4_proposal()
+        assert gov._t4_proposals_this_hour == 5
+        assert gov.can_submit_t4_proposal() is False
+
+    def test_begin_end_t4_proposal(self):
+        gov = HealingGovernor()
+        gov.begin_t4_proposal()
+        assert gov._active_t4_proposal_count == 1
+        assert gov._t4_proposals_this_hour == 1
+        gov.end_t4_proposal()
+        assert gov._active_t4_proposal_count == 0
+
+    def test_end_t4_clamps_to_zero(self):
+        gov = HealingGovernor()
+        gov.end_t4_proposal()
+        assert gov._active_t4_proposal_count == 0
+
+    def test_t4_budget_state_reporting(self):
+        gov = HealingGovernor()
+        gov.begin_t4_proposal()
+        gov.begin_t4_proposal()
+        budget = gov.budget_state
+        assert budget.active_t4_proposals == 2
+        assert budget.t4_proposals_this_hour == 2
+        assert budget.max_concurrent_t4_proposals == 3
+        assert budget.max_t4_proposals_per_hour == 5

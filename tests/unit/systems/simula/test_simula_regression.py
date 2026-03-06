@@ -16,9 +16,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import SimulaConfig
-from ecodiaos.systems.simula.service import SimulaService
-from ecodiaos.systems.simula.evolution_types import (
+from config import SimulaConfig
+from systems.simula.evolution_types import (
     ChangeCategory,
     ChangeSpec,
     CodeChangeResult,
@@ -29,7 +28,7 @@ from ecodiaos.systems.simula.evolution_types import (
     RiskLevel,
     SimulationResult,
 )
-
+from systems.simula.service import SimulaService
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -124,17 +123,9 @@ async def _make_service_with_inspector_loaded() -> SimulaService:
     service._current_version = 0
 
     # Now attach Inspector — import all modules to ensure they load cleanly
-    from ecodiaos.systems.simula.inspector.analytics import (
-        InspectorAnalyticsEmitter,
-        InspectorAnalyticsStore,
-        InspectorAnalyticsView,
-    )
-    from ecodiaos.systems.simula.inspector.ingestor import TargetIngestor
-    from ecodiaos.systems.simula.inspector.prover import VulnerabilityProver
-    from ecodiaos.systems.simula.inspector.remediation import InspectorRepairOrchestrator
-    from ecodiaos.systems.simula.inspector.service import InspectorService
-    from ecodiaos.systems.simula.inspector.types import InspectorConfig
-    from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
+    from systems.simula.inspector.prover import VulnerabilityProver
+    from systems.simula.inspector.service import InspectorService
+    from systems.simula.inspector.types import InspectorConfig
 
     inspector_config = InspectorConfig(
         authorized_targets=["localhost"],
@@ -157,24 +148,13 @@ class TestInspectorImportRegression:
 
     def test_all_inspector_modules_importable(self):
         """All Inspector modules should import without errors."""
-        from ecodiaos.systems.simula.inspector import (
-            AttackSurface,
-            AttackSurfaceType,
+        from systems.simula.inspector import (
             InspectorAnalyticsEmitter,
             InspectorAnalyticsView,
-            InspectorConfig,
             InspectorRepairOrchestrator,
             InspectorService,
-            HuntResult,
-            RemediationResult,
-            RemediationStatus,
             TargetIngestor,
-            TargetType,
-            TargetWorkspace,
-            VulnerabilityClass,
             VulnerabilityProver,
-            VulnerabilityReport,
-            VulnerabilitySeverity,
         )
 
         # Verify they are real classes/types, not None
@@ -187,8 +167,8 @@ class TestInspectorImportRegression:
 
     def test_inspector_types_dont_conflict_with_simula_types(self):
         """Inspector types should coexist cleanly with Simula types."""
-        from ecodiaos.systems.simula.inspector.types import InspectorConfig as HC
-        from ecodiaos.systems.simula.evolution_types import EvolutionProposal as EP
+        from systems.simula.evolution_types import EvolutionProposal as EP
+        from systems.simula.inspector.types import InspectorConfig as HC
 
         # Both should instantiate independently
         hc = HC(authorized_targets=["localhost"])

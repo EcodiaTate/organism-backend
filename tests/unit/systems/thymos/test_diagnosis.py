@@ -9,17 +9,15 @@ Covers:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.thymos.diagnosis import (
+from primitives.common import new_id, utc_now
+from systems.thymos.diagnosis import (
     CausalAnalyzer,
     DiagnosticEngine,
     TemporalCorrelator,
 )
-from ecodiaos.systems.thymos.types import (
+from systems.thymos.types import (
     Antibody,
     CausalChain,
     Incident,
@@ -119,7 +117,7 @@ class TestCausalAnalyzer:
 
     def test_record_incident_limits_buffer(self):
         analyzer = CausalAnalyzer()
-        for i in range(100):
+        for _i in range(100):
             analyzer.record_incident(_make_incident())
         # Should not exceed 50 per system
         assert len(analyzer._recent_incidents.get("nova", [])) <= 50

@@ -15,8 +15,8 @@ import pytest
 if TYPE_CHECKING:
     from pathlib import Path
 
-from ecodiaos.systems.simula.health import HealthChecker
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.health import HealthChecker
+from systems.simula.verification.types import (
     DAFNY_TRIGGERABLE_CATEGORIES,
     DafnyVerificationResult,
     DafnyVerificationStatus,
@@ -41,7 +41,7 @@ def _make_proposal(category_value: str = "add_executor") -> MagicMock:
     proposal.change_spec.files_to_modify = []
     proposal.change_spec.affected_systems = []
     # Make the category object support 'in' checks with frozenset
-    from ecodiaos.systems.simula.evolution_types import ChangeCategory
+    from systems.simula.evolution_types import ChangeCategory
     if category_value == "modify_contract":
         proposal.category = ChangeCategory.MODIFY_CONTRACT
     elif category_value == "add_system_capability":
@@ -339,7 +339,7 @@ class TestVerificationTypes:
         assert result.static_analysis is None
 
     def test_dafny_triggerable_categories(self):
-        from ecodiaos.systems.simula.evolution_types import ChangeCategory
+        from systems.simula.evolution_types import ChangeCategory
         assert ChangeCategory.MODIFY_CONTRACT in DAFNY_TRIGGERABLE_CATEGORIES
         assert ChangeCategory.ADD_SYSTEM_CAPABILITY in DAFNY_TRIGGERABLE_CATEGORIES
         assert ChangeCategory.ADD_EXECUTOR not in DAFNY_TRIGGERABLE_CATEGORIES

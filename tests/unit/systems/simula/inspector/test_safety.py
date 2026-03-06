@@ -17,28 +17,26 @@ Validates the "Iron Rules" and security boundaries:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.safety import (
+from systems.simula.inspector.safety import (
     FORBIDDEN_POC_MODULES,
     InspectorSafetyGates,
     SafetyResult,
 )
-from ecodiaos.systems.simula.inspector.service import (
+from systems.simula.inspector.service import (
     _FORBIDDEN_POC_MODULES,
     InspectorService,
 )
-from ecodiaos.systems.simula.inspector.types import (
-    InspectorConfig,
+from systems.simula.inspector.types import (
     HuntResult,
+    InspectorConfig,
     TargetType,
 )
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
-
+from systems.simula.inspector.workspace import TargetWorkspace
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -104,7 +102,7 @@ class TestForbiddenModules:
             "subprocess", "socket", "ctypes", "pickle", "shelve",
             "marshal", "shutil", "tempfile", "multiprocessing",
         }
-        assert _FORBIDDEN_POC_MODULES == expected
+        assert expected == _FORBIDDEN_POC_MODULES
 
     def test_safety_module_forbidden_set_matches_service(self):
         """FORBIDDEN_POC_MODULES in safety.py must match service.py."""
@@ -207,7 +205,6 @@ class TestDangerousCallPatterns:
 
     def test_os_system_rejected(self):
         gates = _make_gates()
-        poc = "import os\nos.system('ls -la')"
         # This also triggers forbidden import for os... but os isn't forbidden.
         # The os.system pattern should be caught by dangerous call check.
         poc_no_import = "x = os.system('ls')"

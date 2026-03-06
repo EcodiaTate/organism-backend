@@ -7,41 +7,37 @@ All tests use mocked dependencies — no external services required.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.common import Verdict
-from ecodiaos.primitives.constitutional import ConstitutionalCheck
-from ecodiaos.primitives.intent import (
+from primitives.common import Verdict
+from primitives.constitutional import ConstitutionalCheck
+from primitives.intent import (
     Action,
     ActionSequence,
     EthicalClearance,
     GoalDescriptor,
     Intent,
 )
-from ecodiaos.systems.axon.executors.communication import (
+from systems.axon.executors.communication import (
     NotificationExecutor,
     RespondTextExecutor,
 )
-from ecodiaos.systems.axon.executors.data import (
+from systems.axon.executors.data import (
     CreateRecordExecutor,
     ScheduleExecutor,
-    UpdateRecordExecutor,
 )
-from ecodiaos.systems.axon.executors.internal import (
+from systems.axon.executors.internal import (
     ConsolidationExecutor,
     StoreInsightExecutor,
     UpdateGoalExecutor,
 )
-from ecodiaos.systems.axon.executors.observation import (
-    AnalyseExecutor,
+from systems.axon.executors.observation import (
     ObserveExecutor,
     QueryMemoryExecutor,
 )
-from ecodiaos.systems.axon.types import ExecutionContext, ScopedCredentials
-
+from systems.axon.types import ExecutionContext, ScopedCredentials
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 

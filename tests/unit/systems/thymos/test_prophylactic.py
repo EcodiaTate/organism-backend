@@ -12,11 +12,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.thymos.prophylactic import (
+from systems.thymos.prophylactic import (
     HomeostasisController,
     ProphylacticScanner,
 )
-from ecodiaos.systems.thymos.types import (
+from systems.thymos.types import (
     Antibody,
     IncidentClass,
     RepairSpec,

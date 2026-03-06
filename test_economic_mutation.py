@@ -52,7 +52,7 @@ REDIS_URL = _redis_url()
 TASKS_STREAM = "eos:simula:tasks"
 RESULTS_STREAM = "eos:simula:results"
 TIMEOUT_S = 300  # 5 min; give the code agent time to work
-TARGET_FILE = "ecodiaos/systems/atune/salience.py"
+TARGET_FILE = "systems/atune/salience.py"
 
 
 # ── Proposal builder ─────────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ def _build_proposal() -> dict:
         "category": "add_system_capability",
         "description": (
             "Create EconomicSalienceHead, a new subclass of SalienceHead in "
-            "ecodiaos/systems/atune/salience.py. "
+            "systems/atune/salience.py. "
             "This head gives the organism the ability to perceive financial "
             "concepts in its environment — a prerequisite for the metabolic/"
             "survival layer. "
@@ -80,16 +80,16 @@ def _build_proposal() -> dict:
         ),
         "change_spec": {
             "capability_description": (
-                "EconomicSalienceHead: keyword-based financial perception head "
-                "for the Atune multi-head salience engine. "
+                "Economic prediction error dimension: keyword-based financial "
+                "signal fed into Fovea's prediction error decomposition. "
                 "Detects financial concepts (cost, price, budget, wallet, "
-                "crypto, dollar, revenue, etc.) and signals high salience so "
-                "the organism prioritises economically relevant input during "
-                "cognitive processing."
+                "crypto, dollar, revenue, etc.) and contributes to magnitude "
+                "and source error so the organism prioritises economically "
+                "relevant input during cognitive processing."
             ),
             "affected_systems": ["atune"],
             "additional_context": (
-                "Target file: ecodiaos/systems/atune/salience.py — "
+                "Target file: systems/atune/salience.py — "
                 "append the new class AFTER the existing KeywordHead class "
                 "and BEFORE the ALL_HEADS registry list. "
                 "Do NOT modify any existing SalienceHead subclass. "
@@ -189,8 +189,8 @@ async def main() -> None:
     print(f"[*] Proposal ID   : {proposal_id}")
     print(f"[*] Target file   : {TARGET_FILE}")
     print(f"[*] Category      : {proposal['category']}")
-    print(f"[*] New class     : EconomicSalienceHead")
-    print(f"[*] Base class    : SalienceHead")
+    print("[*] New class     : EconomicSalienceHead")
+    print("[*] Base class    : SalienceHead")
     print()
 
     await r.xadd(

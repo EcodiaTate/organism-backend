@@ -9,23 +9,21 @@ Tests:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.clients.context_compression import (
-    ContextCompressor,
+from clients.context_compression import (
     CompressionMetrics,
+    ContextCompressor,
 )
-from ecodiaos.clients.embedding import cosine_similarity, MockEmbeddingClient
-from ecodiaos.systems.simula.history import EvolutionHistoryManager
-from ecodiaos.systems.simula.evolution_types import (
+from clients.embedding import MockEmbeddingClient, cosine_similarity
+from systems.simula.evolution_types import (
     ChangeCategory,
     EvolutionRecord,
     RiskLevel,
 )
-
+from systems.simula.history import EvolutionHistoryManager
 
 # ─── Context Compression Tests ────────────────────────────────────────────────
 
@@ -286,7 +284,7 @@ class TestEvolutionHistoryEmbeddings:
 
 class TestDedupMetrics:
     def test_dedup_stats_initialised(self):
-        from ecodiaos.systems.simula.proposal_intelligence import ProposalIntelligence
+        from systems.simula.proposal_intelligence import ProposalIntelligence
 
         intel = ProposalIntelligence(llm=MagicMock())
         stats = intel.get_dedup_stats()

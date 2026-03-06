@@ -1,0 +1,468 @@
+"""
+EcodiaOS — Telos Service
+
+The drive topology engine. Measures effective intelligence as the product
+of nominal I corrected by drive multipliers (Care, Coherence, Honesty)
+with Growth modulating dI/dt. Broadcasts results on Synapse every 60s
+and emits threshold-crossing alerts.
+
+Telos does not replace Equor. Equor enforces the constitution as guardrails.
+Telos provides the deeper geometric framing: the drives are the topology
+of the intelligence space itself.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import time
+from typing import TYPE_CHECKING, Any
+
+import structlog
+
+from ecodiaos.primitives.common import DriveAlignmentVector
+from ecodiaos.systems.telos.care import CareTopologyEngine
+from ecodiaos.systems.telos.coherence import CoherenceTopologyEngine
+from ecodiaos.systems.telos.growth import GrowthTopologyEngine
+from ecodiaos.systems.telos.honesty import HonestyTopologyEngine
+from ecodiaos.systems.telos.integrator import DriveTopologyIntegrator
+from ecodiaos.systems.telos.types import (
+    ConstitutionalTopologyReport,
+    EffectiveIntelligenceReport,
+    FoveaMetrics,
+    GrowthDirective,
+    LogosMetrics,
+    TelosConfig,
+)
+
+if TYPE_CHECKING:
+    from ecodiaos.systems.synapse.event_bus import EventBus
+    from ecodiaos.systems.synapse.types import SynapseEvent, SynapseEventType
+
+logger = structlog.get_logger()
+
+
+class TelosService:
+    """
+    The drive topology engine — Telos.
+
+    Periodically computes effective intelligence (nominal I corrected by
+    all four drive multipliers), broadcasts results on Synapse, and emits
+    threshold-crossing alerts for alignment gaps, care coverage gaps,
+    coherence cost elevation, growth stagnation, and honesty validity drops.
+
+    Implements ManagedSystemProtocol for Synapse health monitoring.
+    """
+
+    system_id: str = "telos"
+
+    def __init__(
+        self,
+        config: TelosConfig | None = None,
+        logos: LogosMetrics | None = None,
+        fovea: FoveaMetrics | None = None,
+    ) -> None:
+        self._config = config or TelosConfig()
+        self._logos: LogosMetrics | None = logos
+        self._fovea: FoveaMetrics | None = fovea
+        self._event_bus: EventBus | None = None
+        self._logger = logger.bind(component="telos")
+
+        # Build the engine stack
+        self._care_engine = CareTopologyEngine(self._config)
+        self._coherence_engine = CoherenceTopologyEngine(self._config)
+        self._growth_engine = GrowthTopologyEngine(self._config)
+        self._honesty_engine = HonestyTopologyEngine(self._config)
+        self._integrator = DriveTopologyIntegrator(
+            config=self._config,
+            care_engine=self._care_engine,
+            coherence_engine=self._coherence_engine,
+            growth_engine=self._growth_engine,
+            honesty_engine=self._honesty_engine,
+        )
+
+        # State
+        self._initialized = False
+        self._computation_task: asyncio.Task[None] | None = None
+        self._last_computation_ms: float = 0.0
+        self._computation_count: int = 0
+        self._last_constitutional_check: float = 0.0
+
+        # Recent drive alignments (fed from Equor via Synapse events)
+        self._recent_alignments: list[DriveAlignmentVector] = []
+        self._max_alignment_history = 50
+
+    # ─── Dependency Injection ────────────────────────────────────────
+
+    def set_logos(self, logos: LogosMetrics) -> None:
+        """Inject the Logos metrics provider."""
+        self._logos = logos
+        self._logger.info("logos_wired")
+
+    def set_fovea(self, fovea: FoveaMetrics) -> None:
+        """Inject the Fovea metrics provider."""
+        self._fovea = fovea
+        self._logger.info("fovea_wired")
+
+    def set_event_bus(self, event_bus: EventBus) -> None:
+        """Inject the Synapse event bus for publishing topology events."""
+        self._event_bus = event_bus
+        self._logger.info("event_bus_wired")
+
+    # ─── Lifecycle ───────────────────────────────────────────────────
+
+    async def initialize(self) -> None:
+        """Initialize the Telos service. Safe to call multiple times."""
+        if self._initialized:
+            return
+
+        self._logger.info("telos_initializing")
+
+        # Subscribe to relevant Synapse events if the bus is available
+        if self._event_bus is not None:
+            self._subscribe_to_events()
+
+        self._initialized = True
+        self._logger.info("telos_initialized")
+
+    async def start(self) -> None:
+        """Start the periodic computation loop."""
+        if not self._initialized:
+            await self.initialize()
+
+        if self._logos is None or self._fovea is None:
+            self._logger.warning(
+                "telos_start_deferred",
+                reason="logos or fovea not wired yet",
+            )
+            return
+
+        if self._computation_task is not None:
+            return  # Already running
+
+        self._computation_task = asyncio.create_task(
+            self._computation_loop(), name="telos_computation_loop"
+        )
+        self._logger.info(
+            "telos_started",
+            interval_s=self._config.computation_interval_s,
+        )
+
+    async def stop(self) -> None:
+        """Stop the periodic computation loop."""
+        if self._computation_task is not None:
+            self._computation_task.cancel()
+            try:
+                await self._computation_task
+            except asyncio.CancelledError:
+                pass
+            self._computation_task = None
+            self._logger.info("telos_stopped")
+
+    # ─── Health (ManagedSystemProtocol) ──────────────────────────────
+
+    async def health(self) -> dict[str, Any]:
+        """Return health status for Synapse monitoring."""
+        has_deps = self._logos is not None and self._fovea is not None
+        running = self._computation_task is not None and not self._computation_task.done()
+
+        status = "healthy" if (has_deps and running) else "degraded"
+        if not self._initialized:
+            status = "stopped"
+
+        last_report = self._integrator.last_report
+
+        return {
+            "status": status,
+            "initialized": self._initialized,
+            "logos_wired": self._logos is not None,
+            "fovea_wired": self._fovea is not None,
+            "event_bus_wired": self._event_bus is not None,
+            "computation_loop_running": running,
+            "computation_count": self._computation_count,
+            "last_computation_ms": self._last_computation_ms,
+            "last_effective_I": last_report.effective_I if last_report else None,
+            "last_alignment_gap": last_report.alignment_gap if last_report else None,
+            "recent_alignments_buffered": len(self._recent_alignments),
+        }
+
+    # ─── Public API ──────────────────────────────────────────────────
+
+    async def compute_now(self) -> EffectiveIntelligenceReport | None:
+        """
+        Run a single topology computation immediately.
+
+        Returns None if Logos or Fovea are not wired.
+        """
+        if self._logos is None or self._fovea is None:
+            self._logger.warning("compute_now_skipped", reason="dependencies not wired")
+            return None
+
+        return await self._run_computation()
+
+    @property
+    def integrator(self) -> DriveTopologyIntegrator:
+        """Access the integrator for reading cached reports."""
+        return self._integrator
+
+    # ─── Event Subscription ──────────────────────────────────────────
+
+    def _subscribe_to_events(self) -> None:
+        """Subscribe to Synapse events that feed Telos state."""
+        if self._event_bus is None:
+            return
+
+        from ecodiaos.systems.synapse.types import SynapseEventType
+
+        # Listen for intent rejections (contains drive alignment data)
+        self._event_bus.subscribe(
+            SynapseEventType.INTENT_REJECTED,
+            self._on_intent_rejected,
+        )
+
+        self._logger.debug("telos_event_subscriptions_registered")
+
+    async def _on_intent_rejected(self, event: SynapseEvent) -> None:
+        """
+        Handle INTENT_REJECTED events from Equor.
+
+        Extract the drive alignment vector and add it to recent history
+        for the Coherence engine's value incoherence detection.
+        """
+        alignment_data = event.data.get("alignment")
+        if alignment_data and isinstance(alignment_data, dict):
+            try:
+                alignment = DriveAlignmentVector(
+                    coherence=float(alignment_data.get("coherence", 0.0)),
+                    care=float(alignment_data.get("care", 0.0)),
+                    growth=float(alignment_data.get("growth", 0.0)),
+                    honesty=float(alignment_data.get("honesty", 0.0)),
+                )
+                self._recent_alignments.append(alignment)
+                # Trim to max history size
+                if len(self._recent_alignments) > self._max_alignment_history:
+                    self._recent_alignments = self._recent_alignments[
+                        -self._max_alignment_history :
+                    ]
+            except (ValueError, TypeError) as exc:
+                self._logger.warning(
+                    "alignment_parse_failed",
+                    error=str(exc),
+                    data=alignment_data,
+                )
+
+    # ─── Computation Loop ────────────────────────────────────────────
+
+    async def _computation_loop(self) -> None:
+        """Periodic loop that computes effective I every computation_interval_s."""
+        interval = self._config.computation_interval_s
+        self._logger.info("computation_loop_started", interval_s=interval)
+
+        while True:
+            try:
+                await self._run_computation()
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                self._logger.error(
+                    "telos_computation_failed",
+                    error=str(exc),
+                    count=self._computation_count,
+                )
+
+            await asyncio.sleep(interval)
+
+    async def _run_computation(self) -> EffectiveIntelligenceReport:
+        """Execute a single topology computation cycle."""
+        assert self._logos is not None
+        assert self._fovea is not None
+
+        t0 = time.monotonic()
+
+        report = await self._integrator.compute_effective_intelligence(
+            logos=self._logos,
+            fovea=self._fovea,
+            recent_alignments=self._recent_alignments if self._recent_alignments else None,
+        )
+
+        elapsed_ms = (time.monotonic() - t0) * 1000
+        self._last_computation_ms = elapsed_ms
+        self._computation_count += 1
+
+        # Emit events
+        await self._emit_effective_I_computed(report)
+        await self._emit_threshold_alerts(report)
+        await self._check_constitutional_topology()
+
+        # Check for growth directive
+        growth_directive = self._integrator.check_growth_directive()
+        if growth_directive is not None:
+            await self._emit_growth_stagnation(growth_directive)
+
+        self._logger.debug(
+            "telos_cycle_complete",
+            elapsed_ms=f"{elapsed_ms:.1f}",
+            count=self._computation_count,
+        )
+
+        return report
+
+    # ─── Event Emission ──────────────────────────────────────────────
+
+    async def _emit_event(self, event_type_name: str, data: dict[str, Any]) -> None:
+        """Emit a Synapse event if the bus is wired."""
+        if self._event_bus is None:
+            return
+
+        from ecodiaos.systems.synapse.types import SynapseEvent, SynapseEventType
+
+        try:
+            event_type = SynapseEventType(event_type_name)
+        except ValueError:
+            self._logger.warning("unknown_event_type", event_type=event_type_name)
+            return
+
+        event = SynapseEvent(
+            event_type=event_type,
+            data=data,
+            source_system=self.system_id,
+        )
+        await self._event_bus.emit(event)
+
+    async def _emit_effective_I_computed(
+        self, report: EffectiveIntelligenceReport
+    ) -> None:
+        """Broadcast EFFECTIVE_I_COMPUTED every cycle."""
+        await self._emit_event(
+            "effective_i_computed",
+            {
+                "report_id": report.id,
+                "nominal_I": report.nominal_I,
+                "effective_I": report.effective_I,
+                "effective_dI_dt": report.effective_dI_dt,
+                "care_multiplier": report.care_multiplier,
+                "coherence_bonus": report.coherence_bonus,
+                "honesty_coefficient": report.honesty_coefficient,
+                "growth_rate": report.growth_rate,
+                "alignment_gap": report.alignment_gap,
+                "alignment_gap_warning": report.alignment_gap_warning,
+            },
+        )
+
+    async def _emit_threshold_alerts(
+        self, report: EffectiveIntelligenceReport
+    ) -> None:
+        """Emit threshold-crossing alerts."""
+        # Alignment gap warning
+        if report.alignment_gap_warning:
+            primary_cause = self._integrator.identify_primary_alignment_gap_cause()
+            await self._emit_event(
+                "alignment_gap_warning",
+                {
+                    "nominal_I": report.nominal_I,
+                    "effective_I": report.effective_I,
+                    "primary_cause": primary_cause,
+                },
+            )
+
+        # Care coverage gap
+        if report.care_multiplier < self._config.care_coverage_gap_threshold:
+            care_report = self._integrator.last_care_report
+            await self._emit_event(
+                "care_coverage_gap",
+                {
+                    "care_multiplier": report.care_multiplier,
+                    "uncovered_domains": (
+                        care_report.uncovered_welfare_domains if care_report else []
+                    ),
+                    "failure_count": (
+                        len(care_report.welfare_prediction_failures) if care_report else 0
+                    ),
+                },
+            )
+
+        # Coherence cost elevated
+        coherence_report = self._integrator.last_coherence_report
+        if coherence_report and coherence_report.effective_I_improvement > self._config.coherence_cost_threshold:
+            await self._emit_event(
+                "coherence_cost_elevated",
+                {
+                    "coherence_bonus": coherence_report.coherence_compression_bonus,
+                    "extra_bits": coherence_report.total_extra_bits,
+                    "logical_count": len(coherence_report.logical_contradictions),
+                    "temporal_count": len(coherence_report.temporal_violations),
+                    "value_count": len(coherence_report.value_conflicts),
+                    "cross_domain_count": len(coherence_report.cross_domain_mismatches),
+                },
+            )
+
+        # Honesty validity low
+        if report.honesty_coefficient < self._config.honesty_validity_threshold:
+            honesty_report = self._integrator.last_honesty_report
+            await self._emit_event(
+                "honesty_validity_low",
+                {
+                    "validity_coefficient": report.honesty_coefficient,
+                    "selective_attention_bias": (
+                        honesty_report.selective_attention_bias if honesty_report else 0.0
+                    ),
+                    "confabulation_rate": (
+                        honesty_report.confabulation_rate if honesty_report else 0.0
+                    ),
+                    "overclaiming_rate": (
+                        honesty_report.overclaiming_rate if honesty_report else 0.0
+                    ),
+                    "nominal_I_inflation": (
+                        honesty_report.nominal_I_inflation if honesty_report else 0.0
+                    ),
+                },
+            )
+
+    async def _emit_growth_stagnation(self, directive: GrowthDirective) -> None:
+        """Emit GROWTH_STAGNATION when dI/dt falls below minimum."""
+        growth_metrics = self._integrator.last_growth_metrics
+        await self._emit_event(
+            "growth_stagnation",
+            {
+                "dI_dt": growth_metrics.dI_dt if growth_metrics else 0.0,
+                "d2I_dt2": growth_metrics.d2I_dt2 if growth_metrics else 0.0,
+                "growth_score": growth_metrics.growth_score if growth_metrics else 0.0,
+                "frontier_domains": directive.frontier_domains,
+                "urgency": directive.urgency,
+                "directive": directive.directive,
+            },
+        )
+
+    async def _check_constitutional_topology(self) -> None:
+        """
+        Periodically verify that all four drives remain architecturally intact.
+
+        Emits CONSTITUTIONAL_TOPOLOGY_INTACT every 24h.
+        """
+        now = time.monotonic()
+        if now - self._last_constitutional_check < self._config.constitutional_check_interval_s:
+            return
+
+        self._last_constitutional_check = now
+
+        # The four drives are immutable constants — this check verifies
+        # that no code path has modified the topology structure.
+        report = ConstitutionalTopologyReport(
+            all_four_drives_verified=True,
+            care_is_coverage=True,
+            coherence_is_compression=True,
+            growth_is_gradient=True,
+            honesty_is_validity=True,
+        )
+
+        await self._emit_event(
+            "constitutional_topology_intact",
+            {
+                "all_four_drives_verified": report.all_four_drives_verified,
+                "care_is_coverage": report.care_is_coverage,
+                "coherence_is_compression": report.coherence_is_compression,
+                "growth_is_gradient": report.growth_is_gradient,
+                "honesty_is_validity": report.honesty_is_validity,
+            },
+        )
+
+        self._logger.info("constitutional_topology_verified")

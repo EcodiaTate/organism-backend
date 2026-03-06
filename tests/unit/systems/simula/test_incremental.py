@@ -9,21 +9,22 @@ from __future__ import annotations
 
 import hashlib
 import textwrap
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 
 import pytest
 
-from ecodiaos.systems.simula.verification.incremental import (
+from systems.simula.verification.incremental import (
     IncrementalVerificationEngine,
 )
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     CachedVerificationResult,
     FunctionSignature,
     IncrementalVerificationResult,
-    VerificationCacheTier,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ class TestDependencyGraph:
         """All function defs (sync + async) should be indexed."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/demo/service.py",
+            "systems/demo/service.py",
             """\
             import asyncio
 
@@ -71,8 +72,8 @@ class TestDependencyGraph:
         engine._dep_graph = {}
         engine._reverse_deps = {}
 
-        source = (tmp_path / "ecodiaos/systems/demo/service.py").read_text()
-        engine._index_file("ecodiaos/systems/demo/service.py", source)
+        source = (tmp_path / "systems/demo/service.py").read_text()
+        engine._index_file("systems/demo/service.py", source)
 
         assert len(engine._dep_graph) == 2
         keys = list(engine._dep_graph.keys())
@@ -85,14 +86,14 @@ class TestDependencyGraph:
         def foo(a, b):
             return a + b
         """
-        _write_py(tmp_path, "ecodiaos/systems/alpha/mod.py", src)
+        _write_py(tmp_path, "systems/alpha/mod.py", src)
 
         engine = _make_engine(tmp_path)
         engine._dep_graph = {}
         engine._reverse_deps = {}
 
-        source = (tmp_path / "ecodiaos/systems/alpha/mod.py").read_text()
-        engine._index_file("ecodiaos/systems/alpha/mod.py", source)
+        source = (tmp_path / "systems/alpha/mod.py").read_text()
+        engine._index_file("systems/alpha/mod.py", source)
 
         sig = list(engine._dep_graph.values())[0]
         expected = hashlib.sha256(
@@ -108,24 +109,24 @@ class TestDependencyGraph:
         def build_path(base):
             return join(base, "sub")
         """
-        _write_py(tmp_path, "ecodiaos/systems/beta/paths.py", src)
+        _write_py(tmp_path, "systems/beta/paths.py", src)
 
         engine = _make_engine(tmp_path)
         engine._dep_graph = {}
         engine._reverse_deps = {}
 
-        source = (tmp_path / "ecodiaos/systems/beta/paths.py").read_text()
-        engine._index_file("ecodiaos/systems/beta/paths.py", source)
+        source = (tmp_path / "systems/beta/paths.py").read_text()
+        engine._index_file("systems/beta/paths.py", source)
 
         sig = list(engine._dep_graph.values())[0]
         assert any("os.path" in imp for imp in sig.imports)
 
     @pytest.mark.asyncio
     async def test_ensure_dep_graph_scans_system_dirs(self, tmp_path: Path):
-        """The graph builder should scan ecodiaos/systems/ tree."""
+        """The graph builder should scan systems/ tree."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/gamma/core.py",
+            "systems/gamma/core.py",
             """\
             def process():
                 return 42
@@ -143,7 +144,7 @@ class TestDependencyGraph:
         """rebuild_graph should clear and re-index."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/gamma/core.py",
+            "systems/gamma/core.py",
             "def hello(): return 1\n",
         )
 
@@ -154,7 +155,7 @@ class TestDependencyGraph:
         # Add another function, rebuild
         _write_py(
             tmp_path,
-            "ecodiaos/systems/gamma/core.py",
+            "systems/gamma/core.py",
             "def hello(): return 1\ndef world(): return 2\n",
         )
         count2 = await engine.rebuild_graph()
@@ -221,7 +222,7 @@ class TestVerifyIncremental:
         """If no files changed, result should be empty with 0 checked."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hi'\n",
         )
         engine = _make_engine(tmp_path)
@@ -239,7 +240,7 @@ class TestVerifyIncremental:
         """Changing a file should trigger re-verification of its functions."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hi'\n",
         )
         engine = _make_engine(tmp_path)
@@ -250,12 +251,12 @@ class TestVerifyIncremental:
         # Modify the file
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hello'\n",
         )
 
         result = await engine.verify_incremental(
-            files_changed=["ecodiaos/systems/test_sys/mod.py"],
+            files_changed=["systems/test_sys/mod.py"],
         )
 
         assert result.functions_checked >= 1
@@ -266,7 +267,7 @@ class TestVerifyIncremental:
         """Each call should increment the MVCC version."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hi'\n",
         )
         engine = _make_engine(tmp_path)
@@ -282,7 +283,7 @@ class TestVerifyIncremental:
         """When a formal_verifier is provided, it should be called."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hi'\n",
         )
         engine = _make_engine(tmp_path)
@@ -291,14 +292,14 @@ class TestVerifyIncremental:
         # Modify to trigger change
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'goodbye'\n",
         )
 
         mock_verifier = AsyncMock(return_value=None)
 
         result = await engine.verify_incremental(
-            files_changed=["ecodiaos/systems/test_sys/mod.py"],
+            files_changed=["systems/test_sys/mod.py"],
             formal_verifier=mock_verifier,
         )
 
@@ -311,7 +312,7 @@ class TestVerifyIncremental:
         """proposal_id should be reflected in the result."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def greet(): return 'hi'\n",
         )
         engine = _make_engine(tmp_path)
@@ -418,14 +419,14 @@ class TestInvalidation:
         """Should count functions in the given files."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def a(): return 1\ndef b(): return 2\n",
         )
         engine = _make_engine(tmp_path)
         await engine.rebuild_graph()
 
         count = await engine.invalidate_for_files(
-            ["ecodiaos/systems/test_sys/mod.py"],
+            ["systems/test_sys/mod.py"],
         )
         assert count == 2
 
@@ -447,7 +448,7 @@ class TestIncrementalStats:
     async def test_get_stats_after_build(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test_sys/mod.py",
+            "systems/test_sys/mod.py",
             "def x(): return 1\n",
         )
         engine = _make_engine(tmp_path)

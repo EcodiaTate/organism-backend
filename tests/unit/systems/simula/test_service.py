@@ -8,13 +8,12 @@ governance routing, and the full apply-verify-record pipeline.
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import SimulaConfig
-from ecodiaos.systems.simula.service import SimulaService
-from ecodiaos.systems.simula.evolution_types import (
+from config import SimulaConfig
+from systems.simula.evolution_types import (
     ChangeCategory,
     ChangeSpec,
     CodeChangeResult,
@@ -25,7 +24,7 @@ from ecodiaos.systems.simula.evolution_types import (
     RiskLevel,
     SimulationResult,
 )
-
+from systems.simula.service import SimulaService
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 

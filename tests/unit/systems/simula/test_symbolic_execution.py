@@ -12,23 +12,24 @@ import json
 import sys
 import textwrap
 import types
-from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ecodiaos.systems.simula.verification.symbolic_execution import (
-    SymbolicExecutionEngine,
+from systems.simula.verification.symbolic_execution import (
     _DOMAIN_KEYWORDS,
+    SymbolicExecutionEngine,
 )
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     SymbolicDomain,
     SymbolicExecutionResult,
     SymbolicExecutionStatus,
     SymbolicProperty,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

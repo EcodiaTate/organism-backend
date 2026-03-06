@@ -1,6 +1,7 @@
-import os
 import asyncio
 import json
+import os
+
 import redis.asyncio as redis
 from dotenv import load_dotenv
 
@@ -15,7 +16,7 @@ async def fire_signal():
     print(f"[*] Loaded password: {'[HIDDEN]' if password else 'MISSING!'}")
 
     r = redis.from_url(url, password=password)
-    payload = json.dumps({"files_changed": ["ecodiaos/systems/atune/logging_utils.py"]})
+    payload = json.dumps({"files_changed": ["systems/atune/logging_utils.py"]})
 
     print(f"[*] Firing neurotransmitter to {url}...")
     subscribers = await r.publish("eos:events:code_evolved", payload)

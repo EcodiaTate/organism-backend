@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import math
-
 import pytest
 
-from ecodiaos.systems.voxis.audience import AudienceProfiler
-from ecodiaos.systems.voxis.types import StrategyParams
+from systems.voxis.audience import AudienceProfiler
+from systems.voxis.types import StrategyParams
 
 
 @pytest.fixture

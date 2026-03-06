@@ -9,19 +9,18 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.evo.parameter_tuner import ParameterTuner
-from ecodiaos.systems.evo.types import (
+from systems.evo.parameter_tuner import ParameterTuner
+from systems.evo.types import (
+    PARAMETER_DEFAULTS,
+    TUNABLE_PARAMETERS,
+    VELOCITY_LIMITS,
     Hypothesis,
     HypothesisCategory,
     HypothesisStatus,
     Mutation,
     MutationType,
-    PARAMETER_DEFAULTS,
     ParameterAdjustment,
-    TUNABLE_PARAMETERS,
-    VELOCITY_LIMITS,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -198,7 +197,7 @@ class TestVelocityLimit:
         tuner = make_tuner()
         limit = VELOCITY_LIMITS["max_total_parameter_delta_per_cycle"]
         # Create batch that exceeds limit
-        adjustments = [self._make_adj(f"nova.efe.pragmatic", limit / 2 + 0.01)]
+        adjustments = [self._make_adj("nova.efe.pragmatic", limit / 2 + 0.01)]
         adjustments.append(self._make_adj("nova.efe.epistemic", limit / 2 + 0.01))
         allowed, reason = tuner.check_velocity_limit(adjustments)
         assert allowed is False

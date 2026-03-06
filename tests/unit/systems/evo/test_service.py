@@ -7,25 +7,23 @@ parameter querying, and consolidation triggering.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import EvoConfig
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.systems.atune.types import (
+from config import EvoConfig
+from primitives.affect import AffectState
+from systems.atune.types import (
     MemoryContext,
     SalienceVector,
     WorkspaceBroadcast,
     WorkspaceContext,
 )
-from ecodiaos.systems.evo.service import EvoService
-from ecodiaos.systems.evo.types import (
+from systems.evo.service import EvoService
+from systems.evo.types import (
     PARAMETER_DEFAULTS,
     ConsolidationResult,
-    PatternContext,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,66 @@
+---
+# EcodiaOS — Akash GPU Fine-Tuning SDL
+#
+# Deploys a single-GPU node for LoRA fine-tuning via Unsloth.
+# Template variables (injected by the executor):
+#   ${DOCKER_IMAGE}        — Training container image
+#   ${GPU_MODEL}           — GPU model filter (e.g., "a100", "rtx4090")
+#   ${GPU_RAM}             — GPU VRAM in Gi (e.g., "40Gi", "24Gi")
+#   ${CPU_UNITS}           — CPU millicores (e.g., "8000m")
+#   ${MEMORY}              — System RAM (e.g., "32Gi")
+#   ${STORAGE}             — Ephemeral storage (e.g., "100Gi")
+#   ${DATASET_CID}         — IPFS CID of the training JSONL dataset
+#   ${PINATA_JWT}          — Pinata JWT for uploading adapter weights
+#   ${PINATA_GATEWAY_URL}  — Pinata gateway URL for downloading dataset
+#   ${BASE_MODEL}          — HuggingFace model ID (e.g., "unsloth/Meta-Llama-3.1-8B-Instruct")
+#   ${TRAINING_ARGS}       — JSON-encoded hyperparameters
+#   ${STATUS_PORT}         — Port for the training status HTTP endpoint
+
+version: "2.0"
+
+services:
+  finetune:
+    image: ${DOCKER_IMAGE}
+    expose:
+      - port: ${STATUS_PORT}
+        as: 80
+        to:
+          - global: true
+    env:
+      - DATASET_CID=${DATASET_CID}
+      - PINATA_JWT=${PINATA_JWT}
+      - PINATA_GATEWAY_URL=${PINATA_GATEWAY_URL}
+      - BASE_MODEL=${BASE_MODEL}
+      - TRAINING_ARGS=${TRAINING_ARGS}
+      - STATUS_PORT=${STATUS_PORT}
+      - NVIDIA_VISIBLE_DEVICES=all
+
+profiles:
+  compute:
+    finetune:
+      resources:
+        cpu:
+          units: ${CPU_UNITS}
+        memory:
+          size: ${MEMORY}
+        storage:
+          size: ${STORAGE}
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: ${GPU_MODEL}
+                  ram: ${GPU_RAM}
+  placement:
+    global:
+      pricing:
+        finetune:
+          denom: uakt
+          amount: 10000
+
+deployment:
+  finetune:
+    global:
+      profile: finetune
+      count: 1

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.soma.types import (
+from systems.soma.types import (
     ALL_DIMENSIONS,
     DEFAULT_SETPOINTS,
     DIMENSION_RANGES,
@@ -15,13 +15,9 @@ from ecodiaos.systems.soma.types import (
     AllostaticSignal,
     Attractor,
     Bifurcation,
-    CounterfactualTrace,
     DevelopmentalStage,
     InteroceptiveDimension,
     InteroceptiveState,
-    PhaseSpaceSnapshot,
-    ScheduledAllostaticEvent,
-    SomaHealthSnapshot,
     SomaticMarker,
     _clamp_dimension,
     stage_at_least,

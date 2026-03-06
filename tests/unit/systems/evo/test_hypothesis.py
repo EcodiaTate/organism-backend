@@ -9,24 +9,22 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.primitives.common import utc_now
-from ecodiaos.primitives.memory_trace import Episode
-from ecodiaos.systems.evo.hypothesis import HypothesisEngine, _build_hypothesis, _parse_json_safe
-from ecodiaos.systems.evo.types import (
+from primitives.common import utc_now
+from primitives.memory_trace import Episode
+from systems.evo.hypothesis import HypothesisEngine, _build_hypothesis, _parse_json_safe
+from systems.evo.types import (
     EvidenceDirection,
     Hypothesis,
     HypothesisCategory,
     HypothesisStatus,
-    Mutation,
     MutationType,
     PatternCandidate,
     PatternType,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -142,7 +140,7 @@ class TestHypothesisGeneration:
     async def test_respects_max_active_limit(self):
         engine = make_engine()
         # Fill the registry to capacity
-        for i in range(50):
+        for _i in range(50):
             h = make_hypothesis()
             engine._active[h.id] = h
 

@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.systems.voxis.renderer import (
+from primitives.affect import AffectState
+from systems.voxis.renderer import (
     ExpressionPolicy,
     ExpressionPolicyClass,
     _compute_temperature,
     _derive_candidate_policies,
     _select_minimum_efe_policy,
 )
-from ecodiaos.systems.voxis.types import ExpressionIntent, ExpressionTrigger, StrategyParams
+from systems.voxis.types import ExpressionIntent, ExpressionTrigger, StrategyParams
 
 
 def make_intent(

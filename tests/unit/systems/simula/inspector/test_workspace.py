@@ -7,14 +7,12 @@ Tests workspace creation, cleanup, factory methods, and isolation guarantees.
 from __future__ import annotations
 
 import shutil
-import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
-
+from systems.simula.inspector.workspace import TargetWorkspace
 
 # ── Construction Tests ──────────────────────────────────────────────────────
 

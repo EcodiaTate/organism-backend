@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.primitives.expression import PersonalityVector
-from ecodiaos.systems.voxis.personality import MAX_PERSONALITY_DELTA, PersonalityEngine
-from ecodiaos.systems.voxis.types import StrategyParams
+from primitives.expression import PersonalityVector
+from systems.voxis.personality import MAX_PERSONALITY_DELTA, PersonalityEngine
+from systems.voxis.types import StrategyParams
 
 
 @pytest.fixture

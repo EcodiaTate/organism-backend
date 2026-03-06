@@ -5,20 +5,22 @@ Reverse-engineers a Black-Box frontend into a White-Box Phantom Codebase for Ins
 """
 
 import asyncio
-import re
-import os
 import json
-from urllib.parse import urljoin
-import httpx
+import os
+import re
 import subprocess
+from urllib.parse import urljoin
+
+import httpx
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Replace with your actual LLM imports
-from ecodiaos.clients.llm import Message, create_llm_provider
-from ecodiaos.config import LLMConfig
+from clients.llm import Message, create_llm_provider
+from config import LLMConfig
+
 
 class PhantomReconEngine:
     def __init__(self, llm_provider, target_url):
@@ -141,7 +143,7 @@ class PhantomReconEngine:
                 "commit", "-m", "Auto-generated phantom codebase"
             ], cwd=self.workspace_dir, check=True, capture_output=True)
 
-            print(f"[+] Local Git repository ready!")
+            print("[+] Local Git repository ready!")
             print("="*60)
             print(f"[!!!] PASS THIS EXACT URL TO YOUR INSPECTOR: \n      file://{self.workspace_dir}")
             print("="*60)

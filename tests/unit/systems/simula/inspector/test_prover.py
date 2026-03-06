@@ -13,12 +13,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.prover import (
-    VulnerabilityProver,
-    _GOAL_TO_VULN_CLASS,
+from systems.simula.inspector.prover import (
     _VULN_SEVERITY_MAP,
+    VulnerabilityProver,
 )
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.types import (
     AttackSurface,
     AttackSurfaceType,
     InspectorConfig,
@@ -26,7 +25,6 @@ from ecodiaos.systems.simula.inspector.types import (
     VulnerabilityReport,
     VulnerabilitySeverity,
 )
-
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 

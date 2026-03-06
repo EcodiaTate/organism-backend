@@ -1,14 +1,15 @@
 import asyncio
-import urllib.request
 import json
+import urllib.request
 from decimal import Decimal
+
 from dotenv import load_dotenv
 
 # 🚨 CRITICAL: Load the .env file BEFORE importing the config!
 load_dotenv()
 
-from ecodiaos.config import load_config
-from ecodiaos.clients.wallet import WalletClient
+from clients.wallet import WalletClient
+from config import load_config
 
 
 def fetch_prices() -> tuple[Decimal, Decimal]:
@@ -63,7 +64,7 @@ async def check_metabolism():
         if eth_usd:
             print(f"               ≈ ${usdc_balance:.2f} USD  /  A${usdc_value_aud:.2f} AUD")
         if eth_usd:
-            print(f"  ─────────────────────────────────")
+            print("  ─────────────────────────────────")
             print(f"  Total:       ≈ ${total_usd:.2f} USD  /  A${total_aud:.2f} AUD")
             print(f"  (ETH @ ${eth_usd:,.2f} USD)")
         print("========================================\n")

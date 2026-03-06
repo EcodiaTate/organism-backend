@@ -5,11 +5,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-import pytest_asyncio
 
-from ecodiaos.config import SomaConfig
-from ecodiaos.systems.soma.service import SomaService
-from ecodiaos.systems.soma.types import (
+from config import SomaConfig
+from systems.soma.service import SomaService
+from systems.soma.types import (
     ALL_DIMENSIONS,
     AllostaticSignal,
     DevelopmentalStage,

@@ -9,22 +9,24 @@ normalized body hashing, LLM-assisted naming, consolidation
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.learning.lilo import (
+from systems.simula.learning.lilo import (
     LiloLibraryEngine,
     _ExtractedFunction,
 )
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     AbstractionExtractionResult,
     AbstractionKind,
     LibraryAbstraction,
     LibraryStats,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -72,7 +74,7 @@ class TestFunctionExtraction:
     async def test_extracts_functions_from_file(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/mod.py",
+            "systems/test/mod.py",
             """\
             def validate_input(data: dict) -> bool:
                 if not data:
@@ -88,7 +90,7 @@ class TestFunctionExtraction:
         engine = _make_engine(tmp_path)
 
         functions = await engine._extract_functions(
-            "ecodiaos/systems/test/mod.py", "proposal-1",
+            "systems/test/mod.py", "proposal-1",
         )
 
         assert len(functions) == 2
@@ -100,7 +102,7 @@ class TestFunctionExtraction:
     async def test_skips_test_functions(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/mod.py",
+            "systems/test/mod.py",
             """\
             def test_something():
                 assert True
@@ -114,7 +116,7 @@ class TestFunctionExtraction:
         engine = _make_engine(tmp_path)
 
         functions = await engine._extract_functions(
-            "ecodiaos/systems/test/mod.py", "p1",
+            "systems/test/mod.py", "p1",
         )
 
         names = {f.name for f in functions}
@@ -125,7 +127,7 @@ class TestFunctionExtraction:
     async def test_skips_dunder_methods(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/mod.py",
+            "systems/test/mod.py",
             """\
             class Foo:
                 def __init__(self):
@@ -140,7 +142,7 @@ class TestFunctionExtraction:
         engine = _make_engine(tmp_path)
 
         functions = await engine._extract_functions(
-            "ecodiaos/systems/test/mod.py", "p1",
+            "systems/test/mod.py", "p1",
         )
 
         names = {f.name for f in functions}
@@ -152,13 +154,13 @@ class TestFunctionExtraction:
         """Functions shorter than _MIN_FUNCTION_LINES should be skipped."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/mod.py",
+            "systems/test/mod.py",
             "def tiny(): pass\n\ndef bigger():\n    x = 1\n    return x\n",
         )
         engine = _make_engine(tmp_path)
 
         functions = await engine._extract_functions(
-            "ecodiaos/systems/test/mod.py", "p1",
+            "systems/test/mod.py", "p1",
         )
 
         names = {f.name for f in functions}
@@ -593,12 +595,12 @@ class TestExtractFromProposals:
         """
         _write_py(
             tmp_path,
-            "ecodiaos/systems/alpha/validators.py",
+            "systems/alpha/validators.py",
             common_body,
         )
         _write_py(
             tmp_path,
-            "ecodiaos/systems/beta/validators.py",
+            "systems/beta/validators.py",
             common_body,
         )
 
@@ -607,8 +609,8 @@ class TestExtractFromProposals:
         result = await engine.extract_from_proposals(
             proposal_ids=["p1", "p2"],
             files_changed={
-                "p1": ["ecodiaos/systems/alpha/validators.py"],
-                "p2": ["ecodiaos/systems/beta/validators.py"],
+                "p1": ["systems/alpha/validators.py"],
+                "p2": ["systems/beta/validators.py"],
             },
         )
 
@@ -626,8 +628,8 @@ class TestExtractFromProposals:
                 raise ValueError("empty")
             return data
         """
-        _write_py(tmp_path, "ecodiaos/systems/a/check.py", common_body)
-        _write_py(tmp_path, "ecodiaos/systems/b/check.py", common_body)
+        _write_py(tmp_path, "systems/a/check.py", common_body)
+        _write_py(tmp_path, "systems/b/check.py", common_body)
 
         mock_llm = AsyncMock()
         mock_response = MagicMock()
@@ -643,8 +645,8 @@ class TestExtractFromProposals:
         result = await engine.extract_from_proposals(
             proposal_ids=["p1", "p2"],
             files_changed={
-                "p1": ["ecodiaos/systems/a/check.py"],
-                "p2": ["ecodiaos/systems/b/check.py"],
+                "p1": ["systems/a/check.py"],
+                "p2": ["systems/b/check.py"],
             },
         )
 

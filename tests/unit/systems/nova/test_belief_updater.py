@@ -7,29 +7,26 @@ confidence decay, and outcome-based updates.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import MagicMock
 
 import pytest
 
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.systems.atune.types import (
-    SalienceVector,
-    WorkspaceBroadcast,
-    WorkspaceContext,
-    MemoryContext,
+from primitives.affect import AffectState
+from systems.atune.types import (
     PredictionError,
     PredictionErrorDirection,
+    SalienceVector,
+    WorkspaceBroadcast,
 )
-from ecodiaos.systems.nova.belief_updater import (
+from systems.nova.belief_updater import (
     BeliefUpdater,
     _bayesian_update_entity,
     _infer_domain,
     _is_dialogue,
     _update_individual_belief,
 )
-from ecodiaos.systems.nova.types import BeliefState, EntityBelief, IndividualBelief
-
+from systems.nova.types import BeliefState, EntityBelief, IndividualBelief
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 
@@ -184,7 +181,7 @@ class TestBayesianEntityUpdate:
         prior = EntityBelief(
             entity_id="e1",
             confidence=0.5,
-            last_observed=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            last_observed=datetime(2020, 1, 1, tzinfo=UTC),
         )
         updated = _bayesian_update_entity(prior, precision=0.5)
         assert updated.last_observed > prior.last_observed

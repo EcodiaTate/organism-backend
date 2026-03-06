@@ -3,12 +3,14 @@
 EcodiaOS - Tier 2 Orchestrator (Node 22 Uprobe -> XDP)
 Fully Implemented. No Mocks.
 """
-import sys
 import ctypes
-import time
 import re
+import sys
+
 from bcc import BPF
-from ecodiaos.systems.simula.inspector.shield import AutonomousShield
+
+from systems.simula.inspector.shield import AutonomousShield
+
 
 class MockLLMProvider:
     async def generate(self, *args, **kwargs): pass
@@ -83,7 +85,7 @@ def main():
     shield = AutonomousShield(MockLLMProvider())
     bpf_xdp, blocklist_map = shield.deploy_filter_live(interface, DUMMY_XDP_CODE)
 
-    print(f"[*] Initializing EcodiaOS Tier 2 Uprobe on Node 22...")
+    print("[*] Initializing EcodiaOS Tier 2 Uprobe on Node 22...")
     bpf_tier2 = BPF(text=TIER2_BPF_SOURCE)
 
     # Attach to the Node.js binary using a Uprobe instead of USDT
@@ -115,10 +117,10 @@ def main():
 
         # 2. Check for L7 zero-day signatures
         if "UNION SELECT" in payload or "bypass=true" in payload:
-            print(f"\n[!!!] L7 ZERO-DAY DETECTED IN NODE MEMORY [!!!]")
+            print("\n[!!!] L7 ZERO-DAY DETECTED IN NODE MEMORY [!!!]")
             print(f"    -> Parsed IP: {attacker_ip}")
             print(f"    -> Payload Snippet: {payload.splitlines()[0]}")
-            print(f"    -> Action: Engaging XDP Muscle...")
+            print("    -> Action: Engaging XDP Muscle...")
 
             try:
                 shield.enforce_ip_block(

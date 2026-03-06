@@ -11,16 +11,14 @@ Covers all five sentinel classes:
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.systems.thymos.sentinels import (
+from systems.thymos.sentinels import (
     CognitiveStallSentinel,
     ContractSentinel,
     DriftSentinel,
     ExceptionSentinel,
     FeedbackLoopSentinel,
 )
-from ecodiaos.systems.thymos.types import (
+from systems.thymos.types import (
     ContractSLA,
     DriftConfig,
     FeedbackLoop,
@@ -28,7 +26,6 @@ from ecodiaos.systems.thymos.types import (
     IncidentSeverity,
     StallConfig,
 )
-
 
 # ─── ExceptionSentinel ────────────────────────────────────────────
 
@@ -229,7 +226,7 @@ class TestDriftSentinel:
             metrics={"test.metric": DriftConfig(window=100, sigma_threshold=2.0)}
         )
         # Feed a few values — shouldn't flag during warmup
-        for i in range(10):
+        for _i in range(10):
             result = sentinel.record_metric("test.metric", 100.0)
         assert result is None
 
@@ -274,7 +271,7 @@ class TestDriftSentinel:
         sentinel = DriftSentinel()
         baselines = sentinel.baselines
         assert isinstance(baselines, dict)
-        for name, info in baselines.items():
+        for _name, info in baselines.items():
             assert "mean" in info
             assert "std" in info
             assert "warmed_up" in info

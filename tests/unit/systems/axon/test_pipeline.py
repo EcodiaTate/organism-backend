@@ -9,14 +9,12 @@ All external dependencies are mocked.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
-from ecodiaos.config import AxonConfig
-from ecodiaos.primitives.common import Verdict
-from ecodiaos.primitives.constitutional import ConstitutionalCheck
-from ecodiaos.primitives.intent import (
+from config import AxonConfig
+from primitives.common import Verdict
+from primitives.constitutional import ConstitutionalCheck
+from primitives.intent import (
     Action,
     ActionSequence,
     EthicalClearance,
@@ -24,13 +22,13 @@ from ecodiaos.primitives.intent import (
     Intent,
     ResourceBudget,
 )
-from ecodiaos.systems.axon.audit import AuditLogger
-from ecodiaos.systems.axon.credentials import CredentialStore
-from ecodiaos.systems.axon.executor import Executor
-from ecodiaos.systems.axon.pipeline import ExecutionPipeline
-from ecodiaos.systems.axon.registry import ExecutorRegistry
-from ecodiaos.systems.axon.safety import BudgetTracker, CircuitBreaker, RateLimiter
-from ecodiaos.systems.axon.types import (
+from systems.axon.audit import AuditLogger
+from systems.axon.credentials import CredentialStore
+from systems.axon.executor import Executor
+from systems.axon.pipeline import ExecutionPipeline
+from systems.axon.registry import ExecutorRegistry
+from systems.axon.safety import BudgetTracker, CircuitBreaker, RateLimiter
+from systems.axon.types import (
     ExecutionContext,
     ExecutionRequest,
     ExecutionResult,
@@ -39,7 +37,6 @@ from ecodiaos.systems.axon.types import (
     RateLimit,
     ValidationResult,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 

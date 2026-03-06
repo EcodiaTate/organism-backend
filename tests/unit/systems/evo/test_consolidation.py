@@ -11,31 +11,28 @@ Tests the 8-phase consolidation pipeline in isolation:
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.primitives.common import utc_now
-from ecodiaos.systems.evo.consolidation import (
-    ConsolidationOrchestrator,
+from primitives.common import utc_now
+from systems.evo.consolidation import (
     _CONSOLIDATION_CYCLE_THRESHOLD,
     _CONSOLIDATION_INTERVAL_HOURS,
+    ConsolidationOrchestrator,
 )
-from ecodiaos.systems.evo.hypothesis import HypothesisEngine
-from ecodiaos.systems.evo.parameter_tuner import ParameterTuner
-from ecodiaos.systems.evo.procedure_extractor import ProcedureExtractor
-from ecodiaos.systems.evo.self_model import SelfModelManager
-from ecodiaos.systems.evo.types import (
+from systems.evo.hypothesis import HypothesisEngine
+from systems.evo.parameter_tuner import ParameterTuner
+from systems.evo.procedure_extractor import ProcedureExtractor
+from systems.evo.self_model import SelfModelManager
+from systems.evo.types import (
     Hypothesis,
     HypothesisCategory,
     HypothesisStatus,
     Mutation,
     MutationType,
-    PatternCandidate,
     PatternContext,
-    PatternType,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 

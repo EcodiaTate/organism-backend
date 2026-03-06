@@ -7,12 +7,12 @@ services:
       context: .
       dockerfile: Dockerfile
     command: >
-      uvicorn ecodiaos.main:app
+      uvicorn main:app
       --host 0.0.0.0
       --port 8000
       --log-level debug
     volumes:
-      - ./ecodiaos:/app/ecodiaos
+      - .:/app
       - ./config:/app/config
     environment:
       - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
@@ -20,7 +20,7 @@ services:
 
   simula-worker:
     volumes:
-      - ./ecodiaos:/app/ecodiaos
+      - .:/app
       - ./config:/app/config
 
   timescaledb:

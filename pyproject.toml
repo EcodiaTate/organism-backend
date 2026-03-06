@@ -71,7 +71,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["ecodiaos"]
+packages = ["api", "clients", "core", "database", "infrastructure", "interfaces", "primitives", "prompts", "systems", "telemetry", "utils"]
 
 [tool.ruff]
 target-version = "py312"
@@ -81,9 +81,10 @@ line-length = 100
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 
 [tool.ruff.lint.per-file-ignores]
-"ecodiaos/main.py" = ["E402"]
-"ecodiaos/systems/equor/main.py" = ["E402"]
-"ecodiaos/systems/simula/verification/incremental.py" = ["E402"]
+"main.py" = ["E402"]
+"systems/equor/main.py" = ["E402"]
+"systems/simula/verification/incremental.py" = ["E402"]
+"skia_worker.py" = ["E402"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -116,14 +117,14 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = [
-    "ecodiaos.main",
-    "ecodiaos.systems.equor.main",
-    "ecodiaos.systems.simula.service",
-    "ecodiaos.systems.simula.*",
-    "ecodiaos.systems.thread.identity_schema_engine",
-    "ecodiaos.systems.thread.commitment_keeper",
-    "ecodiaos.systems.thread.diachronic_coherence",
-    "ecodiaos.systems.thread.narrative_synthesizer",
+    "main",
+    "systems.equor.main",
+    "systems.simula.service",
+    "systems.simula.*",
+    "systems.thread.identity_schema_engine",
+    "systems.thread.commitment_keeper",
+    "systems.thread.diachronic_coherence",
+    "systems.thread.narrative_synthesizer",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false

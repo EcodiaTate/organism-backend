@@ -15,19 +15,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import SomaConfig
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.memory_trace import Episode, MemoryTrace, RetrievalResult
-from ecodiaos.systems.soma.service import SomaService
-from ecodiaos.systems.soma.somatic_memory import MARKER_VECTOR_DIM, SomaticMemoryIntegration
-from ecodiaos.systems.soma.types import (
+from config import SomaConfig
+from primitives.memory_trace import Episode, MemoryTrace, RetrievalResult
+from systems.soma.service import SomaService
+from systems.soma.somatic_memory import MARKER_VECTOR_DIM
+from systems.soma.types import (
     ALL_DIMENSIONS,
     AllostaticSignal,
     InteroceptiveDimension,
     InteroceptiveState,
     SomaticMarker,
 )
-
 
 # ─── Config Helpers ──────────────────────────────────────────────
 
@@ -387,15 +385,15 @@ class TestMigrationTypes:
     """Verify the migration functions exist and are importable."""
 
     def test_timescaledb_migration_importable(self):
-        from ecodiaos.database.migrations import migrate_timescaledb_interoceptive_state
+        from database.migrations import migrate_timescaledb_interoceptive_state
         assert callable(migrate_timescaledb_interoceptive_state)
 
     def test_neo4j_migration_importable(self):
-        from ecodiaos.database.migrations import migrate_neo4j_somatic_vector_index
+        from database.migrations import migrate_neo4j_somatic_vector_index
         assert callable(migrate_neo4j_somatic_vector_index)
 
     def test_run_all_migrations_importable(self):
-        from ecodiaos.database.migrations import run_all_migrations
+        from database.migrations import run_all_migrations
         assert callable(run_all_migrations)
 
 
@@ -553,7 +551,7 @@ class TestSynapseCycleWithSoma:
         After CognitiveClock runs with Soma wired, CycleResult.somatic
         contains a valid SomaticCycleState populated from AllostaticSignal.
         """
-        from ecodiaos.systems.synapse.types import CycleResult, SomaticCycleState
+        from systems.synapse.types import SomaticCycleState
 
         soma = _make_soma()
         atune = _mock_atune()
@@ -565,7 +563,6 @@ class TestSynapseCycleWithSoma:
         signal = soma.get_current_signal()
 
         # Build SomaticCycleState from signal (mirrors clock._run_loop logic)
-        from ecodiaos.systems.soma.types import InteroceptiveDimension
         somatic_state = SomaticCycleState(
             urgency=signal.urgency,
             dominant_error=signal.dominant_error.value
@@ -594,7 +591,7 @@ class TestSynapseCycleWithSoma:
     @pytest.mark.asyncio
     async def test_cycle_result_somatic_field(self) -> None:
         """CycleResult accepts SomaticCycleState via the somatic field."""
-        from ecodiaos.systems.synapse.types import CycleResult, SomaticCycleState
+        from systems.synapse.types import CycleResult, SomaticCycleState
 
         state = SomaticCycleState(
             urgency=0.3,
@@ -621,7 +618,7 @@ class TestSynapseCycleWithSoma:
     @pytest.mark.asyncio
     async def test_cycle_result_somatic_none_when_soma_absent(self) -> None:
         """When Soma is not wired, CycleResult.somatic is None."""
-        from ecodiaos.systems.synapse.types import CycleResult
+        from systems.synapse.types import CycleResult
 
         result = CycleResult(
             cycle_number=1,
@@ -657,7 +654,7 @@ class TestSynapseCycleWithSoma:
     @pytest.mark.asyncio
     async def test_soma_tick_event_structure(self) -> None:
         """SomaTickEvent wraps SomaticCycleState with a cycle_number and timestamp."""
-        from ecodiaos.systems.synapse.types import SomaticCycleState, SomaTickEvent
+        from systems.synapse.types import SomaticCycleState, SomaTickEvent
 
         state = SomaticCycleState(urgency=0.2, dominant_error="energy")
         event = SomaTickEvent(cycle_number=42, somatic_state=state)

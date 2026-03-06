@@ -8,27 +8,21 @@ Self-Spec DSL generation, and the generate_all orchestration method.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ecodiaos.systems.simula.formal_specs.spec_generator import FormalSpecGenerator
-from ecodiaos.systems.simula.evolution_types import ChangeCategory, ChangeSpec, EvolutionProposal
-from ecodiaos.systems.simula.verification.types import (
-    AlloyCheckResult,
+from systems.simula.evolution_types import ChangeCategory
+from systems.simula.formal_specs.spec_generator import FormalSpecGenerator
+from systems.simula.verification.types import (
     FormalSpecGenerationResult,
     FormalSpecKind,
-    FormalSpecResult,
     FormalSpecStatus,
-    SelfSpecDSL,
-    TlaPlusModelCheckResult,
 )
 
 if TYPE_CHECKING:
-    pass
-
+    from pathlib import Path
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 

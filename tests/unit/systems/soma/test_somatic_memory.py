@@ -4,15 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.soma.somatic_memory import (
+from systems.soma.somatic_memory import (
     MARKER_VECTOR_DIM,
     SomaticMemoryIntegration,
     _cosine_similarity,
     _vector_norm,
 )
-from ecodiaos.systems.soma.types import (
+from systems.soma.types import (
     ALL_DIMENSIONS,
-    InteroceptiveDimension,
     InteroceptiveState,
     SomaticMarker,
 )

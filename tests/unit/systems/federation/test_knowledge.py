@@ -6,24 +6,18 @@ Tests trust-gated sharing, privacy filtering, and request/response handling.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 
-from ecodiaos.primitives.common import new_id
-from ecodiaos.primitives.federation import (
+from primitives.federation import (
     FederationLink,
     FederationLinkStatus,
     InteractionOutcome,
-    KnowledgeItem,
     KnowledgeRequest,
     KnowledgeType,
-    PrivacyLevel,
     TrustLevel,
 )
-from ecodiaos.systems.federation.knowledge import KnowledgeExchangeManager
-from ecodiaos.systems.federation.privacy import PrivacyFilter
-
+from systems.federation.knowledge import KnowledgeExchangeManager
+from systems.federation.privacy import PrivacyFilter
 
 # ─── Fixtures ────────────────────────────────────────────────────
 

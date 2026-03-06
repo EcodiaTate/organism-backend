@@ -12,12 +12,11 @@ from pathlib import Path
 
 import pytest
 
-from ecodiaos.primitives.federation import (
+from primitives.federation import (
     InstanceIdentityCard,
     TrustPolicy,
 )
-from ecodiaos.systems.federation.identity import IdentityManager
-
+from systems.federation.identity import IdentityManager
 
 # ─── Identity Initialization ────────────────────────────────────
 

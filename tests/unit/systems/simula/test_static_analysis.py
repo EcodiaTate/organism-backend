@@ -16,8 +16,8 @@ import pytest
 if TYPE_CHECKING:
     from pathlib import Path
 
-from ecodiaos.systems.simula.verification.static_analysis import StaticAnalysisBridge
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.static_analysis import StaticAnalysisBridge
+from systems.simula.verification.types import (
     StaticAnalysisFinding,
     StaticAnalysisResult,
     StaticAnalysisSeverity,

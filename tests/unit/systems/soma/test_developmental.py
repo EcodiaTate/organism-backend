@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.systems.soma.developmental import (
-    STAGE_CAPABILITIES,
+from systems.soma.developmental import (
     DevelopmentalManager,
     StageTransitionTrigger,
 )
-from ecodiaos.systems.soma.types import DevelopmentalStage
+from systems.soma.types import DevelopmentalStage
 
 
 class TestStageTransitionTrigger:

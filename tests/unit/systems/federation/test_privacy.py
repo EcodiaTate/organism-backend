@@ -8,19 +8,18 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.primitives.common import new_id
-from ecodiaos.primitives.federation import (
+from primitives.common import new_id
+from primitives.federation import (
     KnowledgeItem,
     KnowledgeType,
     PrivacyLevel,
     TrustLevel,
 )
-from ecodiaos.systems.federation.privacy import (
+from systems.federation.privacy import (
     PrivacyFilter,
     _anonymise_string,
     _deep_anonymise,
 )
-
 
 # ─── Privacy Filter ──────────────────────────────────────────────
 

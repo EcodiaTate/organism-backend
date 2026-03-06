@@ -1,0 +1,384 @@
+"""
+EcodiaOS — Nexus: Convergence Detector
+
+Compares abstract relational structures from different world model fragments
+to detect structural isomorphism. When two instances with different domains,
+different compression paths, and different experiences arrive at the same
+abstract structure, that convergence is evidence for ground truth.
+
+The comparison strips domain labels and compares:
+- Node count and type distribution
+- Edge count, type distribution, and connectivity pattern
+- Symmetry properties (chain, cycle, star, complete, etc.)
+- Invariant properties (if declared)
+
+A high convergence_score (>= 0.7) from independent domains is the strongest
+epistemic signal Nexus can produce.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import structlog
+
+from primitives.common import utc_now
+from systems.nexus.types import (
+    ConvergenceResult,
+    ShareableWorldModelFragment,
+    TriangulationMetadata,
+    TriangulationSource,
+)
+
+logger = structlog.get_logger("nexus.convergence")
+
+
+class ConvergenceDetector:
+    """
+    Detects structural convergence between world model fragments.
+
+    Core operation: compare_structures strips domain labels and compares
+    the abstract relational shape of two fragments. When different instances
+    independently compress different domains into the same structure,
+    that structure has high triangulation confidence.
+    """
+
+    def __init__(self) -> None:
+        self._convergence_cache: dict[str, ConvergenceResult] = {}
+
+    def compare_structures(
+        self,
+        fragment_a: ShareableWorldModelFragment,
+        fragment_b: ShareableWorldModelFragment,
+        *,
+        peer_divergence_score: float | None = None,
+    ) -> ConvergenceResult:
+        """
+        Compare two fragments for structural isomorphism.
+
+        Strips domain labels from both, compares abstract relational
+        shape. Returns a ConvergenceResult with a score from 0.0
+        (no match) to 1.0 (identical structure, different domains).
+
+        peer_divergence_score: the measured divergence between the two
+          source instances (from InstanceDivergenceMeasurer). When
+          provided, this is used directly as source_diversity — it is
+          the authoritative measure. When absent (e.g. comparing two
+          local fragments), falls back to a minimum of 0.3 if the
+          instance IDs differ.
+        """
+        cache_key = _cache_key(fragment_a.fragment_id, fragment_b.fragment_id)
+        cached = self._convergence_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        struct_a = fragment_a.abstract_structure
+        struct_b = fragment_b.abstract_structure
+
+        nodes_a = _extract_nodes(struct_a)
+        nodes_b = _extract_nodes(struct_b)
+        edges_a = _extract_edges(struct_a)
+        edges_b = _extract_edges(struct_b)
+
+        node_score, matched_nodes = _compare_node_topology(nodes_a, nodes_b)
+        edge_score, matched_edges = _compare_edge_topology(edges_a, edges_b)
+        symmetry_score = _compare_symmetry(struct_a, struct_b)
+        invariant_score = _compare_invariants(struct_a, struct_b)
+
+        convergence_score = (
+            node_score * 0.30
+            + edge_score * 0.35
+            + symmetry_score * 0.20
+            + invariant_score * 0.15
+        )
+
+        # Determine domain independence
+        domains_a = set(fragment_a.domain_labels)
+        domains_b = set(fragment_b.domain_labels)
+        domains_are_independent = (
+            len(domains_a & domains_b) == 0
+            if (domains_a and domains_b)
+            else False
+        )
+
+        # Source diversity: use the measured instance divergence when available.
+        # This is the actual distance between the two source instances, which is
+        # what triangulation value depends on. Only fall back to a minimum floor
+        # when the caller doesn't have a divergence measurement yet.
+        if peer_divergence_score is not None:
+            source_diversity = max(0.0, min(peer_divergence_score, 1.0))
+        elif fragment_a.source_instance_id != fragment_b.source_instance_id:
+            # Different instances, no measurement yet — conservative floor
+            source_diversity = 0.3
+        else:
+            # Same source instance (local-vs-local comparison)
+            source_diversity = 0.0
+
+        result = ConvergenceResult(
+            fragment_a_id=fragment_a.fragment_id,
+            fragment_b_id=fragment_b.fragment_id,
+            convergence_score=min(convergence_score, 1.0),
+            matched_nodes=matched_nodes,
+            total_nodes_a=len(nodes_a),
+            total_nodes_b=len(nodes_b),
+            matched_edges=matched_edges,
+            total_edges_a=len(edges_a),
+            total_edges_b=len(edges_b),
+            domains_are_independent=domains_are_independent,
+            source_a_instance_id=fragment_a.source_instance_id,
+            source_b_instance_id=fragment_b.source_instance_id,
+            source_diversity=source_diversity,
+            detected_at=utc_now(),
+        )
+
+        self._convergence_cache[cache_key] = result
+
+        if result.is_convergent:
+            logger.info(
+                "convergence_detected",
+                fragment_a=fragment_a.fragment_id,
+                fragment_b=fragment_b.fragment_id,
+                score=convergence_score,
+                domains_independent=domains_are_independent,
+                source_diversity=source_diversity,
+            )
+
+        return result
+
+    def update_triangulation(
+        self,
+        metadata: TriangulationMetadata,
+        confirming_instance_id: str,
+        confirming_divergence_score: float,
+        confirming_fragment_id: str,
+    ) -> TriangulationMetadata:
+        """
+        Update triangulation metadata when a new independent source confirms
+        the same structure.
+
+        Deduplicates by instance_id — same instance confirming twice
+        doesn't increase triangulation confidence.
+        """
+        existing_ids = {s.instance_id for s in metadata.independent_sources}
+        if confirming_instance_id in existing_ids:
+            return metadata
+
+        metadata.independent_sources.append(
+            TriangulationSource(
+                instance_id=confirming_instance_id,
+                divergence_score=confirming_divergence_score,
+                fragment_id=confirming_fragment_id,
+                confirmed_at=utc_now(),
+            )
+        )
+
+        logger.info(
+            "triangulation_updated",
+            source_count=metadata.independent_source_count,
+            diversity=metadata.source_diversity_score,
+            confidence=metadata.triangulation_confidence,
+            confirming_instance=confirming_instance_id,
+        )
+
+        return metadata
+
+    def clear_cache(self) -> int:
+        """Clear the convergence cache. Returns number of entries cleared."""
+        count = len(self._convergence_cache)
+        self._convergence_cache.clear()
+        return count
+
+
+# ─── Structural Comparison Helpers ───────────────────────────────
+
+
+def _cache_key(id_a: str, id_b: str) -> str:
+    """Canonical cache key — order-independent."""
+    return f"{min(id_a, id_b)}::{max(id_a, id_b)}"
+
+
+def _extract_nodes(structure: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extract node list from abstract structure."""
+    nodes = structure.get("nodes", [])
+    if isinstance(nodes, int):
+        return [{"index": i} for i in range(nodes)]
+    if isinstance(nodes, list):
+        return nodes
+    return []
+
+
+def _extract_edges(structure: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extract edge list from abstract structure."""
+    edges = structure.get("edges", [])
+    if isinstance(edges, list):
+        return edges
+    return []
+
+
+def _compare_node_topology(
+    nodes_a: list[dict[str, Any]],
+    nodes_b: list[dict[str, Any]],
+) -> tuple[float, int]:
+    """
+    Compare node topology. Returns (score, matched_count).
+
+    Score based on count similarity and type distribution similarity.
+    """
+    if not nodes_a and not nodes_b:
+        return 1.0, 0
+    if not nodes_a or not nodes_b:
+        return 0.0, 0
+
+    count_a = len(nodes_a)
+    count_b = len(nodes_b)
+    count_ratio = min(count_a, count_b) / max(count_a, count_b)
+
+    types_a = _type_distribution(nodes_a)
+    types_b = _type_distribution(nodes_b)
+    type_sim = _distribution_similarity(types_a, types_b)
+
+    matched = min(count_a, count_b)
+    score = count_ratio * 0.5 + type_sim * 0.5
+
+    return score, matched
+
+
+def _compare_edge_topology(
+    edges_a: list[dict[str, Any]],
+    edges_b: list[dict[str, Any]],
+) -> tuple[float, int]:
+    """
+    Compare edge topology. Returns (score, matched_count).
+
+    Score based on count similarity, type distribution, and degree sequence.
+    """
+    if not edges_a and not edges_b:
+        return 1.0, 0
+    if not edges_a or not edges_b:
+        return 0.0, 0
+
+    count_a = len(edges_a)
+    count_b = len(edges_b)
+    count_ratio = min(count_a, count_b) / max(count_a, count_b)
+
+    types_a = _type_distribution(edges_a)
+    types_b = _type_distribution(edges_b)
+    type_sim = _distribution_similarity(types_a, types_b)
+
+    degree_a = _degree_sequence(edges_a)
+    degree_b = _degree_sequence(edges_b)
+    degree_sim = _sequence_similarity(degree_a, degree_b)
+
+    matched = min(count_a, count_b)
+    score = count_ratio * 0.3 + type_sim * 0.35 + degree_sim * 0.35
+
+    return score, matched
+
+
+def _compare_symmetry(
+    struct_a: dict[str, Any], struct_b: dict[str, Any]
+) -> float:
+    """
+    Compare declared symmetry properties.
+    Exact match = 1.0, no info = 0.5 (neutral), mismatch = 0.0.
+    """
+    sym_a = struct_a.get("symmetry", "")
+    sym_b = struct_b.get("symmetry", "")
+
+    if not sym_a and not sym_b:
+        return 0.5
+
+    if not sym_a or not sym_b:
+        return 0.25
+
+    if sym_a == sym_b:
+        return 1.0
+
+    related_pairs = {
+        frozenset({"chain", "path"}),
+        frozenset({"cycle", "ring"}),
+        frozenset({"star", "hub"}),
+        frozenset({"tree", "hierarchy"}),
+    }
+    if frozenset({sym_a, sym_b}) in related_pairs:
+        return 0.8
+
+    return 0.0
+
+
+def _compare_invariants(
+    struct_a: dict[str, Any], struct_b: dict[str, Any]
+) -> float:
+    """Compare declared invariant properties (Jaccard similarity)."""
+    inv_a = set(struct_a.get("invariants", []))
+    inv_b = set(struct_b.get("invariants", []))
+
+    if not inv_a and not inv_b:
+        return 0.5
+
+    if not inv_a or not inv_b:
+        return 0.25
+
+    union = len(inv_a | inv_b)
+    if union == 0:
+        return 0.5
+
+    return len(inv_a & inv_b) / union
+
+
+def _type_distribution(items: list[dict[str, Any]]) -> dict[str, int]:
+    """Count occurrences of each 'type' value in a list of dicts."""
+    dist: dict[str, int] = {}
+    for item in items:
+        t = str(item.get("type", "unknown"))
+        dist[t] = dist.get(t, 0) + 1
+    return dist
+
+
+def _distribution_similarity(
+    dist_a: dict[str, int], dist_b: dict[str, int]
+) -> float:
+    """Normalised intersection / union (Jaccard-like on counts)."""
+    if not dist_a and not dist_b:
+        return 1.0
+    if not dist_a or not dist_b:
+        return 0.0
+
+    all_keys = set(dist_a) | set(dist_b)
+    intersection = sum(min(dist_a.get(k, 0), dist_b.get(k, 0)) for k in all_keys)
+    union = sum(max(dist_a.get(k, 0), dist_b.get(k, 0)) for k in all_keys)
+
+    return intersection / union if union > 0 else 0.0
+
+
+def _degree_sequence(edges: list[dict[str, Any]]) -> list[int]:
+    """Compute sorted degree sequence from edge list."""
+    degrees: dict[int, int] = {}
+    for edge in edges:
+        src = edge.get("from", edge.get("source", 0))
+        dst = edge.get("to", edge.get("target", 0))
+        if isinstance(src, int):
+            degrees[src] = degrees.get(src, 0) + 1
+        if isinstance(dst, int):
+            degrees[dst] = degrees.get(dst, 0) + 1
+
+    return sorted(degrees.values(), reverse=True) if degrees else []
+
+
+def _sequence_similarity(seq_a: list[int], seq_b: list[int]) -> float:
+    """Compare two sorted integer sequences with zero-padding."""
+    if not seq_a and not seq_b:
+        return 1.0
+    if not seq_a or not seq_b:
+        return 0.0
+
+    max_len = max(len(seq_a), len(seq_b))
+    padded_a = seq_a + [0] * (max_len - len(seq_a))
+    padded_b = seq_b + [0] * (max_len - len(seq_b))
+
+    max_val = max(max(padded_a), max(padded_b), 1)
+    total_sim = sum(
+        1.0 - abs(a - b) / max_val for a, b in zip(padded_a, padded_b, strict=True)
+    )
+
+    return total_sim / max_len

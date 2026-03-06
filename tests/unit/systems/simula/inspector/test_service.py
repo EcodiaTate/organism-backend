@@ -8,21 +8,21 @@ integration. All sub-systems (ingestor, prover, remediation) are mocked.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.service import (
+from systems.simula.inspector.service import (
+    _FORBIDDEN_POC_MODULES,
     PREDEFINED_ATTACK_GOALS,
     InspectorService,
-    _FORBIDDEN_POC_MODULES,
 )
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.types import (
     AttackSurface,
     AttackSurfaceType,
-    InspectorConfig,
     HuntResult,
+    InspectorConfig,
     RemediationResult,
     RemediationStatus,
     TargetType,
@@ -30,8 +30,10 @@ from ecodiaos.systems.simula.inspector.types import (
     VulnerabilityReport,
     VulnerabilitySeverity,
 )
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
+from systems.simula.inspector.workspace import TargetWorkspace
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -198,7 +200,7 @@ class TestHuntExternalRepo:
         mock_ingestor.extract_context_code = AsyncMock(return_value="")
 
         with patch(
-            "ecodiaos.systems.simula.inspector.service.TargetIngestor.ingest_from_github",
+            "systems.simula.inspector.service.TargetIngestor.ingest_from_github",
             AsyncMock(return_value=mock_ingestor),
         ):
             result = await service.hunt_external_repo(
@@ -223,7 +225,7 @@ class TestHuntExternalRepo:
         service = _make_service()
 
         with patch(
-            "ecodiaos.systems.simula.inspector.service.TargetIngestor.ingest_from_github",
+            "systems.simula.inspector.service.TargetIngestor.ingest_from_github",
             AsyncMock(side_effect=RuntimeError("git clone failed")),
         ):
             result = await service.hunt_external_repo(
@@ -244,7 +246,7 @@ class TestHuntExternalRepo:
         mock_ingestor.map_attack_surfaces = AsyncMock(return_value=[])
 
         with patch(
-            "ecodiaos.systems.simula.inspector.service.TargetIngestor.ingest_from_github",
+            "systems.simula.inspector.service.TargetIngestor.ingest_from_github",
             AsyncMock(return_value=mock_ingestor),
         ):
             result = await service.hunt_external_repo(
@@ -269,7 +271,7 @@ class TestHuntExternalRepo:
         mock_ingestor.map_attack_surfaces = AsyncMock(return_value=[])
 
         with patch(
-            "ecodiaos.systems.simula.inspector.service.TargetIngestor.ingest_from_github",
+            "systems.simula.inspector.service.TargetIngestor.ingest_from_github",
             AsyncMock(return_value=mock_ingestor),
         ):
             await service.hunt_external_repo("https://github.com/test/repo")
@@ -293,10 +295,10 @@ class TestHuntExternalRepo:
         )
 
         with patch(
-            "ecodiaos.systems.simula.inspector.service.TargetIngestor.ingest_from_github",
+            "systems.simula.inspector.service.TargetIngestor.ingest_from_github",
             AsyncMock(return_value=mock_ingestor),
         ):
-            result = await service.hunt_external_repo("https://github.com/test/repo")
+            await service.hunt_external_repo("https://github.com/test/repo")
 
         mock_ws.cleanup.assert_called_once()
 

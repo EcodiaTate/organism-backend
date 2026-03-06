@@ -8,28 +8,29 @@ cycle, and coverage_growth metric tracking.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
-from ecodiaos.systems.simula.coevolution.adversarial_tester import (
-    RobustnessTestGenerator,
-)
-from ecodiaos.systems.simula.coevolution.hard_negative_miner import FailureAnalyzer
-from ecodiaos.systems.simula.verification.types import (
-    RobustnessTestResult,
-    CoevolutionCycleResult,
-    FailureCaseExample,
-    FailureCaseSource,
-)
-
 # The types module uses `from __future__ import annotations` with `datetime`
 # under TYPE_CHECKING, so Pydantic needs an explicit model_rebuild() to
 # resolve the deferred `mined_at: datetime` field at runtime.
 from datetime import datetime as _datetime  # noqa: E402
+from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, MagicMock
 
-import ecodiaos.systems.simula.verification.types as _vtypes
+import pytest
+from systems.simula.coevolution.adversarial_tester import (
+    RobustnessTestGenerator,
+)
+from systems.simula.coevolution.hard_negative_miner import FailureAnalyzer
+
+import systems.simula.verification.types as _vtypes
+from systems.simula.verification.types import (
+    CoevolutionCycleResult,
+    FailureCaseExample,
+    FailureCaseSource,
+    RobustnessTestResult,
+)
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 _vtypes.datetime = _datetime  # type: ignore[attr-defined]
 FailureCaseExample.model_rebuild()
@@ -408,7 +409,7 @@ class TestRobustnessTestGenerator:
         mock_result = RobustnessTestResult(tests_generated=1, tests_executed=1)
         generator._run_tests = AsyncMock(return_value=mock_result)
 
-        result = await generator.generate_robustness_tests(files=["a.py"])
+        await generator.generate_robustness_tests(files=["a.py"])
 
         # _run_tests should have been called with stripped code (no fences)
         called_code = generator._run_tests.call_args.args[0]

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ecodiaos.systems.soma.interoceptor import FALLBACK_VALUES, Interoceptor
-from ecodiaos.systems.soma.types import ALL_DIMENSIONS, InteroceptiveDimension
+from systems.soma.interoceptor import FALLBACK_VALUES, Interoceptor
+from systems.soma.types import ALL_DIMENSIONS, InteroceptiveDimension
 
 
 def _make_interoceptor(**kwargs) -> Interoceptor:

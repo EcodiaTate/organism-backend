@@ -11,19 +11,18 @@ Tests:
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.code_agent import SimulaCodeAgent
-from ecodiaos.systems.simula.evolution_types import (
+from systems.simula.code_agent import SimulaCodeAgent
+from systems.simula.evolution_types import (
     ChangeCategory,
     ChangeSpec,
     EvolutionProposal,
     RiskLevel,
     SimulationResult,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 

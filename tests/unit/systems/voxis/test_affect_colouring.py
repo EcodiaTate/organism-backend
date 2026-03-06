@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.systems.voxis.affect_colouring import AffectColouringEngine
-from ecodiaos.systems.voxis.types import StrategyParams
+from primitives.affect import AffectState
+from systems.voxis.affect_colouring import AffectColouringEngine
+from systems.voxis.types import StrategyParams
 
 
 @pytest.fixture

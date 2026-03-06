@@ -25,10 +25,6 @@ from __future__ import annotations
 import asyncio
 import time
 from decimal import Decimal
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
 
 # ---------------------------------------------------------------------------
 # Terminal styling
@@ -122,24 +118,35 @@ async def genesis(
 
     Returns a dict of {phases: {name: bool}, artifacts: {name: object}}.
     """
-    from ecodiaos.config import load_config
-    from ecodiaos.primitives.common import (
-        AutonomyLevel, Modality, ResourceBudget, SourceDescriptor,
-        SystemID, Verdict,
+    from config import load_config
+    from primitives.common import (
+        AutonomyLevel,
+        Modality,
+        ResourceBudget,
+        SourceDescriptor,
+        SystemID,
+        Verdict,
     )
-    from ecodiaos.primitives.percept import Percept, Content
-    from ecodiaos.primitives.intent import (
-        Intent, GoalDescriptor, Action, ActionSequence,
-        EthicalClearance, DecisionTrace,
+    from primitives.intent import (
+        Action,
+        ActionSequence,
+        DecisionTrace,
+        EthicalClearance,
+        GoalDescriptor,
+        Intent,
     )
-    from ecodiaos.systems.atune.types import WorkspaceContribution
-    from ecodiaos.systems.nova.types import Goal, GoalSource, GoalStatus
-    from ecodiaos.systems.oikos.models import (
-        MetabolicPriority, EconomicState, StarvationLevel, MetabolicRate,
+    from primitives.percept import Content, Percept
+    from systems.atune.types import WorkspaceContribution
+    from systems.nova.types import Goal, GoalSource, GoalStatus
+    from systems.oikos.economic_simulator import EconomicSimulator
+    from systems.oikos.models import (
+        EconomicState,
+        MetabolicPriority,
+        MetabolicRate,
+        StarvationLevel,
     )
-    from ecodiaos.systems.oikos.morphogenesis import OrganCategory, OrganMaturity
-    from ecodiaos.systems.oikos.economic_simulator import EconomicSimulator
-    from ecodiaos.systems.synapse.types import SynapseEvent, SynapseEventType
+    from systems.oikos.morphogenesis import OrganCategory, OrganMaturity
+    from systems.synapse.types import SynapseEvent, SynapseEventType
 
     results: dict[str, bool] = {}
     total_phases = 5
@@ -520,13 +527,14 @@ async def genesis(
 
 
 async def inject_into_live_organism(
-    atune: "object",
-    evo: "object",
-    oikos: "object",
-    synapse: "object",
-    nova: "object",
-    axon: "object",
+    atune: object,
+    evo: object,
+    oikos: object,
+    synapse: object,
+    nova: object,
+    axon: object,
     *,
+    certificate_manager: object | None = None,
     skip_dream: bool = False,
 ) -> dict:
     """
@@ -535,7 +543,7 @@ async def inject_into_live_organism(
     Pass the actual service objects from a running main.py. This function
     will inject all payloads directly into the organism's nervous system.
     """
-    from ecodiaos.systems.oikos.morphogenesis import OrganCategory
+    from systems.oikos.morphogenesis import OrganCategory
 
     _banner()
     _log("LIVE INJECTION MODE -- payloads will enter the organism", "fire")
@@ -563,7 +571,31 @@ async def inject_into_live_organism(
     else:
         _log("Consolidation skipped (not initialised or already running)", "warn")
 
-    # 3. Seed the bounty hunting organ
+    # 3. Mint the Genesis Certificate so the organism can join the Federation
+    if certificate_manager is not None:
+        _log("Minting Genesis Certificate (10-year self-signed)...", "bolt")
+        try:
+            cert = await certificate_manager.generate_genesis_certificate()
+            _log(f"Genesis Certificate minted: {cert.certificate_id}", "ok")
+            _detail("expires_at", cert.expires_at.isoformat())
+            _detail("validity", "10 years (3650 days)")
+        except Exception as _cert_err:
+            _log(f"Certificate minting failed (non-fatal): {_cert_err}", "warn")
+            _log("Organism will operate uncertified until Federation issues a cert", "warn")
+    else:
+        _log("No CertificateManager available — certificate minting skipped", "warn")
+
+    # 4. Inject the seed economic state into the live organism
+    _log("Injecting genesis economic state into live Oikos...", "bolt")
+    seed_state = artifacts["seed_economic_state"]
+    await oikos.inject_genesis_state(seed_state)
+    _log(
+        f"Economic state injected: ${seed_state.liquid_balance} liquid, "
+        f"${seed_state.survival_reserve} reserve",
+        "ok",
+    )
+
+    # 5. Seed the bounty hunting organ
     _log("Creating BOUNTY_HUNTING organ via Oikos morphogenesis...", "bolt")
     organ = await oikos._morphogenesis.create_organ(
         category=OrganCategory.BOUNTY_HUNTING,
@@ -575,12 +607,17 @@ async def inject_into_live_organism(
     else:
         _log("Organ already exists or limit reached", "warn")
 
-    # 4. Emit deficit alert
+    # 5. Force-persist the complete genesis state (seed + organ) to Redis
+    _log("Persisting genesis state to Redis...", "bolt")
+    await oikos.persist_state()
+    _log("Genesis state durably committed to Redis", "ok")
+
+    # 6. Emit deficit alert
     _log("Emitting METABOLIC_PRESSURE event via Synapse...", "bolt")
     await synapse.event_bus.emit(artifacts["deficit_event"])
     _log("Deficit alert emitted", "ok")
 
-    # 5. Add foraging goal
+    # 7. Add foraging goal
     _log("Adding foraging goal to Nova...", "bolt")
     await nova.add_goal(artifacts["foraging_goal"])
     _log("Foraging goal active", "ok")

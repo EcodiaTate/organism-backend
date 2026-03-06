@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.thymos.antibody import AntibodyLibrary
-from ecodiaos.systems.thymos.types import (
+from primitives.common import new_id, utc_now
+from systems.thymos.antibody import AntibodyLibrary
+from systems.thymos.types import (
     Incident,
     IncidentClass,
     IncidentSeverity,

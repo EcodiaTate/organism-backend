@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.soma.predictor import InteroceptivePredictor
-from ecodiaos.systems.soma.types import (
+from systems.soma.predictor import InteroceptivePredictor
+from systems.soma.types import (
     ALL_DIMENSIONS,
     DEFAULT_SETPOINTS,
     HORIZONS,
@@ -87,7 +87,7 @@ class TestPrediction:
     def test_values_clamped(self):
         """Predictions should be clamped to valid ranges."""
         p = _make_predictor()
-        for i in range(20):
+        for _i in range(20):
             p.push_state(_flat_state(0.99))
         pred = p.predict("narrative", _flat_state(0.99), list(HORIZONS.keys()))
         for dim in ALL_DIMENSIONS:

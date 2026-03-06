@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.systems.soma.counterfactual import CounterfactualEngine
-from ecodiaos.systems.soma.types import (
+from systems.soma.counterfactual import CounterfactualEngine
+from systems.soma.types import (
     ALL_DIMENSIONS,
     DEFAULT_SETPOINTS,
     CounterfactualTrace,

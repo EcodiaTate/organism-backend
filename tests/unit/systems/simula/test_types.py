@@ -6,9 +6,7 @@ Verifies the type taxonomy, iron rules, category sets, and model construction.
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.systems.simula.evolution_types import (
+from systems.simula.evolution_types import (
     FORBIDDEN,
     FORBIDDEN_WRITE_PATHS,
     GOVERNANCE_REQUIRED,
@@ -18,19 +16,13 @@ from ecodiaos.systems.simula.evolution_types import (
     ChangeSpec,
     CodeChangeResult,
     ConfigSnapshot,
-    ConfigVersion,
     EvolutionProposal,
-    EvolutionRecord,
     FileSnapshot,
-    HealthCheckResult,
-    ImpactType,
     ProposalResult,
     ProposalStatus,
     RiskLevel,
-    SimulationDifference,
     SimulationResult,
 )
-
 
 # ─── Category Taxonomy ────────────────────────────────────────────────────────
 
@@ -44,9 +36,9 @@ class TestChangeCategory:
 
     def test_sets_are_disjoint(self):
         """No category can be in multiple sets."""
-        assert SELF_APPLICABLE & GOVERNANCE_REQUIRED == frozenset()
-        assert SELF_APPLICABLE & FORBIDDEN == frozenset()
-        assert GOVERNANCE_REQUIRED & FORBIDDEN == frozenset()
+        assert frozenset() == SELF_APPLICABLE & GOVERNANCE_REQUIRED
+        assert frozenset() == SELF_APPLICABLE & FORBIDDEN
+        assert frozenset() == GOVERNANCE_REQUIRED & FORBIDDEN
 
     def test_self_applicable_categories(self):
         assert ChangeCategory.ADD_EXECUTOR in SELF_APPLICABLE

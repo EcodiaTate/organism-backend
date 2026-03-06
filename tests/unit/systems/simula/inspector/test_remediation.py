@@ -8,13 +8,13 @@ All RepairAgent and VulnerabilityProver calls are mocked.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.remediation import InspectorRepairOrchestrator
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.remediation import InspectorRepairOrchestrator
+from systems.simula.inspector.types import (
     AttackSurface,
     AttackSurfaceType,
     RemediationStatus,
@@ -22,9 +22,11 @@ from ecodiaos.systems.simula.inspector.types import (
     VulnerabilityReport,
     VulnerabilitySeverity,
 )
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
-from ecodiaos.systems.simula.verification.types import RepairResult, RepairStatus
+from systems.simula.inspector.workspace import TargetWorkspace
+from systems.simula.verification.types import RepairResult, RepairStatus
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 

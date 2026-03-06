@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.voxis.silence import SilenceEngine
-from ecodiaos.systems.voxis.types import ExpressionTrigger, SilenceContext
+from systems.voxis.silence import SilenceEngine
+from systems.voxis.types import ExpressionTrigger, SilenceContext
 
 
 def make_context(

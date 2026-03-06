@@ -35,15 +35,28 @@ RUN python -m venv "$VIRTUAL_ENV"
 COPY pyproject.toml README.md ./
 
 # ---- 2) Install deps into venv (layer cached + pip cache mounted) ----
-# Stub package to allow "pip install ." without copying your whole repo yet
-RUN mkdir -p ecodiaos && touch ecodiaos/__init__.py
+# Stub packages to allow "pip install ." without copying your whole repo yet
+RUN for pkg in api clients core database infrastructure interfaces primitives prompts systems telemetry utils; do \
+    mkdir -p $pkg && touch $pkg/__init__.py; \
+done
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip \
  && pip install ".[dev]"
 
 # ---- 3) Copy actual source AFTER deps are installed ----
-COPY ecodiaos/ ecodiaos/
+COPY api/ api/
+COPY clients/ clients/
+COPY core/ core/
+COPY database/ database/
+COPY infrastructure/ infrastructure/
+COPY interfaces/ interfaces/
+COPY primitives/ primitives/
+COPY prompts/ prompts/
+COPY systems/ systems/
+COPY telemetry/ telemetry/
+COPY utils/ utils/
+COPY main.py simula_worker.py skia_worker.py config.py ./
 COPY config/ config/
 
 # Reinstall project code without re-resolving deps
@@ -55,7 +68,7 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 
 
 # ======================================================================
-# Dev stage: editable install so /app/ecodiaos bind-mount is live source
+# Dev stage: editable install so /app bind-mount is live source
 # ======================================================================
 
 FROM python:3.12-slim AS dev
@@ -81,8 +94,8 @@ COPY --from=builder /root/.cache /root/.cache
 # Copy pyproject so pip knows the package metadata
 COPY pyproject.toml README.md ./
 
-# Editable install: registers /app/ecodiaos as the source tree.
-# The bind-mount in docker-compose.dev.yaml overlays /app/ecodiaos at
+# Editable install: registers /app as the source tree.
+# The bind-mount in docker-compose.dev.yaml overlays /app at
 # runtime, so any file Simula writes on the host is immediately visible
 # to the running process (the NeuroplasticityBus handles hot-reload via Redis pub/sub).
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -90,7 +103,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 EXPOSE 8000 8001 8002
 
-CMD ["uvicorn", "ecodiaos.main:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]
 
 # ======================================================================
 
@@ -126,4 +139,4 @@ USER ecodiaos
 
 EXPOSE 8000 8001 8002
 
-CMD ["uvicorn", "ecodiaos.main:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--loop", "uvloop"]

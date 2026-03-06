@@ -11,12 +11,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     InvariantKind,
     InvariantVerificationResult,
     InvariantVerificationStatus,
 )
-from ecodiaos.systems.simula.verification.z3_bridge import Z3Bridge
+from systems.simula.verification.z3_bridge import Z3Bridge
 
 # ── Z3 Invariant Checking ────────────────────────────────────────────────────
 

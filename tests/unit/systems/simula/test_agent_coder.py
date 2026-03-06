@@ -15,9 +15,9 @@ import pytest
 if TYPE_CHECKING:
     from pathlib import Path
 
-from ecodiaos.systems.simula.agents.test_designer import TestDesignerAgent
-from ecodiaos.systems.simula.agents.test_executor import TestExecutorAgent
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.agents.test_designer import TestDesignerAgent
+from systems.simula.agents.test_executor import TestExecutorAgent
+from systems.simula.verification.types import (
     TestDesignResult,
     TestExecutionResult,
 )
@@ -33,7 +33,7 @@ class TestTestDesigner:
         proposal.description = "Add a new HTTP executor"
         proposal.expected_benefit = "Enables HTTP-based actions"
         proposal.change_spec.target_system = "axon"
-        proposal.change_spec.files_to_modify = ["src/ecodiaos/systems/axon/executors/http.py"]
+        proposal.change_spec.files_to_modify = ["src/systems/axon/executors/http.py"]
         proposal.change_spec.description = "New HTTP executor for external API calls"
         return proposal
 

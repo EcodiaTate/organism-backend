@@ -12,10 +12,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ecodiaos.clients.llm import LLMProvider, LLMResponse
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.common import DriveAlignmentVector, new_id
-from ecodiaos.systems.nova.efe_evaluator import (
+from clients.llm import LLMProvider, LLMResponse
+from primitives.affect import AffectState
+from primitives.common import DriveAlignmentVector, new_id
+from systems.nova.efe_evaluator import (
     EFEEvaluator,
     _compute_constitutional_alignment,
     _estimate_epistemic_heuristic,
@@ -25,8 +25,8 @@ from ecodiaos.systems.nova.efe_evaluator import (
     _identify_uncertain_domains,
     _parse_json_response,
 )
-from ecodiaos.systems.nova.policy_generator import DO_NOTHING_EFE, make_do_nothing_policy
-from ecodiaos.systems.nova.types import (
+from systems.nova.policy_generator import DO_NOTHING_EFE, make_do_nothing_policy
+from systems.nova.types import (
     BeliefState,
     EFEWeights,
     Goal,
@@ -35,7 +35,6 @@ from ecodiaos.systems.nova.types import (
     PolicyStep,
     SelfBelief,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 

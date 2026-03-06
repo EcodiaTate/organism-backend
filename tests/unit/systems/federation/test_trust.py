@@ -6,10 +6,8 @@ Tests trust scoring, level transitions, decay, and violation handling.
 
 from __future__ import annotations
 
-import pytest
-
-from ecodiaos.primitives.common import utc_now
-from ecodiaos.primitives.federation import (
+from primitives.common import utc_now
+from primitives.federation import (
     FederationInteraction,
     FederationLink,
     FederationLinkStatus,
@@ -17,8 +15,7 @@ from ecodiaos.primitives.federation import (
     TrustLevel,
     ViolationType,
 )
-from ecodiaos.systems.federation.trust import TrustManager
-
+from systems.federation.trust import TrustManager
 
 # ─── Fixtures ────────────────────────────────────────────────────
 

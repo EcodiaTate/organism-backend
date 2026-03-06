@@ -1,7 +1,9 @@
 """Tests for the OneirosService orchestrator."""
 import pytest
-from ecodiaos.systems.oneiros.service import OneirosService
-from ecodiaos.systems.oneiros.types import SleepStage, WakeDegradation, SleepQuality
+
+from systems.oneiros.service import OneirosService
+from systems.oneiros.types import SleepStage
+
 
 class TestOneirosService:
     @pytest.mark.asyncio

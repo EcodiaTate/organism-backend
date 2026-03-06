@@ -10,13 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import FederationConfig
-from ecodiaos.primitives.federation import (
-    FederationLinkStatus,
-    TrustLevel,
-)
-from ecodiaos.systems.federation.service import FederationService
-
+from config import FederationConfig
+from systems.federation.service import FederationService
 
 # ─── Fixtures ────────────────────────────────────────────────────
 

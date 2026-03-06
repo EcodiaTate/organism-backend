@@ -12,35 +12,35 @@ import sys
 import traceback
 from unittest.mock import MagicMock
 
-from ecodiaos.config import ThymosConfig
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.synapse.types import SynapseEvent, SynapseEventType
-from ecodiaos.systems.thymos.antibody import AntibodyLibrary
-from ecodiaos.systems.thymos.diagnosis import (
+from config import ThymosConfig
+from primitives.common import new_id, utc_now
+from systems.synapse.types import SynapseEvent, SynapseEventType
+from systems.thymos.antibody import AntibodyLibrary
+from systems.thymos.diagnosis import (
     CausalAnalyzer,
     DiagnosticEngine,
     TemporalCorrelator,
 )
-from ecodiaos.systems.thymos.governor import HealingGovernor
-from ecodiaos.systems.thymos.prescription import RepairPrescriber, RepairValidator
-from ecodiaos.systems.thymos.prophylactic import (
+from systems.thymos.governor import HealingGovernor
+from systems.thymos.prescription import RepairPrescriber, RepairValidator
+from systems.thymos.prophylactic import (
     HomeostasisController,
     ProphylacticScanner,
 )
-from ecodiaos.systems.thymos.sentinels import (
+from systems.thymos.sentinels import (
     CognitiveStallSentinel,
     ContractSentinel,
     DriftSentinel,
     ExceptionSentinel,
     FeedbackLoopSentinel,
 )
-from ecodiaos.systems.thymos.service import ThymosService
-from ecodiaos.systems.thymos.triage import (
+from systems.thymos.service import ThymosService
+from systems.thymos.triage import (
     IncidentDeduplicator,
     ResponseRouter,
     SeverityScorer,
 )
-from ecodiaos.systems.thymos.types import (
+from systems.thymos.types import (
     CausalChain,
     Diagnosis,
     HealingMode,
@@ -153,7 +153,7 @@ def test_sentinels() -> None:
     ds = DriftSentinel()
     metric = "synapse.cycle.latency_ms"
     check("DriftSentinel has baselines for defaults", metric in ds._baselines)
-    for i in range(260):
+    for _i in range(260):
         result = ds.record_metric(metric, 50.0)
     check("DriftSentinel no drift on stable values", result is None)
     drift_result = ds.record_metric(metric, 9999.0)

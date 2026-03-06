@@ -8,14 +8,16 @@ written to disk to validate the scanning pipeline end-to-end.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.ingestor import TargetIngestor, _should_skip_path
-from ecodiaos.systems.simula.inspector.types import AttackSurface, AttackSurfaceType
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
+from systems.simula.inspector.ingestor import TargetIngestor, _should_skip_path
+from systems.simula.inspector.types import AttackSurface, AttackSurfaceType
+from systems.simula.inspector.workspace import TargetWorkspace
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixture: build a workspace with source files ────────────────────────────
 
@@ -179,7 +181,7 @@ def foo(
 ''')
         ingestor = _make_ingestor(tmp_path)
         # Should not raise — returns empty list for this file
-        surfaces = await ingestor.map_attack_surfaces()
+        await ingestor.map_attack_surfaces()
         # No crash is the test
 
 

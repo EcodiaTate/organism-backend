@@ -7,13 +7,13 @@ All tests are synchronous via pytest.mark.asyncio where needed.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.memory_trace import Episode
-from ecodiaos.systems.evo.detectors import (
+from primitives.affect import AffectState
+from primitives.memory_trace import Episode
+from systems.evo.detectors import (
     AffectPatternDetector,
     CooccurrenceDetector,
     SequenceDetector,
@@ -23,8 +23,7 @@ from ecodiaos.systems.evo.detectors import (
     build_default_detectors,
     hash_sequence,
 )
-from ecodiaos.systems.evo.types import PatternContext, PatternType
-
+from systems.evo.types import PatternContext, PatternType
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -45,7 +44,7 @@ def make_episode(
         salience_composite=salience_composite,
         affect_valence=affect_valence,
         affect_arousal=affect_arousal,
-        event_time=event_time or datetime(2026, 2, 22, 14, 30, tzinfo=timezone.utc),
+        event_time=event_time or datetime(2026, 2, 22, 14, 30, tzinfo=UTC),
     )
 
 
@@ -193,7 +192,7 @@ class TestTemporalDetector:
 
         ep = make_episode(
             source="text_chat",
-            event_time=datetime(2026, 2, 22, 9, 0, tzinfo=timezone.utc),  # 9am
+            event_time=datetime(2026, 2, 22, 9, 0, tzinfo=UTC),  # 9am
         )
         await detector.scan(ep, context)
         assert context.temporal_bins["social_text::h9"] == 1
@@ -205,7 +204,7 @@ class TestTemporalDetector:
 
         ep = make_episode(
             source="axon:respond",
-            event_time=datetime(2026, 2, 23, 10, 0, tzinfo=timezone.utc),  # Monday = 0
+            event_time=datetime(2026, 2, 23, 10, 0, tzinfo=UTC),  # Monday = 0
         )
         await detector.scan(ep, context)
         weekday = ep.event_time.weekday()
@@ -221,7 +220,7 @@ class TestTemporalDetector:
 
         ep = make_episode(
             source="text_chat",
-            event_time=datetime(2026, 2, 22, 9, 0, tzinfo=timezone.utc),
+            event_time=datetime(2026, 2, 22, 9, 0, tzinfo=UTC),
         )
         await detector.scan(ep, context)
         result = await detector.scan(ep, context)
@@ -258,7 +257,7 @@ class TestAffectPatternDetector:
         detector.min_occurrences = 3
         context = make_context()
 
-        for i in range(3):
+        for _i in range(3):
             context.previous_affect = AffectState(valence=0.0, arousal=0.2)
             context.current_affect = AffectState(valence=0.4, arousal=0.2)  # +0.4 valence
             result = await detector.scan(make_episode(source="text_chat"), context)

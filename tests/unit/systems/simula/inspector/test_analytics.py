@@ -11,24 +11,23 @@ Tests the three analytics layers:
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.analytics import (
+from systems.simula.inspector.analytics import (
     HUNTING_VERSION,
     InspectorAnalyticsEmitter,
     InspectorAnalyticsStore,
     InspectorAnalyticsView,
     InspectorEvent,
-    _WeekBucket,
     _iso_week_start,
+    _WeekBucket,
 )
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.types import (
     VulnerabilityClass,
     VulnerabilitySeverity,
 )
-
 
 # ── InspectorEvent Tests ──────────────────────────────────────────────────────
 

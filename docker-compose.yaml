@@ -14,7 +14,6 @@ services:
       - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
       - ECODIAOS_SEED_PATH=/app/config/seeds/example_seed.yaml
     volumes:
-      - ./ecodiaos:/app/ecodiaos:ro
       - ./config:/app/config:ro
     depends_on:
       timescaledb:
@@ -86,12 +85,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ecodiaos-simula-worker
-    command: python -m ecodiaos.simula_worker
+    command: python -m simula_worker
     env_file: .env
     environment:
       - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
     volumes:
-      - ./ecodiaos:/app/ecodiaos
       - ./config:/app/config:ro
       - ../.claude:/app/.claude:ro
     depends_on:
@@ -102,6 +100,32 @@ services:
     networks:
       - ecodiaos_network
     restart: unless-stopped
+
+  # ─── Skia Worker (Shadow Infrastructure) ────────────────────────
+  # In production, run this on a DIFFERENT provider/zone than the
+  # primary. Co-locating defeats the purpose of shadow monitoring.
+  skia-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecodiaos-skia-worker
+    command: python -m skia_worker
+    env_file: .env
+    environment:
+      - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
+    volumes:
+      - ./config:/app/config:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ecodiaos_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
   # ─── Frontend (Alive Visualization) ─────────────────────────────
   ecodiaos-frontend:

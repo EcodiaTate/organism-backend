@@ -2,18 +2,18 @@
 Unit tests for Inspector domain types and validation logic.
 
 Tests all data models, enums, field validators, and computed properties
-from ``ecodiaos.systems.simula.inspector.types``.
+from ``systems.simula.inspector.types``.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.types import (
     AttackSurface,
     AttackSurfaceType,
-    InspectorConfig,
     HuntResult,
+    InspectorConfig,
     RemediationAttempt,
     RemediationResult,
     RemediationStatus,
@@ -22,7 +22,6 @@ from ecodiaos.systems.simula.inspector.types import (
     VulnerabilityReport,
     VulnerabilitySeverity,
 )
-
 
 # ── Enum Tests ──────────────────────────────────────────────────────────────
 

@@ -1,10 +1,17 @@
 """Tests for DreamJournal and DreamInsightTracker."""
 import pytest
-from ecodiaos.systems.oneiros.journal import DreamJournal, DreamInsightTracker
-from ecodiaos.systems.oneiros.types import (
-    Dream, DreamType, DreamCoherence, DreamInsight, InsightStatus,
-    SleepCycle, SleepQuality,
+
+from systems.oneiros.journal import DreamInsightTracker, DreamJournal
+from systems.oneiros.types import (
+    Dream,
+    DreamCoherence,
+    DreamInsight,
+    DreamType,
+    InsightStatus,
+    SleepCycle,
+    SleepQuality,
 )
+
 
 def _make_dream(**overrides):
     defaults = dict(
@@ -62,7 +69,7 @@ class TestDreamJournal:
     async def test_get_recent_dreams(self):
         journal = DreamJournal(neo4j=None)
         await journal.initialize()
-        for i in range(10):
+        for _i in range(10):
             await journal.record_dream(_make_dream())
         dreams = await journal.get_recent_dreams(limit=5)
         assert len(dreams) <= 5
@@ -71,7 +78,7 @@ class TestDreamJournal:
     async def test_get_recent_insights(self):
         journal = DreamJournal(neo4j=None)
         await journal.initialize()
-        for i in range(5):
+        for _i in range(5):
             await journal.record_insight(_make_insight())
         insights = await journal.get_recent_insights(limit=3)
         assert len(insights) <= 5  # may be all 5 since no status filter

@@ -7,13 +7,14 @@ non-existent files and failed restores.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-from ecodiaos.systems.simula.rollback import RollbackError, RollbackManager
-from ecodiaos.systems.simula.evolution_types import FileSnapshot
+from systems.simula.rollback import RollbackManager
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
 

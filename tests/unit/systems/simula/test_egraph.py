@@ -8,26 +8,24 @@ the public EqualitySaturationEngine API (check_equivalence, simplify).
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import patch
 
 import pytest
 
-from ecodiaos.systems.simula.egraph.equality_saturation import (
+from systems.simula.egraph.equality_saturation import (
     EqualitySaturationEngine,
-    _EGraph,
-    _ENode,
-    _UnionFind,
     _apply_commutativity_rules,
     _apply_identity_rules,
     _ast_to_egraph,
     _build_rewrite_rules,
+    _EGraph,
+    _ENode,
+    _UnionFind,
 )
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     EGraphEquivalenceResult,
     EGraphStatus,
 )
-
 
 # ── Union-Find ────────────────────────────────────────────────────────────────
 
@@ -793,7 +791,7 @@ class TestEqualitySaturation:
             return 200.0
 
         engine = EqualitySaturationEngine(max_iterations=1000, timeout_s=1.0)
-        with patch("ecodiaos.systems.simula.egraph.equality_saturation.time.monotonic", side_effect=controlled_monotonic):
+        with patch("systems.simula.egraph.equality_saturation.time.monotonic", side_effect=controlled_monotonic):
             result = await engine.check_equivalence("a + b", "a * b")
         assert result.status == EGraphStatus.TIMEOUT
 

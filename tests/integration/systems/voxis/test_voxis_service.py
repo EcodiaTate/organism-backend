@@ -13,20 +13,18 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.clients.llm import LLMProvider, LLMResponse
-from ecodiaos.clients.redis import RedisClient
-from ecodiaos.config import VoxisConfig
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.expression import Expression, PersonalityVector
-from ecodiaos.primitives.memory_trace import SelfNode
-from ecodiaos.systems.memory.service import MemoryService
-from ecodiaos.systems.voxis.service import VoxisService
-from ecodiaos.systems.voxis.types import ExpressionTrigger
-
+from clients.llm import LLMProvider, LLMResponse
+from config import VoxisConfig
+from primitives.affect import AffectState
+from primitives.expression import Expression
+from primitives.memory_trace import SelfNode
+from systems.memory.service import MemoryService
+from systems.voxis.service import VoxisService
+from systems.voxis.types import ExpressionTrigger
 
 # ─── Shared Mock Factories ────────────────────────────────────────
 

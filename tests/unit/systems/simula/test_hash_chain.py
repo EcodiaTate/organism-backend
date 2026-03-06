@@ -10,21 +10,21 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 import pytest
 
-from ecodiaos.systems.simula.audit.hash_chain import (
-    HashChainManager,
+from systems.simula.audit.hash_chain import (
     _CANONICAL_FIELDS,
+    HashChainManager,
 )
-from ecodiaos.systems.simula.evolution_types import (
+from systems.simula.evolution_types import (
     ChangeCategory,
     EvolutionRecord,
     RiskLevel,
 )
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.types import (
     HashChainEntry,
     HashChainStatus,
     HashChainVerificationResult,
@@ -40,7 +40,7 @@ EvolutionRecord.model_rebuild()
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
-_FIXED_DT = datetime(2026, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+_FIXED_DT = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
 
 
 def _make_record(

@@ -11,28 +11,25 @@ No real API calls, no real Neo4j, no real Redis.
 
 from __future__ import annotations
 
-import asyncio
 import json
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.clients.llm import LLMProvider, LLMResponse
-from ecodiaos.config import NovaConfig
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.common import DriveAlignmentVector, new_id
-from ecodiaos.primitives.intent import Intent
-from ecodiaos.primitives.memory_trace import SelfNode
-from ecodiaos.systems.atune.types import SalienceVector, WorkspaceBroadcast, WorkspaceContext
-from ecodiaos.systems.nova.service import NovaService
-from ecodiaos.systems.nova.types import (
+from clients.llm import LLMProvider, LLMResponse
+from config import NovaConfig
+from primitives.affect import AffectState
+from primitives.common import DriveAlignmentVector, new_id
+from primitives.memory_trace import SelfNode
+from systems.atune.types import SalienceVector, WorkspaceBroadcast, WorkspaceContext
+from systems.nova.service import NovaService
+from systems.nova.types import (
     Goal,
     GoalSource,
     GoalStatus,
     IntentOutcome,
 )
-
 
 # ─── Mock Factories ───────────────────────────────────────────────
 
@@ -259,7 +256,7 @@ class TestBroadcastProcessing:
     async def test_broadcast_updates_current_affect(self) -> None:
         nova = make_nova_service()
         await nova.initialize()
-        affect = AffectState.neutral().model_copy(update={"care_activation": 0.8})
+        AffectState.neutral().model_copy(update={"care_activation": 0.8})
         broadcast = make_broadcast(care_activation=0.8)
         await nova.receive_broadcast(broadcast)
         # Affect should be stored from the broadcast
@@ -426,7 +423,7 @@ class TestOutcomeProcessing:
     @pytest.mark.asyncio
     async def test_outcome_with_known_intent_updates_goal(self) -> None:
         """If outcome maps to a pending intent with a goal, goal progress updates."""
-        from ecodiaos.systems.nova.types import PendingIntent
+        from systems.nova.types import PendingIntent
         nova = make_nova_service()
         await nova.initialize()
 
@@ -643,10 +640,9 @@ class TestNovaSomaticThresholds:
         await nova.initialize()
 
         # Build a Soma mock whose get_current_signal() returns an AllostaticSignal-like object
-        from ecodiaos.systems.soma.types import (
+        from systems.soma.types import (
             ALL_DIMENSIONS,
             InteroceptiveDimension,
-            InteroceptiveState,
         )
 
         sensed = {d: 0.5 for d in ALL_DIMENSIONS}

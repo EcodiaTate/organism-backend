@@ -10,12 +10,12 @@ Tests cover:
 """
 
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 
-from ecodiaos.systems.simula.inspector.advanced import (
+from systems.simula.inspector.advanced import (
     AutonomousPatchingOrchestrator,
     ContinuousHuntingScheduler,
     ExploitChainAnalyzer,
@@ -28,15 +28,14 @@ from ecodiaos.systems.simula.inspector.advanced import (
     TypeScriptFunctionSignature,
     ZeroDayMarketplace,
 )
-from ecodiaos.systems.simula.inspector.types import (
+from systems.simula.inspector.types import (
     AttackSurface,
     AttackSurfaceType,
     VulnerabilityClass,
     VulnerabilityReport,
     VulnerabilitySeverity,
 )
-from ecodiaos.systems.simula.inspector.workspace import TargetWorkspace
-
+from systems.simula.inspector.workspace import TargetWorkspace
 
 # ═════════════════════════════════════════════════════════════════════════════
 # PHASE 12.1: Multi-Language Support Tests
@@ -481,7 +480,7 @@ async def test_full_phase12_workflow() -> None:
     """Integration test: Multi-language → Chain detection → Marketplace → Patch → Schedule."""
     # This tests the integration of all Phase 12 features working together
 
-    detector = MultiLanguageSurfaceDetector()
+    MultiLanguageSurfaceDetector()
     chain_analyzer = ExploitChainAnalyzer()
 
     # Create mock vulnerabilities from different languages
@@ -529,8 +528,8 @@ async def test_full_phase12_workflow() -> None:
         assert listing.sold is False
 
     # Setup autonomous patching
-    orchestrator = AutonomousPatchingOrchestrator()
-    config = GitHubPRConfig(
+    AutonomousPatchingOrchestrator()
+    GitHubPRConfig(
         github_token="token",
         target_owner="example",
         target_repo="repo",

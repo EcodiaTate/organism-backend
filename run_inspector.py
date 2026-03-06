@@ -31,18 +31,20 @@ AUTHORIZED_TARGETS: list[str] = ["file:///tmp/phantom_workspace_0e73f971"]
 async def main(target_url: str) -> int:
     # Deferred imports — avoids loading the full EOS stack until we're sure
     # the venv is activated and the target is authorized.
-    from ecodiaos.clients.llm import create_llm_provider
-    from ecodiaos.config import LLMConfig
-    from ecodiaos.systems.simula.inspector.prover import VulnerabilityProver
-    from ecodiaos.systems.simula.inspector.remediation import RepairAgent
-    from ecodiaos.systems.simula.inspector.service import InspectorService
-    from ecodiaos.systems.simula.inspector.slicer import SemanticSlicer
-    from ecodiaos.systems.simula.inspector.temporal import ConcurrencyProver
-    from ecodiaos.systems.simula.inspector.types import InspectorConfig
-    from ecodiaos.systems.simula.inspector.verifier import AdversarialVerifier
-    from ecodiaos.systems.simula.inspector.shield import AutonomousShield
-    from ecodiaos.systems.simula.inspector.injector import DynamicTaintInjector  # noqa: F401 — available for future use
-    from ecodiaos.systems.simula.verification.z3_bridge import Z3Bridge
+    from clients.llm import create_llm_provider
+    from config import LLMConfig
+    from systems.simula.inspector.injector import (
+        DynamicTaintInjector,  # noqa: F401 — available for future use
+    )
+    from systems.simula.inspector.prover import VulnerabilityProver
+    from systems.simula.inspector.remediation import RepairAgent
+    from systems.simula.inspector.service import InspectorService
+    from systems.simula.inspector.shield import AutonomousShield
+    from systems.simula.inspector.slicer import SemanticSlicer
+    from systems.simula.inspector.temporal import ConcurrencyProver
+    from systems.simula.inspector.types import InspectorConfig
+    from systems.simula.inspector.verifier import AdversarialVerifier
+    from systems.simula.verification.z3_bridge import Z3Bridge
 
     if not os.environ.get("AWS_ACCESS_KEY_ID"):
         print("[ERROR] AWS_ACCESS_KEY_ID is not set.", file=sys.stderr)
@@ -132,7 +134,7 @@ async def main(target_url: str) -> int:
         if vuln.proof_of_concept_code:
             print(f"\nReproduction script (Security Unit Test):\n{vuln.proof_of_concept_code}")
         if vuln.patched_code:
-            print(f"\n[+] AUTONOMOUS PATCH GENERATED & FORMALLY VERIFIED:")
+            print("\n[+] AUTONOMOUS PATCH GENERATED & FORMALLY VERIFIED:")
             print("-" * 40)
             print(vuln.patched_code)
             print("-" * 40)

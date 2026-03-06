@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 import json
-import sys
-from io import StringIO
 
-import pytest
-
-from ecodiaos.systems.atune.logging_utils import debug_log
+from systems.atune.logging_utils import debug_log
 
 
 def test_debug_log(capsys):

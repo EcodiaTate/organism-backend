@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.soma.allostatic_controller import AllostaticController
-from ecodiaos.systems.soma.types import (
+from systems.soma.allostatic_controller import AllostaticController
+from systems.soma.types import (
     ALL_DIMENSIONS,
     DEFAULT_SETPOINTS,
-    SETPOINT_CONTEXTS,
     AllostaticSignal,
     InteroceptiveDimension,
     InteroceptiveState,

@@ -17,13 +17,12 @@ import pytest
 if TYPE_CHECKING:
     from pathlib import Path
 
-from ecodiaos.systems.simula.audit.content_credentials import ContentCredentialManager
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.audit.content_credentials import ContentCredentialManager
+from systems.simula.verification.types import (
     ContentCredential,
     ContentCredentialResult,
     ContentCredentialStatus,
 )
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -618,7 +617,6 @@ class TestSigningErrorHandling:
         _write_file(tmp_path, "s.py", "sign me")
         mgr = _manager_with_key()
 
-        original_sign = mgr._private_key.sign
         mgr._private_key = MagicMock()
         mgr._private_key.sign.side_effect = RuntimeError("key hardware failure")
 

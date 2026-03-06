@@ -12,13 +12,12 @@ Validates that:
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ecodiaos.config import SimulaConfig
-from ecodiaos.systems.simula.service import SimulaService
-from ecodiaos.systems.simula.evolution_types import (
+from config import SimulaConfig
+from systems.simula.evolution_types import (
     ChangeCategory,
     ChangeSpec,
     CodeChangeResult,
@@ -29,7 +28,7 @@ from ecodiaos.systems.simula.evolution_types import (
     RiskLevel,
     SimulationResult,
 )
-
+from systems.simula.service import SimulaService
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -245,8 +244,8 @@ class TestInspectorEnabled:
         """When inspector_enabled=True, _inspector should be set after init."""
         service = await _make_service()
         # Manually set _inspector to simulate successful initialization
-        from ecodiaos.systems.simula.inspector.service import InspectorService
-        from ecodiaos.systems.simula.inspector.types import InspectorConfig
+        from systems.simula.inspector.service import InspectorService
+        from systems.simula.inspector.types import InspectorConfig
 
         mock_prover = MagicMock()
         inspector_config = InspectorConfig(authorized_targets=["localhost"])
@@ -263,8 +262,8 @@ class TestInspectorEnabled:
         service = await _make_service()
 
         # Simulate Inspector being active
-        from ecodiaos.systems.simula.inspector.service import InspectorService
-        from ecodiaos.systems.simula.inspector.types import InspectorConfig
+        from systems.simula.inspector.service import InspectorService
+        from systems.simula.inspector.types import InspectorConfig
 
         mock_prover = MagicMock()
         inspector_config = InspectorConfig(authorized_targets=["localhost"])
@@ -285,8 +284,8 @@ class TestInspectorEnabled:
         """Stats should include Inspector subsystem info when active."""
         service = await _make_service()
 
-        from ecodiaos.systems.simula.inspector.service import InspectorService
-        from ecodiaos.systems.simula.inspector.types import InspectorConfig
+        from systems.simula.inspector.service import InspectorService
+        from systems.simula.inspector.types import InspectorConfig
 
         mock_prover = MagicMock()
         inspector_config = InspectorConfig(

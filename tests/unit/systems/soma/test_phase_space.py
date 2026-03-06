@@ -4,13 +4,10 @@ from __future__ import annotations
 
 from collections import deque
 
-import pytest
-
-from ecodiaos.systems.soma.phase_space import PhaseSpaceModel
-from ecodiaos.systems.soma.types import (
+from systems.soma.phase_space import PhaseSpaceModel
+from systems.soma.types import (
     ALL_DIMENSIONS,
     SEED_ATTRACTORS,
-    Attractor,
     InteroceptiveDimension,
 )
 

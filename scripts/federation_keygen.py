@@ -27,8 +27,7 @@ With --ca:
 from __future__ import annotations
 
 import argparse
-import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from cryptography import x509
@@ -96,7 +95,7 @@ def generate_tls_certificate(
         x509.NameAttribute(NameOID.COMMON_NAME, f"eos-{instance_name}"),
     ])
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     builder = (
         x509.CertificateBuilder()
@@ -178,7 +177,7 @@ def generate_ca(output_dir: Path, validity_days: int = 3650) -> tuple:
         x509.NameAttribute(NameOID.COMMON_NAME, "EcodiaOS Federation CA"),
     ])
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ca_cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -285,9 +284,9 @@ def main() -> None:
         validity_days=args.validity_days,
     )
 
-    print(f"\nDone. Add to config/default.yaml:\n")
-    print(f"  federation:")
-    print(f"    enabled: true")
+    print("\nDone. Add to config/default.yaml:\n")
+    print("  federation:")
+    print("    enabled: true")
     print(f"    endpoint: \"https://{args.hostname}:8002\"")
     print(f"    tls_cert_path: \"{output_dir / f'{args.instance}.crt'}\"")
     print(f"    tls_key_path: \"{output_dir / f'{args.instance}_tls.key'}\"")

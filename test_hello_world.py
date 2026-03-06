@@ -3,7 +3,7 @@ EcodiaOS — Hello World Evolution Test
 
 End-to-end test for the Simula evolution pipeline. Injects an
 add_executor proposal to create a DebugLogExecutor in
-ecodiaos/systems/atune/logging_utils.py, then waits for the worker
+systems/atune/logging_utils.py, then waits for the worker
 result and reports the outcome.
 
 Usage:
@@ -49,7 +49,7 @@ REDIS_URL = _redis_url()
 TASKS_STREAM = "eos:simula:tasks"
 RESULTS_STREAM = "eos:simula:results"
 TIMEOUT_S = 300  # 5 min; give the code agent time to work
-TARGET_FILE = "ecodiaos/systems/atune/logging_utils.py"
+TARGET_FILE = "systems/atune/logging_utils.py"
 
 
 # ── Proposal builder ─────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ def _build_proposal() -> dict:
         "category": "add_executor",
         "description": (
             "Create a DebugLogExecutor that inherits from the base Executor "
-            "in ecodiaos/systems/atune/logging_utils.py. The executor should "
+            "in systems/atune/logging_utils.py. The executor should "
             "emit structured JSON debug output to stdout."
         ),
         "change_spec": {
@@ -85,14 +85,14 @@ def _build_proposal() -> dict:
             },
             "affected_systems": ["atune"],
             "additional_context": (
-                "Target file: ecodiaos/systems/atune/logging_utils.py — "
+                "Target file: systems/atune/logging_utils.py — "
                 "create it if it does not exist. "
                 "DebugLogExecutor must inherit from the project base Executor class."
             ),
             "code_hint": (
-                "# ecodiaos/systems/atune/logging_utils.py\n"
+                "# systems/atune/logging_utils.py\n"
                 "import json\n"
-                "from ecodiaos.systems.base import Executor\n\n\n"
+                "from systems.base import Executor\n\n\n"
                 "class DebugLogExecutor(Executor):\n"
                 "    '''Emit a structured debug log entry to stdout.'''\n\n"
                 "    action_type = 'debug_log'\n\n"

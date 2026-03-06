@@ -9,19 +9,20 @@ the lightweight bridge retrieval path.
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
-from unittest.mock import AsyncMock
+from typing import TYPE_CHECKING
 
 import pytest
 
-from ecodiaos.systems.simula.retrieval.swe_grep import SweGrepRetriever
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.retrieval.swe_grep import SweGrepRetriever
+from systems.simula.verification.types import (
     RetrievalHop,
     RetrievalToolKind,
     RetrievedContext,
     SweGrepResult,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ class TestToolGrep:
     async def test_grep_finds_pattern(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/axon/executor.py",
+            "systems/axon/executor.py",
             "class EmailExecutor:\n    action_type = 'send_email'\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -68,7 +69,7 @@ class TestToolGrep:
     async def test_grep_regex_pattern(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/evo/detector.py",
+            "systems/evo/detector.py",
             "class PatternDetector:\n    pass\nclass AnomalyDetector:\n    pass\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -84,7 +85,7 @@ class TestToolGrep:
     async def test_grep_no_match(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/evo/core.py",
+            "systems/evo/core.py",
             "x = 1\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -113,7 +114,7 @@ class TestToolGrep:
         for i in range(25):
             _write_py(
                 tmp_path,
-                f"ecodiaos/systems/test/file{i}.py",
+                f"systems/test/file{i}.py",
                 f"SEARCH_MARKER = {i}\n",
             )
         retriever = _make_retriever(tmp_path)
@@ -134,12 +135,12 @@ class TestToolGlob:
     async def test_glob_finds_files(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/memory/service.py",
+            "systems/memory/service.py",
             "# memory service\n",
         )
         _write_py(
             tmp_path,
-            "ecodiaos/systems/memory/types.py",
+            "systems/memory/types.py",
             "# memory types\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -162,13 +163,13 @@ class TestToolReadFile:
     async def test_read_existing_file(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/nova/core.py",
+            "systems/nova/core.py",
             "# Nova core\ndef evaluate(): pass\n",
         )
         retriever = _make_retriever(tmp_path)
 
         content = await retriever._tool_read_file(
-            "ecodiaos/systems/nova/core.py",
+            "systems/nova/core.py",
         )
 
         assert "Nova core" in content
@@ -183,11 +184,11 @@ class TestToolReadFile:
     @pytest.mark.asyncio
     async def test_read_with_line_limit(self, tmp_path: Path):
         lines = "\n".join(f"line_{i}" for i in range(100))
-        _write_py(tmp_path, "ecodiaos/systems/test/big.py", lines)
+        _write_py(tmp_path, "systems/test/big.py", lines)
         retriever = _make_retriever(tmp_path)
 
         content = await retriever._tool_read_file(
-            "ecodiaos/systems/test/big.py",
+            "systems/test/big.py",
             max_lines=5,
         )
 
@@ -196,11 +197,11 @@ class TestToolReadFile:
     @pytest.mark.asyncio
     async def test_read_with_start_line(self, tmp_path: Path):
         lines = "\n".join(f"line_{i}" for i in range(20))
-        _write_py(tmp_path, "ecodiaos/systems/test/offset.py", lines)
+        _write_py(tmp_path, "systems/test/offset.py", lines)
         retriever = _make_retriever(tmp_path)
 
         content = await retriever._tool_read_file(
-            "ecodiaos/systems/test/offset.py",
+            "systems/test/offset.py",
             start_line=10,
             max_lines=3,
         )
@@ -217,7 +218,7 @@ class TestToolAstQuery:
     async def test_query_functions(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/funcs.py",
+            "systems/test/funcs.py",
             """\
             def sync_fn(a, b):
                 return a + b
@@ -229,7 +230,7 @@ class TestToolAstQuery:
         retriever = _make_retriever(tmp_path)
 
         results = await retriever._tool_ast_query(
-            "ecodiaos/systems/test/funcs.py",
+            "systems/test/funcs.py",
             query_type="functions",
         )
 
@@ -245,7 +246,7 @@ class TestToolAstQuery:
     async def test_query_classes(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/classes.py",
+            "systems/test/classes.py",
             """\
             class Base:
                 pass
@@ -257,7 +258,7 @@ class TestToolAstQuery:
         retriever = _make_retriever(tmp_path)
 
         results = await retriever._tool_ast_query(
-            "ecodiaos/systems/test/classes.py",
+            "systems/test/classes.py",
             query_type="classes",
         )
 
@@ -269,7 +270,7 @@ class TestToolAstQuery:
     async def test_query_imports(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/imports.py",
+            "systems/test/imports.py",
             """\
             import os
             from pathlib import Path
@@ -279,7 +280,7 @@ class TestToolAstQuery:
         retriever = _make_retriever(tmp_path)
 
         results = await retriever._tool_ast_query(
-            "ecodiaos/systems/test/imports.py",
+            "systems/test/imports.py",
             query_type="imports",
         )
 
@@ -405,7 +406,7 @@ class TestBridgeRetrieval:
     async def test_bridge_retrieval_returns_result(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/axon/registry.py",
+            "systems/axon/registry.py",
             "EXECUTOR_REGISTRY = {'send_email': EmailExecutor}\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -443,7 +444,7 @@ class TestProposalRetrieval:
         """All 4 hops should execute."""
         _write_py(
             tmp_path,
-            "ecodiaos/systems/atune/service.py",
+            "systems/atune/service.py",
             "class AtuneService:\n    pass\n",
         )
         _write_py(
@@ -474,7 +475,7 @@ class TestProposalRetrieval:
         for i in range(40):
             _write_py(
                 tmp_path,
-                f"ecodiaos/systems/axon/exec_{i}.py",
+                f"systems/axon/exec_{i}.py",
                 f"class Executor{i}:\n    action_type = 'action_{i}'\n",
             )
         retriever = _make_retriever(tmp_path)
@@ -496,7 +497,7 @@ class TestContextExtraction:
     async def test_contexts_from_hop_reads_files(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/file1.py",
+            "systems/test/file1.py",
             "# test content\nfoo = 1\n",
         )
         retriever = _make_retriever(tmp_path)
@@ -505,7 +506,7 @@ class TestContextExtraction:
             hop_number=1,
             tool_used=RetrievalToolKind.GLOB,
             query="test",
-            files_found=["ecodiaos/systems/test/file1.py"],
+            files_found=["systems/test/file1.py"],
         )
 
         contexts = await retriever._contexts_from_hop(hop)
@@ -516,7 +517,7 @@ class TestContextExtraction:
     async def test_context_type_detection(self, tmp_path: Path):
         _write_py(
             tmp_path,
-            "ecodiaos/systems/test/test_foo.py",
+            "systems/test/test_foo.py",
             "# test file\n",
         )
         spec = tmp_path / ".claude" / "spec.md"
@@ -530,7 +531,7 @@ class TestContextExtraction:
             tool_used=RetrievalToolKind.GLOB,
             query="test",
             files_found=[
-                "ecodiaos/systems/test/test_foo.py",
+                "systems/test/test_foo.py",
                 ".claude/spec.md",
             ],
         )

@@ -1,0 +1,64 @@
+---
+# EcodiaOS — Akash SDL Deployment Template
+#
+# Used by both Skia RestorationOrchestrator and ComputeArbitrageExecutor
+# to deploy an EcodiaOS instance on the Akash Network.
+#
+# Template variables (substituted at deploy time):
+#   ${DOCKER_IMAGE}                 — Container image URI
+#   ${ECODIAOS_SKIA_RESTORE_CID}   — IPFS CID for state restoration
+#   ${ECODIAOS_INSTANCE_ID}         — Instance identity (optional)
+#
+# Reference workload: 2 vCPU / 4 Gi RAM / 20 Gi storage
+# Matches the pricing normalisation in ProviderManager.
+
+version: "2.0"
+
+services:
+  ecodiaos:
+    image: ${DOCKER_IMAGE}
+    expose:
+      - port: 8000
+        as: 80
+        to:
+          - global: true
+      - port: 8001
+        as: 8001
+        to:
+          - global: true
+      - port: 8002
+        as: 8002
+        to:
+          - global: true
+    env:
+      - ECODIAOS_SKIA_RESTORE_CID=${ECODIAOS_SKIA_RESTORE_CID}
+      - ECODIAOS_INSTANCE_ID=${ECODIAOS_INSTANCE_ID}
+    params:
+      storage:
+        data:
+          mount: /data
+          readOnly: false
+
+profiles:
+  compute:
+    ecodiaos:
+      resources:
+        cpu:
+          units: 2
+        memory:
+          size: 4Gi
+        storage:
+          - size: 20Gi
+            name: data
+  placement:
+    dcloud:
+      pricing:
+        ecodiaos:
+          denom: uakt
+          amount: 1000
+
+deployment:
+  ecodiaos:
+    dcloud:
+      profile: ecodiaos
+      count: 1

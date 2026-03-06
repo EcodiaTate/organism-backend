@@ -8,15 +8,14 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.systems.axon.executor import Executor
-from ecodiaos.systems.axon.registry import ExecutorRegistry, _normalise
-from ecodiaos.systems.axon.types import (
+from systems.axon.executor import Executor
+from systems.axon.registry import ExecutorRegistry, _normalise
+from systems.axon.types import (
     ExecutionContext,
     ExecutionResult,
     RateLimit,
     ValidationResult,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 

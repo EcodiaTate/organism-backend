@@ -1,6 +1,10 @@
 # EcodiaOS — Default Runtime Configuration
-# Override via environment variables or instance-specific config files.
+# All values here are the production defaults. Secrets and credentials are
+# injected via environment variables (see .env) and are NOT set here.
 
+instance_id: "eos-default" # Override via ECODIAOS_INSTANCE_ID
+
+# ── Server ────────────────────────────────────────────────────────────────────
 server:
   host: "0.0.0.0"
   port: 8000
@@ -8,37 +12,45 @@ server:
   federation_port: 8002
   cors_origins: ["http://localhost:3000"]
   api_key_header: "X-EOS-API-Key"
+  api_keys: [] # Set via ECODIAOS_SERVER__API_KEYS. Empty = auth disabled (dev only).
 
+# ── Neo4j ─────────────────────────────────────────────────────────────────────
 neo4j:
-  # URI, password, and database are injected from environment variables:
-  #   ECODIAOS_NEO4J_URI       — e.g. neo4j+s://xxxx.databases.neo4j.io
-  #   ECODIAOS_NEO4J_PASSWORD  — Aura instance password
-  #   ECODIAOS_NEO4J_DATABASE  — defaults to "neo4j"
+  # uri:      set via ECODIAOS_NEO4J_URI      (e.g. neo4j+s://xxxx.databases.neo4j.io)
+  # password: set via ECODIAOS_NEO4J_PASSWORD
+  # database: set via ECODIAOS_NEO4J_DATABASE (default: neo4j)
   username: "neo4j"
   max_connection_pool_size: 20
 
+# ── TimescaleDB ───────────────────────────────────────────────────────────────
 timescaledb:
   host: "timescaledb"
   port: 5432
   database: "ecodiaos"
   schema: "public"
   username: "ecodiaos"
-  # password from ECODIAOS_TSDB_PASSWORD env var
+  # password: set via ECODIAOS_TSDB_PASSWORD
   pool_size: 10
+  ssl: false
 
+# ── Redis ─────────────────────────────────────────────────────────────────────
 redis:
   url: "redis://redis:6379/0"
   prefix: "eos"
+  # password: set via ECODIAOS_REDIS_PASSWORD
 
+# ── LLM ───────────────────────────────────────────────────────────────────────
 llm:
-  provider: "bedrock"
+  provider: "bedrock" # bedrock | anthropic | openai | ollama
   model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
-  # Bedrock uses AWS credentials from environment (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).
-  # Override region via AWS_REGION env var (defaults to us-east-1).
-  # Override provider via ECODIAOS_LLM__PROVIDER env var.
-  # Override model via ECODIAOS_LLM__MODEL env var.
+  # api_key: set via ECODIAOS_LLM_API_KEY           (not needed for bedrock)
+  # Bedrock uses AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION from env.
   fallback_provider: null
   fallback_model: null
+  budget:
+    max_calls_per_hour: 1000
+    max_tokens_per_hour: 600000
+    hard_limit: false
   budgets:
     atune: { max_calls_per_hour: 120, max_tokens_per_hour: 60000 }
     equor: { max_calls_per_hour: 60, max_tokens_per_hour: 30000 }
@@ -47,40 +59,59 @@ llm:
     evo: { max_calls_per_hour: 30, max_tokens_per_hour: 60000 }
     simula: { max_calls_per_hour: 5, max_tokens_per_hour: 10000 }
 
+# ── Embedding ─────────────────────────────────────────────────────────────────
+# Used for general memory retrieval. For code-aware vuln analysis see simula.embedding_model.
 embedding:
-  strategy: "local"
+  strategy: "local" # local | sidecar | mock
   local_model: "sentence-transformers/all-mpnet-base-v2"
   local_device: "cpu"
+  sidecar_url: null # required when strategy = sidecar
   dimension: 768
   max_batch_size: 32
   cache_embeddings: true
   cache_ttl_seconds: 3600
 
+# ── Synapse (event bus / theta cycle) ────────────────────────────────────────
 synapse:
   cycle_period_ms: 150
   min_cycle_period_ms: 80
   max_cycle_period_ms: 500
   health_check_interval_ms: 5000
   health_failure_threshold: 3
+  coherence_update_interval: 50
+  rhythm_enabled: true
 
+# ── Atune (attention / salience) ──────────────────────────────────────────────
 atune:
   ignition_threshold: 0.3
   workspace_buffer_size: 32
   spontaneous_recall_base_probability: 0.02
   max_percept_queue_size: 100
 
+# ── Nova (goal deliberation / EFE) ────────────────────────────────────────────
 nova:
   max_active_goals: 20
   fast_path_timeout_ms: 300
   slow_path_timeout_ms: 15000
   max_policies_per_deliberation: 5
+  efe_weight_pragmatic: 0.35
+  efe_weight_epistemic: 0.20
+  efe_weight_constitutional: 0.20
+  efe_weight_feasibility: 0.15
+  efe_weight_risk: 0.10
+  memory_retrieval_timeout_ms: 150
+  use_llm_efe_estimation: true
 
+# ── Equor (ethics / constitutional review) ───────────────────────────────────
 equor:
   standard_review_timeout_ms: 500
   critical_review_timeout_ms: 50
   care_floor_multiplier: -0.3
   honesty_floor_multiplier: -0.3
+  drift_window_size: 1000
+  drift_report_interval: 1000
 
+# ── Axon (action execution) ───────────────────────────────────────────────────
 axon:
   max_actions_per_cycle: 5
   max_api_calls_per_minute: 30
@@ -88,11 +119,21 @@ axon:
   max_concurrent_executions: 3
   total_timeout_per_cycle_ms: 30000
 
+# ── Voxis (expression / voice) ────────────────────────────────────────────────
 voxis:
   max_expression_length: 2000
   min_expression_interval_minutes: 1
   voice_synthesis_enabled: false
+  insight_expression_threshold: 0.6
+  conversation_history_window: 50
+  context_window_max_tokens: 4000
+  conversation_summary_threshold: 10
+  feedback_enabled: true
+  honesty_check_enabled: true
+  temperature_base: 0.7
+  max_active_conversations: 50
 
+# ── Evo (hypothesis learning) ─────────────────────────────────────────────────
 evo:
   consolidation_interval_hours: 6
   consolidation_cycle_threshold: 10000
@@ -100,35 +141,443 @@ evo:
   max_parameter_delta_per_cycle: 0.03
   min_evidence_for_integration: 10
 
+# ── Simula (self-modification / inspector) ────────────────────────────────────
 simula:
   max_simulation_episodes: 200
   regression_threshold_unacceptable: 0.10
   regression_threshold_high: 0.05
-  # Root directory the code agent operates in. Must be an absolute path or "."
-  # (resolved relative to the worker's CWD). Override via
-  # ECODIAOS_SIMULA__CODEBASE_ROOT env var — e.g. /mnt/d/.code/ecodiaos/backend
-  codebase_root: "."
 
+  # Code agent
+  codebase_root: "." # Override via ECODIAOS_SIMULA__CODEBASE_ROOT
+  code_agent_model: "claude-opus-4-6"
+  max_code_agent_turns: 20
+  test_command: "pytest"
+  auto_apply_self_applicable: true
+
+  # Stage 1A — Extended-thinking (deep reasoning for governance / high-risk proposals)
+  thinking_model: "o3"
+  thinking_model_provider: "openai" # openai | deepseek
+  # thinking_model_api_key: set via ECODIAOS_SIMULA__THINKING_MODEL_API_KEY
+  thinking_budget_tokens: 16384
+
+  # Stage 1B — Code-aware embeddings (Voyage AI voyage-code-3)
+  embedding_model: "voyage-code-3"
+  # embedding_api_key: set via ECODIAOS_SIMULA__EMBEDDING_API_KEY
+
+  # Stage 1C — KV cache compression
+  kv_compression_ratio: 0.3
+  kv_compression_enabled: true
+
+  # Stage 2A — Dafny formal verification
+  dafny_enabled: false # requires Dafny binary on PATH
+  dafny_binary_path: "dafny"
+  dafny_verify_timeout_s: 30.0
+  dafny_max_clover_rounds: 8
+  dafny_blocking: true
+
+  # Stage 2B — Z3 invariant discovery
+  z3_enabled: false # requires z3-solver pip package
+  z3_check_timeout_ms: 5000
+  z3_max_discovery_rounds: 6
+  z3_blocking: false
+
+  # Stage 2C — Static analysis gates
+  static_analysis_enabled: true
+  static_analysis_max_fix_iterations: 3
+  static_analysis_blocking: true
+
+  # Stage 2D — AgentCoder (3-agent test/code/execute pipeline)
+  agent_coder_enabled: false
+  agent_coder_max_iterations: 3
+  agent_coder_test_timeout_s: 60.0
+
+  # Stage 3A — Salsa incremental verification
+  incremental_verification_enabled: true
+  incremental_hot_ttl_seconds: 3600
+
+  # Stage 3B — SWE-grep agentic retrieval
+  swe_grep_enabled: true
+  swe_grep_max_hops: 4
+
+  # Stage 3C — LILO library learning
+  lilo_enabled: true
+  lilo_max_library_size: 200
+  lilo_consolidation_interval_proposals: 10
+
+  # Stage 4A — Lean 4 proof generation
+  lean_enabled: false # requires Lean 4 + Mathlib on PATH
+  lean_binary_path: "lean"
+  # lean_project_path: set via ECODIAOS_SIMULA__LEAN_PROJECT_PATH
+  lean_verify_timeout_s: 60.0
+  lean_max_attempts: 5
+  lean_blocking: true
+  lean_copilot_enabled: true
+  lean_dojo_enabled: true
+  lean_proof_library_max_size: 500
+
+  # Stage 4B — GRPO domain fine-tuning
+  grpo_enabled: false
+  grpo_base_model: "deepseek-coder-7b"
+  grpo_min_training_examples: 100
+  grpo_sft_epochs: 3
+  grpo_rollouts_per_example: 2
+  grpo_batch_size: 8
+  grpo_learning_rate: 0.00002
+  grpo_retrain_interval_proposals: 50
+  grpo_gpu_ids: [0] # Override via ECODIAOS_SIMULA__GRPO_GPU_IDS
+  grpo_use_finetuned: false
+  grpo_ab_test_fraction: 0.2
+
+  # Stage 4C — Diffusion-based code repair
+  diffusion_repair_enabled: false
+  diffusion_model: "diffucoder-7b"
+  diffusion_max_denoise_steps: 10
+  diffusion_timeout_s: 120.0
+  diffusion_sketch_first: false
+  diffusion_handoff_after_failures: 2
+
+  # Stage 5A — Neurosymbolic synthesis
+  synthesis_enabled: false
+  hysynth_enabled: true
+  hysynth_max_candidates: 200
+  hysynth_beam_width: 10
+  hysynth_timeout_s: 60.0
+  sketch_synthesis_enabled: true
+  sketch_max_holes: 20
+  sketch_solver_timeout_ms: 5000
+  chopchop_enabled: true
+  chopchop_chunk_size_lines: 10
+  chopchop_max_retries: 3
+  chopchop_timeout_s: 90.0
+
+  # Stage 5B — Neural program repair (SRepair)
+  repair_agent_enabled: false
+  repair_diagnosis_model: "claude-opus-4-6"
+  repair_generation_model: "claude-sonnet-4-20250514"
+  repair_max_retries: 3
+  repair_cost_budget_usd: 0.10
+  repair_timeout_s: 180.0
+  repair_use_similar_fixes: true
+
+  # Stage 5C — Multi-agent orchestration
+  orchestration_enabled: false
+  orchestration_max_agents_per_stage: 2
+  orchestration_multi_file_threshold: 3
+  orchestration_max_dag_nodes: 50
+  orchestration_timeout_s: 300.0
+
+  # Stage 5D — Causal debugging
+  causal_debugging_enabled: false
+  causal_max_interventions: 5
+  causal_fault_injection_enabled: false # staging only
+  causal_timeout_s: 60.0
+
+  # Stage 5E — Autonomous issue resolution
+  issue_resolution_enabled: false
+  issue_max_autonomy_level: "test_fix" # lint | dependency | test_fix | logic_bug
+  issue_abstention_confidence_threshold: 0.8
+  issue_perf_regression_enabled: true
+  issue_security_scan_enabled: true
+  issue_degradation_window_hours: 24
+
+  # Stage 6A — Cryptographic auditability
+  hash_chain_enabled: false
+  c2pa_enabled: false
+  c2pa_signing_key_path: ""
+  c2pa_issuer_name: "EcodiaOS Simula"
+  verifiable_credentials_enabled: false
+  credential_verification_timeout_s: 10.0
+  regulatory_framework: "" # "" | finance_sox | healthcare_hipaa | defense_cmmc | general_audit
+
+  # Stage 6B — Co-evolving agents
+  coevolution_enabled: false
+  hard_negative_mining_interval_proposals: 10
+  adversarial_test_generation_enabled: false
+  adversarial_max_tests_per_cycle: 20
+  coevolution_idle_compute_enabled: false
+
+  # Stage 6C — Formal spec generation
+  formal_spec_generation_enabled: false
+  dafny_spec_generation_enabled: true
+  dafny_bench_coverage_target: 0.96
+  tla_plus_enabled: false
+  tla_plus_binary_path: "tlc"
+  tla_plus_model_check_timeout_s: 120.0
+  alloy_enabled: false
+  alloy_binary_path: "alloy"
+  alloy_scope: 10
+  self_spec_dsl_enabled: false
+
+  # Stage 6D — Equality saturation (e-graphs)
+  egraph_enabled: false
+  egraph_max_iterations: 1000
+  egraph_timeout_s: 30.0
+  egraph_blocking: false
+
+  # Stage 6E — Hybrid symbolic execution
+  symbolic_execution_enabled: false
+  symbolic_execution_timeout_ms: 10000
+  symbolic_execution_blocking: true
+  symbolic_execution_domains: ["budget_calculation", "risk_scoring"]
+
+  # Pipeline safety limits
+  max_active_proposals: 50
+  pipeline_timeout_s: 600.0
+
+  # Stage 7 — Inspector (zero-day discovery engine)
+  inspector_enabled: false
+  inspector_max_workers: 4 # 1–16 concurrent surface × goal workers
+  inspector_sandbox_timeout_s: 30
+  inspector_clone_depth: 1
+  inspector_log_analytics: true
+  inspector_authorized_targets: [] # domains / file:// paths allowed for PoC execution
+  inspector_generate_pocs: false
+  inspector_generate_patches: false
+  inspector_remediation_enabled: false
+
+# ── Thymos (health / self-repair) ────────────────────────────────────────────
+thymos:
+  sentinel_scan_interval_s: 30.0
+  homeostasis_interval_s: 30.0
+  post_repair_verify_timeout_s: 10.0
+  max_concurrent_diagnoses: 3
+  max_concurrent_codegen: 1
+  storm_threshold: 10 # incidents per 60 seconds
+  max_repairs_per_hour: 5
+  max_novel_repairs_per_day: 3
+  antibody_refinement_threshold: 0.6
+  antibody_retirement_threshold: 0.3
+  cpu_budget_fraction: 0.05
+  burst_cpu_fraction: 0.15
+  memory_budget_mb: 256
+
+# ── Oneiros (sleep / consolidation) ──────────────────────────────────────────
+oneiros:
+  # Circadian rhythm
+  wake_duration_target_s: 79200.0 # 22 hours
+  sleep_duration_target_s: 7200.0 # 2 hours
+
+  # Sleep pressure
+  pressure_threshold: 0.70
+  pressure_critical: 0.95
+  max_wake_cycles: 528000
+
+  # Pressure weights (must sum to 1.0)
+  pressure_weight_cycles: 0.40
+  pressure_weight_affect: 0.25
+  pressure_weight_episodes: 0.20
+  pressure_weight_hypotheses: 0.15
+
+  # NREM
+  nrem_fraction: 0.40
+  max_episodes_per_nrem: 200
+  replay_batch_size: 10
+  salience_decay_factor: 0.85
+  salience_pruning_threshold: 0.05
+
+  # REM
+  rem_fraction: 0.40
+  max_dreams_per_rem: 50
+  dream_coherence_insight_threshold: 0.70
+  dream_coherence_fragment_threshold: 0.40
+  max_affect_traces_per_rem: 100
+  affect_dampening_factor: 0.50
+  max_threats_per_rem: 15
+  max_ethical_cases_per_rem: 10
+
+  # Lucid
+  lucid_fraction: 0.10
+  lucid_insight_threshold: 0.85
+  max_explorations_per_lucid: 10
+
+  # Sleep debt penalties
+  debt_salience_noise_max: 0.15
+  debt_efe_precision_loss_max: 0.20
+  debt_expression_flatness_max: 0.25
+  debt_learning_rate_reduction_max: 0.30
+
+  # Transitions
+  hypnagogia_duration_s: 30.0
+  hypnopompia_duration_s: 30.0
+
+# ── Soma (interoception / predictive substrate) ───────────────────────────────
+soma:
+  cycle_enabled: true
+  phase_space_update_interval: 100
+  trajectory_buffer_size: 1000
+  prediction_ewm_span: 20
+  setpoint_adaptation_alpha: 0.05
+  urgency_threshold: 0.3
+  attractor_min_dwell_cycles: 50
+  bifurcation_detection_enabled: true
+  max_attractors: 20
+  somatic_marker_enabled: true
+  somatic_rerank_boost: 0.3
+  developmental_gating_enabled: true
+  initial_stage: "reflexive" # reflexive | reactive | deliberative | autonomous
+
+# ── Oikos (economic engine) ───────────────────────────────────────────────────
+oikos:
+  # Survival / liquidity management
+  survival_reserve_days: 90
+  operating_buffer_days: 14
+  gas_reserve_eth: 0.01
+  bmr_measurement_window_hours: 168 # 7 days
+  metabolic_alert_threshold: 0.90
+  balance_poll_interval_s: 60.0
+
+  # Starvation cascade thresholds (days of runway)
+  cautious_threshold_days: 14.0
+  austerity_threshold_days: 7.0
+  emergency_threshold_days: 3.0
+  critical_threshold_days: 1.0
+
+  # Phase 16i — Economic dreaming (Monte Carlo strategy)
+  dreaming_paths_per_strategy: 10000
+  dreaming_horizon_days: 365
+  dreaming_stress_test_paths: 1000
+  dreaming_strategies_per_cycle: 5
+  dreaming_ruin_threshold: 0.01
+  dreaming_revenue_volatility: 0.30
+  dreaming_cost_volatility: 0.15
+  dreaming_yield_volatility: 0.40
+  dreaming_shock_probability: 0.005
+  dreaming_shock_magnitude_min: 0.3
+  dreaming_shock_magnitude_max: 3.0
+
+  # Phase 16e — Mitosis (reproduction / speciation)
+  mitosis_min_parent_runway_days: 180
+  mitosis_min_seed_capital: 50.00
+  mitosis_max_seed_pct_of_net_worth: 0.20
+  mitosis_min_parent_efficiency: 1.5
+  mitosis_default_dividend_rate: 0.10
+  mitosis_min_niche_score: 0.4
+  mitosis_max_children: 5
+  mitosis_child_struggling_runway_days: 30.0
+  mitosis_max_rescues_per_child: 2
+
+  # Phase 16k — Cognitive derivatives
+  derivatives_futures_base_discount: 0.16
+  derivatives_futures_collateral_rate: 0.30
+  derivatives_max_capacity_commitment: 0.80
+  derivatives_subscription_tokens_enabled: true
+
+  # Phase 16l — Economic morphogenesis
+  morphogenesis_cycle_trigger: "consolidation"
+  morphogenesis_atrophy_inactive_days: 30
+  morphogenesis_vestigial_inactive_days: 90
+  morphogenesis_growth_efficiency_threshold: 1.5
+  morphogenesis_max_organs: 20
+
+  # Phase 16g — Civilization layer (Certificate of Alignment)
+  certificate_validity_days: 30
+  certificate_expiry_warning_days: 7
+  certificate_ca_address: "" # USDC address of the Certification Authority
+  certificate_renewal_cost_usd: 5.00
+  certificate_check_interval_s: 3600.0
+  certificate_birth_validity_days: 7
+  is_genesis_node: false # SECURITY: only the canonical Genesis Node sets this true
+
+# ── Federation ────────────────────────────────────────────────────────────────
 federation:
   enabled: false
   endpoint: null
   tls_cert_path: null
   tls_key_path: null
   ca_cert_path: null
+  private_key_path: null # Ed25519 signing key path
+  auto_accept_links: false
+  trust_decay_enabled: true
+  trust_decay_rate_per_day: 0.1
+  max_trust_level: 4 # 4 = ALLY
+  link_timeout_ms: 3000
+  knowledge_request_timeout_ms: 2000
+  identity_verification_timeout_ms: 500
+  heartbeat_interval_seconds: 30
+  max_concurrent_links: 50
+  privacy_filter_enabled: true
+  allow_individual_data_sharing: false # NEVER true without individual consent
+  max_knowledge_items_per_request: 100
+  knowledge_cache_ttl_seconds: 300
+  data_dir: "data/federation"
+  identity_data_dir: "data/identity"
 
+# ── Wallet ────────────────────────────────────────────────────────────────────
+wallet:
+  # All secrets set via environment variables — never put keys here.
+  # cdp_api_key_id:     set via ECODIAOS_WALLET__CDP_API_KEY_ID
+  # cdp_api_key_secret: set via ECODIAOS_WALLET__CDP_API_KEY_SECRET
+  # cdp_wallet_secret:  set via ECODIAOS_WALLET__CDP_WALLET_SECRET (base64-encoded DER EC key)
+  network: "base" # base | base-sepolia | ethereum
+  account_name: "ecodiaos-treasury"
+  seed_file_path: "data/wallet_seed.json"
+
+# ── Platform Connectors ───────────────────────────────────────────────────────
+# OAuth2 connectors for external platforms. All disabled by default.
+# To activate a connector:
+#   1. Set enabled: true
+#   2. Fill in client_id and client_secret (or use env vars below)
+#   3. Ensure ECODIAOS_VAULT_PASSPHRASE is set so tokens can be encrypted
+#
+# Env var override pattern: ECODIAOS_CONNECTORS__<PLATFORM>__<FIELD>
+# e.g. ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_ID=abc123
+connectors:
+  linkedin:
+    enabled: true
+    # client_id:     set via ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_ID
+    # client_secret: set via ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_SECRET
+    authorize_url: "https://www.linkedin.com/oauth/v2/authorization"
+    token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+    revoke_url: "https://www.linkedin.com/oauth/v2/revoke"
+    redirect_uri: "" # e.g. https://yourhost/auth/linkedin/callback
+    scopes: ["openid", "profile", "email", "w_member_social"]
+
+  x:
+    enabled: false
+    # client_id:     set via ECODIAOS_CONNECTORS__X__CLIENT_ID
+    # client_secret: set via ECODIAOS_CONNECTORS__X__CLIENT_SECRET
+    authorize_url: "https://twitter.com/i/oauth2/authorize"
+    token_url: "https://api.twitter.com/2/oauth2/token"
+    revoke_url: "https://api.twitter.com/2/oauth2/revoke"
+    redirect_uri: ""
+    scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"]
+
+  github_app:
+    enabled: false
+    # client_id:     set via ECODIAOS_CONNECTORS__GITHUB_APP__CLIENT_ID
+    # client_secret: set via ECODIAOS_CONNECTORS__GITHUB_APP__CLIENT_SECRET
+    authorize_url: "https://github.com/login/oauth/authorize"
+    token_url: "https://github.com/login/oauth/access_token"
+    revoke_url: "" # GitHub revocation is done via API, not this endpoint
+    redirect_uri: ""
+    scopes: ["repo", "read:user", "read:org"]
+
+  instagram_graph:
+    enabled: false
+    # client_id:     set via ECODIAOS_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_ID
+    # client_secret: set via ECODIAOS_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_SECRET
+    authorize_url: "https://api.instagram.com/oauth/authorize"
+    token_url: "https://api.instagram.com/oauth/access_token"
+    revoke_url: ""
+    redirect_uri: ""
+    scopes:
+      [
+        "instagram_basic",
+        "instagram_content_publish",
+        "instagram_manage_insights",
+      ]
+
+  canva:
+    enabled: false
+    # client_id:     set via ECODIAOS_CONNECTORS__CANVA__CLIENT_ID
+    # client_secret: set via ECODIAOS_CONNECTORS__CANVA__CLIENT_SECRET
+    authorize_url: "https://www.canva.com/api/oauth/authorize"
+    token_url: "https://www.canva.com/api/oauth/token"
+    revoke_url: "https://www.canva.com/api/oauth/revoke"
+    redirect_uri: ""
+    scopes: ["design:content:read", "design:content:write", "profile:read"]
+
+# ── Logging ───────────────────────────────────────────────────────────────────
 logging:
-  level: "INFO"
-  format: "console"
-
-soma:
-  cycle_enabled: true
-  initial_stage: "reflexive"
-  trajectory_buffer_size: 100
-  prediction_ewm_span: 10
-  setpoint_adaptation_alpha: 0.05
-  urgency_threshold: 0.7
-  max_attractors: 5
-  attractor_min_dwell_cycles: 20
-  bifurcation_detection_enabled: true
-  phase_space_update_interval: 10
-  somatic_rerank_boost: 0.3
+  level: "INFO" # DEBUG | INFO | WARNING | ERROR
+  format: "console" # console | json

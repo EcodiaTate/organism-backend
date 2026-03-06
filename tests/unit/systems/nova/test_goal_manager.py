@@ -7,26 +7,25 @@ drive resonance, relevance scoring, and stale goal expiration.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
 
-from ecodiaos.primitives.affect import AffectState
-from ecodiaos.primitives.common import DriveAlignmentVector, new_id, utc_now
-from ecodiaos.systems.atune.types import SalienceVector, WorkspaceBroadcast
-from ecodiaos.systems.nova.goal_manager import (
+from primitives.affect import AffectState
+from primitives.common import DriveAlignmentVector, new_id, utc_now
+from systems.atune.types import SalienceVector, WorkspaceBroadcast
+from systems.nova.goal_manager import (
     GoalManager,
     compute_drive_resonance,
     compute_goal_priority,
 )
-from ecodiaos.systems.nova.types import (
+from systems.nova.types import (
     Goal,
     GoalSource,
     GoalStatus,
     PriorityContext,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────
 

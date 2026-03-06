@@ -15,9 +15,9 @@ import pytest
 if TYPE_CHECKING:
     from pathlib import Path
 
-from ecodiaos.systems.simula.verification.dafny_bridge import DafnyBridge
-from ecodiaos.systems.simula.verification.templates import TEMPLATES, get_template
-from ecodiaos.systems.simula.verification.types import (
+from systems.simula.verification.dafny_bridge import DafnyBridge
+from systems.simula.verification.templates import TEMPLATES, get_template
+from systems.simula.verification.types import (
     DafnyVerificationStatus,
 )
 

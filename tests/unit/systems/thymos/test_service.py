@@ -8,21 +8,18 @@ All external dependencies (Neo4j, LLM, Synapse, Equor, Evo) are mocked.
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from ecodiaos.config import ThymosConfig
-from ecodiaos.primitives.common import new_id, utc_now
-from ecodiaos.systems.synapse.types import SynapseEvent, SynapseEventType
-from ecodiaos.systems.thymos.service import ThymosService
-from ecodiaos.systems.thymos.types import (
-    HealingMode,
+from config import ThymosConfig
+from primitives.common import new_id, utc_now
+from systems.synapse.types import SynapseEvent, SynapseEventType
+from systems.thymos.service import ThymosService
+from systems.thymos.types import (
     Incident,
     IncidentClass,
     IncidentSeverity,
-    RepairStatus,
-    RepairTier,
 )
 
 
@@ -107,7 +104,7 @@ class TestLifecycle:
     @pytest.mark.asyncio
     async def test_subscribes_to_synapse_events(self):
         synapse = _make_synapse_mock()
-        thymos = await _make_thymos(synapse=synapse)
+        await _make_thymos(synapse=synapse)
         # Should have subscribed to multiple event types
         assert synapse._event_bus.subscribe.call_count > 0
 

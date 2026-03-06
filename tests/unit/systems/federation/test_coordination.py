@@ -8,15 +8,14 @@ from __future__ import annotations
 
 import pytest
 
-from ecodiaos.primitives.federation import (
+from primitives.federation import (
     AssistanceRequest,
     FederationLink,
     FederationLinkStatus,
     InteractionOutcome,
     TrustLevel,
 )
-from ecodiaos.systems.federation.coordination import CoordinationManager
-
+from systems.federation.coordination import CoordinationManager
 
 # ─── Fixtures ────────────────────────────────────────────────────
 
