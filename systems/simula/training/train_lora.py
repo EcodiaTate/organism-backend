@@ -208,6 +208,12 @@ def run_training(dataset_path: Path) -> Path:
         load_in_4bit=True,
     )
 
+    # Qwen3 uses <|endoftext|> as EOS — ensure tokenizer reflects this
+    if tokenizer.eos_token is None or tokenizer.eos_token not in tokenizer.get_vocab():
+        tokenizer.eos_token = "<|endoftext|>"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
     # Apply LoRA adapters — either load from an existing adapter (BASE_ADAPTER, e.g. DPO
     # output) or initialize fresh LoRA weights. CLoRA orthogonalization is applied in
     # both cases if PREVIOUS_ADAPTER_PATH is set (always the slow EMA adapter).
