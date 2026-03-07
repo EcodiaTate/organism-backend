@@ -315,7 +315,7 @@ def run_training(dataset_path: Path) -> Path:
         bf16=torch.cuda.is_bf16_supported(),
         seed=42,
         report_to="wandb" if os.environ.get("WANDB_API_KEY") else "none",
-        max_seq_length=max_seq_len,
+        max_length=max_seq_len,
         dataset_kwargs={"skip_prepare_dataset": True},
     )
 
