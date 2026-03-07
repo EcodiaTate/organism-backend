@@ -79,6 +79,7 @@ def _build_neo4j() -> Any:
     uri = os.environ.get("ECODIAOS_NEO4J_URI", "").strip()
     password = os.environ.get("ECODIAOS_NEO4J_PASSWORD", "").strip()
     username = os.environ.get("ECODIAOS_NEO4J_USERNAME", "neo4j").strip()
+    database = os.environ.get("ECODIAOS_NEO4J_DATABASE", "neo4j").strip()
 
     if not uri:
         print(_err("ERROR: ECODIAOS_NEO4J_URI is not set."), file=sys.stderr)
@@ -87,7 +88,7 @@ def _build_neo4j() -> Any:
         print(_err("ERROR: ECODIAOS_NEO4J_PASSWORD is not set."), file=sys.stderr)
         sys.exit(1)
 
-    cfg = Neo4jConfig(uri=uri, username=username, password=password)
+    cfg = Neo4jConfig(uri=uri, username=username, password=password, database=database)
     return Neo4jClient(cfg)
 
 
