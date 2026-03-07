@@ -80,6 +80,9 @@ class DriveTopologyIntegrator:
         logos: LogosMetrics,
         fovea: FoveaMetrics,
         recent_alignments: list[DriveAlignmentVector] | None = None,
+        *,
+        measured_hypothesis_protection_bias: float | None = None,
+        measured_confabulation_rate: float | None = None,
     ) -> EffectiveIntelligenceReport:
         """
         Run all four topology engines and produce the integrated report.
@@ -95,7 +98,11 @@ class DriveTopologyIntegrator:
             logos, fovea, recent_alignments
         )
         growth_metrics = await self._growth.compute_growth_rate(logos, fovea)
-        honesty_report = await self._honesty.compute_validity(logos, fovea)
+        honesty_report = await self._honesty.compute_validity(
+            logos, fovea,
+            measured_hypothesis_protection_bias=measured_hypothesis_protection_bias,
+            measured_confabulation_rate=measured_confabulation_rate,
+        )
 
         # Cache reports
         self._last_care_report = care_report

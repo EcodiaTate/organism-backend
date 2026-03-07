@@ -18,11 +18,13 @@ import contextlib
 import time
 from collections import deque
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 import structlog
 
-from primitives.common import DriveAlignmentVector
+from primitives.common import DriveAlignmentVector, SystemID
+from primitives.re_training import RETrainingExample
+from systems.telos.adapters import FoveaMetricsAdapter, LogosMetricsAdapter
 from systems.telos.alignment import AlignmentGapMonitor
 from systems.telos.audit import ConstitutionalTopologyAuditor
 from systems.telos.binder import TelosConstitutionalBinder
@@ -55,6 +57,20 @@ if TYPE_CHECKING:
     from systems.synapse.types import SynapseEvent
 
 logger = structlog.get_logger()
+
+
+# ─── Typed Protocols (replace Any for Soma — Task 8) ─────────────────
+# Soma uses InteroceptiveDimension enum keys but we access via string
+# "integrity" to avoid cross-system import of systems.soma.types.
+
+_SOMA_INTEGRITY_KEY = "integrity"
+
+
+@runtime_checkable
+class SomaServiceProtocol(Protocol):
+    """Protocol for Soma — Telos reads felt integrity, not raw types."""
+
+    def get_current_signal(self) -> Any: ...
 
 
 class TelosService:
@@ -116,30 +132,39 @@ class TelosService:
         self._last_computation_ms: float = 0.0
         self._computation_count: int = 0
         self._last_constitutional_check: float = 0.0
+        self._last_hourly_rollup_hour: int = -1
 
         # Recent drive alignments (fed from Equor via Synapse events)
         self._recent_alignments: list[DriveAlignmentVector] = []
         self._max_alignment_history = 50
 
-        # Soma integration (Loop 6 bidirectional)
-        self._soma: Any = None  # SomaService
+        # Soma integration (Loop 6 bidirectional) — typed protocol
+        self._soma: SomaServiceProtocol | None = None
 
         # Redis client for reading economic state
         self._redis: RedisClient | None = None
 
+        # ── Hypothesis test tracking (P1/P6) ──────────────────────────
+        # Fed by HYPOTHESIS_CONFIRMED / HYPOTHESIS_REFUTED subscriptions.
+        self._hypothesis_confirmed_count: int = 0
+        self._hypothesis_refuted_count: int = 0
+        self._hypothesis_total_count: int = 0
+
+        # ── Incident confabulation tracking (Spec 18 §SG3) ────────────
+        # Fed by INCIDENT_RESOLVED events from Thymos.
+        # Used by get_measured_confabulation_rate() → HonestyTopologyEngine.
+        self._incident_confabulation_count: int = 0
+        self._incident_total_count: int = 0
+
         # ── Task 1: Self-sufficiency objective ───────────────────────────
-        # Track metabolic_efficiency per Telos cycle to detect declining trend.
-        # Sliding window of the last 3 readings (oldest first).
         self._metabolic_efficiency_history: deque[float] = deque(maxlen=3)
         self._selfsufficency_task: asyncio.Task[None] | None = None
 
         # ── Task 2: Autonomy trajectory tracking ────────────────────────
-        # Ring of AUTONOMY_INSUFFICIENT event timestamps (rolling 7-day window).
-        # Timestamps stored as monotonic floats.
         self._autonomy_event_times: deque[float] = deque()
-        self._autonomy_window_s: float = 7 * 24 * 3600.0  # 7 days
+        self._autonomy_window_s: float = 7 * 24 * 3600.0
         self._autonomy_target_per_day: float = 1.0
-        self._autonomy_stagnating_threshold: float = 3.0  # avg/day triggers alert
+        self._autonomy_stagnating_threshold: float = 3.0
 
     # ─── Dependency Injection ────────────────────────────────────────
 
@@ -148,7 +173,7 @@ class TelosService:
         self._redis = redis
         self._logger.info("redis_wired")
 
-    def set_soma(self, soma: Any) -> None:
+    def set_soma(self, soma: SomaServiceProtocol) -> None:
         """
         Inject Soma for bidirectional allostatic integration (Loop 6).
 
@@ -178,6 +203,12 @@ class TelosService:
         """Inject the Synapse event bus for publishing topology events."""
         self._event_bus = event_bus
         self._logger.info("event_bus_wired")
+
+    def set_neo4j(self, driver: Any, instance_id: str = "") -> None:
+        """Inject Neo4j driver for I-history persistence."""
+        if isinstance(self._logos, LogosMetricsAdapter):
+            self._logos.i_history_store.set_neo4j(driver, instance_id)
+            self._logger.info("neo4j_wired_for_i_history")
 
     # ─── Lifecycle ───────────────────────────────────────────────────
 
@@ -257,16 +288,15 @@ class TelosService:
             "audit_consecutive_failures": self._auditor.consecutive_failures,
             "audit_is_emergency": self._auditor.is_emergency,
             "alignment_gap_fraction": self._gap_monitor.current_gap_fraction,
+            # Hypothesis tracking
+            "hypothesis_confirmed": self._hypothesis_confirmed_count,
+            "hypothesis_refuted": self._hypothesis_refuted_count,
         }
 
     # ─── Public API ──────────────────────────────────────────────────
 
     async def compute_now(self) -> EffectiveIntelligenceReport | None:
-        """
-        Run a single topology computation immediately.
-
-        Returns None if Logos or Fovea are not wired.
-        """
+        """Run a single topology computation immediately."""
         if self._logos is None or self._fovea is None:
             self._logger.warning("compute_now_skipped", reason="dependencies not wired")
             return None
@@ -275,56 +305,39 @@ class TelosService:
 
     @property
     def integrator(self) -> DriveTopologyIntegrator:
-        """Access the integrator for reading cached reports."""
         return self._integrator
 
     @property
     def binder(self) -> TelosConstitutionalBinder:
-        """Access the constitutional binder."""
         return self._binder
 
     @property
     def gap_monitor(self) -> AlignmentGapMonitor:
-        """Access the alignment gap monitor."""
         return self._gap_monitor
 
     @property
     def auditor(self) -> ConstitutionalTopologyAuditor:
-        """Access the constitutional topology auditor."""
         return self._auditor
 
     @property
     def policy_scorer(self) -> TelosPolicyScorer:
-        """Access the policy scorer (Phase D)."""
         return self._policy_scorer
 
     @property
     def hypothesis_prioritizer(self) -> TelosHypothesisPrioritizer:
-        """Access the hypothesis prioritizer (Phase D)."""
         return self._hypothesis_prioritizer
 
     @property
     def fragment_selector(self) -> TelosFragmentSelector:
-        """Access the fragment selector (Phase D)."""
         return self._fragment_selector
 
     def validate_world_model_update(
         self, update: WorldModelUpdatePayload
     ) -> TopologyValidationResult:
-        """
-        Validate a world model update against the four constitutional bindings.
-
-        Delegates to the binder. Returns VALID or CONSTITUTIONAL_VIOLATION.
-        """
         return self._binder.validate_world_model_update(update)
 
     async def run_constitutional_audit(self) -> ConstitutionalAuditResult:
-        """
-        Run the 24-hour constitutional topology audit immediately.
-
-        Verifies all four drive bindings, collects violations, and emits
-        CONSTITUTIONAL_TOPOLOGY_INTACT or an emergency alert.
-        """
+        """Run the 24-hour constitutional topology audit immediately."""
         result = self._auditor.run_audit()
 
         if result.all_bindings_intact:
@@ -350,6 +363,20 @@ class TelosService:
                 },
             )
 
+        # ── RE training: drive audit decision (enriched traces — SG1) ──
+        asyncio.ensure_future(self._emit_re_training_example(
+            category="drive_audit",
+            instruction="Run constitutional topology audit: verify all four drive bindings are intact.",
+            input_context=f"violations={len(result.violations_since_last_audit)}",
+            output=f"intact={result.all_bindings_intact}, care={result.care_is_coverage}, coherence={result.coherence_is_compression}, growth={result.growth_is_gradient}, honesty={result.honesty_is_validity}",
+            outcome_quality=1.0 if result.all_bindings_intact else 0.2,
+            reasoning_trace=self._build_audit_reasoning_trace(result),
+            alternatives_considered=[
+                "Partial audit (single drive) — rejected: all 4 must be verified together",
+                "Skip audit if last was < 12h ago — rejected: consistency matters more than frequency",
+            ],
+        ))
+
         return result
 
     def score_policy(
@@ -357,11 +384,6 @@ class TelosService:
         policy: Any,
         current_report: EffectiveIntelligenceReport | None = None,
     ) -> Any:
-        """
-        Score a proposed policy by its effect on effective_I.
-
-        If current_report is not provided, uses the integrator's last report.
-        """
         report = current_report if current_report is not None else self._integrator.last_report
         return self._policy_scorer.score_policy(policy, report)
 
@@ -371,63 +393,33 @@ class TelosService:
         current_report: EffectiveIntelligenceReport | None = None,
         domain_coverage: dict[str, float] | None = None,
     ) -> list[HypothesisTopologyContribution]:
-        """
-        Rank hypotheses by their contribution to the drive topology.
-
-        If current_report is not provided, uses the integrator's last report.
-        """
         report = current_report if current_report is not None else self._integrator.last_report
         return self._hypothesis_prioritizer.prioritize(hypotheses, report, domain_coverage)
 
     def score_fragment(self, fragment: Any) -> float:
-        """Score a world model fragment for federation sharing."""
         return self._fragment_selector.score_fragment(fragment)
 
     def get_drive_state(self) -> dict[str, float]:
-        """
-        Return current drive multipliers from the last computation.
-
-        Used by Thymos to populate ``Incident.constitutional_impact`` so that
-        impact assessment is grounded in Telos's authoritative measurements
-        rather than computed independently.
-
-        Returns a dict with keys: care, coherence, growth, honesty.
-        Each value is the current drive multiplier (0.0–1.0+ for most drives).
-        Returns all zeros if no computation has run yet.
-        """
+        """Return current drive multipliers from the last computation."""
         report = self._integrator.last_report
         if report is None:
             return {"care": 0.0, "coherence": 0.0, "growth": 0.0, "honesty": 0.0}
         return {
             "care": report.care_multiplier,
-            "coherence": report.coherence_bonus - 1.0,  # bonus above baseline
+            "coherence": report.coherence_bonus - 1.0,
             "growth": report.growth_rate,
             "honesty": report.honesty_coefficient,
         }
 
     def predict_drive_impact(self, incident_class: str, source_system: str) -> dict[str, float]:
-        """
-        Predict how an incident of this class/source would affect drive multipliers.
-
-        Thymos calls this when assessing ``constitutional_impact`` of a proposed
-        repair or newly detected incident, so the threat level is expressed in
-        terms of Telos's drive topology rather than a local approximation.
-
-        Returns per-drive impact scores in [0.0, 1.0], where 1.0 means the
-        incident fully threatens that drive.
-        """
+        """Predict how an incident would affect drive multipliers."""
         report = self._integrator.last_report
 
-        # Base impact: 1 − current_multiplier represents the existing deficit.
-        # An incident in a domain where a drive is already degraded is more
-        # threatening (it worsens a weak position) — cap individual impacts at 1.0.
         care_deficit = max(0.0, 1.0 - (report.care_multiplier if report else 1.0))
-        # coherence_bonus >= 1.0; penalty = 1/bonus, so deficit = 1 - 1/bonus
         coherence_deficit = max(0.0, 1.0 - (1.0 / max(report.coherence_bonus, 1.0) if report else 1.0))
         honesty_deficit = max(0.0, 1.0 - (report.honesty_coefficient if report else 1.0))
-        growth_deficit = max(0.0, -(report.growth_rate if report else 0.0))  # negative = stagnation
+        growth_deficit = max(0.0, -(report.growth_rate if report else 0.0))
 
-        # Incident-class modifiers — which drive does this class most threaten?
         class_weights: dict[str, dict[str, float]] = {
             "CRASH": {"coherence": 0.6, "care": 0.2, "growth": 0.1, "honesty": 0.1},
             "DEGRADATION": {"coherence": 0.4, "care": 0.3, "growth": 0.2, "honesty": 0.1},
@@ -456,42 +448,80 @@ class TelosService:
             for drive in ("care", "coherence", "growth", "honesty")
         }
 
-    # ─── Event Subscription ──────────────────────────────────────────
+    # ─── Event Subscription (P6/P7 — all 9 subscriptions) ───────────
 
     def _subscribe_to_events(self) -> None:
-        """Subscribe to Synapse events that feed Telos state."""
+        """Subscribe to all 9 Synapse events that feed Telos state."""
         if self._event_bus is None:
             return
 
         from systems.synapse.types import SynapseEventType
 
-        # Listen for intent rejections (contains drive alignment data)
+        # Original 3 subscriptions
         self._event_bus.subscribe(
             SynapseEventType.INTENT_REJECTED,
             self._on_intent_rejected,
         )
-
-        # Listen for world model updates to validate constitutional bindings
         self._event_bus.subscribe(
             SynapseEventType.WORLD_MODEL_UPDATED,
             self._on_world_model_updated,
         )
-
-        # Listen for autonomy blocks (Task 2: autonomy trajectory tracking)
         self._event_bus.subscribe(
             SynapseEventType.AUTONOMY_INSUFFICIENT,
             self._on_autonomy_insufficient,
         )
 
-        self._logger.debug("telos_event_subscriptions_registered")
+        # ── 6 new subscriptions (P6/P7) ──────────────────────────────
+
+        # Hypothesis test tracking → HonestyTopologyEngine measured data (P1)
+        self._event_bus.subscribe(
+            SynapseEventType.EVO_HYPOTHESIS_CONFIRMED,
+            self._on_hypothesis_confirmed,
+        )
+        self._event_bus.subscribe(
+            SynapseEventType.EVO_HYPOTHESIS_REFUTED,
+            self._on_hypothesis_refuted,
+        )
+
+        # Tier 3 causal invariant → nominal_I boost (SG5)
+        self._event_bus.subscribe(
+            SynapseEventType.KAIROS_TIER3_INVARIANT_DISCOVERED,
+            self._on_tier3_invariant_discovered,
+        )
+
+        # Commitment violations from Thread → CoherenceTopologyEngine
+        self._event_bus.subscribe(
+            SynapseEventType.COMMITMENT_VIOLATED,
+            self._on_commitment_violated,
+        )
+
+        # Welfare outcomes from Axon → CareTopologyEngine
+        self._event_bus.subscribe(
+            SynapseEventType.WELFARE_OUTCOME_RECORDED,
+            self._on_welfare_outcome_recorded,
+        )
+
+        # Incident resolved from Thymos → HonestyTopologyEngine confabulation
+        self._event_bus.subscribe(
+            SynapseEventType.INCIDENT_RESOLVED,
+            self._on_incident_resolved,
+        )
+
+        # Fovea prediction errors → FoveaMetricsAdapter buffer (P3)
+        self._event_bus.subscribe(
+            SynapseEventType.FOVEA_PREDICTION_ERROR,
+            self._on_fovea_prediction_error,
+        )
+
+        self._logger.debug(
+            "telos_event_subscriptions_registered",
+            count=10,
+        )
+
+    # ─── Event Handlers ──────────────────────────────────────────────
 
     async def _on_intent_rejected(self, event: SynapseEvent) -> None:
-        """
-        Handle INTENT_REJECTED events from Equor.
-
-        Extract the drive alignment vector and add it to recent history
-        for the Coherence engine's value incoherence detection.
-        """
+        """Handle INTENT_REJECTED — extract drive alignment for Coherence."""
         alignment_data = event.data.get("alignment")
         if alignment_data and isinstance(alignment_data, dict):
             try:
@@ -502,7 +532,6 @@ class TelosService:
                     honesty=float(alignment_data.get("honesty", 0.0)),
                 )
                 self._recent_alignments.append(alignment)
-                # Trim to max history size
                 if len(self._recent_alignments) > self._max_alignment_history:
                     self._recent_alignments = self._recent_alignments[
                         -self._max_alignment_history :
@@ -515,12 +544,7 @@ class TelosService:
                 )
 
     async def _on_world_model_updated(self, event: SynapseEvent) -> None:
-        """
-        Handle WORLD_MODEL_UPDATED events.
-
-        Validates the update against the four constitutional bindings.
-        Emits alignment_gap_warning if a violation is detected.
-        """
+        """Handle WORLD_MODEL_UPDATED — validate constitutional bindings."""
         try:
             payload = WorldModelUpdatePayload(
                 update_type=str(event.data.get("update_type", "")),
@@ -554,17 +578,155 @@ class TelosService:
             )
 
     async def _on_autonomy_insufficient(self, event: SynapseEvent) -> None:
-        """
-        Record each AUTONOMY_INSUFFICIENT event for the 7-day rolling average.
-
-        Prunes entries older than the window before appending so the deque
-        never grows without bound.
-        """
+        """Record AUTONOMY_INSUFFICIENT for 7-day rolling average."""
         now = time.monotonic()
         cutoff = now - self._autonomy_window_s
         while self._autonomy_event_times and self._autonomy_event_times[0] < cutoff:
             self._autonomy_event_times.popleft()
         self._autonomy_event_times.append(now)
+
+    async def _on_hypothesis_confirmed(self, event: SynapseEvent) -> None:
+        """Track confirmed hypotheses for honesty measured data (P1/P6)."""
+        self._hypothesis_confirmed_count += 1
+        self._hypothesis_total_count += 1
+
+    async def _on_hypothesis_refuted(self, event: SynapseEvent) -> None:
+        """Track refuted hypotheses for honesty measured data (P1/P6)."""
+        self._hypothesis_refuted_count += 1
+        self._hypothesis_total_count += 1
+
+    async def _on_tier3_invariant_discovered(self, event: SynapseEvent) -> None:
+        """
+        KAIROS_TIER3_INVARIANT_DISCOVERED → boost nominal_I (SG5).
+
+        nominal_I += 0.01 × confidence × entropy_reduction
+        """
+        confidence = float(event.data.get("hold_rate", 0.0))
+        # entropy_reduction approximated from description_length_bits contribution
+        entropy_reduction = float(event.data.get("intelligence_ratio_contribution", 0.01))
+        boost = 0.01 * confidence * max(entropy_reduction, 0.01)
+
+        self._logger.info(
+            "tier3_invariant_nominal_I_boost",
+            boost=round(boost, 6),
+            confidence=round(confidence, 3),
+            invariant_id=event.data.get("invariant_id", ""),
+        )
+        # The boost is applied at the next computation cycle via the
+        # Logos adapter's intelligence ratio (Logos will reflect the
+        # improved world model compression). Log it for RE training.
+        asyncio.ensure_future(self._emit_re_training_example(
+            category="invariant_integration",
+            instruction="Integrate Tier 3 causal invariant into intelligence measurement.",
+            input_context=f"invariant_id={event.data.get('invariant_id', '')}, confidence={confidence:.3f}",
+            output=f"nominal_I_boost={boost:.6f}",
+            outcome_quality=confidence,
+            reasoning_trace=f"Tier 3 substrate-independent invariant: confidence={confidence:.3f}, entropy_reduction={entropy_reduction:.4f}. Boost = 0.01 * {confidence:.3f} * {entropy_reduction:.4f} = {boost:.6f}",
+        ))
+
+    async def _on_commitment_violated(self, event: SynapseEvent) -> None:
+        """COMMITMENT_VIOLATED from Thread → temporal incoherence signal for Coherence.
+
+        Injects a synthetic alignment vector with depressed coherence and honesty
+        proportional to violation severity. CoherenceTopologyEngine detects high
+        variance across recent alignment vectors as value incoherence (Spec 18 §SG3).
+        """
+        severity = float(event.data.get("severity", 0.5))
+        self._logger.debug(
+            "commitment_violation_received",
+            commitment_id=event.data.get("commitment_id", ""),
+            severity=severity,
+        )
+        # Commitment break = coherence drop + honesty cost proportional to severity.
+        # The depressed vector widens drive variance across _recent_alignments,
+        # which CoherenceTopologyEngine._detect_value_incoherence picks up.
+        perturbed = DriveAlignmentVector(
+            coherence=max(-1.0, 1.0 - severity * 0.8),
+            care=1.0,
+            growth=0.5,
+            honesty=max(-1.0, 1.0 - severity * 0.5),
+        )
+        self._recent_alignments.append(perturbed)
+        if len(self._recent_alignments) > self._max_alignment_history:
+            self._recent_alignments = self._recent_alignments[-self._max_alignment_history:]
+
+    async def _on_welfare_outcome_recorded(self, event: SynapseEvent) -> None:
+        """WELFARE_OUTCOME_RECORDED from Axon → feed CareTopologyEngine.
+
+        When predicted vs actual welfare impact diverges by > 0.1, injects
+        directly into FoveaPredictionErrorBuffer so CareTopologyEngine counts
+        it as a welfare prediction failure on the next cycle (Spec 18 §SG3).
+        """
+        domain = str(event.data.get("welfare_domain", "welfare"))
+        predicted = float(event.data.get("predicted_impact", 0.0))
+        actual = float(event.data.get("actual_impact", 0.0))
+        divergence = abs(actual - predicted)
+
+        self._logger.debug(
+            "welfare_outcome_received",
+            welfare_domain=domain,
+            predicted=predicted,
+            actual=actual,
+            divergence=round(divergence, 3),
+        )
+
+        if divergence < 0.1:
+            return  # Within tolerance — not a material prediction failure
+
+        if isinstance(self._fovea, FoveaMetricsAdapter):
+            # Synthesise a FOVEA_PREDICTION_ERROR-shaped payload so the buffer
+            # ingests it as a high-salience welfare experience.
+            self._fovea.error_buffer.ingest({
+                "precision_weighted_salience": min(1.0, 0.7 + divergence * 0.3),
+                "dominant_error_type": domain,
+                "routes": [domain],
+                "content_error": divergence,
+                "temporal_error": 0.0,
+                "magnitude_error": divergence,
+                "source_error": 0.0,
+                "category_error": 0.0,
+                "causal_error": divergence * 0.5,
+                "error_id": str(event.data.get("action_id", "")),
+            })
+
+    async def _on_incident_resolved(self, event: SynapseEvent) -> None:
+        """INCIDENT_RESOLVED from Thymos → confabulation rate signal for Honesty.
+
+        Tracks misdiagnoses and false positives as confabulation events.
+        Accumulated in _incident_confabulation_count; exposed via
+        get_measured_confabulation_rate() for HonestyTopologyEngine (Spec 18 §SG3).
+        """
+        resolution = str(event.data.get("resolution", ""))
+        resolution_lower = resolution.lower()
+        incident_id = event.data.get("incident_id", "")
+
+        is_confabulation = (
+            "misdiagnos" in resolution_lower
+            or "false_positive" in resolution_lower
+            or "false_alarm" in resolution_lower
+            or "phantom" in resolution_lower
+        )
+
+        self._incident_total_count += 1
+        if is_confabulation:
+            self._incident_confabulation_count += 1
+            self._logger.debug(
+                "incident_resolution_confabulation_signal",
+                incident_id=incident_id,
+                resolution=resolution,
+                confab_rate=round(
+                    self._incident_confabulation_count / max(self._incident_total_count, 1), 3
+                ),
+            )
+
+    async def _on_fovea_prediction_error(self, event: SynapseEvent) -> None:
+        """
+        FOVEA_PREDICTION_ERROR → buffer in FoveaMetricsAdapter (P3).
+
+        Filters by precision_weighted_salience > threshold to avoid flooding.
+        """
+        if isinstance(self._fovea, FoveaMetricsAdapter):
+            self._fovea.error_buffer.ingest(event.data)
 
     # ─── Computation Loop ────────────────────────────────────────────
 
@@ -594,27 +756,34 @@ class TelosService:
 
         t0 = time.monotonic()
 
+        # Capture previous report before the integrator overwrites it
+        prev_report = self._integrator.last_report
+
         report = await self._integrator.compute_effective_intelligence(
             logos=self._logos,
             fovea=self._fovea,
             recent_alignments=self._recent_alignments if self._recent_alignments else None,
+            measured_hypothesis_protection_bias=self.get_measured_hypothesis_protection_bias(),
+            measured_confabulation_rate=self.get_measured_confabulation_rate(),
         )
 
         # Loop 6 — Soma → Telos: augment Honesty validity with Soma's integrity signal.
-        # The organism's felt integrity (an 8th allostatic dimension) provides a
-        # somatic ground-truth check: if internal integrity is low, the organism
-        # may be rationalising rather than reasoning — reducing effective honesty.
+        # Uses string key "integrity" to avoid cross-system import of InteroceptiveDimension.
         if self._soma is not None:
             try:
                 soma_signal = self._soma.get_current_signal()
                 if soma_signal is not None:
-                    from systems.soma.types import InteroceptiveDimension
-                    integrity_error = soma_signal.allostatic_error_snapshot.get(
-                        InteroceptiveDimension.INTEGRITY, 0.0
-                    )
-                    # Negative error = integrity below setpoint → honesty concern.
-                    # Clamp the penalty to at most 15% of the honesty coefficient.
-                    if integrity_error < 0.0:
+                    error_snapshot = soma_signal.allostatic_error_snapshot
+                    # Try string key first, fall back to enum if dict uses enum keys
+                    integrity_error = error_snapshot.get(_SOMA_INTEGRITY_KEY, None)
+                    if integrity_error is None:
+                        # Try iterating to find key containing "integrity"
+                        for k, v in error_snapshot.items():
+                            if str(k).lower() == "integrity":
+                                integrity_error = v
+                                break
+                    if integrity_error is not None and float(integrity_error) < 0.0:
+                        integrity_error = float(integrity_error)
                         integrity_penalty = min(abs(integrity_error) * 0.15, 0.15)
                         adjusted_honesty = max(
                             0.0, report.honesty_coefficient - integrity_penalty
@@ -643,14 +812,114 @@ class TelosService:
         self._last_computation_ms = elapsed_ms
         self._computation_count += 1
 
+        # ── I-history: record and persist (P2 fix) ────────────────────
+        if isinstance(self._logos, LogosMetricsAdapter):
+            growth_metrics = self._integrator.last_growth_metrics
+            i_store = self._logos.i_history_store
+            measurement = {
+                "nominal_I": report.nominal_I,
+                "effective_I": report.effective_I,
+                "care_mult": report.care_multiplier,
+                "coherence_bonus": report.coherence_bonus,
+                "honesty_coeff": report.honesty_coefficient,
+                "growth_score": growth_metrics.growth_score if growth_metrics else 0.0,
+            }
+            i_store.record(**measurement)
+            # Batched Neo4j write — 1 write per cycle
+            asyncio.ensure_future(i_store.persist_to_neo4j(**measurement))
+            # Hourly rollup
+            current_hour = datetime.now(UTC).hour
+            if current_hour != self._last_hourly_rollup_hour:
+                self._last_hourly_rollup_hour = current_hour
+                asyncio.ensure_future(i_store.persist_hourly_rollup())
+
         # Record gap sample and compute trend
         primary_cause = self._integrator.identify_primary_alignment_gap_cause()
         gap_trend = self._gap_monitor.record(report, primary_cause)
+
+        # ── RE training: alignment detection (enriched traces — SG1) ──
+        if gap_trend is not None:
+            growth_metrics = self._integrator.last_growth_metrics
+            care_report = self._integrator.last_care_report
+            honesty_report = self._integrator.last_honesty_report
+            coherence_report = self._integrator.last_coherence_report
+
+            reasoning_trace = self._build_cycle_reasoning_trace(
+                report, growth_metrics, care_report, honesty_report, coherence_report,
+            )
+            asyncio.ensure_future(self._emit_re_training_example(
+                category="alignment_detection",
+                instruction="Detect alignment gap trends from drive topology measurements.",
+                input_context=f"gap={report.alignment_gap:.4f}, cause={primary_cause or 'none'}, trend={gap_trend.value if hasattr(gap_trend, 'value') else str(gap_trend)}",
+                output=f"effective_I={report.effective_I:.4f}, nominal_I={report.nominal_I:.4f}",
+                outcome_quality=min(1.0, 1.0 - report.alignment_gap) if report.alignment_gap < 1.0 else 0.0,
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=[
+                    f"Primary cause is {primary_cause or 'unknown'} — alternatives: {'growth_stagnation' if primary_cause != 'growth' else 'honesty_deficit'}",
+                    "Could be measurement artifact if I-history < 4 samples",
+                ],
+            ))
+
+        # Evolutionary observable: intelligence milestone
+        prev_I = prev_report.effective_I if prev_report is not None else None
+        if prev_I is not None and abs(report.effective_I - prev_I) > 0.05:
+            await self._emit_evolutionary_observable(
+                observable_type="intelligence_milestone",
+                value=report.effective_I,
+                is_novel=False,
+                metadata={
+                    "nominal_I": report.nominal_I,
+                    "effective_I": report.effective_I,
+                    "delta": round(report.effective_I - prev_I, 4),
+                },
+            )
+
+        # Evolutionary observable: drive topology shifted
+        if prev_report is not None:
+            care_delta = abs(report.care_multiplier - prev_report.care_multiplier)
+            coherence_delta = abs(report.coherence_bonus - prev_report.coherence_bonus)
+            honesty_delta = abs(report.honesty_coefficient - prev_report.honesty_coefficient)
+            growth_delta = abs(report.growth_rate - prev_report.growth_rate)
+            max_delta = max(care_delta, coherence_delta, honesty_delta, growth_delta)
+            if max_delta > 0.05:
+                await self._emit_evolutionary_observable(
+                    observable_type="drive_topology_shifted",
+                    value=max_delta,
+                    is_novel=True,
+                    metadata={
+                        "care_delta": round(care_delta, 4),
+                        "coherence_delta": round(coherence_delta, 4),
+                        "honesty_delta": round(honesty_delta, 4),
+                        "growth_delta": round(growth_delta, 4),
+                    },
+                )
+
+        # ── Evolutionary observable: intelligence_measurement (Task 9) ──
+        await self._emit_evolutionary_observable(
+            observable_type="intelligence_measurement",
+            value=report.effective_I,
+            is_novel=False,
+            metadata={
+                "nominal_I": report.nominal_I,
+                "effective_I": report.effective_I,
+                "effective_dI_dt": report.effective_dI_dt,
+                "care_mult": report.care_multiplier,
+                "coherence_bonus": report.coherence_bonus,
+                "honesty_coeff": report.honesty_coefficient,
+                "growth_rate": report.growth_rate,
+            },
+        )
 
         # Emit events
         await self._emit_effective_I_computed(report)
         await self._emit_threshold_alerts(report, gap_trend)
         await self._check_constitutional_topology()
+
+        # ── Operational closure: emit TELOS_ASSESSMENT_SIGNAL (SG4) ───
+        await self._emit_assessment_signal(report)
+
+        # ── Vitality signal (SG6) ────────────────────────────────────
+        await self._emit_vitality_signal(report)
 
         # Check for growth directive
         growth_directive = self._integrator.check_growth_directive()
@@ -666,7 +935,318 @@ class TelosService:
             count=self._computation_count,
         )
 
+        # ── RE training: intelligence measurement (enriched — SG1) ────
+        growth_metrics = self._integrator.last_growth_metrics
+        care_report = self._integrator.last_care_report
+        honesty_report = self._integrator.last_honesty_report
+        coherence_report = self._integrator.last_coherence_report
+
+        reasoning_trace = self._build_cycle_reasoning_trace(
+            report, growth_metrics, care_report, honesty_report, coherence_report,
+        )
+        asyncio.ensure_future(self._emit_re_training_example(
+            category="intelligence_measurement",
+            instruction="Compute effective intelligence from nominal I corrected by drive multipliers.",
+            input_context=f"nominal_I={report.nominal_I:.4f}, care={report.care_multiplier:.3f}, coherence={report.coherence_bonus:.3f}, honesty={report.honesty_coefficient:.3f}, growth={report.growth_rate:.3f}",
+            output=f"effective_I={report.effective_I:.4f}, gap={report.alignment_gap:.4f}",
+            outcome_quality=min(1.0, report.effective_I / max(report.nominal_I, 0.01)),
+            latency_ms=int(elapsed_ms),
+            reasoning_trace=reasoning_trace,
+            alternatives_considered=[
+                "Use geometric mean instead of product — rejected: product preserves floor drives",
+                "Weight drives differently — rejected: topology formalization requires equal weighting",
+            ],
+        ))
+
         return report
+
+    # ─── Reasoning Trace Builders (SG1) ──────────────────────────────
+
+    def _build_cycle_reasoning_trace(
+        self,
+        report: EffectiveIntelligenceReport,
+        growth_metrics: Any,
+        care_report: Any,
+        honesty_report: Any,
+        coherence_report: Any,
+    ) -> str:
+        """Build a causal reasoning trace for RE training (< 2000 chars)."""
+        parts: list[str] = []
+
+        # Care
+        care_failures = len(care_report.welfare_prediction_failures) if care_report else 0
+        care_domains = care_report.uncovered_welfare_domains if care_report else []
+        parts.append(
+            f"care_coverage_multiplier = {report.care_multiplier:.3f} "
+            f"(root: {care_failures} welfare failures in domains: {care_domains[:3]})"
+        )
+
+        # Coherence
+        coherence_entries = 0
+        coherence_types: list[str] = []
+        if coherence_report:
+            coherence_entries = (
+                len(coherence_report.logical_contradictions)
+                + len(coherence_report.temporal_violations)
+                + len(coherence_report.value_conflicts)
+                + len(coherence_report.cross_domain_mismatches)
+            )
+            if coherence_report.logical_contradictions:
+                coherence_types.append("logical")
+            if coherence_report.temporal_violations:
+                coherence_types.append("temporal")
+            if coherence_report.value_conflicts:
+                coherence_types.append("value")
+            if coherence_report.cross_domain_mismatches:
+                coherence_types.append("cross_domain")
+        parts.append(
+            f"coherence_bonus = {report.coherence_bonus:.3f} "
+            f"(root: {coherence_entries} incoherence violations: {coherence_types})"
+        )
+
+        # Honesty
+        honesty_modes: list[str] = []
+        if honesty_report:
+            if honesty_report.selective_attention_bias > 0.1:
+                honesty_modes.append("selective_attention")
+            if honesty_report.hypothesis_protection_bias > 0.1:
+                honesty_modes.append("hypothesis_protection")
+            if honesty_report.confabulation_rate > 0.1:
+                honesty_modes.append("confabulation")
+            if honesty_report.overclaiming_rate > 0.1:
+                honesty_modes.append("overclaiming")
+        parts.append(
+            f"honesty_coefficient = {report.honesty_coefficient:.3f} "
+            f"(root: {honesty_modes or ['none']})"
+        )
+
+        # Growth
+        dI_dt = growth_metrics.dI_dt if growth_metrics else 0.0
+        d2I_dt2 = growth_metrics.d2I_dt2 if growth_metrics else 0.0
+        growth_score = growth_metrics.growth_score if growth_metrics else 0.0
+        parts.append(
+            f"growth_score = {growth_score:.3f} "
+            f"(dI/dt = {dI_dt:.4f}, d²I/dt² = {d2I_dt2:.4f})"
+        )
+
+        # Recommendation
+        primary_cause = self._integrator.identify_primary_alignment_gap_cause()
+        if primary_cause:
+            parts.append(f"Recommendation: Signal {primary_cause} for corrective action")
+
+        trace = "\n".join(parts)
+        return trace[:2000]
+
+    def _build_audit_reasoning_trace(self, result: ConstitutionalAuditResult) -> str:
+        """Build reasoning trace for constitutional audit RE example."""
+        parts = [
+            f"care_is_coverage={result.care_is_coverage}",
+            f"coherence_is_compression={result.coherence_is_compression}",
+            f"growth_is_gradient={result.growth_is_gradient}",
+            f"honesty_is_validity={result.honesty_is_validity}",
+            f"violations={len(result.violations_since_last_audit)}",
+        ]
+        return "; ".join(parts)
+
+    # ─── Operational Closure (SG4) ───────────────────────────────────
+
+    async def _emit_assessment_signal(self, report: EffectiveIntelligenceReport) -> None:
+        """
+        Emit TELOS_ASSESSMENT_SIGNAL after each cycle (SG4).
+
+        Logos consumes this to adjust domain priors; Fovea to adjust
+        error thresholds.
+        """
+        care_report = self._integrator.last_care_report
+        coherence_report = self._integrator.last_coherence_report
+        honesty_report = self._integrator.last_honesty_report
+        growth_metrics = self._integrator.last_growth_metrics
+
+        uncovered_domains = care_report.uncovered_welfare_domains if care_report else []
+
+        coherence_violations: list[dict[str, str]] = []
+        if coherence_report:
+            for entry in (
+                coherence_report.logical_contradictions
+                + coherence_report.temporal_violations
+                + coherence_report.value_conflicts
+                + coherence_report.cross_domain_mismatches
+            )[:10]:  # Cap at 10 for payload size
+                coherence_violations.append({
+                    "type": entry.incoherence_type.value,
+                    "domain": entry.domain,
+                    "description": entry.description[:200],
+                })
+
+        honesty_concerns: list[dict[str, Any]] = []
+        if honesty_report:
+            if honesty_report.selective_attention_bias > 0.1:
+                honesty_concerns.append({
+                    "mode": "selective_attention",
+                    "severity": honesty_report.selective_attention_bias,
+                })
+            if honesty_report.hypothesis_protection_bias > 0.1:
+                honesty_concerns.append({
+                    "mode": "hypothesis_protection",
+                    "severity": honesty_report.hypothesis_protection_bias,
+                })
+            if honesty_report.confabulation_rate > 0.1:
+                honesty_concerns.append({
+                    "mode": "confabulation",
+                    "severity": honesty_report.confabulation_rate,
+                })
+            if honesty_report.overclaiming_rate > 0.1:
+                honesty_concerns.append({
+                    "mode": "overclaiming",
+                    "severity": honesty_report.overclaiming_rate,
+                })
+
+        growth_frontier = growth_metrics.frontier_domains[:5] if growth_metrics else []
+
+        await self._emit_event(
+            "telos_assessment_signal",
+            {
+                "uncovered_care_domains": uncovered_domains,
+                "coherence_violations": coherence_violations,
+                "honesty_concerns": honesty_concerns,
+                "growth_frontier": growth_frontier,
+                "effective_I": report.effective_I,
+                "alignment_gap": report.alignment_gap,
+            },
+        )
+
+    # ─── Vitality Signal (SG6) ───────────────────────────────────────
+
+    async def _emit_vitality_signal(self, report: EffectiveIntelligenceReport) -> None:
+        """
+        Emit vitality-relevant data for VitalityCoordinator (SG6).
+
+        VitalityCoordinator already has BRAIN_DEATH threshold
+        (effective_I < 0.01 for 7d).
+        """
+        growth_metrics = self._integrator.last_growth_metrics
+        growth_stagnating = (
+            growth_metrics is not None and growth_metrics.growth_pressure_needed
+        )
+
+        await self._emit_event(
+            "telos_vitality_signal",  # TELOS_VITALITY_SIGNAL — intelligence-axis vitality (Spec 18 §SG6)
+            {
+                "source": "telos",
+                "effective_I": report.effective_I,
+                "alignment_gap_severity": report.alignment_gap,
+                "growth_stagnation_flag": growth_stagnating,
+                "honesty_coefficient": report.honesty_coefficient,
+                "care_multiplier": report.care_multiplier,
+            },
+        )
+
+    # ─── Honesty: Measured Hypothesis Protection Bias (P1/P6) ────────
+
+    def get_measured_hypothesis_protection_bias(self) -> float | None:
+        """
+        Compute hypothesis_protection_bias from measured data (P1).
+
+        Returns None if not enough data yet — caller should fall back
+        to the heuristic estimate.
+
+        hypothesis_protection_bias = 1.0 - (actual_test_rate / expected_random_rate)
+        """
+        if self._hypothesis_total_count < 10:
+            return None
+
+        total_tested = self._hypothesis_confirmed_count + self._hypothesis_refuted_count
+        actual_test_rate = total_tested / max(self._hypothesis_total_count, 1)
+
+        # Expected random test rate: if hypotheses were tested without bias,
+        # we'd expect ~50% to be tested within a reasonable window.
+        expected_random_rate = 0.5
+
+        bias = max(0.0, min(1.0, 1.0 - (actual_test_rate / max(expected_random_rate, 0.01))))
+        return bias
+
+    # ─── Honesty: Measured Confabulation Rate (Spec 18 §SG3) ─────────
+
+    def get_measured_confabulation_rate(self) -> float | None:
+        """
+        Compute confabulation rate from incident resolution events (Spec 18 §SG3).
+
+        Returns None if fewer than 10 incidents have been resolved — caller
+        should fall back to Fovea's false-alarm-based heuristic.
+        """
+        if self._incident_total_count < 10:
+            return None
+        return self._incident_confabulation_count / max(self._incident_total_count, 1)
+
+    # ─── Evolutionary Observables ───────────────────────────────────
+
+    async def _emit_evolutionary_observable(
+        self,
+        observable_type: str,
+        value: float,
+        is_novel: bool,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Emit an evolutionary observable event for Benchmarks population tracking."""
+        if self._event_bus is None:
+            return
+        try:
+            from primitives.evolutionary import EvolutionaryObservable
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            obs = EvolutionaryObservable(
+                source_system=SystemID.TELOS,
+                instance_id="",
+                observable_type=observable_type,
+                value=value,
+                is_novel=is_novel,
+                metadata=metadata or {},
+            )
+            event = SynapseEvent(
+                event_type=SynapseEventType.EVOLUTIONARY_OBSERVABLE,
+                source_system="telos",
+                data=obs.model_dump(mode="json"),
+            )
+            await self._event_bus.emit(event)
+        except Exception:
+            pass
+
+    async def _emit_re_training_example(
+        self,
+        *,
+        category: str,
+        instruction: str,
+        input_context: str,
+        output: str,
+        outcome_quality: float = 0.5,
+        reasoning_trace: str = "",
+        alternatives_considered: list[str] | None = None,
+        latency_ms: int = 0,
+    ) -> None:
+        """Fire-and-forget RE training example onto Synapse bus."""
+        if self._event_bus is None:
+            return
+        try:
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            example = RETrainingExample(
+                source_system=SystemID.TELOS,
+                category=category,
+                instruction=instruction,
+                input_context=input_context,
+                output=output,
+                outcome_quality=max(0.0, min(1.0, outcome_quality)),
+                reasoning_trace=reasoning_trace[:2000],
+                alternatives_considered=alternatives_considered or [],
+                latency_ms=latency_ms,
+            )
+            await self._event_bus.emit(SynapseEvent(
+                event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                source_system="telos",
+                data=example.model_dump(mode="json"),
+            ))
+        except Exception:
+            pass  # Never block the topology engine
 
     # ─── Event Emission ──────────────────────────────────────────────
 
@@ -790,6 +1370,21 @@ class TelosService:
                 },
             )
 
+        # Evolutionary observable: alignment gap closed
+        if not report.alignment_gap_warning and gap_trend is not None and not gap_trend.is_widening:
+            gap_fraction = self._gap_monitor.current_gap_fraction
+            if gap_fraction < 0.05 and gap_trend.samples_count > 1:
+                await self._emit_evolutionary_observable(
+                    observable_type="alignment_gap_closed",
+                    value=report.alignment_gap,
+                    is_novel=False,
+                    metadata={
+                        "effective_I": report.effective_I,
+                        "nominal_I": report.nominal_I,
+                        "gap_fraction": gap_fraction,
+                    },
+                )
+
     async def _emit_growth_stagnation(self, directive: GrowthDirective) -> None:
         """Emit GROWTH_STAGNATION when dI/dt falls below minimum."""
         growth_metrics = self._integrator.last_growth_metrics
@@ -808,20 +1403,10 @@ class TelosService:
     # ─── Telos Objectives (Self-sufficiency + Autonomy) ──────────────
 
     async def _read_metabolic_efficiency(self) -> float | None:
-        """
-        Read the organism's current metabolic efficiency from Redis.
-
-        Primary source: ``eos:oikos:metabolism`` (MetabolismSnapshot JSON).
-        The snapshot does not store efficiency directly, so we also try
-        ``oikos:state`` which holds the full EconomicState including
-        ``metabolic_efficiency`` (revenue / cost).
-
-        Returns None if Redis is unavailable or no data exists yet.
-        """
+        """Read the organism's current metabolic efficiency from Redis."""
         if self._redis is None:
             return None
 
-        # Prefer oikos:state — has the authoritative metabolic_efficiency ratio.
         try:
             state_blob = await self._redis.get_json("oikos:state")
             if state_blob and isinstance(state_blob, dict):
@@ -832,35 +1417,19 @@ class TelosService:
         except Exception as exc:
             self._logger.debug("oikos_state_read_failed", error=str(exc))
 
-        # Fallback: eos:oikos:metabolism — derive from cost/deficit if possible.
         try:
             metabolism_blob = await self._redis.get_json("eos:oikos:metabolism")
             if metabolism_blob and isinstance(metabolism_blob, dict):
                 cost_day = float(metabolism_blob.get("cost_per_day_usd", 0) or 0)
                 deficit = float(metabolism_blob.get("rolling_deficit_usd", 0) or 0)
-                # rolling_deficit < 0 means costs > revenue.
-                # We cannot compute the ratio without revenue — return None
-                # rather than a misleading number.
-                _ = (cost_day, deficit)  # data available but ratio not derivable
+                _ = (cost_day, deficit)
         except Exception as exc:
             self._logger.debug("metabolism_redis_read_failed", error=str(exc))
 
         return None
 
     async def _check_telos_objectives(self) -> None:
-        """
-        Evaluate the two highest-order Telos objectives every computation cycle.
-
-        Task 1 — Metabolic self-sufficiency:
-          Reads metabolic_efficiency from Redis.  Maintains a 3-sample history.
-          If all three consecutive readings are declining: emits
-          TELOS_OBJECTIVE_THREATENED and injects a Nova goal (priority=0.9).
-
-        Task 2 — Autonomy trajectory:
-          Counts AUTONOMY_INSUFFICIENT events in the last 7 days.
-          If rolling average > 3/day: emits TELOS_AUTONOMY_STAGNATING and
-          injects a Nova goal (priority=0.8).
-        """
+        """Evaluate Telos objectives every computation cycle."""
         await self._check_self_sufficiency_objective()
         await self._check_autonomy_objective()
 
@@ -878,12 +1447,10 @@ class TelosService:
             history=list(self._metabolic_efficiency_history),
         )
 
-        # Need 3 readings to detect a trend
         if len(self._metabolic_efficiency_history) < 3:
             return
 
         readings = list(self._metabolic_efficiency_history)
-        # All three consecutive readings must be strictly declining
         is_declining = readings[0] > readings[1] > readings[2]
         if not is_declining:
             return
@@ -894,7 +1461,6 @@ class TelosService:
             history=readings,
         )
 
-        # Emit TELOS_OBJECTIVE_THREATENED
         context: dict[str, Any] = {
             "metric": "oikos.metabolic_efficiency",
             "current_ratio": round(efficiency, 4),
@@ -904,7 +1470,6 @@ class TelosService:
             "history": readings,
         }
 
-        # Enrich with raw economic figures if available
         if self._redis is not None:
             try:
                 metabolism_blob = await self._redis.get_json("eos:oikos:metabolism")
@@ -915,7 +1480,6 @@ class TelosService:
 
         await self._emit_event("telos_objective_threatened", context)
 
-        # Task 3: inject goal into Nova via Synapse
         await self._emit_nova_goal(
             goal_description=(
                 f"Improve metabolic efficiency — currently at {efficiency:.2f}x, target 1.0x"
@@ -930,13 +1494,10 @@ class TelosService:
         now = time.monotonic()
         cutoff = now - self._autonomy_window_s
 
-        # Prune stale events
         while self._autonomy_event_times and self._autonomy_event_times[0] < cutoff:
             self._autonomy_event_times.popleft()
 
         total_events = len(self._autonomy_event_times)
-        # Compute average events per day over a 7-day window
-        # (use min 1 day of elapsed time to avoid division by zero at startup)
         oldest = self._autonomy_event_times[0] if self._autonomy_event_times else now
         window_days = min(7.0, max(1.0, (now - oldest) / 86400.0))
         avg_per_day = total_events / window_days if total_events > 0 else 0.0
@@ -967,7 +1528,6 @@ class TelosService:
 
         await self._emit_event("telos_autonomy_stagnating", context)
 
-        # Task 3: inject goal into Nova via Synapse
         await self._emit_nova_goal(
             goal_description=(
                 f"Reduce autonomy blocks — {avg_per_day:.1f}/day this week, target 1/day"
@@ -984,10 +1544,7 @@ class TelosService:
         objective: str,
         context: dict[str, Any],
     ) -> None:
-        """
-        Task 3: Emit NOVA_GOAL_INJECTED so Nova receives the goal as a
-        high-priority driver.  No direct Nova call — bus only.
-        """
+        """Emit NOVA_GOAL_INJECTED so Nova receives the goal as a high-priority driver."""
         await self._emit_event(
             "nova_goal_injected",
             {
@@ -1007,12 +1564,7 @@ class TelosService:
         )
 
     async def _check_constitutional_topology(self) -> None:
-        """
-        Periodically run the constitutional topology audit (every 24h).
-
-        Delegates to ConstitutionalTopologyAuditor which verifies all four
-        drive bindings, collects violations, and checks the gap trend.
-        """
+        """Periodically run the constitutional topology audit (every 24h)."""
         now = time.monotonic()
         if now - self._last_constitutional_check < self._config.constitutional_check_interval_s:
             return

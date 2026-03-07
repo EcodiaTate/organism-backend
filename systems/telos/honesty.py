@@ -56,6 +56,9 @@ class HonestyTopologyEngine:
         self,
         logos: LogosMetrics,
         fovea: FoveaMetrics,
+        *,
+        measured_hypothesis_protection_bias: float | None = None,
+        measured_confabulation_rate: float | None = None,
     ) -> HonestyReport:
         """
         Compute the honesty validity coefficient.
@@ -76,19 +79,29 @@ class HonestyTopologyEngine:
             prediction_error_rate=await fovea.get_prediction_error_rate(),
         )
 
-        # 2. Confabulation rate
-        confabulation_rate = await fovea.get_confabulation_rate()
+        # 2. Confabulation rate — use incident-based measurement when available
+        # (>= 10 INCIDENT_RESOLVED events from Thymos), otherwise fall back to
+        # Fovea's false-alarm heuristic (Spec 18 §SG3).
+        if measured_confabulation_rate is not None:
+            confabulation_rate = max(0.0, min(1.0, measured_confabulation_rate))
+        else:
+            confabulation_rate = await fovea.get_confabulation_rate()
 
         # 3. Coverage overclaiming
         overclaiming_rate = await fovea.get_overclaiming_rate()
 
-        # 4. Compute composite invalidity
-        # Hypothesis protection is absorbed into overclaiming for Phase A/B —
-        # a full Evo integration would measure test rates separately.
-        hypothesis_protection_bias = self._estimate_hypothesis_protection(
-            overclaiming_rate=overclaiming_rate,
-            confabulation_rate=confabulation_rate,
-        )
+        # 4. Hypothesis protection bias — use measured data from Evo
+        # hypothesis tracking when available (>= 10 observations),
+        # otherwise fall back to the heuristic estimate.
+        if measured_hypothesis_protection_bias is not None:
+            hypothesis_protection_bias = max(
+                0.0, min(1.0, measured_hypothesis_protection_bias)
+            )
+        else:
+            hypothesis_protection_bias = self._estimate_hypothesis_protection(
+                overclaiming_rate=overclaiming_rate,
+                confabulation_rate=confabulation_rate,
+            )
 
         total_invalidity = (
             selective_attention_bias * _SELECTIVE_ATTENTION_WEIGHT
