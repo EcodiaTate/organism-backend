@@ -324,8 +324,7 @@ def run_training(dataset_path: Path) -> Path:
         seed=42,
         report_to="wandb" if os.environ.get("WANDB_API_KEY") else "none",
         max_length=max_seq_len,
-        dataset_kwargs={"skip_prepare_dataset": True},
-        eos_token=tokenizer.eos_token,
+        dataset_text_field="text",
     )
 
     # Custom callback for progress tracking
