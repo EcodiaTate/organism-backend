@@ -182,8 +182,7 @@ def run_training(dataset_path: Path) -> Path:
     """
     import torch
     from datasets import Dataset
-    from transformers import TrainingArguments
-    from trl import SFTTrainer
+    from trl import SFTTrainer, SFTConfig
     from unsloth import FastLanguageModel
 
     TRAINING_STATE["phase"] = "loading_model"
@@ -301,7 +300,7 @@ def run_training(dataset_path: Path) -> Path:
     # Training arguments — prefer OUTPUT_DIR env var for local orchestration
     output_dir = OUTPUT_DIR if OUTPUT_DIR else tempfile.mkdtemp(prefix="eos-finetune-")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=output_dir,
         num_train_epochs=num_epochs,
         per_device_train_batch_size=batch_size,
@@ -316,6 +315,8 @@ def run_training(dataset_path: Path) -> Path:
         bf16=torch.cuda.is_bf16_supported(),
         seed=42,
         report_to="wandb" if os.environ.get("WANDB_API_KEY") else "none",
+        max_seq_length=max_seq_len,
+        dataset_kwargs={"skip_prepare_dataset": True},
     )
 
     # Custom callback for progress tracking
@@ -336,10 +337,8 @@ def run_training(dataset_path: Path) -> Path:
         model=model,
         processing_class=tokenizer,
         train_dataset=dataset,
-        max_seq_length=max_seq_len,
         args=training_args,
         callbacks=[ProgressCallback()],
-        dataset_kwargs={"skip_prepare_dataset": True},
     )
 
     # W&B run — guarded; non-fatal if W&B not available or not authenticated
