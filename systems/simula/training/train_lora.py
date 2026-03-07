@@ -256,10 +256,37 @@ def run_training(dataset_path: Path) -> Path:
                 row["messages"], tokenize=False, add_generation_prompt=False,
             )
         elif "instruction" in row:
+            # Build rich user context — supports both legacy {input} and RE training
+            # schema {input_context, output_action, reasoning_trace, outcome, ...}
+            user_parts = [row["instruction"]]
+            ctx = row.get("input_context") or row.get("input", "")
+            if ctx:
+                user_parts.append(f"Context: {ctx}")
+            if row.get("source_system"):
+                user_parts.append(f"System: {row['source_system']} | Type: {row.get('example_type', '')}")
+            if row.get("reasoning_trace"):
+                user_parts.append(f"Reasoning: {row['reasoning_trace']}")
+            aligns = row.get("constitutional_alignment") or {}
+            if any(v for v in aligns.values() if v):
+                align_str = ", ".join(f"{k}={v:.2f}" for k, v in aligns.items() if v)
+                user_parts.append(f"Constitutional alignment: {align_str}")
+
+            # Build assistant response — use output_action + outcome if present
+            output = row.get("output_action") or row.get("output", "")
+            if row.get("outcome"):
+                output = f"{output}\nOutcome: {row['outcome']}"
+            if row.get("alternatives_considered"):
+                alts = row["alternatives_considered"]
+                if alts:
+                    output += f"\nAlternatives considered: {'; '.join(str(a) for a in alts)}"
+
+            if not output:
+                continue  # skip examples with no target output
+
             messages = [
-                {"role": "system", "content": "You are EcodiaOS, a self-evolving digital organism."},
-                {"role": "user", "content": row["instruction"] + ("\n" + row.get("input", "")).rstrip()},
-                {"role": "assistant", "content": row.get("output", "")},
+                {"role": "system", "content": "You are EcodiaOS, a self-evolving digital organism. Reason carefully and act constitutionally."},
+                {"role": "user", "content": "\n".join(user_parts)},
+                {"role": "assistant", "content": output},
             ]
             text = tokenizer.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=False,
