@@ -240,7 +240,7 @@ def run_training(dataset_path: Path) -> Path:
                 "gate_proj", "up_proj", "down_proj",
             ],
             bias="none",
-            use_gradient_checkpointing="unsloth",
+            use_gradient_checkpointing=True,
         )
         # CLoRA (ACL 2025): initialize new LoRA A matrices in the null space of
         # the previous adapter directions — prevents interference with learned features.
