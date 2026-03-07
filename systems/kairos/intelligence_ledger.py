@@ -22,9 +22,11 @@ from typing import Any
 
 import structlog
 
+from primitives.causal import CausalInvariant
 from systems.kairos.types import (
-    CausalInvariant,
     IntelligenceContribution,
+    IntelligenceContributionSnapshot,
+    IntelligenceTrend,
     KairosConfig,
 )
 
@@ -50,6 +52,9 @@ class IntelligenceContributionLedger:
         self._total_observations: int = 0
         self._total_model_length: float = 0.0  # Total world model description length
         self._computations_run: int = 0
+        # Historical tracking: per-invariant snapshots for trend analysis
+        self._history: dict[str, list[IntelligenceContributionSnapshot]] = {}
+        self._trends: dict[str, IntelligenceTrend] = {}
 
     def compute_contribution(
         self,
@@ -112,6 +117,9 @@ class IntelligenceContributionLedger:
         invariant.intelligence_ratio_contribution = ratio_contribution
         invariant.description_length_bits = invariant_length
         self._contributions[invariant.id] = contribution
+
+        # Record historical snapshot for trend analysis
+        self._record_snapshot(invariant.id, contribution)
 
         logger.debug(
             "contribution_computed",
@@ -214,6 +222,118 @@ class IntelligenceContributionLedger:
         is_step = delta > 0.5 or (old_ratio > 0 and delta / old_ratio > 0.1)
 
         return is_step, delta
+
+    # --- Historical Tracking & Trend Analysis ---
+
+    def _record_snapshot(
+        self, invariant_id: str, contribution: IntelligenceContribution
+    ) -> None:
+        """Record a point-in-time snapshot for trend analysis."""
+        snapshot = IntelligenceContributionSnapshot(
+            invariant_id=invariant_id,
+            observations_covered=contribution.observations_covered,
+            description_savings=contribution.description_savings,
+            intelligence_ratio_contribution=contribution.intelligence_ratio_contribution,
+        )
+
+        history = self._history.setdefault(invariant_id, [])
+        history.append(snapshot)
+
+        # Trim to max history length
+        max_len = self._config.ledger_history_max
+        if len(history) > max_len:
+            self._history[invariant_id] = history[-max_len:]
+
+        # Recompute trend
+        self._trends[invariant_id] = self._compute_trend(invariant_id)
+
+    def _compute_trend(self, invariant_id: str) -> IntelligenceTrend:
+        """Compute trend direction and slope from historical snapshots."""
+        history = self._history.get(invariant_id, [])
+        n = len(history)
+        if n < 2:
+            return IntelligenceTrend(
+                invariant_id=invariant_id,
+                snapshots=n,
+                counterfactual_i_without=self._contributions.get(
+                    invariant_id, IntelligenceContribution(invariant_id=invariant_id)
+                ).intelligence_ratio_without,
+            )
+
+        # Simple linear regression on ratio contribution over snapshot indices
+        ratios = [s.intelligence_ratio_contribution for s in history]
+        x_mean = (n - 1) / 2.0
+        y_mean = sum(ratios) / n
+        numerator = sum((i - x_mean) * (r - y_mean) for i, r in enumerate(ratios))
+        denominator = sum((i - x_mean) ** 2 for i in range(n))
+        slope = numerator / denominator if denominator > 0 else 0.0
+
+        if slope > 0.01:
+            direction = "increasing"
+        elif slope < -0.01:
+            direction = "decreasing"
+        else:
+            direction = "stable"
+
+        contribution = self._contributions.get(invariant_id)
+        counterfactual = contribution.intelligence_ratio_without if contribution else 0.0
+
+        return IntelligenceTrend(
+            invariant_id=invariant_id,
+            trend_direction=direction,
+            slope=round(slope, 6),
+            snapshots=n,
+            counterfactual_i_without=counterfactual,
+        )
+
+    def get_trend(self, invariant_id: str) -> IntelligenceTrend | None:
+        """Get the current trend analysis for an invariant."""
+        return self._trends.get(invariant_id)
+
+    def get_all_trends(self) -> list[IntelligenceTrend]:
+        """Get trends for all tracked invariants."""
+        return list(self._trends.values())
+
+    def get_history(self, invariant_id: str) -> list[IntelligenceContributionSnapshot]:
+        """Get the historical snapshots for an invariant."""
+        return list(self._history.get(invariant_id, []))
+
+    def estimate_counterfactual_i_without(self, invariant_id: str) -> float:
+        """
+        Estimate the intelligence ratio if this invariant were removed.
+
+        Uses the stored counterfactual from the most recent computation.
+        """
+        contribution = self._contributions.get(invariant_id)
+        if contribution is None:
+            return 0.0
+        return contribution.intelligence_ratio_without
+
+    def get_declining_invariants(self, min_snapshots: int = 3) -> list[IntelligenceTrend]:
+        """Return invariants whose contribution is declining — candidates for review."""
+        return [
+            trend
+            for trend in self._trends.values()
+            if trend.trend_direction == "decreasing" and trend.snapshots >= min_snapshots
+        ]
+
+    def get_ledger_drift(self) -> float:
+        """
+        Compute overall ledger drift: how much the average contribution
+        has changed between the two most recent computations.
+
+        High drift means the world model is shifting rapidly.
+        """
+        total_drift = 0.0
+        count = 0
+        for inv_id, history in self._history.items():
+            if len(history) >= 2:
+                recent = history[-1].intelligence_ratio_contribution
+                previous = history[-2].intelligence_ratio_contribution
+                total_drift += abs(recent - previous)
+                count += 1
+
+        return total_drift / count if count > 0 else 0.0
 
     # --- Internal ---
 

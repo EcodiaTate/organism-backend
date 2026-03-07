@@ -18,6 +18,12 @@ from typing import Any
 
 from pydantic import Field
 
+from primitives.causal import (  # noqa: F401 — re-export for backward compatibility
+    ApplicableDomain,
+    CausalInvariant,
+    CausalInvariantTier,
+    ScopeCondition,
+)
 from primitives.common import EOSBaseModel, Identified, Timestamped, utc_now
 
 # ─── Enums ────────────────────────────────────────────────────────────
@@ -42,14 +48,6 @@ class CausalDirection(enum.StrEnum):
     B_CAUSES_A = "B_causes_A"
     BIDIRECTIONAL = "bidirectional"
     NO_CAUSAL = "no_causal"
-
-
-class CausalInvariantTier(enum.IntEnum):
-    """Three tiers of causal invariant generality."""
-
-    TIER_1_DOMAIN = 1        # Holds within a single domain
-    TIER_2_CROSS_DOMAIN = 2  # Holds across multiple distinct domains
-    TIER_3_SUBSTRATE = 3     # Holds regardless of substrate — deepest layer
 
 
 class InvarianceVerdict(enum.StrEnum):
@@ -267,15 +265,6 @@ class ContextTestResult(EOSBaseModel):
     sample_count: int = 0
 
 
-class ScopeCondition(EOSBaseModel):
-    """A condition under which a causal rule holds or fails."""
-
-    condition: str  # Natural language description
-    holds_when: bool = True  # True = rule holds when condition is met
-    distinguishing_feature: str = ""
-    context_ids: list[str] = Field(default_factory=list)
-
-
 class InvarianceTestResult(Identified):
     """Result of testing a causal rule across multiple contexts."""
 
@@ -287,64 +276,6 @@ class InvarianceTestResult(Identified):
     failing_contexts: list[str] = Field(default_factory=list)
     scope_conditions: list[ScopeCondition] = Field(default_factory=list)
     tested_at: datetime = Field(default_factory=utc_now)
-
-
-# ─── Causal Hierarchy ─────────────────────────────────────────────────
-
-
-class ApplicableDomain(EOSBaseModel):
-    """A domain where a causal invariant has been tested and holds."""
-
-    domain: str
-    substrate: str = ""  # physical, biological, computational, social, economic
-    hold_rate: float = 0.0
-    observation_count: int = 0
-
-
-class CausalInvariant(Identified, Timestamped):
-    """
-    A confirmed causal invariant — the most compressed form of causal knowledge.
-
-    One invariant generates predictions across every domain it touches.
-    Tier 3 invariants are architectural events for the world model.
-    """
-
-    tier: CausalInvariantTier = CausalInvariantTier.TIER_1_DOMAIN
-    abstract_form: str = ""  # The invariant statement in its most abstract form
-    concrete_instances: list[str] = Field(default_factory=list)  # CausalRule IDs
-    applicable_domains: list[ApplicableDomain] = Field(default_factory=list)
-    invariance_hold_rate: float = 0.0
-    scope_conditions: list[ScopeCondition] = Field(default_factory=list)
-    intelligence_ratio_contribution: float = 0.0
-    description_length_bits: float = 0.0
-    source_rule_id: str = ""  # ID of the CausalRule that was promoted
-
-    # Phase C: Distillation fields
-    distilled: bool = False  # True after InvariantDistiller has processed this
-    variable_roles: dict[str, str] = Field(default_factory=dict)
-    """Maps concrete variable names to abstract roles (e.g. "price" -> "quantity")."""
-    is_tautological: bool = False  # Set by tautology test
-    is_minimal: bool = False  # Set by minimality test
-    untested_domains: list[str] = Field(default_factory=list)
-    """Domains where the abstract form matches but the invariant hasn't been tested."""
-
-    # Phase D: Counter-invariant tracking
-    violation_count: int = 0
-    refined_scope: str = ""  # Natural language boundary condition
-    last_violation_check: datetime | None = None
-
-    @property
-    def domain_count(self) -> int:
-        return len(self.applicable_domains)
-
-    @property
-    def substrate_count(self) -> int:
-        return len({d.substrate for d in self.applicable_domains if d.substrate})
-
-    @property
-    def cross_domain_transfer_value(self) -> float:
-        """Number of untested domains × invariant coverage."""
-        return len(self.untested_domains) * self.invariance_hold_rate
 
 
 # ─── Phase C: Invariant Distillation ────────────────────────────────────
@@ -517,6 +448,121 @@ class IntelligenceRatioStepChangePayload(EOSBaseModel):
     cause: str  # "tier3_discovered", "counter_invariant_refined", "domain_expanded"
 
 
+# ─── Feedback Loop Payloads ──────────────────────────────────────────
+
+
+class ValidatedCausalStructurePayload(EOSBaseModel):
+    """Payload for KAIROS_VALIDATED_CAUSAL_STRUCTURE → Evo Thompson sampler."""
+
+    invariant_id: str
+    cause: str
+    effect: str
+    hold_rate: float
+    tier: int
+    domain_count: int
+    hypothesis_pattern: str
+
+
+class SpuriousHypothesisClassPayload(EOSBaseModel):
+    """Payload for KAIROS_SPURIOUS_HYPOTHESIS_CLASS → Evo penalty signal."""
+
+    confounded_cause: str
+    confounded_effect: str
+    confounders: list[str]
+    mdl_improvement: float
+    hypothesis_class: str
+
+
+class InvariantAbsorptionPayload(EOSBaseModel):
+    """Payload for KAIROS_INVARIANT_ABSORPTION_REQUESTED → Fovea world model."""
+
+    invariant_id: str
+    cause: str
+    effect: str
+    hold_rate: float
+    tier: int
+    abstract_form: str
+
+
+class CausalNoveltyPayload(EOSBaseModel):
+    """Payload for KAIROS_CAUSAL_NOVELTY_DETECTED → organism-wide broadcast."""
+
+    invariant_id: str
+    novelty_type: str  # "bidirectional", "modulated", "feedback_loop", "causal_chain"
+    structure: dict[str, Any] = Field(default_factory=dict)
+    domains: list[str] = Field(default_factory=list)
+    abstract_form: str = ""
+
+
+class HealthDegradedPayload(EOSBaseModel):
+    """Payload for KAIROS_HEALTH_DEGRADED → Thymos incident trigger."""
+
+    degradation_type: str
+    severity: str  # "critical", "high", "medium", "low"
+    details: dict[str, Any] = Field(default_factory=dict)
+    metrics: dict[str, float] = Field(default_factory=dict)
+
+
+class ViolationEscalationPayload(EOSBaseModel):
+    """Payload for KAIROS_VIOLATION_ESCALATION → Thymos incident trigger."""
+
+    invariant_id: str
+    violation_count: int
+    violation_rate: float
+    severity: str
+
+
+# ─── Intelligence Ledger Historical Tracking ─────────────────────────
+
+
+class IntelligenceContributionSnapshot(EOSBaseModel):
+    """Point-in-time snapshot of an invariant's intelligence contribution."""
+
+    invariant_id: str
+    observations_covered: int = 0
+    description_savings: float = 0.0
+    intelligence_ratio_contribution: float = 0.0
+    computed_at: datetime = Field(default_factory=utc_now)
+
+
+class IntelligenceTrend(EOSBaseModel):
+    """Trend analysis for an invariant's intelligence contribution over time."""
+
+    invariant_id: str
+    trend_direction: str = "stable"  # "increasing", "decreasing", "stable"
+    slope: float = 0.0
+    snapshots: int = 0
+    counterfactual_i_without: float = 0.0
+
+
+# ─── Health Diagnostics ──────────────────────────────────────────────
+
+
+class KairosHealthStatus(EOSBaseModel):
+    """Comprehensive health diagnostic for the Kairos system."""
+
+    overall: str = "healthy"  # "healthy", "degraded", "critical"
+    discovery_rate: float = 0.0
+    tier3_demotion_rate: float = 0.0
+    confounder_rate: float = 0.0
+    causal_surprise_rate: float = 0.0
+    ledger_drift: float = 0.0
+    issues: list[str] = Field(default_factory=list)
+
+
+# ─── Abstract Causal Structures ──────────────────────────────────────
+
+
+class CausalStructurePattern(EOSBaseModel):
+    """A recognized abstract causal pattern across domains."""
+
+    pattern_type: str  # "pressure_response", "feedback_loop", "causal_chain", "modulation"
+    variables: list[str] = Field(default_factory=list)
+    domain_count: int = 0
+    invariant_ids: list[str] = Field(default_factory=list)
+    abstract_description: str = ""
+
+
 # ─── Pipeline Configuration ──────────────────────────────────────────
 
 
@@ -553,12 +599,19 @@ class KairosConfig(EOSBaseModel):
     # Phase C: Distillation
     tautology_min_variables: int = 2  # Invariants with fewer variables are suspect
     minimality_hold_rate_tolerance: float = 0.02  # Max drop when removing a part
-    tier3_min_contexts: int = 5  # Minimum contexts for Tier 3 promotion
+    tier3_min_observations: int = 5  # Minimum total observations across domains for Tier 3 promotion
 
     # Phase D: Counter-invariant detection
     violation_significance_threshold: float = 0.3  # Min feature diff to be "significant"
     min_violations_for_cluster: int = 3  # Min violations to form a cluster
     min_cluster_size_for_refinement: int = 3  # Min cluster size to refine scope
+
+    # Health monitoring thresholds
+    discovery_stall_threshold: float = 0.1  # Min discoveries per cycle to not stall
+    tier3_demotion_alert_threshold: float = 1.0  # Demotions per cycle to alert
+    confounder_inflation_threshold: float = 0.5  # Confounder rate above which to alert
+    corruption_surprise_threshold: float = 0.4  # Causal surprise rate for corruption
+    ledger_history_max: int = 50  # Max snapshots per invariant in historical tracking
 
     # Pipeline timing
     mining_interval_s: float = 300.0  # How often to run the full pipeline

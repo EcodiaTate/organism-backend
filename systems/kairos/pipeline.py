@@ -16,10 +16,19 @@ Events broadcast:
   KAIROS_CAUSAL_CANDIDATE_GENERATED, KAIROS_CAUSAL_DIRECTION_ACCEPTED,
   KAIROS_CONFOUNDER_DISCOVERED, KAIROS_INVARIANT_CANDIDATE,
   KAIROS_INVARIANT_DISTILLED, KAIROS_TIER3_INVARIANT_DISCOVERED,
-  KAIROS_COUNTER_INVARIANT_FOUND, KAIROS_INTELLIGENCE_RATIO_STEP_CHANGE
+  KAIROS_COUNTER_INVARIANT_FOUND, KAIROS_INTELLIGENCE_RATIO_STEP_CHANGE,
+  KAIROS_VALIDATED_CAUSAL_STRUCTURE, KAIROS_SPURIOUS_HYPOTHESIS_CLASS,
+  KAIROS_INVARIANT_ABSORPTION_REQUESTED, KAIROS_CAUSAL_NOVELTY_DETECTED,
+  KAIROS_HEALTH_DEGRADED, KAIROS_VIOLATION_ESCALATION
+
+Subscriptions:
+  FOVEA_PREDICTION_ERROR, EVOLUTION_CANDIDATE, EPISODE_STORED,
+  CROSS_DOMAIN_MATCH_FOUND, WORLD_MODEL_UPDATED (Logos bidirectional),
+  COMPRESSION_BACKLOG_PROCESSED (Oneiros consolidation feedback)
 
 Integrations: Logos (world model), Nexus (federation sharing of Tier 3),
-  Telos (intelligence ratio step change signal).
+  Telos (intelligence ratio step change signal), Evo (Thompson sampler feedback),
+  Fovea (invariant absorption), Thymos (health degradation incidents).
 """
 
 from __future__ import annotations
@@ -38,19 +47,28 @@ from systems.kairos.intelligence_ledger import IntelligenceContributionLedger
 from systems.kairos.invariant_distiller import InvariantDistiller
 from systems.kairos.types import (
     CausalCandidatePayload,
+    CausalDirection,
     CausalDirectionPayload,
     CausalDirectionResult,
     CausalInvariant,
+    CausalNoveltyPayload,
     CausalRule,
+    CausalStructurePattern,
     ConfounderDiscoveredPayload,
     CorrelationCandidate,
     CounterInvariantPayload,
+    HealthDegradedPayload,
     IntelligenceRatioStepChangePayload,
+    InvariantAbsorptionPayload,
     InvarianceVerdict,
     InvariantCandidatePayload,
     InvariantDistilledPayload,
     KairosConfig,
+    KairosHealthStatus,
+    SpuriousHypothesisClassPayload,
     Tier3InvariantPayload,
+    ValidatedCausalStructurePayload,
+    ViolationEscalationPayload,
 )
 
 if TYPE_CHECKING:
@@ -99,9 +117,25 @@ class KairosEvoPipeline:
         hypothesis_id = event_data.get("hypothesis_id", "")
         confidence = event_data.get("confidence", 0.0)
 
+        # Parse actual cause/effect variables from the hypothesis statement.
+        # Try structured fields first, then fall back to keyword splitting.
+        cause_var = event_data.get("cause_variable", "")
+        effect_var = event_data.get("effect_variable", "")
+
+        if not cause_var or not effect_var:
+            cause_var, effect_var = self._parse_causal_statement(statement)
+
+        if not cause_var or not effect_var:
+            logger.debug(
+                "evo_causal_claim_unparseable",
+                hypothesis_id=hypothesis_id,
+                statement=statement[:100],
+            )
+            return None
+
         candidate = CorrelationCandidate(
-            variable_a=f"evo_hyp_{hypothesis_id}_cause",
-            variable_b=f"evo_hyp_{hypothesis_id}_effect",
+            variable_a=cause_var,
+            variable_b=effect_var,
             mean_correlation=confidence,
             cross_context_variance=0.0,
             context_count=1,
@@ -112,11 +146,40 @@ class KairosEvoPipeline:
         logger.info(
             "evo_causal_claim_seeded",
             hypothesis_id=hypothesis_id,
-            statement=statement[:100],
+            cause=cause_var,
+            effect=effect_var,
             confidence=confidence,
         )
 
         return candidate
+
+    @staticmethod
+    def _parse_causal_statement(statement: str) -> tuple[str, str]:
+        """
+        Extract cause and effect variable names from a natural-language
+        causal claim like "X causes Y" or "X leads to Y".
+
+        Returns (cause, effect) or ("", "") if unparseable.
+        """
+        statement_lower = statement.lower()
+        # Try each causal keyword as a split point
+        causal_phrases = [
+            " causes ", " leads to ", " produces ", " results in ",
+            " drives ", " triggers ", " induces ", " generates ",
+            " increases ", " decreases ", " affects ",
+        ]
+        for phrase in causal_phrases:
+            if phrase in statement_lower:
+                idx = statement_lower.index(phrase)
+                cause = statement[:idx].strip()
+                effect = statement[idx + len(phrase):].strip()
+                # Clean: take last word cluster before the keyword as cause,
+                # first word cluster after as effect
+                cause = cause.split(",")[-1].strip()
+                effect = effect.split(",")[0].strip().rstrip(".")
+                if cause and effect:
+                    return cause, effect
+        return "", ""
 
     @property
     def seeded_candidates(self) -> list[CorrelationCandidate]:
@@ -168,6 +231,12 @@ class KairosPipeline:
         self._logos_ingest: Any = None
         self._nexus_share: Any = None  # Nexus fragment sharing protocol
         self._oneiros: Any = None  # Loop 5: Oneiros REM seed injection
+        self._memory: Any = None  # Memory system for observation queries
+        self._neo4j: Any = None  # Neo4j client for persistence
+
+        # Health monitoring
+        self._health_status = KairosHealthStatus()
+        self._discovered_patterns: list[CausalStructurePattern] = []
 
         # Metrics
         self._pipeline_runs: int = 0
@@ -176,8 +245,15 @@ class KairosPipeline:
         self._cross_domain_events_received: int = 0
         self._invariants_created: int = 0
         self._tier3_discoveries: int = 0
+        self._deferred_tier3: list[CausalInvariant] = []
+        self._tier3_demotions: int = 0
         self._counter_invariants_found: int = 0
         self._step_changes: int = 0
+        # P6: per-invariant I-ratio from previous pipeline run for cross-run step detection
+        self._prev_i_ratios: dict[str, float] = {}
+        self._confounders_found: int = 0
+        self._logos_updates_received: int = 0
+        self._oneiros_consolidations_received: int = 0
 
     # --- Wiring ---
 
@@ -201,6 +277,41 @@ class KairosPipeline:
         """Wire Oneiros for Loop 5 REM seed injection on Tier 3 discoveries."""
         self._oneiros = oneiros
         logger.info("kairos_oneiros_wired")
+
+    def set_memory(self, memory: Any) -> None:
+        """Wire the Memory system for observation queries."""
+        self._memory = memory
+        logger.info("kairos_memory_wired")
+
+    def set_neo4j(self, neo4j: Any) -> None:
+        """Wire the Neo4j client for invariant persistence."""
+        self._neo4j = neo4j
+        logger.info("kairos_neo4j_wired")
+
+    async def initialize(self) -> None:
+        """
+        Initialize Kairos — restore invariants from Neo4j.
+
+        Must complete before the first pipeline cycle so the hierarchy
+        is populated with previously discovered invariants.
+        """
+        if self._neo4j is None:
+            logger.warning("kairos_initialize_skipped", reason="no_neo4j_client")
+            return
+
+        from systems.kairos.persistence import ensure_schema, restore_invariants
+
+        await ensure_schema(self._neo4j)
+
+        invariants = await restore_invariants(self._neo4j)
+        for inv in invariants:
+            self._hierarchy._place(inv)
+
+        logger.info(
+            "kairos_initialized",
+            invariants_restored=len(invariants),
+            hierarchy_total=self._hierarchy.total_count,
+        )
 
     def _register_subscriptions(self) -> None:
         """Subscribe to relevant Synapse events."""
@@ -226,7 +337,25 @@ class KairosPipeline:
             self._on_cross_domain_match,
         )
 
-        logger.info("kairos_subscriptions_registered", events=4)
+        # P1: Logos bidirectional — subscribe to world model updates
+        self._event_bus.subscribe(
+            SynapseEventType.WORLD_MODEL_UPDATED,
+            self._on_world_model_updated,
+        )
+
+        # P1: Oneiros consolidation feedback
+        self._event_bus.subscribe(
+            SynapseEventType.COMPRESSION_BACKLOG_PROCESSED,
+            self._on_oneiros_consolidation,
+        )
+
+        # SG3: Federation invariant reception
+        self._event_bus.subscribe(
+            SynapseEventType.FEDERATION_INVARIANT_RECEIVED,
+            self._on_federation_invariant_received,
+        )
+
+        logger.info("kairos_subscriptions_registered", events=7)
 
     # --- Event handlers ---
 
@@ -353,6 +482,160 @@ class KairosPipeline:
             iso_score=round(iso_score, 3),
         )
 
+    async def _on_world_model_updated(self, event: SynapseEvent) -> None:
+        """
+        P1: Logos bidirectional feedback.
+
+        When Logos reorganizes the world model, Kairos should re-evaluate
+        existing invariants against the new model structure. Non-Kairos
+        updates (from other systems) may reveal new contexts for testing.
+        """
+        data = event.data if hasattr(event, "data") else {}
+        source = data.get("source", "")
+
+        # Skip our own updates to avoid feedback loops
+        if source == "kairos":
+            return
+
+        self._logos_updates_received += 1
+
+        update_type = data.get("update_type", "")
+        schemas_added = data.get("schemas_added", 0)
+
+        logger.debug(
+            "logos_world_model_update_received",
+            update_type=update_type,
+            source=source,
+            schemas_added=schemas_added,
+        )
+
+        # If schemas were added, they may define new domains for invariant testing
+        if schemas_added > 0:
+            # Re-evaluate undistilled invariants against the expanded domain set
+            for invariant in self._hierarchy.get_all():
+                if not invariant.distilled:
+                    self._hierarchy.promote_if_eligible(invariant.id)
+
+    async def _on_oneiros_consolidation(self, event: SynapseEvent) -> None:
+        """
+        P1: Oneiros consolidation feedback.
+
+        When Oneiros finishes a consolidation cycle, it may have discovered
+        cross-domain patterns that Kairos should mine. Pre-seed the
+        correlation miner with any causal structures from consolidation.
+        """
+        data = event.data if hasattr(event, "data") else {}
+        self._oneiros_consolidations_received += 1
+
+        # Extract cross-domain patterns from consolidation output
+        patterns = data.get("cross_domain_patterns", [])
+        for pattern in patterns:
+            cause = pattern.get("cause", "")
+            effect = pattern.get("effect", "")
+            confidence = float(pattern.get("confidence", 0.5))
+            if cause and effect:
+                candidate = CorrelationCandidate(
+                    variable_a=f"oneiros_consolidation:{cause}",
+                    variable_b=f"oneiros_consolidation:{effect}",
+                    mean_correlation=confidence,
+                    cross_context_variance=0.0,
+                    context_count=2,
+                )
+                self._correlation_miner.add_preseed(candidate)
+
+        logger.debug(
+            "oneiros_consolidation_processed",
+            patterns_received=len(patterns),
+        )
+
+    async def _on_federation_invariant_received(self, event: SynapseEvent) -> None:
+        """
+        SG3: Handle invariants received from federated peer instances.
+
+        Validate against local observations via counter-invariant testing.
+        If validated: merge into CausalHierarchy at appropriate tier.
+        If contradicted: emit KAIROS_INVARIANT_CONTRADICTED.
+        """
+        data = event.data if hasattr(event, "data") else {}
+        source_instance = data.get("source_instance_id", "unknown")
+        abstract_form = data.get("abstract_form", "")
+        tier_val = int(data.get("tier", 1))
+        hold_rate = float(data.get("hold_rate", 0.0))
+        domains = data.get("domains", [])
+
+        if not abstract_form:
+            return
+
+        # Build a CausalInvariant from the federation payload
+        from primitives.causal import ApplicableDomain, CausalInvariantTier
+
+        fed_invariant = CausalInvariant(
+            tier=CausalInvariantTier(tier_val),
+            abstract_form=abstract_form,
+            invariance_hold_rate=hold_rate,
+            applicable_domains=[
+                ApplicableDomain(domain=d, hold_rate=hold_rate) for d in domains
+            ],
+        )
+
+        # Validate against local observations
+        local_observations = await self.query_observations_for_testing(
+            fed_invariant.id,
+        )
+        if not local_observations:
+            # No local data to validate — accept at trust but don't promote
+            self._hierarchy._place(fed_invariant)
+            logger.info(
+                "federation_invariant_accepted_unvalidated",
+                invariant_id=fed_invariant.id,
+                source=source_instance,
+            )
+            return
+
+        # Run counter-invariant testing
+        violations = await self._counter_detector.scan_for_violations(
+            fed_invariant, local_observations
+        )
+
+        if not violations:
+            # Validated locally — merge into hierarchy
+            self._hierarchy._place(fed_invariant)
+            self._hierarchy.promote_if_eligible(fed_invariant.id)
+            fed_invariant.validated = True
+            logger.info(
+                "federation_invariant_validated",
+                invariant_id=fed_invariant.id,
+                source=source_instance,
+                tier=fed_invariant.tier.value,
+            )
+        else:
+            # Contradicted locally — emit contradiction event
+            if self._event_bus is not None:
+                from systems.synapse.types import SynapseEvent as SE
+                from systems.synapse.types import SynapseEventType
+
+                await self._event_bus.emit(
+                    SE(
+                        event_type=SynapseEventType.KAIROS_INVARIANT_CONTRADICTED,
+                        source_system="kairos",
+                        data={
+                            "invariant_id": fed_invariant.id,
+                            "abstract_form": abstract_form,
+                            "local_hold_rate": 1.0 - (
+                                len(violations) / max(len(local_observations), 1)
+                            ),
+                            "violation_count": len(violations),
+                            "source_instance_id": source_instance,
+                        },
+                    )
+                )
+            logger.info(
+                "federation_invariant_contradicted",
+                invariant_id=fed_invariant.id,
+                source=source_instance,
+                violations=len(violations),
+            )
+
     # --- Pipeline execution ---
 
     async def run_pipeline(
@@ -380,6 +663,9 @@ class KairosPipeline:
         temporal_events = temporal_events or []
         axon_logs = axon_logs or []
         known_domains = known_domains or []
+
+        # Drain any Tier 3 promotions deferred from sync callbacks
+        await self._drain_deferred_tier3()
 
         # ── Stage 1: Correlation Mining ──────────────────────────
         candidates = await self._correlation_miner.mine(observations_by_context)
@@ -414,6 +700,9 @@ class KairosPipeline:
 
             if confounder_result.is_confounded:
                 await self._emit_confounder_discovered(confounder_result)
+                self._confounders_found += 1
+                # P0: Evo penalty signal — this hypothesis class is spurious
+                await self._emit_spurious_hypothesis_class(confounder_result)
             else:
                 clean_directions.append(direction_result)
 
@@ -440,6 +729,12 @@ class KairosPipeline:
                 InvarianceVerdict.CONDITIONAL_INVARIANT,
             ):
                 invariant = self._hierarchy.create_from_rule(rule, invariance_result)
+                # Populate causal direction from the original correlation sign
+                invariant.direction = (
+                    "negative"
+                    if direction_result.candidate.mean_correlation < 0
+                    else "positive"
+                )
                 self._invariants_created += 1
                 invariants_created += 1
                 new_invariants.append(invariant)
@@ -447,6 +742,15 @@ class KairosPipeline:
                     invariant, rule, invariance_result,
                 )
                 await self._ingest_to_logos(invariant, rule)
+
+                # P0: Evo validation signal — this causal structure is confirmed
+                await self._emit_validated_causal_structure(invariant, rule)
+                # P0: Fovea absorption — request world model integration
+                await self._emit_invariant_absorption_requested(invariant)
+                # P2: Novelty detection
+                await self._detect_and_emit_novelty(invariant, direction_result)
+                # SG4: Emit RE training example for validated causal chain (Stream 4)
+                await self._emit_re_training_example(invariant, rule)
 
         # ── Phase C: Invariant Distillation ──────────────────────
         distillations = 0
@@ -479,7 +783,18 @@ class KairosPipeline:
         violations_found = 0
         refinements_made = 0
 
-        for invariant in self._hierarchy.get_all():
+        # M10: order Phase D by ledger value so highest-value invariants are scanned first
+        ranked_contributions = self._intelligence_ledger.rank_by_value()
+        ranked_ids = [c.invariant_id for c in ranked_contributions]
+        ranked_id_set = set(ranked_ids)
+        all_phase_d_invariants = self._hierarchy.get_all()
+        # Higher-ranked first, then any not yet in ledger in original order
+        phase_d_invariants = sorted(
+            all_phase_d_invariants,
+            key=lambda inv: ranked_ids.index(inv.id) if inv.id in ranked_id_set else len(ranked_ids),
+        )
+
+        for invariant in phase_d_invariants:
             violations = await self._counter_detector.scan_for_violations(
                 invariant, observations_by_context
             )
@@ -497,6 +812,11 @@ class KairosPipeline:
                     self._counter_invariants_found += 1
                     await self._emit_counter_invariant_found(invariant, refined)
 
+        # ── Violation Escalation (P2: Thymos) ──────────────────────
+        for invariant in self._hierarchy.get_all():
+            if invariant.violation_count >= self._config.min_violations_for_cluster * 2:
+                await self._emit_violation_escalation(invariant)
+
         # ── Phase D: Intelligence Contribution Ledger ────────────
         all_invariants = self._hierarchy.get_all()
         if all_invariants:
@@ -504,11 +824,15 @@ class KairosPipeline:
                 all_invariants, observations_by_context, total_model_length
             )
 
-            # Check for step changes
+            # P6: Check for step changes using previous pipeline run's ratios
+            next_i_ratios: dict[str, float] = {}
             for contribution in contributions:
-                inv = self._hierarchy._find(contribution.invariant_id)
+                inv = self._hierarchy.find_invariant(contribution.invariant_id)
                 if inv is not None:
-                    old_ratio = contribution.intelligence_ratio_without
+                    # P6: compare against last run's ratio (not within-run counterfactual)
+                    old_ratio = self._prev_i_ratios.get(
+                        contribution.invariant_id, contribution.intelligence_ratio_without
+                    )
                     is_step, delta = self._intelligence_ledger.detect_step_change(
                         inv, old_ratio
                     )
@@ -518,6 +842,31 @@ class KairosPipeline:
                             inv, old_ratio, contribution.intelligence_ratio_contribution, delta,
                             "pipeline_run",
                         )
+                    # D4: emit counterfactual step-change signal when value is non-trivial
+                    counterfactual = contribution.intelligence_ratio_without
+                    if counterfactual > 0.1:
+                        await self._emit_intelligence_ratio_step_change(
+                            inv, counterfactual, contribution.intelligence_ratio_contribution,
+                            contribution.intelligence_ratio_contribution - counterfactual,
+                            "counterfactual_removal",
+                        )
+                    next_i_ratios[contribution.invariant_id] = contribution.intelligence_ratio_contribution
+            # P6: persist current ratios for next run
+            self._prev_i_ratios = next_i_ratios
+
+        # ── Invariant Decay (SG2) ─────────────────────────────────
+        reinforced_ids = {inv.id for inv in new_invariants}
+        await self._apply_invariant_decay(reinforced_ids)
+
+        # ── Health Monitoring (P1) ─────────────────────────────────
+        await self._diagnose_health(
+            candidates_count=len(candidates),
+            invariants_created=invariants_created,
+            violations_found=violations_found,
+        )
+
+        # ── Evolutionary Metrics (SG5) ─────────────────────────────
+        await self._emit_evolutionary_metrics()
 
         summary = {
             "pipeline_run": self._pipeline_runs,
@@ -539,8 +888,155 @@ class KairosPipeline:
             "intelligence_ledger": self._intelligence_ledger.summary(),
         }
 
+        # ── Persist to Neo4j (batched) ─────────────────────────────
+        await self._persist_all_invariants()
+
         logger.info("pipeline_run_complete", **summary)
         return summary
+
+    async def _persist_all_invariants(self) -> None:
+        """Batch-persist all invariants to Neo4j."""
+        if self._neo4j is None:
+            return
+
+        from systems.kairos.persistence import persist_invariants_batch
+
+        all_invariants = self._hierarchy.get_all()
+        if all_invariants:
+            await persist_invariants_batch(self._neo4j, all_invariants)
+
+    async def _apply_invariant_decay(self, reinforced_ids: set[str]) -> None:
+        """
+        SG2: Decay invariants not reinforced this cycle.
+
+        - Reinforced invariants reset recency_weight to 1.0
+        - Others decay by 0.95×
+        - Demote from tier when recency_weight < 0.3
+        - Archive (active=false) when recency_weight < 0.1
+        """
+        archived = 0
+        demoted = 0
+
+        for invariant in list(self._hierarchy.get_all()):
+            if invariant.id in reinforced_ids:
+                invariant.recency_weight = 1.0
+                continue
+
+            invariant.recency_weight *= 0.95
+
+            if invariant.recency_weight < 0.1:
+                # Archive — remove from hierarchy
+                invariant.active = False
+                self._hierarchy._remove(invariant)
+                archived += 1
+            elif invariant.recency_weight < 0.3:
+                # Demote one tier
+                old_tier = invariant.tier
+                from primitives.causal import CausalInvariantTier
+
+                if invariant.tier == CausalInvariantTier.TIER_3_SUBSTRATE:
+                    self._hierarchy._remove(invariant)
+                    invariant.tier = CausalInvariantTier.TIER_2_CROSS_DOMAIN
+                    self._hierarchy._place(invariant)
+                    self._tier3_demotions += 1
+                    demoted += 1
+                elif invariant.tier == CausalInvariantTier.TIER_2_CROSS_DOMAIN:
+                    self._hierarchy._remove(invariant)
+                    invariant.tier = CausalInvariantTier.TIER_1_DOMAIN
+                    self._hierarchy._place(invariant)
+                    demoted += 1
+
+        if archived or demoted:
+            logger.info(
+                "invariant_decay_applied",
+                archived=archived,
+                demoted=demoted,
+                reinforced=len(reinforced_ids),
+            )
+
+    async def _emit_evolutionary_metrics(self) -> None:
+        """
+        SG5: Compute and emit evolutionary metrics as observables.
+
+        Metrics: mean I-ratio, Tier 3 discovery rate, invariant overlap coefficient.
+        """
+        if self._event_bus is None:
+            return
+
+        all_invariants = self._hierarchy.get_all()
+        if not all_invariants:
+            return
+
+        # Mean I-ratio across all invariants
+        mean_i_ratio = sum(
+            inv.intelligence_ratio_contribution for inv in all_invariants
+        ) / len(all_invariants)
+
+        # Tier 3 discovery rate: tier3 discoveries / total pipeline runs
+        tier3_rate = (
+            self._tier3_discoveries / max(self._pipeline_runs, 1)
+        )
+
+        # Invariant overlap coefficient: fraction of invariants sharing domains
+        all_domains: list[set[str]] = [
+            {d.domain for d in inv.applicable_domains} for inv in all_invariants
+        ]
+        overlap_pairs = 0
+        total_pairs = 0
+        for i in range(len(all_domains)):
+            for j in range(i + 1, len(all_domains)):
+                total_pairs += 1
+                if all_domains[i] & all_domains[j]:
+                    overlap_pairs += 1
+        overlap_coeff = overlap_pairs / max(total_pairs, 1)
+
+        await self._emit_evolutionary_observable(
+            "kairos_mean_i_ratio", mean_i_ratio, is_novel=False,
+            metadata={"invariant_count": len(all_invariants)},
+        )
+        await self._emit_evolutionary_observable(
+            "kairos_tier3_discovery_rate", tier3_rate,
+            is_novel=self._tier3_discoveries > 0,
+            metadata={"total_tier3": self._tier3_discoveries},
+        )
+        await self._emit_evolutionary_observable(
+            "kairos_invariant_overlap_coefficient", overlap_coeff,
+            is_novel=False,
+            metadata={"total_pairs": total_pairs, "overlapping": overlap_pairs},
+        )
+
+    async def _emit_evolutionary_observable(
+        self,
+        observable_type: str,
+        value: float,
+        is_novel: bool,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Emit an evolutionary observable event for Benchmarks population tracking."""
+        if self._event_bus is None:
+            return
+        try:
+            from primitives.common import SystemID
+            from primitives.evolutionary import EvolutionaryObservable
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            obs = EvolutionaryObservable(
+                source_system=SystemID.KAIROS,
+                instance_id="",
+                observable_type=observable_type,
+                value=value,
+                is_novel=is_novel,
+                metadata=metadata or {},
+            )
+            await self._event_bus.emit(
+                SynapseEvent(
+                    event_type=SynapseEventType.EVOLUTIONARY_OBSERVABLE,
+                    source_system="kairos",
+                    data=obs.model_dump(mode="json"),
+                )
+            )
+        except Exception:
+            logger.debug("evolutionary_observable_emission_failed", type=observable_type)
 
     # --- Helpers ---
 
@@ -549,17 +1045,15 @@ class KairosPipeline:
         candidate: CorrelationCandidate,
         observations_by_context: dict[str, list[dict[str, Any]]],
     ) -> list[tuple[float, float]] | None:
-        """Extract paired (a, b) observations for the ANM test."""
+        """Extract paired (a, b) observations for the ANM test, pooling across all contexts."""
+        pairs: list[tuple[float, float]] = []
         for obs_list in observations_by_context.values():
-            pairs: list[tuple[float, float]] = []
             for obs in obs_list:
                 a = obs.get(candidate.variable_a)
                 b = obs.get(candidate.variable_b)
                 if isinstance(a, (int, float)) and isinstance(b, (int, float)):
                     pairs.append((float(a), float(b)))
-            if len(pairs) >= 10:
-                return pairs
-        return None
+        return pairs if len(pairs) >= 10 else None
 
     # --- Logos integration ---
 
@@ -568,17 +1062,20 @@ class KairosPipeline:
         if self._logos_ingest is None:
             return
 
-        from systems.logos.types import EmpiricalInvariant
+        # Use dict payload to avoid cross-system import of EmpiricalInvariant.
+        # The Logos ingest protocol accepts either EmpiricalInvariant or a dict.
+        logos_payload = {
+            "statement": invariant.abstract_form,
+            "domain": rule.domain or "general",
+            "observation_count": rule.observation_count,
+            "confidence": invariant.invariance_hold_rate,
+            "source": "kairos",
+        }
 
-        logos_invariant = EmpiricalInvariant(
-            statement=invariant.abstract_form,
-            domain=rule.domain or "general",
-            observation_count=rule.observation_count,
-            confidence=invariant.invariance_hold_rate,
-            source="kairos",
-        )
-
-        self._logos_ingest.ingest_invariant(logos_invariant)
+        if hasattr(self._logos_ingest, "ingest_invariant_dict"):
+            self._logos_ingest.ingest_invariant_dict(logos_payload)
+        else:
+            self._logos_ingest.ingest_invariant(logos_payload)
 
         logger.info(
             "invariant_ingested_to_logos",
@@ -765,24 +1262,179 @@ class KairosPipeline:
             substrate_count=invariant.substrate_count,
         )
 
-        # These are async operations; schedule them without blocking the sync callback
+        # Schedule async cascade from sync callback.
+        # asyncio.ensure_future works when a loop is running; if not, we
+        # queue the coroutine for the next pipeline run to drain.
         import asyncio
 
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(self._handle_tier3_async(invariant))
+            task = loop.create_task(self._handle_tier3_async(invariant))
+            task.add_done_callback(self._tier3_task_done)
         except RuntimeError:
+            # No running loop — queue for deferred execution
             logger.warning(
-                "tier3_async_scheduling_failed",
+                "tier3_deferred",
                 invariant_id=invariant.id,
                 reason="no_running_event_loop",
             )
+            self._deferred_tier3.append(invariant)
+
+    def _tier3_task_done(self, task: object) -> None:
+        """Log errors from Tier 3 async tasks instead of silently dropping them."""
+        import asyncio
+
+        t = task if isinstance(task, asyncio.Task) else None
+        if t is not None and t.done() and not t.cancelled():
+            exc = t.exception()
+            if exc is not None:
+                logger.error(
+                    "tier3_async_cascade_failed",
+                    error=str(exc),
+                    error_type=type(exc).__name__,
+                )
+
+    async def _drain_deferred_tier3(self) -> None:
+        """Drain any Tier 3 promotions that were queued when no loop was running."""
+        if not self._deferred_tier3:
+            return
+        deferred = self._deferred_tier3[:]
+        self._deferred_tier3.clear()
+        for inv in deferred:
+            logger.info("tier3_deferred_drain", invariant_id=inv.id)
+            await self._handle_tier3_async(inv)
 
     async def _handle_tier3_async(self, invariant: CausalInvariant) -> None:
-        """Async handler for Tier 3 promotion — broadcasts and integrations."""
+        """
+        Async handler for Tier 3 promotion — full 7-response cascade:
+        1. Broadcast TIER3_INVARIANT_DISCOVERED (existing)
+        2. Share with Nexus for federation (existing)
+        3. Inject Oneiros REM seed (existing)
+        4. Equor: constitutional review before acceptance (M4)
+        5. Thread: narrative milestone log (M5)
+        6. Nova: policy update notification (M6)
+        7. Logos: deep structural reorganization (M7)
+        """
         await self._emit_tier3_discovered(invariant)
         await self._share_with_nexus(invariant)
         await self._inject_oneiros_rem_seed(invariant)
+        await self._request_equor_review(invariant)
+        await self._emit_thread_milestone(invariant)
+        await self._notify_nova_policy_update(invariant)
+        await self._logos_tier3_structural_reorganize(invariant)
+
+    async def _logos_tier3_structural_reorganize(self, invariant: CausalInvariant) -> None:
+        """
+        M7: Signal Logos to reorganize its world model around a Tier 3 substrate-independent
+        invariant. This goes beyond the standard ingest — it requests deep structural
+        reweighting of hypotheses that touch the same variables.
+        """
+        if self._logos_ingest is None:
+            return
+
+        logos_payload = {
+            "statement": invariant.abstract_form,
+            "domain": "substrate_independent",
+            "observation_count": invariant.applicable_domains[0].observation_count
+            if invariant.applicable_domains else 0,
+            "confidence": invariant.invariance_hold_rate,
+            "source": "kairos_tier3",
+            "reorganize": True,
+            "tier": invariant.tier.value if hasattr(invariant.tier, "value") else invariant.tier,
+            "domain_count": invariant.domain_count,
+            "substrate_count": invariant.substrate_count,
+        }
+
+        if hasattr(self._logos_ingest, "ingest_invariant_dict"):
+            self._logos_ingest.ingest_invariant_dict(logos_payload)
+        else:
+            self._logos_ingest.ingest_invariant(logos_payload)
+
+        logger.info(
+            "logos_tier3_structural_reorganize_requested",
+            invariant_id=invariant.id,
+            abstract_form=invariant.abstract_form[:60],
+            domain_count=invariant.domain_count,
+        )
+
+    async def _request_equor_review(self, invariant: CausalInvariant) -> None:
+        """M4: Request Equor constitutional review before Tier 3 acceptance."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.CONSTITUTIONAL_REVIEW_REQUESTED,
+                source_system="kairos",
+                data={
+                    "review_type": "tier3_invariant_acceptance",
+                    "invariant_id": invariant.id,
+                    "abstract_form": invariant.abstract_form,
+                    "hold_rate": invariant.invariance_hold_rate,
+                    "domain_count": invariant.domain_count,
+                    "substrate_count": invariant.substrate_count,
+                    "reason": (
+                        "Tier 3 substrate-independent invariant discovered. "
+                        "Constitutional review required before permanent acceptance "
+                        "into deepest world model layer."
+                    ),
+                },
+            )
+        )
+
+    async def _emit_thread_milestone(self, invariant: CausalInvariant) -> None:
+        """M5: Log Tier 3 discovery as a narrative milestone in Thread."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.NARRATIVE_MILESTONE,
+                source_system="kairos",
+                data={
+                    "milestone_type": "tier3_invariant_discovered",
+                    "title": f"Substrate-independent invariant: {invariant.abstract_form[:60]}",
+                    "description": (
+                        f"Discovered a Tier 3 causal invariant spanning "
+                        f"{invariant.domain_count} domains and "
+                        f"{invariant.substrate_count} substrates with "
+                        f"{invariant.invariance_hold_rate:.1%} hold rate."
+                    ),
+                    "significance": "high",
+                    "invariant_id": invariant.id,
+                    "domains": [d.domain for d in invariant.applicable_domains],
+                },
+            )
+        )
+
+    async def _notify_nova_policy_update(self, invariant: CausalInvariant) -> None:
+        """M6: Notify Nova that a Tier 3 invariant should update active inference priors."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.WORLD_MODEL_UPDATED,
+                source_system="kairos",
+                data={
+                    "update_type": "tier3_invariant_discovered",
+                    "schemas_added": 0,
+                    "priors_updated": 1,
+                    "causal_updates": 1,
+                    "invariant_id": invariant.id,
+                    "invariant_tier": 3,
+                    "abstract_form": invariant.abstract_form,
+                    "hold_rate": invariant.invariance_hold_rate,
+                    "source": "kairos",
+                },
+            )
+        )
 
     # --- Nexus federation sharing ---
 
@@ -791,11 +1443,11 @@ class KairosPipeline:
         if self._nexus_share is None:
             return
 
-        from systems.nexus.types import ShareableWorldModelFragment
-
-        fragment = ShareableWorldModelFragment(
-            source_instance_id="local",
-            abstract_structure={
+        # Use dict payload to avoid cross-system import of ShareableWorldModelFragment.
+        # The Nexus share protocol constructs the fragment internally.
+        fragment_data = {
+            "source_instance_id": "local",
+            "abstract_structure": {
                 "type": "causal_invariant",
                 "tier": 3,
                 "abstract_form": invariant.abstract_form,
@@ -805,24 +1457,26 @@ class KairosPipeline:
                     {d.substrate for d in invariant.applicable_domains if d.substrate}
                 ),
             },
-            domain_labels=[d.domain for d in invariant.applicable_domains],
-            observations_explained=sum(
+            "domain_labels": [d.domain for d in invariant.applicable_domains],
+            "observations_explained": sum(
                 d.observation_count for d in invariant.applicable_domains
             ),
-            description_length=invariant.description_length_bits,
-            compression_ratio=(
+            "description_length": invariant.description_length_bits,
+            "compression_ratio": (
                 invariant.intelligence_ratio_contribution
                 if invariant.intelligence_ratio_contribution > 0
                 else 1.0
             ),
-        )
+        }
 
         try:
-            self._nexus_share.share_fragment(fragment)
+            if hasattr(self._nexus_share, "share_fragment_dict"):
+                await self._nexus_share.share_fragment_dict(fragment_data)
+            else:
+                await self._nexus_share.share_fragment(fragment_data)
             logger.info(
                 "tier3_shared_with_nexus",
                 invariant_id=invariant.id,
-                fragment_id=fragment.fragment_id,
             )
         except Exception:
             logger.exception(
@@ -852,6 +1506,8 @@ class KairosPipeline:
             "applicable_domains": [d.domain for d in invariant.applicable_domains],
             "untested_domains": list(invariant.untested_domains),
             "intelligence_ratio_contribution": invariant.intelligence_ratio_contribution,
+            # M8: mark as priority so Oneiros processes this before other seeds
+            "priority": True,
         }
 
         if hasattr(self._oneiros, "add_kairos_rem_seed"):
@@ -947,12 +1603,370 @@ class KairosPipeline:
             )
         )
 
+    # --- P0: Evo ↔ Kairos bidirectional feedback ---
+
+    async def _emit_validated_causal_structure(
+        self, invariant: CausalInvariant, rule: CausalRule,
+    ) -> None:
+        """P0: Emit VALIDATED_CAUSAL_STRUCTURE → Evo Thompson sampler reward."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        payload = ValidatedCausalStructurePayload(
+            invariant_id=invariant.id,
+            cause=rule.cause_variable,
+            effect=rule.effect_variable,
+            hold_rate=invariant.invariance_hold_rate,
+            tier=invariant.tier.value,
+            domain_count=invariant.domain_count,
+            hypothesis_pattern=f"{rule.cause_variable} causes {rule.effect_variable}",
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_VALIDATED_CAUSAL_STRUCTURE,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+    async def _emit_spurious_hypothesis_class(self, confounder_result: Any) -> None:
+        """P0: Emit SPURIOUS_HYPOTHESIS_CLASS → Evo Thompson sampler penalty."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        payload = SpuriousHypothesisClassPayload(
+            confounded_cause=confounder_result.original_pair.cause,
+            confounded_effect=confounder_result.original_pair.effect,
+            confounders=[c.variable for c in confounder_result.confounding_variables],
+            mdl_improvement=confounder_result.mdl_improvement,
+            hypothesis_class="confounded_correlation",
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_SPURIOUS_HYPOTHESIS_CLASS,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+    # --- P0: Fovea ↔ Kairos bidirectional feedback ---
+
+    async def _emit_invariant_absorption_requested(
+        self, invariant: CausalInvariant,
+    ) -> None:
+        """P0: Emit INVARIANT_ABSORPTION_REQUESTED → Fovea world model update."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        payload = InvariantAbsorptionPayload(
+            invariant_id=invariant.id,
+            cause=invariant.abstract_form.split(" causes ")[0].strip() if " causes " in invariant.abstract_form else "",
+            effect=invariant.abstract_form.split(" causes ")[1].strip() if " causes " in invariant.abstract_form else "",
+            hold_rate=invariant.invariance_hold_rate,
+            tier=invariant.tier.value,
+            abstract_form=invariant.abstract_form,
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_INVARIANT_ABSORPTION_REQUESTED,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+    # --- SG4: RE training data emission ---
+
+    async def _emit_re_training_example(
+        self, invariant: CausalInvariant, rule: CausalRule
+    ) -> None:
+        """
+        SG4: Emit a RE training example for each validated causal chain (Stream 4).
+
+        The prompt asks the model to predict whether a causal relationship holds;
+        the signal is the confirmed causal direction and hold rate. This enriches
+        the reasoning engine's causal reasoning capability over time.
+        """
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        training_prompt = (
+            f"Given observations of '{rule.cause_variable}' and '{rule.effect_variable}' "
+            f"across {rule.observation_count} cases in domain '{rule.domain or 'general'}', "
+            f"does '{rule.cause_variable}' causally {invariant.direction or 'influence'} "
+            f"'{rule.effect_variable}'? Provide your reasoning."
+        )
+        training_signal = (
+            f"Yes. Causal direction confidence: {rule.direction_confidence:.2f}. "
+            f"Invariance hold rate: {invariant.invariance_hold_rate:.2f}. "
+            f"Abstract form: {invariant.abstract_form}"
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                source_system="kairos",
+                data={
+                    "stream": 4,
+                    "training_prompt": training_prompt,
+                    "training_signal": training_signal,
+                    "invariant_id": invariant.id,
+                    "hold_rate": invariant.invariance_hold_rate,
+                    "tier": invariant.tier.value if hasattr(invariant.tier, "value") else invariant.tier,
+                },
+            )
+        )
+
+    # --- P2: Novelty detection ---
+
+    async def _detect_and_emit_novelty(
+        self,
+        invariant: CausalInvariant,
+        direction_result: CausalDirectionResult,
+    ) -> None:
+        """
+        P2: Detect novel causal structures and broadcast CAUSAL_NOVELTY_DETECTED.
+
+        Novel structures: bidirectional causation, feedback loops, modulated
+        relationships, causal chains across domains.
+        """
+        novelty_type = ""
+        structure: dict[str, Any] = {}
+
+        # Bidirectional causation is inherently novel
+        if direction_result.direction == CausalDirection.BIDIRECTIONAL:
+            novelty_type = "bidirectional"
+            structure = {
+                "variable_a": direction_result.candidate.variable_a,
+                "variable_b": direction_result.candidate.variable_b,
+            }
+
+        # Cross-domain invariant with high hold rate is novel
+        elif invariant.domain_count >= 2 and invariant.invariance_hold_rate >= 0.9:
+            novelty_type = "causal_chain"
+            structure = {
+                "domains": [d.domain for d in invariant.applicable_domains],
+                "hold_rate": invariant.invariance_hold_rate,
+            }
+
+        if not novelty_type:
+            return
+
+        # Track discovered pattern
+        pattern = CausalStructurePattern(
+            pattern_type=novelty_type,
+            variables=[direction_result.candidate.variable_a, direction_result.candidate.variable_b],
+            domain_count=invariant.domain_count,
+            invariant_ids=[invariant.id],
+            abstract_description=invariant.abstract_form,
+        )
+        self._discovered_patterns.append(pattern)
+        # D5: cap list to prevent unbounded growth
+        if len(self._discovered_patterns) > 200:
+            self._discovered_patterns = self._discovered_patterns[-200:]
+
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        payload = CausalNoveltyPayload(
+            invariant_id=invariant.id,
+            novelty_type=novelty_type,
+            structure=structure,
+            domains=[d.domain for d in invariant.applicable_domains],
+            abstract_form=invariant.abstract_form,
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_CAUSAL_NOVELTY_DETECTED,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+    # --- P2: Violation escalation → Thymos ---
+
+    async def _emit_violation_escalation(self, invariant: CausalInvariant) -> None:
+        """P2: Escalate repeated violations to Thymos as a health incident."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        hold_rate = invariant.invariance_hold_rate
+        severity = "critical" if hold_rate < 0.5 else "high" if hold_rate < 0.75 else "medium"
+
+        payload = ViolationEscalationPayload(
+            invariant_id=invariant.id,
+            violation_count=invariant.violation_count,
+            violation_rate=1.0 - hold_rate,
+            severity=severity,
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_VIOLATION_ESCALATION,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+    # --- P1: Health monitoring ---
+
+    async def _diagnose_health(
+        self,
+        candidates_count: int,
+        invariants_created: int,
+        violations_found: int,
+    ) -> None:
+        """
+        P1: Comprehensive health diagnosis with stall/corruption/drift detection.
+
+        Checks:
+        - Discovery stall: not enough new invariants per pipeline run
+        - Confounder inflation: too many correlations turn out to be confounded
+        - Causal surprise: violations are too frequent
+        - Ledger drift: intelligence contributions are shifting rapidly
+        """
+        issues: list[str] = []
+        overall = "healthy"
+
+        # Discovery stall detection
+        discovery_rate = invariants_created / max(candidates_count, 1)
+        if candidates_count > 0 and discovery_rate < self._config.discovery_stall_threshold:
+            issues.append(f"discovery_stall: rate={discovery_rate:.3f}")
+            overall = "degraded"
+
+        # Confounder inflation detection
+        confounder_rate = self._confounders_found / max(self._pipeline_runs, 1)
+        if confounder_rate > self._config.confounder_inflation_threshold:
+            issues.append(f"confounder_inflation: rate={confounder_rate:.3f}")
+            overall = "degraded"
+
+        # Causal surprise (corruption) detection
+        total_invariants = self._hierarchy.total_count
+        surprise_rate = violations_found / max(total_invariants, 1)
+        if surprise_rate > self._config.corruption_surprise_threshold:
+            issues.append(f"corruption_suspected: surprise_rate={surprise_rate:.3f}")
+            overall = "critical"
+
+        # Ledger drift detection
+        ledger_drift = self._intelligence_ledger.get_ledger_drift()
+        if ledger_drift > 0.3:
+            issues.append(f"ledger_drift: {ledger_drift:.3f}")
+            if overall != "critical":
+                overall = "degraded"
+
+        self._health_status = KairosHealthStatus(
+            overall=overall,
+            discovery_rate=discovery_rate,
+            tier3_demotion_rate=self._tier3_demotions / max(self._pipeline_runs, 1),
+            confounder_rate=confounder_rate,
+            causal_surprise_rate=surprise_rate,
+            ledger_drift=ledger_drift,
+            issues=issues,
+        )
+
+        if overall != "healthy":
+            await self._emit_health_degraded(overall, issues)
+
+    async def _emit_health_degraded(
+        self, severity: str, issues: list[str],
+    ) -> None:
+        """Emit KAIROS_HEALTH_DEGRADED → Thymos incident."""
+        if self._event_bus is None:
+            return
+
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        payload = HealthDegradedPayload(
+            degradation_type="kairos_system_health",
+            severity=severity,
+            details={"issues": issues, "pipeline_runs": self._pipeline_runs},
+            metrics={
+                "discovery_rate": self._health_status.discovery_rate,
+                "confounder_rate": self._health_status.confounder_rate,
+                "surprise_rate": self._health_status.causal_surprise_rate,
+                "ledger_drift": self._health_status.ledger_drift,
+            },
+        )
+
+        await self._event_bus.emit(
+            SynapseEvent(
+                event_type=SynapseEventType.KAIROS_HEALTH_DEGRADED,
+                data=payload.model_dump(),
+                source_system="kairos",
+            )
+        )
+
+        logger.warning(
+            "kairos_health_degraded",
+            severity=severity,
+            issues=issues,
+        )
+
+    # --- P1: Memory query API ---
+
+    async def query_observations_for_testing(
+        self, invariant_id: str, context_filter: str = "",
+    ) -> dict[str, list[dict[str, Any]]]:
+        """
+        P1: Query Memory for observations relevant to testing an invariant.
+
+        Returns observations_by_context suitable for pipeline stages.
+        """
+        if self._memory is None:
+            logger.warning("memory_not_wired", method="query_observations_for_testing")
+            return {}
+
+        invariant = self._hierarchy._find(invariant_id)
+        if invariant is None:
+            return {}
+
+        # Parse cause/effect from abstract form
+        parts = invariant.abstract_form.split(" causes ")
+        if len(parts) != 2:
+            return {}
+
+        cause_var = parts[0].strip()
+        effect_var = parts[1].strip()
+
+        # Query Memory for episodes containing both variables
+        if hasattr(self._memory, "query_episodes"):
+            episodes = await self._memory.query_episodes(
+                variables=[cause_var, effect_var],
+                context_filter=context_filter,
+                limit=100,
+            )
+            # Convert to observations_by_context format
+            result: dict[str, list[dict[str, Any]]] = {}
+            for ep in episodes:
+                ctx = ep.get("context_id", "default")
+                obs = ep.get("observations", [])
+                result.setdefault(ctx, []).extend(obs)
+            return result
+
+        return {}
+
     # --- Health (ManagedSystemProtocol) ---
 
     async def health(self) -> dict[str, Any]:
         """Return health status for Synapse monitoring."""
         return {
-            "status": "healthy",
+            "status": self._health_status.overall,
+            "health_details": self._health_status.model_dump(),
             "pipeline_runs": self._pipeline_runs,
             "fovea_events_received": self._fovea_events_received,
             "evo_events_received": self._evo_events_received,
@@ -960,6 +1974,7 @@ class KairosPipeline:
             "tier3_discoveries": self._tier3_discoveries,
             "counter_invariants_found": self._counter_invariants_found,
             "step_changes": self._step_changes,
+            "discovered_patterns": len(self._discovered_patterns),
             "hierarchy": self._hierarchy.summary(),
             "intelligence_ledger": self._intelligence_ledger.summary(),
             "correlation_miner": {

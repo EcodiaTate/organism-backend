@@ -23,10 +23,8 @@ if TYPE_CHECKING:
 
 import structlog
 
+from primitives.causal import ApplicableDomain, CausalInvariant, CausalInvariantTier
 from systems.kairos.types import (
-    ApplicableDomain,
-    CausalInvariant,
-    CausalInvariantTier,
     CausalRule,
     InvarianceTestResult,
     KairosConfig,
@@ -184,6 +182,10 @@ class CausalHierarchy:
             return new_tier
 
         return None
+
+    def find_invariant(self, invariant_id: str) -> CausalInvariant | None:
+        """Public lookup: find an invariant by ID across all tiers."""
+        return self._find(invariant_id)
 
     def get_all(self) -> list[CausalInvariant]:
         """Return all invariants across all tiers."""

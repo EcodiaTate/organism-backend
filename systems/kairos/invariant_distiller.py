@@ -25,8 +25,8 @@ from __future__ import annotations
 
 import structlog
 
+from primitives.causal import CausalInvariant
 from systems.kairos.types import (
-    CausalInvariant,
     DistillationResult,
     KairosConfig,
 )
@@ -120,11 +120,26 @@ class InvariantDistiller:
         self._distillations_run += 1
         known_domains = known_domains or []
 
-        # Step 1: Variable abstraction
+        # Step 1: Variable abstraction — M2: iterative level-raising loop (up to 5 levels)
         variable_roles = self._abstract_variables(invariant)
         abstract_form = self._build_abstract_form(invariant, variable_roles)
+        abstraction_level = 0
+        max_abstraction_levels = 5
 
-        # Step 2: Tautology test
+        while abstraction_level < max_abstraction_levels:
+            candidate_roles = self._raise_abstraction_level(variable_roles, abstraction_level)
+            if candidate_roles == variable_roles:
+                # No further raising possible at this level
+                break
+            candidate_form = self._build_abstract_form(invariant, candidate_roles)
+            # Stop before tautology boundary
+            if self._test_tautology(candidate_form, candidate_roles):
+                break
+            variable_roles = candidate_roles
+            abstract_form = candidate_form
+            abstraction_level += 1
+
+        # Step 2: Tautology test on final abstract form
         is_tautological = self._test_tautology(abstract_form, variable_roles)
         if is_tautological:
             self._tautologies_rejected += 1
@@ -192,22 +207,88 @@ class InvariantDistiller:
 
         # Collect all concrete variable names from the invariant
         concrete_vars: list[str] = []
+
+        # 1. Domain names and substrate identifiers
         for domain in invariant.applicable_domains:
             concrete_vars.append(domain.domain)
-        # Parse cause/effect from abstract_form if possible
+            if domain.substrate:
+                concrete_vars.append(domain.substrate)
+
+        # 2. Parse cause/effect from abstract_form
         parts = invariant.abstract_form.split(" causes ")
         if len(parts) == 2:
-            concrete_vars.extend(parts)
+            concrete_vars.extend([p.strip() for p in parts])
 
-        # Also collect from concrete_instances context
+        # 3. P2: Extract variable tokens from scope condition text
+        for scope_cond in invariant.scope_conditions:
+            # Scope conditions are typically "variable op value" or free text
+            # Split on common operators and whitespace to extract tokens
+            cond_text = scope_cond.condition if hasattr(scope_cond, "condition") else str(scope_cond)
+            for token in cond_text.replace(">=", " ").replace("<=", " ").replace(
+                "!=", " "
+            ).replace("==", " ").replace(">", " ").replace("<", " ").split():
+                token = token.strip("'\"(),")
+                if token and not token.replace(".", "").replace("-", "").isnumeric():
+                    concrete_vars.append(token)
+
         for var in concrete_vars:
-            if var in roles:
+            var = var.strip()
+            if not var or var in roles:
                 continue
             role = self._classify_variable(var)
             if role:
                 roles[var] = role
 
         return roles
+
+    @staticmethod
+    def _raise_abstraction_level(
+        variable_roles: dict[str, str], level: int
+    ) -> dict[str, str]:
+        """
+        M2: Raise the abstraction level of existing variable roles.
+
+        Each level collapses fine-grained roles toward more general meta-roles:
+        - Level 0: domain-specific roles (quantity_under_pressure, rate_of_change, ...)
+        - Level 1: process roles (intensive_quantity, extensive_quantity, state_variable)
+        - Level 2: causal structure roles (driver, responder, mediator)
+        - Level 3+: universal roles (system_variable)
+        """
+        # Hierarchical abstraction ladder
+        _level1_map: dict[str, str] = {
+            "quantity_under_pressure": "intensive_quantity",
+            "constraint_boundary": "intensive_quantity",
+            "rate_of_change": "extensive_quantity",
+            "feedback_signal": "extensive_quantity",
+            "observable_state": "state_variable",
+            "temporal_extent": "state_variable",
+        }
+        _level2_map: dict[str, str] = {
+            "intensive_quantity": "driver",
+            "extensive_quantity": "responder",
+            "state_variable": "mediator",
+        }
+        _level3_map: dict[str, str] = {
+            "driver": "system_variable",
+            "responder": "system_variable",
+            "mediator": "system_variable",
+        }
+
+        maps = [_level1_map, _level2_map, _level3_map]
+        if level >= len(maps):
+            return variable_roles
+
+        mapping = maps[level]
+        raised: dict[str, str] = {}
+        changed = False
+        for concrete, role in variable_roles.items():
+            new_role = mapping.get(role, role)
+            raised[concrete] = new_role
+            if new_role != role:
+                changed = True
+
+        # Return original if nothing changed (signals no further raising possible)
+        return raised if changed else variable_roles
 
     @staticmethod
     def _classify_variable(variable_name: str) -> str:
@@ -288,21 +369,60 @@ class InvariantDistiller:
         abstract_form: str,
     ) -> tuple[bool, int]:
         """
-        Test if any part of the invariant can be removed while maintaining hold_rate.
+        Test if any scope condition can be removed while maintaining hold_rate
+        within the configured tolerance (minimality_hold_rate_tolerance = 0.02).
+
+        A condition is removable if dropping it doesn't materially change the
+        invariant's hold_rate — meaning the condition doesn't actually narrow
+        the scope. Removable conditions are stripped for maximum compression.
 
         Returns (is_minimal, parts_removed).
         """
         if not invariant.scope_conditions:
             return True, 0
 
-        # Try removing each scope condition and check if hold_rate is maintained
+        tolerance = self._config.minimality_hold_rate_tolerance
+        base_hold_rate = invariant.invariance_hold_rate
+        total_contexts = sum(
+            d.observation_count for d in invariant.applicable_domains
+        )
         parts_removed = 0
         removable_conditions: list[int] = []
 
         for i, condition in enumerate(invariant.scope_conditions):
-            # A condition is removable if the invariant holds without it
-            # (i.e. the condition doesn't narrow the scope meaningfully)
-            if condition.holds_when and len(condition.context_ids) == 0:
+            # Estimate hold_rate without this condition.
+            # If the condition has context_ids, those are contexts where the
+            # condition applies. Removing the condition means those contexts
+            # are no longer excluded/included, changing the effective hold_rate.
+            condition_context_count = len(condition.context_ids)
+
+            if condition_context_count == 0:
+                # No specific contexts tied to this condition — it's vacuous
+                removable_conditions.append(i)
+                parts_removed += 1
+                continue
+
+            if total_contexts <= 0:
+                continue
+
+            # For holds_when=True conditions: removing a "holds when X" condition
+            # means we no longer restrict to X contexts. The hold_rate may drop
+            # because non-X contexts may not hold.
+            # For holds_when=False conditions: removing a "fails when X" condition
+            # means we include X contexts. The hold_rate may drop.
+            #
+            # Approximate: the condition covers condition_context_count contexts.
+            # Without it, these contexts flip their holding status.
+            if condition.holds_when:
+                # Removing "holds when X" = we lose confidence in X contexts
+                # Estimate the drop: condition contexts that held now might not
+                drop = condition_context_count / max(total_contexts, 1) * base_hold_rate
+            else:
+                # Removing "fails when X" = including X contexts (which fail)
+                drop = condition_context_count / max(total_contexts + condition_context_count, 1)
+
+            if drop <= tolerance:
+                # Removing this condition doesn't materially affect hold_rate
                 removable_conditions.append(i)
                 parts_removed += 1
 
@@ -313,7 +433,7 @@ class InvariantDistiller:
                 if i not in removable_conditions
             ]
 
-        is_minimal = parts_removed == 0 or len(invariant.scope_conditions) > 0
+        is_minimal = len(invariant.scope_conditions) == 0 or parts_removed == 0
         return is_minimal, parts_removed
 
     # --- Step 4: Domain Mapping ---
@@ -378,7 +498,7 @@ class InvariantDistiller:
         total_observations = sum(
             d.observation_count for d in invariant.applicable_domains
         )
-        return total_observations >= self._config.tier3_min_contexts
+        return total_observations >= self._config.tier3_min_observations
 
     # --- Metrics ---
 

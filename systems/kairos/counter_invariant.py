@@ -23,8 +23,8 @@ from typing import Any
 import structlog
 
 from primitives.common import utc_now
+from primitives.causal import CausalInvariant
 from systems.kairos.types import (
-    CausalInvariant,
     InvariantViolation,
     KairosConfig,
     RefinedScope,
@@ -96,11 +96,13 @@ class CounterInvariantDetector:
             if r is None:
                 continue
 
-            # The invariant predicts a positive causal relationship
-            # A violation is: correlation is near-zero or opposite sign
-            expected_positive = invariant.invariance_hold_rate > 0
+            # Use the stored causal direction to determine expected sign.
+            # direction="" means unknown — fall back to positive assumption.
+            expected_positive = invariant.direction != "negative"
             is_violation = False
-            if expected_positive and r < -0.1 or not expected_positive and r > 0.1:
+            if expected_positive and r < -0.1:
+                is_violation = True
+            elif not expected_positive and r > 0.1:
                 is_violation = True
 
             if is_violation:
