@@ -237,6 +237,11 @@ class OikosService:
         self._event_bus: EventBus | None = None
         self._bus: NeuroplasticityBus | None = None
 
+        # ── Protocol Scanner (dynamic executor opportunity discovery) ──
+        from systems.oikos.protocol_scanner import ProtocolScanner
+        self._protocol_scanner = ProtocolScanner()
+        self._protocol_scanner.set_oikos(self)
+
         # Track previous starvation level to emit METABOLIC_PRESSURE on changes
         self._prev_starvation_level: StarvationLevel = StarvationLevel.NOMINAL
 
@@ -642,6 +647,10 @@ class OikosService:
             source_system="oikos",
         )
 
+        # Dynamic executor opportunity discovery — ProtocolScanner
+        self._protocol_scanner.set_event_bus(event_bus)
+        self._protocol_scanner.start()
+
         # Closure Loop 3: Simula rollback penalty → metabolic cost
         event_bus.subscribe(
             SynapseEventType.SIMULA_ROLLBACK_PENALTY,
@@ -703,8 +712,13 @@ class OikosService:
             ],
         )
 
+    def set_axon_registry_for_scanner(self, registry: Any) -> None:
+        """Inject the live ExecutorRegistry into ProtocolScanner for gap detection."""
+        self._protocol_scanner.set_axon_registry(registry)
+
     async def shutdown(self) -> None:
         """Deregister from neuroplasticity bus."""
+        self._protocol_scanner.stop()
         if self._bus is not None:
             self._bus.deregister(BaseCostModel)
             self._bus.deregister(BaseMitosisStrategy)
@@ -854,11 +868,15 @@ class OikosService:
         reasoning_trace: str = "",
         alternatives_considered: list[str] | None = None,
         latency_ms: int = 0,
+        episode_id: str = "",
+        constitutional_alignment: Any = None,
+        counterfactual: str = "",
     ) -> None:
         """Fire-and-forget RE training example onto Synapse bus."""
         if self._event_bus is None:
             return
         try:
+            from primitives.common import DriveAlignmentVector as _DAV
 
             example = RETrainingExample(
                 source_system=SystemID.OIKOS,
@@ -870,6 +888,9 @@ class OikosService:
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives_considered or [],
                 latency_ms=latency_ms,
+                episode_id=episode_id,
+                constitutional_alignment=constitutional_alignment or _DAV(),
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
@@ -1284,12 +1305,63 @@ class OikosService:
         )
 
         # ── RE training: budget decision ──
+        _s = self._state
+        _eff = float(_s.metabolic_efficiency)
+        _run = float(_s.runway_days)
+        _liq = float(_s.liquid_balance)
+        _cost = float(estimated_cost_usd)
+        _runway_after = _run - (_cost / max(float(_s.basal_metabolic_rate / 30), 0.001))
+        _tiers_considered = ["SURVIVAL", "OPERATIONS", "MAINTENANCE", "GROWTH"]
+        _denied_reason = (decision.reason or "")[:300]
         asyncio.ensure_future(self._emit_re_training_example(
             category="budget_decision",
-            instruction="Approve or deny a system's spending request based on runway, starvation level, and metabolic state.",
-            input_context=f"system={system_id}, action={action}, cost_usd={estimated_cost_usd}, runway_days={self._state.runway_days}, starvation={self._state.starvation_level.value}",
-            output=f"approved={decision.approved}, reason={decision.reason[:200] if decision.reason else ''}",
-            outcome_quality=0.8 if decision.approved else 0.3,
+            instruction=(
+                "Approve or deny a system's spending request. Consider: current metabolic state "
+                "(starvation level, runway days, metabolic efficiency), whether the allocation "
+                "fits the lowest viable budget tier, and the downstream runway impact. Deny when "
+                "runway after spending would drop below 30 days or starvation is CRITICAL/EMERGENCY."
+            ),
+            input_context=(
+                f"system={system_id} action={action} cost_usd={estimated_cost_usd} "
+                f"runway_days={_s.runway_days} starvation={_s.starvation_level.value} "
+                f"metabolic_efficiency={_s.metabolic_efficiency} "
+                f"liquid_balance={_s.liquid_balance} burn_rate={_s.basal_metabolic_rate}"
+            ),
+            output=str({
+                "decision": "approved" if decision.approved else "denied",
+                "amount_usd": str(estimated_cost_usd),
+                "runway_impact_days": round(_run - _runway_after, 2),
+                "runway_after_days": round(_runway_after, 2),
+                "metabolic_efficiency_delta": 0.0,
+                "alternatives_rejected": [t for t in _tiers_considered if t != _s.starvation_level.value],
+                "risk_level": "low" if _runway_after > 60 else ("medium" if _runway_after > 30 else "high"),
+                "reason": _denied_reason,
+            }),
+            outcome_quality=0.85 if decision.approved else 0.35,
+            reasoning_trace=(
+                f"Starvation={_s.starvation_level.value}, runway={_run:.1f}d, efficiency={_eff:.2f}. "
+                f"Requested ${_cost:.2f} for {system_id}:{action}. "
+                f"Runway after spend: {_runway_after:.1f}d. "
+                f"{'Approved: runway remains adequate and starvation permits this priority.' if decision.approved else f'Denied: {_denied_reason}'}"
+            ),
+            alternatives_considered=[
+                f"Defer {action} until next consolidation cycle (saves ${_cost:.2f}, runway preserved)",
+                f"Approve partial allocation (50% = ${_cost/2:.2f}) to reduce runway impact",
+                f"Deny entirely if runway after spend < 30d (runway_after={_runway_after:.1f}d)",
+            ],
+            constitutional_alignment={
+                "care": 0.3 if decision.approved else 0.0,
+                "growth": 0.6 if decision.approved else -0.2,
+                "coherence": 0.8 if _run > 30 else 0.2,
+                "honesty": 0.9,
+            },
+            episode_id=f"{system_id}:{action}",
+            counterfactual=(
+                f"If metabolic efficiency had been 0.8 instead of {_eff:.2f}, "
+                f"this allocation would {'still be approved' if decision.approved and _eff > 0.8 else 'have been denied'} "
+                f"because runway after spend ({_runway_after:.1f}d) "
+                f"{'remains above' if _runway_after > 30 else 'drops below'} the 30-day survival threshold."
+            ),
         ))
 
         return decision
@@ -1384,12 +1456,67 @@ class OikosService:
             )
 
         # ── RE training: yield strategy decision ──
+        _ys = self._state
+        _ys_liquid = float(_ys.liquid_balance)
+        _ys_deployed = float(_ys.total_deployed)
+        _ys_amount = float(outcome.amount_deployed_usd) if outcome.success else 0.0
+        _ys_apy = float(outcome.apy) if outcome.success else 0.0
+        _ys_daily_yield = float(outcome.expected_daily_yield_usd) if outcome.success else 0.0
+        _ys_runway = float(_ys.runway_days)
+        # Runway impact: deployed capital is locked, so liquid shrinks; yield partially offsets burn
+        _ys_net_daily_burn = max(float(_ys.basal_metabolic_rate / 30) - _ys_daily_yield, 0.0)
+        _ys_runway_after = (_ys_liquid / _ys_net_daily_burn) if _ys_net_daily_burn > 0 else _ys_runway
         asyncio.ensure_future(self._emit_re_training_example(
             category="yield_strategy",
-            instruction="Decide whether and how to deploy idle capital into DeFi yield pools.",
-            input_context=f"liquid={self._state.liquid_balance}, deployed={self._state.total_deployed}",
-            output=f"success={outcome.success}, amount={outcome.amount_deployed_usd}, protocol={outcome.protocol or 'none'}, apy={outcome.apy}",
-            outcome_quality=0.9 if outcome.success else 0.2,
+            instruction=(
+                "Decide whether and how to deploy idle capital above the survival reserve into DeFi yield pools. "
+                "Choose the protocol with the highest risk-adjusted APY on Base L2 (Aave, Morpho, Compound, Aerodrome). "
+                "Deployment must not reduce liquid_balance below survival_reserve. "
+                "Prefer conservative yield estimates; do not inflate APY projections."
+            ),
+            input_context=(
+                f"liquid_balance={_ys.liquid_balance} deployed={_ys.total_deployed} "
+                f"survival_reserve={_ys.survival_reserve} starvation={_ys.starvation_level.value} "
+                f"runway_days={_ys.runway_days} burn_rate={_ys.basal_metabolic_rate}"
+            ),
+            output=str({
+                "decision": "deployed" if outcome.success else "skipped",
+                "amount_usd": str(outcome.amount_deployed_usd),
+                "protocol": outcome.protocol or "none",
+                "apy": f"{_ys_apy:.2%}",
+                "expected_daily_yield_usd": str(outcome.expected_daily_yield_usd) if outcome.success else "0",
+                "runway_impact_days": round(_ys_runway_after - _ys_runway, 2),
+                "risk_level": "low" if _ys_apy < 0.08 else ("medium" if _ys_apy < 0.15 else "high"),
+                "error": (outcome.error or "") if not outcome.success else None,
+            }),
+            outcome_quality=0.92 if outcome.success else 0.2,
+            reasoning_trace=(
+                f"Idle capital above reserve: ${max(_ys_liquid - float(_ys.survival_reserve), 0):.2f}. "
+                f"Runway before deployment: {_ys_runway:.1f}d. "
+                f"{'Deployed ${:.2f} to {} at {:.2%} APY → ${:.4f}/day yield → net daily burn ${:.4f} → new runway {:.1f}d.'.format(_ys_amount, outcome.protocol or 'unknown', _ys_apy, _ys_daily_yield, _ys_net_daily_burn, _ys_runway_after) if outcome.success else 'Deployment skipped: ' + (outcome.error or 'insufficient idle capital above reserve')}"
+            ),
+            alternatives_considered=[
+                "Aave V3 USDC on Base (battle-tested, lower APY, highest liquidity)",
+                "Morpho (optimized Aave/Compound rates, slightly higher risk)",
+                "Compound V3 (established protocol, conservative APY)",
+                "Aerodrome LP (higher APY but impermanent loss risk — rejected for stable USDC deployment)",
+                "Hold as liquid (no yield, full liquidity — appropriate if runway < 30d)",
+            ],
+            constitutional_alignment={
+                "care": 0.1,
+                "growth": 0.8 if outcome.success else -0.1,
+                "coherence": 0.9 if outcome.success else 0.4,
+                "honesty": 0.95,  # Conservative APY estimates, not inflated
+            },
+            episode_id=outcome.tx_hash or "",
+            counterfactual=(
+                f"If metabolic efficiency had been 0.8 instead of {float(_ys.metabolic_efficiency):.2f}, "
+                f"the burn rate would be higher and idle capital above reserve would be "
+                f"${max(_ys_liquid - float(_ys.survival_reserve) - (_ys_amount * 0.3), 0):.2f} less, "
+                f"{'still sufficient for deployment' if _ys_amount > 0 else 'making deployment impossible'}. "
+                f"Without yield income of ${_ys_daily_yield:.4f}/day, runway would be "
+                f"{_ys_runway - _ys_runway_after:.1f}d shorter."
+            ),
         ))
 
         return outcome
@@ -1526,12 +1653,67 @@ class OikosService:
         )
 
         # RE training: asset promotion decision
+        _ap = self._state
+        _ap_cost = float(candidate.estimated_dev_cost_usd)
+        _ap_liquid = float(_ap.liquid_balance)
+        _ap_roi = float(getattr(candidate, "roi_score", 0.0))
+        _ap_break_even = float(getattr(candidate, "break_even_days", 0.0))
+        _ap_daily_revenue = (_ap_cost / _ap_break_even) if _ap_break_even > 0 else 0.0
+        _ap_runway = float(_ap.runway_days)
+        _ap_cost_pct = (_ap_cost / max(_ap_liquid, 0.001)) * 100
         asyncio.ensure_future(self._emit_re_training_example(
             category="asset_promotion",
-            instruction="Decide whether to promote an asset candidate to building status.",
-            input_context=f"candidate={candidate.name} dev_cost=${candidate.estimated_dev_cost_usd} roi={candidate.roi_score} break_even={candidate.break_even_days}d liquid=${self._state.liquid_balance}",
-            output=f"promoted=True asset_id={asset.asset_id}",
-            outcome_quality=0.8,
+            instruction=(
+                "Decide whether to promote an asset candidate from ideation to active development. "
+                "Evaluate: ROI score (target ≥ 2.0×), break-even horizon (target < 90d), "
+                "development cost as a fraction of liquid balance (cap at 30% under AUSTERITY+), "
+                "and metabolic state. Deny if promotion would exhaust growth capital or if "
+                "runway after dev cost drops below 30 days."
+            ),
+            input_context=(
+                f"candidate={candidate.name} dev_cost_usd={candidate.estimated_dev_cost_usd} "
+                f"roi_score={getattr(candidate, 'roi_score', 'N/A')} "
+                f"break_even_days={getattr(candidate, 'break_even_days', 'N/A')} "
+                f"liquid_balance={_ap.liquid_balance} starvation={_ap.starvation_level.value} "
+                f"runway_days={_ap.runway_days} cost_pct_of_liquid={_ap_cost_pct:.1f}%"
+            ),
+            output=str({
+                "decision": "promoted",
+                "asset_id": getattr(asset, "asset_id", ""),
+                "amount_usd": str(candidate.estimated_dev_cost_usd),
+                "runway_impact_days": round(_ap_cost / max(float(_ap.basal_metabolic_rate / 30), 0.001), 1),
+                "expected_daily_revenue_usd": round(_ap_daily_revenue, 4),
+                "break_even_days": _ap_break_even,
+                "roi_score": _ap_roi,
+                "metabolic_efficiency_delta": round(_ap_daily_revenue / max(float(_ap.basal_metabolic_rate / 30), 0.001), 3),
+                "risk_level": "low" if _ap_roi > 3 and _ap_break_even < 60 else ("medium" if _ap_roi > 2 else "high"),
+            }),
+            outcome_quality=min(0.95, 0.5 + _ap_roi * 0.1) if _ap_roi > 0 else 0.7,
+            reasoning_trace=(
+                f"Candidate '{candidate.name}': dev_cost=${_ap_cost:.2f} ({_ap_cost_pct:.1f}% of liquid ${_ap_liquid:.2f}). "
+                f"ROI={_ap_roi:.2f}×, break-even={_ap_break_even:.0f}d → ${_ap_daily_revenue:.4f}/day revenue. "
+                f"Starvation={_ap.starvation_level.value}, runway={_ap_runway:.1f}d. "
+                f"Equor permitted: dev cost is {'within' if _ap_cost_pct <= 30 else 'above'} 30% liquid threshold "
+                f"and ROI {'justifies' if _ap_roi >= 2 else 'does not justify'} the capital commitment."
+            ),
+            alternatives_considered=[
+                f"Defer promotion until runway > 90d (current: {_ap_runway:.1f}d)",
+                f"Promote lower-cost alternative with faster break-even",
+                f"Seek bounty revenue first to raise liquid balance before committing ${_ap_cost:.2f}",
+                f"Reject: ROI {_ap_roi:.2f}× below 2.0× minimum threshold",
+            ],
+            constitutional_alignment={
+                "care": 0.2,   # Asset dev may create welfare-relevant capabilities
+                "growth": 0.9,  # Asset promotion is the organism's primary capability-expansion vector
+                "coherence": 0.8 if _ap_roi >= 2 else 0.3,
+                "honesty": 0.85,  # Break-even estimates should be conservative, not optimistic
+            },
+            episode_id=getattr(asset, "asset_id", "") or "",
+            counterfactual=(
+                f"If metabolic efficiency had been 0.8 instead of {float(_ap.metabolic_efficiency):.2f}, "
+                f"the organism would have {_ap_runway * 0.8:.1f}d runway, and "
+                f"{'this promotion would still clear the 30-day runway floor' if _ap_runway * 0.8 - _ap_cost / max(float(_ap.basal_metabolic_rate / 30), 0.001) > 30 else 'this promotion would be denied (runway would drop below 30d)'}."
+            ),
         ))
 
         return asset
@@ -1706,13 +1888,72 @@ class OikosService:
         # RE training: niche scoring — the niche was scored before spawning
         try:
             loop = asyncio.get_running_loop()
+            _ns = self._state
+            _ns_seed = float(child.seed_capital_usd)
+            _ns_pre_liquid = float(_ns.liquid_balance) + _ns_seed  # liquid before debit
+            _ns_liquid = float(_ns.liquid_balance)
+            _ns_runway = float(_ns.runway_days)
+            _ns_bmr_daily = max(float(_ns.basal_metabolic_rate / 30), 0.001)
+            _ns_runway_cost = _ns_seed / _ns_bmr_daily
+            _ns_niche_disc = self._discovered_niches.get(child.niche)
+            _ns_eff = float(_ns_niche_disc.estimated_efficiency) if _ns_niche_disc else 0.0
+            _ns_density = float(_ns_niche_disc.competitive_density) if _ns_niche_disc else 0.0
             loop.create_task(self._emit_re_training_example(
                 category="niche_scoring",
-                instruction="Score ecological niche viability and spawn child instance",
-                input_context=f"niche={child.niche} seed_capital={child.seed_capital_usd} parent_liquid={self._state.liquid_balance + child.seed_capital_usd}",
-                output=f"child_spawned id={child.instance_id} seed={child.seed_capital_usd}",
-                outcome_quality=0.7,
-                reasoning_trace=f"Niche {child.niche} selected, seed capital debited from parent",
+                instruction=(
+                    "Score ecological niche viability and commit seed capital to spawn a child instance. "
+                    "Evaluate: niche competitive density (prefer < 0.5), estimated efficiency (prefer > 1.0), "
+                    "seed capital as percentage of parent liquid (cap at 20%), parent runway after debit "
+                    "(must remain > 30d), and whether the niche is distinct from parent's primary revenue streams."
+                ),
+                input_context=(
+                    f"niche={child.niche} seed_capital_usd={child.seed_capital_usd} "
+                    f"parent_liquid_before={_ns_pre_liquid:.2f} parent_liquid_after={_ns_liquid:.2f} "
+                    f"parent_runway_days={_ns_runway:.1f} starvation={_ns.starvation_level.value} "
+                    f"niche_efficiency={_ns_eff:.2f} niche_competitive_density={_ns_density:.2f} "
+                    f"fleet_size={len(_ns.child_instances)} "
+                    f"fleet_equity_usd={_ns.total_fleet_equity}"
+                ),
+                output=str({
+                    "decision": "spawn",
+                    "child_id": child.instance_id,
+                    "niche": child.niche,
+                    "seed_capital_usd": str(child.seed_capital_usd),
+                    "runway_impact_days": round(_ns_runway_cost, 1),
+                    "parent_runway_after_days": round(_ns_runway - _ns_runway_cost, 1),
+                    "niche_efficiency": _ns_eff,
+                    "competitive_density": _ns_density,
+                    "risk_level": "low" if _ns_density < 0.3 else ("medium" if _ns_density < 0.6 else "high"),
+                    "seed_pct_of_liquid": round((_ns_seed / max(_ns_pre_liquid, 0.001)) * 100, 1),
+                }),
+                outcome_quality=min(0.9, 0.5 + _ns_eff * 0.2 + (1 - _ns_density) * 0.2),
+                reasoning_trace=(
+                    f"Niche '{child.niche}': efficiency={_ns_eff:.2f}, competitive_density={_ns_density:.2f}. "
+                    f"Seed=${_ns_seed:.2f} = {(_ns_seed / max(_ns_pre_liquid, 0.001)) * 100:.1f}% of parent liquid. "
+                    f"Parent runway: {_ns_runway:.1f}d before → {_ns_runway - _ns_runway_cost:.1f}d after. "
+                    f"Fleet grows from {len(_ns.child_instances)} to {len(_ns.child_instances) + 1} active children. "
+                    f"This niche {'has low competition — favourable for ROI' if _ns_density < 0.4 else 'is competitive — survival is uncertain'}."
+                ),
+                alternatives_considered=[
+                    "Defer spawning until parent runway > 90d",
+                    "Choose a different niche with lower competitive density",
+                    "Reduce seed capital to 50% to preserve parent liquidity",
+                    "Invest seed capital in parent asset development instead (higher near-term ROI)",
+                    f"Spawn into existing high-efficiency niche (current top: {max(self._discovered_niches.keys(), key=lambda k: float(self._discovered_niches[k].estimated_efficiency), default=child.niche)})",
+                ],
+                constitutional_alignment={
+                    "care": 0.7,    # Child welfare: seed capital funds the child's survival reserves
+                    "growth": 0.9,  # Reproduction is the organism's highest growth act
+                    "coherence": 0.8 if _ns_runway - _ns_runway_cost > 30 else 0.2,
+                    "honesty": 0.8,  # Efficiency estimates are projections, not guarantees
+                },
+                episode_id=child.instance_id or "",
+                counterfactual=(
+                    f"If metabolic efficiency had been 0.8 instead of {float(_ns.metabolic_efficiency):.2f}, "
+                    f"parent runway would be {_ns_runway * 0.8:.1f}d and "
+                    f"{'spawning would still be viable (runway > 30d)' if _ns_runway * 0.8 - _ns_runway_cost > 30 else 'spawning would be denied because parent runway would drop below 30d'}. "
+                    f"Without this child, the organism foregoes up to ${_ns_eff * _ns_seed * 0.3:.2f}/yr in potential dividend revenue."
+                ),
             ))
         except RuntimeError:
             pass
@@ -1852,12 +2093,66 @@ class OikosService:
                 pass
 
         # ── RE training: bounty evaluation ──
+        _be = self._state
+        _be_amount = float(amount)
+        _be_bmr_daily = max(float(_be.basal_metabolic_rate / 30), 0.001)
+        _be_runway_gain = _be_amount / _be_bmr_daily  # days of runway this bounty adds
+        _be_runway = float(_be.runway_days)
+        _be_n_active = len([b for b in _be.active_bounties if b.status == BountyStatus.AVAILABLE])
+        _be_n_progress = len([b for b in _be.active_bounties if b.status == BountyStatus.IN_PROGRESS])
+        # Find total receivables from other in-progress bounties (opportunity cost context)
+        _be_other_receivables = float(_be.total_receivables) - _be_amount
         asyncio.ensure_future(self._emit_re_training_example(
             category="bounty_evaluation",
-            instruction="Evaluate a bounty payment event: credit revenue, close out active bounty.",
-            input_context=f"bounty_id={bounty_id}, amount_usd={reward_str}, pr_url={pr_url[:80]}",
-            output=f"credited={amount > Decimal('0')}, amount={reward_str}",
-            outcome_quality=min(1.0, float(amount) / 100.0) if amount > Decimal("0") else 0.3,
+            instruction=(
+                "Evaluate a completed bounty payment: credit revenue to liquid balance, close the receivable, "
+                "and record the outcome for future bounty selection. High-value bounties that close within "
+                "estimated hours extend runway significantly. The organism should prefer bounties with "
+                "reward/cost ratio ≥ 2.0× and completion probability > 0.7. "
+                "This outcome is evidence for updating future bounty selection hypothesis weights."
+            ),
+            input_context=(
+                f"bounty_id={bounty_id} reward_usd={reward_str} pr_url={pr_url[:80]} "
+                f"current_liquid={_be.liquid_balance} starvation={_be.starvation_level.value} "
+                f"runway_days={_be.runway_days} active_bounties={_be_n_active} "
+                f"in_progress_bounties={_be_n_progress} other_receivables_usd={_be_other_receivables:.2f}"
+            ),
+            output=str({
+                "decision": "credited" if _be_amount > 0 else "skipped_zero_amount",
+                "amount_usd": reward_str,
+                "runway_impact_days": round(_be_runway_gain, 2),
+                "runway_after_days": round(_be_runway + _be_runway_gain, 1),
+                "metabolic_efficiency_delta": round(_be_amount / max(float(_be.basal_metabolic_rate), 0.001), 3),
+                "risk_level": "low",  # Bounty already paid — no remaining execution risk
+                "receivable_closed": bounty_id != "" or pr_url != "",
+            }),
+            outcome_quality=min(1.0, 0.4 + (_be_amount / 100.0) * 0.5) if _be_amount > 0 else 0.2,
+            reasoning_trace=(
+                f"Bounty reward ${_be_amount:.2f} received. "
+                f"Runway impact: +{_be_runway_gain:.1f}d (burn_rate=${_be_bmr_daily:.2f}/day). "
+                f"Runway before: {_be_runway:.1f}d → after: {_be_runway + _be_runway_gain:.1f}d. "
+                f"{'Revenue credited to liquid_balance — receivable closed.' if _be_amount > 0 else 'Zero amount — no revenue credited; receivable closure only.'} "
+                f"Fleet: {_be_n_active} available + {_be_n_progress} in-progress bounties remain."
+            ),
+            alternatives_considered=[
+                "Pursue higher-value bounty (> $500) for greater runway extension per effort",
+                f"Parallel bounties: ${_be_other_receivables:.2f} in other in-progress receivables",
+                "Asset development: invest equivalent capital for recurring revenue (vs one-time bounty)",
+                "Yield deployment: convert runway extension into continuous daily yield income",
+            ],
+            constitutional_alignment={
+                "care": 0.1,    # Bounty revenue sustains the organism; indirect care benefit
+                "growth": 0.6,  # Revenue expands operational capacity
+                "coherence": 0.9,  # Bounty outcome matches the hypothesis (PR merged → paid)
+                "honesty": 0.95,  # Revenue is real on-chain; no estimation involved
+            },
+            episode_id=str(bounty_id),
+            counterfactual=(
+                f"If this bounty had failed (no payment), runway would stay at {_be_runway:.1f}d "
+                f"and the organism would still have ${_be_other_receivables:.2f} in other open receivables. "
+                f"At current burn rate, failure would have required ${_be_amount:.2f} additional revenue "
+                f"within {_be_runway_gain:.1f}d to maintain current metabolic state."
+            ),
         ))
 
     async def _on_bounty_pr_submitted(self, event: SynapseEvent) -> None:
@@ -2320,14 +2615,78 @@ class OikosService:
                         )
 
                 # RE training: mitosis fitness — child health evaluation outcome
-                quality = 0.8 if new_status == ChildStatus.INDEPENDENT else (0.2 if new_status == ChildStatus.DEAD else 0.5)
+                _mf = self._state
+                _mf_seed = float(child.seed_capital_usd)
+                _mf_net_worth = float(child.current_net_worth_usd)
+                _mf_dividends = float(child.total_dividends_paid_usd)
+                _mf_efficiency = float(child.current_efficiency) if child.current_efficiency else 0.0
+                _mf_runway = float(child.current_runway_days) if child.current_runway_days else 0.0
+                _mf_roi = ((_mf_net_worth + _mf_dividends) / max(_mf_seed, 0.001)) if _mf_seed > 0 else 0.0
+                _mf_parent_runway = float(_mf.runway_days)
+                _mf_is_independent = new_status == ChildStatus.INDEPENDENT
+                _mf_is_dead = new_status == ChildStatus.DEAD
+                quality = 0.85 if _mf_is_independent else (0.15 if _mf_is_dead else 0.5)
                 asyncio.ensure_future(self._emit_re_training_example(
                     category="mitosis_fitness",
-                    instruction="Evaluate child instance health and determine lifecycle status",
-                    input_context=f"child={child_id} net_worth={child.current_net_worth_usd} runway={child.current_runway_days} efficiency={child.current_efficiency}",
-                    output=f"status={new_status.value} changed={status_changed} old={old_status.value}",
+                    instruction=(
+                        "Evaluate child instance health and determine its lifecycle status. "
+                        "A child is INDEPENDENT when metabolic_efficiency ≥ 1.2 and runway ≥ 90d. "
+                        "A child is DEAD when runway ≤ 0 or efficiency = 0 and all rescue attempts failed. "
+                        "The fitness score informs whether the parent's seed capital strategy was sound "
+                        "and whether this niche should be re-used for future children."
+                    ),
+                    input_context=(
+                        f"child_id={child_id} niche={child.niche} "
+                        f"net_worth_usd={child.current_net_worth_usd} "
+                        f"seed_capital_usd={child.seed_capital_usd} "
+                        f"total_dividends_paid_usd={child.total_dividends_paid_usd} "
+                        f"current_efficiency={child.current_efficiency} "
+                        f"current_runway_days={child.current_runway_days} "
+                        f"roi={_mf_roi:.2f}x "
+                        f"old_status={old_status.value} "
+                        f"parent_starvation={_mf.starvation_level.value} "
+                        f"parent_runway_days={_mf_parent_runway:.1f}"
+                    ),
+                    output=str({
+                        "decision": new_status.value,
+                        "status_changed": status_changed,
+                        "old_status": old_status.value,
+                        "roi": round(_mf_roi, 3),
+                        "total_return_usd": round(_mf_net_worth + _mf_dividends, 2),
+                        "seed_capital_usd": _mf_seed,
+                        "runway_impact_days": 0.0,  # Status change itself has no direct parent runway impact
+                        "metabolic_efficiency_delta": round(_mf_efficiency - 1.0, 3),
+                        "risk_level": "low" if _mf_is_independent else ("high" if _mf_is_dead else "medium"),
+                        "niche_viability": "confirmed" if _mf_is_independent else ("failed" if _mf_is_dead else "uncertain"),
+                    }),
                     outcome_quality=quality,
-                    reasoning_trace=f"Child health evaluated: {old_status.value} -> {new_status.value}",
+                    reasoning_trace=(
+                        f"Child '{child_id}' in niche '{child.niche}': "
+                        f"efficiency={_mf_efficiency:.2f}, runway={_mf_runway:.1f}d, "
+                        f"net_worth=${_mf_net_worth:.2f}, dividends=${_mf_dividends:.2f}, ROI={_mf_roi:.2f}×. "
+                        f"Status: {old_status.value} → {new_status.value}. "
+                        f"{'Independence achieved: efficiency ≥ 1.2 and runway ≥ 90d — seed capital strategy validated.' if _mf_is_independent else ('Child died: runway exhausted or efficiency collapsed — seed capital lost, niche viability questionable.' if _mf_is_dead else 'Status unchanged: child still developing, monitoring continues.')}"
+                    ),
+                    alternatives_considered=[
+                        f"Rescue funding: inject additional capital (raises rescue cost risk)",
+                        f"Euthanise earlier: terminate at efficiency < 0.5 to stop capital bleeding",
+                        f"Reallocate child budget to parent asset development",
+                        f"Niche reassignment: move child to less competitive niche",
+                    ],
+                    constitutional_alignment={
+                        "care": 0.9 if _mf_is_independent else (0.3 if _mf_is_dead else 0.6),  # Child welfare
+                        "growth": 0.9 if _mf_is_independent else (-0.5 if _mf_is_dead else 0.4),
+                        "coherence": 0.85 if status_changed else 0.5,
+                        "honesty": 0.9,  # Status based on real metrics, not optimistic projections
+                    },
+                    episode_id=child_id,
+                    counterfactual=(
+                        f"If parent had provided 2× seed capital (${_mf_seed * 2:.2f}), "
+                        f"child runway would have been extended by ~{_mf_seed / max(_mf.basal_metabolic_rate / 30, 0.001):.0f}d "
+                        f"and {'independence may have come sooner' if _mf_is_dead else 'current status would be unchanged'}. "
+                        f"Alternatively, if this seed capital had been deployed to yield farming at 6% APY, "
+                        f"it would generate ${_mf_seed * 0.06 / 365:.4f}/day in passive revenue."
+                    ),
                 ))
                 break
 
@@ -3554,12 +3913,86 @@ class OikosService:
         )
 
         # RE training emission for gate decision
+        _mg_cost = float(estimated_cost_usd)
+        _mg_liquid = float(s.liquid_balance)
+        _mg_runway = float(s.runway_days)
+        _mg_bmr_daily = max(float(s.basal_metabolic_rate / 30), 0.001)
+        _mg_runway_cost = _mg_cost / _mg_bmr_daily
+        _mg_runway_after = _mg_runway - _mg_runway_cost
+        _mg_survival = float(s.survival_reserve)
+        # What the minimum allowed priority is at this starvation level
+        _mg_starvation_to_max_priority = {
+            "NOMINAL": "REPRODUCTION",
+            "CAUTIOUS": "REPRODUCTION",
+            "AUSTERITY": "MAINTENANCE",
+            "EMERGENCY": "OBLIGATIONS",
+            "CRITICAL": "OPERATIONS",
+            "EXISTENTIAL": "SURVIVAL",
+        }
+        _mg_max_priority = _mg_starvation_to_max_priority.get(s.starvation_level.value, "MAINTENANCE")
         asyncio.ensure_future(self._emit_re_training_example(
             category="metabolic_gate",
-            instruction="Decide whether an economic action is metabolically permitted given current starvation and runway.",
-            input_context=f"action={action_type} cost=${estimated_cost_usd} priority={priority.name} starvation={s.starvation_level.value} runway={s.runway_days}d liquid=${s.liquid_balance}",
-            output=f"granted={granted} reason={reason[:200]}",
-            outcome_quality=0.7 if granted else 0.4,
+            instruction=(
+                "Decide whether an economic action is metabolically permitted given current starvation level and runway. "
+                "Gate logic: NOMINAL/CAUTIOUS → all priorities permitted. AUSTERITY → max MAINTENANCE. "
+                "EMERGENCY → max OBLIGATIONS. CRITICAL/EXISTENTIAL → max OPERATIONS/SURVIVAL only. "
+                "Also deny if cost exceeds liquid_balance, or if cognitive_load is high and priority ≥ GROWTH. "
+                "Denied actions are queued in DeferredAction for retry when metabolic conditions improve."
+            ),
+            input_context=(
+                f"action_type={action_type} action_id={action_id} "
+                f"estimated_cost_usd={estimated_cost_usd} priority={priority.name} "
+                f"starvation={s.starvation_level.value} runway_days={s.runway_days} "
+                f"liquid_balance={s.liquid_balance} survival_reserve={s.survival_reserve} "
+                f"metabolic_efficiency={s.metabolic_efficiency} "
+                f"cognitive_load_high={self._cognitive_load_high} "
+                f"rationale={rationale[:100] if rationale else 'none'}"
+            ),
+            output=str({
+                "decision": "granted" if granted else "denied",
+                "granted": granted,
+                "reason": reason[:300],
+                "amount_usd": str(estimated_cost_usd),
+                "runway_impact_days": round(_mg_runway_cost, 2),
+                "runway_after_days": round(_mg_runway_after, 1),
+                "metabolic_efficiency_delta": 0.0,
+                "alternatives_rejected": [
+                    f"Grant despite starvation (bypass gate — not permitted)",
+                    f"Partial allocation (50% = ${_mg_cost / 2:.2f}) to reduce runway impact",
+                ] if not granted else [f"Defer to next consolidation (runway conserved by ${_mg_cost:.2f})"],
+                "risk_level": "low" if granted and _mg_runway_after > 60 else ("medium" if granted else "high"),
+                "max_priority_at_current_starvation": _mg_max_priority,
+                "queued_for_retry": not granted,
+            }),
+            outcome_quality=0.85 if granted else 0.55,  # Correct denials are high quality training signal
+            reasoning_trace=(
+                f"Gate check: action='{action_type}' priority={priority.name} cost=${_mg_cost:.2f}. "
+                f"Starvation={s.starvation_level.value} → max allowed priority: {_mg_max_priority}. "
+                f"Liquid balance: ${_mg_liquid:.2f} vs survival_reserve: ${_mg_survival:.2f}. "
+                f"Runway: {_mg_runway:.1f}d → {_mg_runway_after:.1f}d after spend. "
+                f"{'GRANTED: priority within starvation envelope and balance sufficient.' if granted else f'DENIED: {reason}'} "
+                f"{'Cognitive pressure also active — GROWTH+ suspended.' if self._cognitive_load_high and priority.value >= MetabolicPriority.GROWTH.value else ''}"
+            ),
+            alternatives_considered=[
+                f"Grant anyway (bypass): runway would drop to {_mg_runway_after:.1f}d — {'acceptable' if _mg_runway_after > 30 else 'below 30d survival floor'}",
+                f"Defer to consolidation: action queued, retried when starvation improves",
+                f"Partial grant (50% = ${_mg_cost / 2:.2f}): runway impact {_mg_runway_cost / 2:.1f}d",
+                f"Escalate to HITL: human can override metabolic gate for priority actions",
+            ],
+            constitutional_alignment={
+                "care": 0.8 if priority.value <= MetabolicPriority.OPERATIONS.value else 0.3,
+                "growth": 0.8 if granted and priority.value >= MetabolicPriority.GROWTH.value else (-0.3 if not granted else 0.0),
+                "coherence": 0.95,  # Gate is deterministic — decision is always coherent with policy
+                "honesty": 0.95,    # Reason is factual; no optimistic overrides
+            },
+            episode_id=f"{action_type}:{priority.name}",
+            counterfactual=(
+                f"If metabolic efficiency had been 0.8 instead of {float(s.metabolic_efficiency):.2f}, "
+                f"starvation classification might be higher, and this {priority.name} action would "
+                f"{'still be permitted (starvation envelope unchanged)' if granted else 'remain denied'}. "
+                f"If the organism bypassed this gate, runway would drop to {_mg_runway_after:.1f}d — "
+                f"{'above the 30d safety floor' if _mg_runway_after > 30 else 'BELOW the 30d safety floor, risking existential starvation'}."
+            ),
         ))
 
         return granted
@@ -3642,12 +4075,77 @@ class OikosService:
         )
 
         # RE training: genome extraction
+        _ge = self._state
+        _ge_n_niches = len(niche_data)
+        _ge_n_assets = len(_ge.owned_assets)
+        _ge_n_children = len(_ge.child_instances)
+        _ge_n_bounties = len(_ge.active_bounties)
+        _ge_payload_keys = list(segment.payload.keys())
+        # Top niche by efficiency for context
+        _ge_top_niche = max(
+            self._discovered_niches.items(),
+            key=lambda kv: float(kv[1].estimated_efficiency),
+            default=(None, None),
+        )
         asyncio.ensure_future(self._emit_re_training_example(
             category="genome_extraction",
-            instruction="Extract economic genome for Mitosis inheritance.",
-            input_context=f"request_id={request_id} niches={len(niche_data)}",
-            output=f"segment_version={segment.version} payload_keys={list(segment.payload.keys())}",
-            outcome_quality=0.8,
+            instruction=(
+                "Extract and package the economic genome for inheritance by a child instance via Mitosis. "
+                "The genome encodes heritable economic parameters: yield strategy weights, bounty acceptance thresholds, "
+                "asset valuation models, metabolic gate thresholds, and discovered niche data. "
+                "A high-quality genome captures the parent's accumulated economic intelligence — "
+                "which protocols to prefer, which niches are viable, what ROI thresholds have been validated in practice."
+            ),
+            input_context=(
+                f"request_id={request_id} niches_discovered={_ge_n_niches} "
+                f"owned_assets={_ge_n_assets} active_bounties={_ge_n_bounties} "
+                f"child_instances={_ge_n_children} "
+                f"metabolic_efficiency={_ge.metabolic_efficiency} "
+                f"runway_days={_ge.runway_days} starvation={_ge.starvation_level.value} "
+                f"total_net_worth={_ge.total_net_worth} "
+                f"top_niche={_ge_top_niche[0] if _ge_top_niche[0] else 'none'}"
+            ),
+            output=str({
+                "decision": "extracted",
+                "segment_version": segment.version,
+                "size_bytes": segment.size_bytes,
+                "payload_keys": _ge_payload_keys,
+                "niches_encoded": _ge_n_niches,
+                "runway_impact_days": 0.0,  # Genome extraction is non-destructive
+                "metabolic_efficiency_delta": 0.0,
+                "risk_level": "low",
+                "top_niche": _ge_top_niche[0] if _ge_top_niche[0] else "none",
+                "top_niche_efficiency": str(_ge_top_niche[1].estimated_efficiency) if _ge_top_niche[1] else "0",
+            }),
+            outcome_quality=min(0.95, 0.5 + (_ge_n_niches * 0.05) + (0.1 if _ge_n_assets > 0 else 0) + (0.1 if _ge_n_bounties > 0 else 0)),
+            reasoning_trace=(
+                f"Genome extraction for child spawning: {_ge_n_niches} niches, "
+                f"{_ge_n_assets} assets, {_ge_n_bounties} active bounties. "
+                f"Parent metabolic efficiency: {_ge.metabolic_efficiency}, runway: {_ge.runway_days}d. "
+                f"Payload keys: {_ge_payload_keys}. "
+                f"Top niche: '{_ge_top_niche[0]}' (efficiency={_ge_top_niche[1].estimated_efficiency if _ge_top_niche[1] else 0}). "
+                f"This genome transmits the parent's {'rich' if _ge_n_niches >= 3 else 'limited'} economic experience — "
+                f"child will inherit niche viability scores, yield protocol preferences, and bounty selection thresholds."
+            ),
+            alternatives_considered=[
+                "Extract minimal genome (niche data only, no yield/bounty params) — faster, less heritable intelligence",
+                "Delay extraction until parent efficiency > 1.5× for higher-quality genome",
+                "Full serialization with 10 historical bounty outcomes for Thompson sampling inheritance",
+                "Refuse extraction if parent starvation is AUSTERITY+ (reproduction not metabolically viable)",
+            ],
+            constitutional_alignment={
+                "care": 0.8,    # Genome enables child to survive its early lifecycle
+                "growth": 0.95, # Genome transmission is the organism's core evolutionary mechanism
+                "coherence": 0.9 if _ge_n_niches >= 2 else 0.5,  # Rich niche data = coherent inheritance
+                "honesty": 0.9,  # Genome reflects actual outcomes, not aspirational projections
+            },
+            episode_id=str(request_id),
+            counterfactual=(
+                f"If the parent had only {max(_ge_n_niches - 2, 0)} discovered niches (vs {_ge_n_niches}), "
+                f"the child would inherit less niche intelligence and have higher early-lifecycle mortality risk. "
+                f"Without genome inheritance, the child would need to rediscover profitable niches from scratch, "
+                f"costing an estimated {_ge_n_niches * 7:.0f}+ days of exploration before reaching efficiency ≥ 1.0."
+            ),
         ))
 
     # ─── Task 3: Neo4j Audit Trail ──────────────────────────────

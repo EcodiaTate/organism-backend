@@ -214,6 +214,17 @@ class MitosisFleetService:
             mutations=len(mutation_record.mutations_applied),
         )
 
+        try:
+            from primitives.common import DriveAlignmentVector as _DAV
+            # Genome preparation: growth = fitness signal, care = positive (life creation)
+            _genome_alignment = _DAV(
+                growth=round(min(1.0, max(-1.0, fitness * 2.0 - 1.0)), 3),
+                care=round(min(1.0, 0.3 + fitness * 0.5), 3),
+                coherence=round(min(1.0, 1.0 - len(mutation_record.mutations_applied) * 0.05), 3),
+                honesty=0.0,
+            )
+        except Exception:
+            _genome_alignment = None
         await self._emit_re_training(
             episode_id=child_genome.id,
             instruction=(
@@ -234,6 +245,7 @@ class MitosisFleetService:
             ),
             outcome_quality=min(1.0, max(0.0, fitness)),
             category="mitosis.genome_preparation",
+            constitutional_alignment=_genome_alignment,
         )
 
         return child_genome
@@ -300,6 +312,18 @@ class MitosisFleetService:
             ChildStatus.STRUGGLING: 0.25,
             ChildStatus.DEAD: 0.0,
         }
+        _lifecycle_quality = quality_map.get(new_status, 0.5)
+        try:
+            from primitives.common import DriveAlignmentVector as _DAV
+            # Lifecycle: care = child welfare score, growth = quality of transition
+            _lifecycle_alignment = _DAV(
+                care=round(_lifecycle_quality * 2.0 - 1.0, 3),
+                growth=round(_lifecycle_quality * 2.0 - 1.0, 3),
+                coherence=0.0,
+                honesty=0.0,
+            )
+        except Exception:
+            _lifecycle_alignment = None
         await self._emit_re_training(
             episode_id=child.instance_id,
             instruction=(
@@ -316,8 +340,9 @@ class MitosisFleetService:
                 f"rescue_count={child.rescue_count}"
             ),
             output=f"Emitted {event_name}: child transitioned to {new_status.value}",
-            outcome_quality=quality_map.get(new_status, 0.5),
+            outcome_quality=_lifecycle_quality,
             category="mitosis.lifecycle_transition",
+            constitutional_alignment=_lifecycle_alignment,
         )
 
     # ===================================================================
@@ -510,8 +535,13 @@ class MitosisFleetService:
             total_revenue = float(getattr(child, "total_revenue_usd", 0))
             genome_id = str(getattr(child, "organism_genome_id", ""))
 
+            try:
+                from primitives.common import DriveAlignmentVector as _DAV
+                _death_alignment = _DAV(care=-0.5, growth=-0.8, coherence=0.0, honesty=0.0)
+            except Exception:
+                _death_alignment = None
             await self._emit_re_training(
-                episode_id=new_id(),
+                episode_id=child.instance_id,
                 instruction=(
                     "Analyse this child death event and extract lessons for "
                     "future spawning decisions."
@@ -529,6 +559,7 @@ class MitosisFleetService:
                 ),
                 outcome_quality=0.0,  # Death is a negative outcome
                 category="child_lifecycle.death",
+                constitutional_alignment=_death_alignment,
             )
         except Exception as exc:
             self._log.debug("death_re_training_failed", error=str(exc))
@@ -639,6 +670,17 @@ class MitosisFleetService:
             rescue_count=child.rescue_count,
         )
 
+        _rescue_quality = max(0.0, 1.0 - float(child.rescue_count) * 0.2)
+        try:
+            from primitives.common import DriveAlignmentVector as _DAV
+            _rescue_alignment = _DAV(
+                care=round(min(1.0, 0.5 + _rescue_quality * 0.5), 3),
+                growth=round(_rescue_quality * 2.0 - 1.0, 3),
+                coherence=0.0,
+                honesty=0.0,
+            )
+        except Exception:
+            _rescue_alignment = None
         await self._emit_re_training(
             episode_id=child.instance_id,
             instruction=(
@@ -653,8 +695,9 @@ class MitosisFleetService:
                 f"rescue_count={child.rescue_count}"
             ),
             output=f"Rescue transfer of {rescue_amount} USDC executed; runway restored to 60 days",
-            outcome_quality=max(0.0, 1.0 - float(child.rescue_count) * 0.2),
+            outcome_quality=_rescue_quality,
             category="mitosis.rescue_executed",
+            constitutional_alignment=_rescue_alignment,
         )
 
         # Audit node
@@ -1454,14 +1497,18 @@ class MitosisFleetService:
         output: str,
         outcome_quality: float,
         category: str,
+        constitutional_alignment: Any = None,
     ) -> None:
         """Emit RE_TRAINING_EXAMPLE for a Mitosis decision point (Spec 26 §18)."""
         if self._event_bus is None:
             return
         try:
-            from primitives.common import SystemID
+            from primitives.common import DriveAlignmentVector, SystemID
             from primitives.re_training import RETrainingExample
             from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            if constitutional_alignment is None:
+                constitutional_alignment = DriveAlignmentVector()
 
             example = RETrainingExample(
                 source_system=SystemID.MITOSIS,
@@ -1471,6 +1518,7 @@ class MitosisFleetService:
                 output=output,
                 outcome_quality=outcome_quality,
                 category=category,
+                constitutional_alignment=constitutional_alignment,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

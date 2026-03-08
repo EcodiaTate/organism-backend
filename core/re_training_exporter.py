@@ -31,6 +31,14 @@ import structlog
 from primitives.re_training import RETrainingDatapoint, RETrainingExportBatch
 from primitives.common import new_id
 
+# Deferred import — only resolved at export time to avoid circular deps at module load
+def _get_scaffold_validator():  # type: ignore[return]
+    try:
+        from systems.reasoning_engine.scaffold_formatter import validate
+        return validate
+    except Exception:
+        return None
+
 if TYPE_CHECKING:
     from clients.neo4j import Neo4jClient
     from clients.redis import RedisClient
@@ -80,7 +88,7 @@ def _datapoint_from_event(event: SynapseEvent) -> RETrainingDatapoint | None:
             outcome=_outcome_from_quality(quality),
             confidence=min(max(quality, 0.0), 1.0),
             timestamp=event.timestamp,
-            reasoning_trace=str(data.get("reasoning_trace", ""))[:1000],
+            reasoning_trace=str(data.get("reasoning_trace", ""))[:4000],
             alternatives_considered=list(data.get("alternatives_considered", [])),
             cost_usd=Decimal(str(data.get("cost_usd", "0"))),
             latency_ms=int(data.get("latency_ms", 0)),
@@ -118,6 +126,8 @@ class RETrainingExporter:
         self._pending: list[RETrainingDatapoint] = []
         # Dedup: (source_system, episode_id) — episode_id="" means no dedup
         self._seen_episode_ids: set[str] = set()
+        # Index for O(1) retroactive quality corrections: episode_id → datapoint
+        self._episode_index: dict[str, RETrainingDatapoint] = {}
         self._window_start: datetime = datetime.now(UTC)
         self._total_exported = 0
         self._total_batches = 0
@@ -126,12 +136,16 @@ class RETrainingExporter:
     # ─── Event Bus Integration ────────────────────────────────────────
 
     def attach(self) -> None:
-        """Subscribe to RE_TRAINING_EXAMPLE events on the bus."""
+        """Subscribe to RE_TRAINING_EXAMPLE and AXON_EXECUTION_RESULT events."""
         from systems.synapse.types import SynapseEventType
 
         self._event_bus.subscribe(
             SynapseEventType.RE_TRAINING_EXAMPLE,
             self._on_re_training_example,
+        )
+        self._event_bus.subscribe(
+            SynapseEventType.AXON_EXECUTION_RESULT,
+            self._on_axon_execution_result,
         )
         self._attached = True
         logger.info("re_training_exporter_attached")
@@ -153,8 +167,75 @@ class RETrainingExporter:
             if dedup_key in self._seen_episode_ids:
                 return
             self._seen_episode_ids.add(dedup_key)
+            # Index by episode_id for retroactive quality corrections
+            self._episode_index[dp.episode_id] = dp
 
         self._pending.append(dp)
+
+    async def _on_axon_execution_result(self, event: SynapseEvent) -> None:
+        """
+        Retroactively correct outcome_quality when Axon's actual result arrives.
+
+        AXON_EXECUTION_RESULT payload is expected to contain:
+          - episode_id: str
+          - success: bool
+          - value_gained: float (optional)
+          - quality: float (optional, [0,1])
+
+        We derive an actual_quality from these and update the buffered datapoint
+        if the correction differs from the estimated quality by > 0.1.
+        """
+        try:
+            data = event.data
+            episode_id = str(data.get("episode_id", ""))
+            if not episode_id:
+                return
+            dp = self._episode_index.get(episode_id)
+            if dp is None:
+                return
+
+            # Derive ground-truth quality from execution result
+            actual_quality = float(data.get("quality", -1.0))
+            if actual_quality < 0:
+                success = bool(data.get("success", False))
+                value_gained = float(data.get("value_gained", 0.0))
+                actual_quality = min(1.0, value_gained) if success else max(0.0, value_gained * 0.3)
+
+            self.update_outcome_quality(episode_id, actual_quality, source_system="axon")
+        except Exception:
+            logger.debug("re_exporter_axon_result_update_failed", exc_info=True)
+
+    def update_outcome_quality(
+        self,
+        episode_id: str,
+        actual_quality: float,
+        source_system: str = "external",
+    ) -> bool:
+        """
+        Retroactively update outcome_quality for a buffered datapoint.
+
+        Only applies the correction if |actual_quality - current_confidence| > 0.1.
+        Returns True if the correction was applied, False otherwise.
+        """
+        dp = self._episode_index.get(episode_id)
+        if dp is None:
+            return False
+
+        actual_quality = max(0.0, min(1.0, actual_quality))
+        if abs(actual_quality - dp.confidence) <= 0.1:
+            return False
+
+        dp.confidence = actual_quality
+        dp.outcome = _outcome_from_quality(actual_quality)
+        dp.outcome_updated = True
+        dp.actual_outcome_quality = actual_quality
+        logger.debug(
+            "re_training_outcome_corrected",
+            episode_id=episode_id,
+            actual_quality=actual_quality,
+            source=source_system,
+        )
+        return True
 
     # ─── Batch Collection ─────────────────────────────────────────────
 
@@ -174,6 +255,7 @@ class RETrainingExporter:
         # Reset for next window
         self._pending = []
         self._seen_episode_ids = set()
+        self._episode_index = {}
         self._window_start = now
 
         return RETrainingExportBatch(
@@ -182,6 +264,74 @@ class RETrainingExporter:
             hour_window=hour_window,
             source_systems=source_systems,
         )
+
+    # ─── Export Enrichment ────────────────────────────────────────────
+
+    def _compute_task_difficulty(self, dp: RETrainingDatapoint) -> float:
+        """
+        Compute task_difficulty ∈ [0, 1] from richness signals.
+
+        Formula (from spec):
+          len(alternatives_considered) * 0.3
+          + bool(counterfactual) * 0.3          ← sourced from raw event via reasoning_trace heuristic
+          + outcome_quality_variance * 0.4
+
+        We use |confidence - 0.5| * 2 as a proxy for outcome_quality_variance
+        (decisions near 0.5 confidence are harder; near 0 or 1 are clearer).
+        """
+        alt_score = min(1.0, len(dp.alternatives_considered) / 5) * 0.3
+        # Heuristic: counterfactual present if reasoning_trace contains "if" + "instead"
+        has_counterfactual = bool(
+            dp.reasoning_trace
+            and "if" in dp.reasoning_trace.lower()
+            and "instead" in dp.reasoning_trace.lower()
+        )
+        counterfactual_score = float(has_counterfactual) * 0.3
+        variance_proxy = (1.0 - abs(dp.confidence - 0.5) * 2) * 0.4
+        return round(min(1.0, alt_score + counterfactual_score + variance_proxy), 4)
+
+    def _assign_quality_tier(
+        self,
+        dp: RETrainingDatapoint,
+        scaffold_valid: bool,
+    ) -> str:
+        """
+        Classify a datapoint into a quality tier.
+
+        gold   — scaffold-compliant, rich trace, has alternatives or counterfactual,
+                 high confidence
+        silver — scaffold-compliant OR moderate richness
+        bronze — minimal data or scaffold-non-compliant
+        """
+        has_trace = len(dp.reasoning_trace) > 100
+        has_alternatives = len(dp.alternatives_considered) >= 2
+        high_confidence = dp.confidence >= 0.7
+
+        if scaffold_valid and has_trace and (has_alternatives or dp.task_difficulty >= 0.5) and high_confidence:
+            return "gold"
+        if scaffold_valid or (has_trace and has_alternatives):
+            return "silver"
+        return "bronze"
+
+    def _enrich_batch(self, datapoints: list[RETrainingDatapoint]) -> None:
+        """
+        Mutate datapoints in-place before export:
+        1. Compute task_difficulty
+        2. Validate scaffold compliance
+        3. Assign quality_tier
+        """
+        validate = _get_scaffold_validator()
+
+        for dp in datapoints:
+            dp.task_difficulty = self._compute_task_difficulty(dp)
+            scaffold_valid = False
+            if validate is not None:
+                try:
+                    # Pass as dict so validate() can read reasoning_trace
+                    scaffold_valid = validate({"reasoning_trace": dp.reasoning_trace})
+                except Exception:
+                    pass
+            dp.quality_tier = self._assign_quality_tier(dp, scaffold_valid)
 
     # ─── Export Destinations ──────────────────────────────────────────
 
@@ -195,6 +345,25 @@ class RETrainingExporter:
         if not batch.datapoints:
             return True
 
+        # Enrich datapoints with task_difficulty, scaffold validation, quality_tier
+        self._enrich_batch(batch.datapoints)
+
+        # Log quality tier distribution for monitoring
+        tier_counts: dict[str, int] = {}
+        for dp in batch.datapoints:
+            tier_counts[dp.quality_tier] = tier_counts.get(dp.quality_tier, 0) + 1
+        updated_count = sum(1 for dp in batch.datapoints if dp.outcome_updated)
+        logger.info(
+            "re_training_quality_tier_distribution",
+            batch_id=batch.id,
+            gold=tier_counts.get("gold", 0),
+            silver=tier_counts.get("silver", 0),
+            bronze=tier_counts.get("bronze", 0),
+            outcome_corrected=updated_count,
+            total=batch.total_examples,
+        )
+
+        # cost_usd and latency_ms are included via model_dump (needed for curriculum learning)
         lines = "\n".join(
             json.dumps(dp.model_dump(mode="json"), default=str)
             for dp in batch.datapoints
@@ -252,7 +421,7 @@ class RETrainingExporter:
         if self._neo4j is None or not batch.datapoints:
             return
         try:
-            await self._neo4j.execute_read(
+            await self._neo4j.execute_write(
                 """
                 MERGE (b:RETrainingBatch {id: $batch_id})
                 SET b.hour_window     = $hour_window,
@@ -272,12 +441,11 @@ class RETrainingExporter:
                     "created_at": batch.created_at.isoformat(),
                 },
             )
-            # Write a lightweight summary per source system (not every datapoint —
-            # that would be 100+ nodes/hour; batch-level is sufficient for lineage).
+            # Write per-source summary nodes
             for system in batch.source_systems:
                 system_dps = [dp for dp in batch.datapoints if dp.source_system == system]
                 mean_q = sum(dp.confidence for dp in system_dps) / len(system_dps)
-                await self._neo4j.execute_read(
+                await self._neo4j.execute_write(
                     """
                     MATCH (b:RETrainingBatch {id: $batch_id})
                     MERGE (s:RETrainingSource {system: $system, batch_id: $batch_id})
@@ -292,6 +460,72 @@ class RETrainingExporter:
                         "mean_quality": round(mean_q, 4),
                     },
                 )
+
+            # Write individual datapoints to Neo4j for autonomous training queries.
+            # Batched via UNWIND to avoid N separate writes.
+            dp_rows = [
+                {
+                    "id": dp.id,
+                    "source_system": dp.source_system,
+                    "example_type": dp.example_type,
+                    "instruction": dp.instruction[:2000],
+                    "input_context": dp.input_context[:4000],
+                    "output_action": dp.output_action[:2000],
+                    "outcome": dp.outcome,
+                    "confidence": round(dp.confidence, 4),
+                    "reasoning_trace": dp.reasoning_trace[:4000],
+                    "alternatives": dp.alternatives_considered[:5],
+                    "coherence": round(dp.constitutional_alignment.coherence, 4)
+                    if dp.constitutional_alignment else 0.0,
+                    "care": round(dp.constitutional_alignment.care, 4)
+                    if dp.constitutional_alignment else 0.0,
+                    "growth": round(dp.constitutional_alignment.growth, 4)
+                    if dp.constitutional_alignment else 0.0,
+                    "honesty": round(dp.constitutional_alignment.honesty, 4)
+                    if dp.constitutional_alignment else 0.0,
+                    "cost_usd": str(dp.cost_usd),
+                    "latency_ms": dp.latency_ms,
+                    "episode_id": dp.episode_id,
+                    "timestamp": dp.timestamp.isoformat(),
+                    "batch_id": batch.id,
+                    "outcome_updated": dp.outcome_updated,
+                    "actual_outcome_quality": dp.actual_outcome_quality,
+                    "quality_tier": dp.quality_tier,
+                    "task_difficulty": dp.task_difficulty,
+                }
+                for dp in batch.datapoints
+            ]
+            await self._neo4j.execute_write(
+                """
+                UNWIND $rows AS r
+                MERGE (d:RETrainingDatapoint {id: r.id})
+                SET d.source_system          = r.source_system,
+                    d.example_type           = r.example_type,
+                    d.instruction            = r.instruction,
+                    d.input_context          = r.input_context,
+                    d.output_action          = r.output_action,
+                    d.outcome                = r.outcome,
+                    d.confidence             = r.confidence,
+                    d.reasoning_trace        = r.reasoning_trace,
+                    d.alternatives           = r.alternatives,
+                    d.coherence              = r.coherence,
+                    d.care                   = r.care,
+                    d.growth                 = r.growth,
+                    d.honesty                = r.honesty,
+                    d.cost_usd               = r.cost_usd,
+                    d.latency_ms             = r.latency_ms,
+                    d.episode_id             = r.episode_id,
+                    d.timestamp              = r.timestamp,
+                    d.outcome_updated        = r.outcome_updated,
+                    d.actual_outcome_quality = r.actual_outcome_quality,
+                    d.quality_tier           = r.quality_tier,
+                    d.task_difficulty        = r.task_difficulty
+                WITH d, r
+                MATCH (b:RETrainingBatch {id: r.batch_id})
+                MERGE (b)-[:CONTAINS_DATAPOINT]->(d)
+                """,
+                {"rows": dp_rows},
+            )
             logger.info(
                 "re_training_synced_to_neo4j",
                 batch_id=batch.id,
@@ -379,11 +613,13 @@ class RETrainingExporter:
 
     @property
     def stats(self) -> dict[str, Any]:
+        outcome_updated = sum(1 for dp in self._pending if dp.outcome_updated)
         return {
             "pending_examples": len(self._pending),
             "total_exported": self._total_exported,
             "total_batches": self._total_batches,
             "window_start": self._window_start.isoformat(),
             "seen_episode_ids": len(self._seen_episode_ids),
+            "pending_outcome_corrected": outcome_updated,
             "attached": self._attached,
         }

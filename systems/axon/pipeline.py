@@ -401,8 +401,9 @@ class ExecutionPipeline:
                     )
                     step_outcomes.append(step_result)
                     if should_abort:
+                        steps_to_rollback = step_outcomes[:-1]
                         rollback_results = await _rollback_completed(
-                            step_outcomes=step_outcomes[:-1],
+                            step_outcomes=steps_to_rollback,
                             registry=self._registry,
                             context=context,
                         )
@@ -412,6 +413,17 @@ class ExecutionPipeline:
                             step_index=idx,
                             error=(step_result.result.error or "")[:100],
                             rollback_results=len(rollback_results),
+                        )
+                        # Mark rolled-back steps in their outcomes
+                        for so in steps_to_rollback:
+                            so.rolled_back = True
+                        await self._emit_rollback_re_example(
+                            execution_id=execution_id,
+                            context=context,
+                            failed_step=step_result,
+                            rolled_back_steps=steps_to_rollback,
+                            rollback_results=rollback_results,
+                            trigger="sequential_step_failure",
                         )
                         abort = True
                 else:
@@ -442,6 +454,18 @@ class ExecutionPipeline:
                                 registry=self._registry,
                                 context=context,
                             )
+                            for so in step_outcomes:
+                                if so.result.success:
+                                    so.rolled_back = True
+                            if failed:
+                                await self._emit_rollback_re_example(
+                                    execution_id=execution_id,
+                                    context=context,
+                                    failed_step=failed[0],
+                                    rolled_back_steps=[s for s in step_outcomes if s.result.success],
+                                    rollback_results=rollback_results,
+                                    trigger="parallel_batch_failure",
+                                )
                             abort = True
 
         finally:
@@ -749,6 +773,157 @@ class ExecutionPipeline:
             })
         except Exception as exc:
             self._logger.debug("atune_contribution_failed", error=str(exc))
+
+    async def _emit_rollback_re_example(
+        self,
+        execution_id: str,
+        context: ExecutionContext,
+        failed_step: StepOutcome,
+        rolled_back_steps: list[StepOutcome],
+        rollback_results: list[RollbackResult],
+        trigger: str,
+    ) -> None:
+        """
+        Emit a dedicated RE training example for rollback decisions.
+
+        Rollback examples are among the highest-value curriculum because they
+        capture the organism correcting its own mistakes: the moment a step
+        fails, the principled decision to undo prior side-effects, and the
+        downstream consequences if it had not.
+        """
+        if not hasattr(self, "_event_bus") or self._event_bus is None:
+            return
+        try:
+            import json as _json
+
+            from primitives.common import DriveAlignmentVector, SystemID
+            from primitives.re_training import RETrainingExample
+
+            reversible_count = sum(
+                1 for r in rollback_results if r.success
+            )
+            non_reversible_count = len(rollback_results) - reversible_count
+
+            # Describe each rollback attempt
+            rollback_detail_parts = []
+            for i, (so, rr) in enumerate(zip(rolled_back_steps, rollback_results)):
+                status = "REVERSED" if rr.success else f"IRREVERSIBLE({rr.reason[:60]})"
+                side_effects_note = (
+                    f", side_effects_reversed={rr.side_effects_reversed}"
+                    if rr.side_effects_reversed else ""
+                )
+                rollback_detail_parts.append(
+                    f"  [{i}] {so.action_type}: {status}{side_effects_note}"
+                )
+            rollback_detail = "\n".join(rollback_detail_parts) if rollback_detail_parts else "  (no prior steps to roll back)"
+
+            # Constitutional alignment from the Equor check
+            equor_alignment = None
+            equor_verdict = "approved"
+            if context.equor_check is not None:
+                equor_alignment = getattr(context.equor_check, "drive_alignment", None)
+                equor_verdict = (
+                    context.equor_check.verdict.value
+                    if hasattr(context.equor_check.verdict, "value")
+                    else str(context.equor_check.verdict)
+                )
+
+            reasoning_trace = "\n".join([
+                f"1. TRIGGER: {trigger} — step '{failed_step.action_type}' failed: {(failed_step.result.error or 'unknown')[:200]}",
+                f"2. ROLLBACK DECISION: {len(rolled_back_steps)} prior step(s) completed with side-effects that must be reversed",
+                f"3. REVERSIBILITY SCAN: {reversible_count} reversible, {non_reversible_count} non-reversible (financial/external ops cannot be undone)",
+                f"4. ROLLBACK EXECUTION (LIFO order):\n{rollback_detail}",
+                f"5. NET STATE: {reversible_count}/{len(rolled_back_steps)} side-effects reversed; {non_reversible_count} permanent side-effects remain",
+                f"6. EQUOR CONTEXT: original verdict={equor_verdict}; rollback does not require re-evaluation (Axon self-correction)",
+            ])
+
+            alternatives = [
+                f"Alternative: continue_on_failure=True would skip rollback and let downstream steps proceed with partial state — risks downstream incoherence",
+                f"Alternative: re-queue the intent with a patched plan after root cause of '{failed_step.action_type}' failure is diagnosed",
+            ]
+            if non_reversible_count > 0:
+                alternatives.append(
+                    f"WARNING: {non_reversible_count} non-reversible step(s) cannot be undone — "
+                    f"manual compensation (refund, notification, record correction) may be required"
+                )
+
+            if non_reversible_count > 0:
+                counterfactual = (
+                    f"If rollback had not been triggered after '{failed_step.action_type}' failed, "
+                    f"the {len(rolled_back_steps)} prior step(s) would have left persistent side-effects "
+                    f"with no follow-through, corrupting downstream intent coherence. "
+                    f"Note: {non_reversible_count} non-reversible side-effect(s) persist regardless."
+                )
+            elif reversible_count > 0:
+                counterfactual = (
+                    f"If rollback had not been triggered, {reversible_count} completed step(s) would "
+                    f"have left dangling state changes (records created, tasks scheduled) with no "
+                    f"corresponding completion — requiring manual cleanup or producing silent inconsistencies."
+                )
+            else:
+                counterfactual = (
+                    f"No prior steps had side-effects to reverse. Rollback was a no-op, but the "
+                    f"abort signal correctly prevented the remaining steps from executing in broken state."
+                )
+
+            structured_output = _json.dumps({
+                "trigger": trigger,
+                "failed_executor": failed_step.action_type,
+                "failure_error": (failed_step.result.error or "")[:200],
+                "prior_steps_count": len(rolled_back_steps),
+                "rollback_attempted": len(rollback_results),
+                "rollback_succeeded": reversible_count,
+                "rollback_failed_non_reversible": non_reversible_count,
+                "rollback_correct": True,  # Axon always rolls back on failure — this is curriculum for why
+            })
+
+            example = RETrainingExample(
+                source_system=SystemID.AXON,
+                episode_id=context.execution_id,
+                category="rollback_decision",
+                instruction=(
+                    f"Step '{failed_step.action_type}' failed mid-execution. "
+                    f"Decide whether to roll back {len(rolled_back_steps)} completed prior step(s) "
+                    f"and execute the rollback in LIFO order."
+                ),
+                input_context=(
+                    f"execution_id={context.execution_id}, "
+                    f"intent_id={context.intent.id}, "
+                    f"failed_step={failed_step.action_type}, "
+                    f"error={(failed_step.result.error or '')[:200]!r}, "
+                    f"prior_steps=[{', '.join(s.action_type for s in rolled_back_steps)}], "
+                    f"trigger={trigger}"
+                ),
+                output=structured_output,
+                outcome_quality=1.0,  # Rollback itself is always the correct decision — quality measures the decision, not the failure
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=alternatives,
+                constitutional_alignment=equor_alignment or DriveAlignmentVector(),
+                counterfactual=counterfactual,
+            )
+
+            await self._event_bus.emit(SynapseEvent(
+                event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                source_system="axon",
+                data=example.model_dump(mode="json"),
+            ))
+
+            # Also emit AXON_ROLLBACK_INITIATED so Thymos can track
+            await self._event_bus.emit(SynapseEvent(
+                event_type=SynapseEventType.AXON_ROLLBACK_INITIATED,
+                source_system="axon",
+                data={
+                    "execution_id": execution_id,
+                    "intent_id": context.intent.id,
+                    "failed_step": failed_step.action_type,
+                    "steps_rolled_back": reversible_count,
+                    "non_reversible_steps": non_reversible_count,
+                    "trigger": trigger,
+                },
+            ))
+
+        except Exception:
+            self._logger.debug("rollback_re_emit_failed", exc_info=True)
 
     @staticmethod
     def _classify_shield_rejection(sim: Any) -> str:

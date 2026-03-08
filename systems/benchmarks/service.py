@@ -27,6 +27,7 @@ import structlog
 
 from primitives.common import SystemID, utc_now
 from systems.benchmarks.bedau_packard import BedauPackardTracker
+from systems.benchmarks.domain_kpi_calculator import DomainKPICalculator
 from systems.benchmarks.ethical_drift import EthicalDriftEvaluator, EthicalDriftTracker
 from systems.benchmarks.evaluation_protocol import EvaluationProtocol
 from systems.benchmarks.evolutionary_tracker import EvolutionaryTracker
@@ -267,6 +268,13 @@ class BenchmarkService:
         # Pillar 3 (L2+L3 combined). Fed into compute_learning_velocity().
         self._causal_history: list[dict] = []
 
+        # ── Domain KPI calculator ─────────────────────────────────────────────
+        # Ingests DOMAIN_EPISODE_RECORDED events; produces per-domain DomainKPI
+        # snapshots that are included in every BenchmarkSnapshot.
+        self._domain_kpi_calc = DomainKPICalculator(max_history=10_000)
+        # Tracks the previous primary_domain to detect domain-pivot events.
+        self._prev_primary_domain: str = "generalist"
+
     # ─── Dependency injection ─────────────────────────────────────────
 
     def set_nova(self, nova: NovaHealthProtocol | None) -> None:
@@ -306,6 +314,9 @@ class BenchmarkService:
         # Fleet genome cache for Bedau-Packard monthly computation
         if hasattr(SynapseEventType, "CHILD_SPAWNED"):
             bus.subscribe(SynapseEventType.CHILD_SPAWNED, self._on_child_spawned_genome)
+        # Domain episode ingestion → DomainKPICalculator
+        if hasattr(SynapseEventType, "DOMAIN_EPISODE_RECORDED"):
+            bus.subscribe(SynapseEventType.DOMAIN_EPISODE_RECORDED, self._on_domain_episode_recorded)
         # Wire drift tracker so it can emit ETHICAL_DRIFT_RECORDED
         self._drift_tracker.set_event_bus(bus)
 
@@ -679,6 +690,188 @@ class BenchmarkService:
             fleet_size=len(self._fleet_genomes),
         )
 
+    async def _on_domain_episode_recorded(self, event: Any) -> None:
+        """Ingest a DOMAIN_EPISODE_RECORDED event into DomainKPICalculator."""
+        data = getattr(event, "data", {}) or {}
+        self._domain_kpi_calc.record_episode(data)
+
+    async def _collect_domain_kpis(self) -> dict[str, Any]:
+        """Compute per-domain KPI snapshots from accumulated episode history.
+
+        Returns a dict ready to merge into BenchmarkSnapshot:
+          {
+            "domain_kpis": dict[str, DomainKPI],
+            "primary_domain": str,
+          }
+        """
+        domain_kpis = self._domain_kpi_calc.calculate_all(
+            lookback_hours=168, min_attempts=1
+        )
+        primary = self._domain_kpi_calc.primary_domain(domain_kpis)
+        return {"domain_kpis": domain_kpis, "primary_domain": primary}
+
+    async def _emit_domain_signals(self, domain_kpis: dict[str, Any]) -> None:
+        """Emit Synapse events when domain KPIs cross meaningful thresholds.
+
+        Thresholds:
+          DOMAIN_MASTERY_DETECTED   — success_rate > 0.75
+          DOMAIN_PROFITABILITY_CONFIRMED — revenue_per_hour > $10
+          DOMAIN_PERFORMANCE_DECLINING  — declining trend with magnitude > 0.15
+          DOMAIN_KPI_SNAPSHOT       — always emitted for each active domain
+        """
+        if self._event_bus is None:
+            return
+
+        from decimal import Decimal as _Dec
+
+        _mastery_threshold = 0.75
+        _profitability_threshold = _Dec("10")
+        _decline_magnitude_threshold = 0.15
+
+        for domain, kpi in domain_kpis.items():
+            # Always emit full snapshot
+            try:
+                await self._event_bus.emit(SynapseEvent(
+                    event_type=SynapseEventType.DOMAIN_KPI_SNAPSHOT,
+                    source_system=self.system_id,
+                    data={
+                        "instance_id": self._instance_id,
+                        "domain": domain,
+                        "success_rate": kpi.success_rate,
+                        "attempts": kpi.attempts,
+                        "revenue_per_hour": str(kpi.revenue_per_hour),
+                        "net_profit_usd": str(kpi.net_profit_usd),
+                        "hours_spent": kpi.hours_spent,
+                        "trend_direction": kpi.trend_direction,
+                        "trend_magnitude": kpi.trend_magnitude,
+                        "custom_metrics": kpi.custom_metrics,
+                    },
+                ))
+            except Exception as exc:
+                self._logger.debug("domain_kpi_snapshot_emit_failed", domain=domain, error=str(exc))
+
+            # Mastery detection
+            if kpi.success_rate > _mastery_threshold and kpi.attempts >= 5:
+                try:
+                    await self._event_bus.emit(SynapseEvent(
+                        event_type=SynapseEventType.DOMAIN_MASTERY_DETECTED,
+                        source_system=self.system_id,
+                        data={
+                            "instance_id": self._instance_id,
+                            "domain": domain,
+                            "success_rate": kpi.success_rate,
+                            "attempts": kpi.attempts,
+                        },
+                    ))
+                    self._logger.info(
+                        "domain_mastery_detected",
+                        domain=domain,
+                        success_rate=kpi.success_rate,
+                        attempts=kpi.attempts,
+                    )
+                except Exception as exc:
+                    self._logger.debug("domain_mastery_emit_failed", domain=domain, error=str(exc))
+
+            # Profitability confirmation
+            if kpi.revenue_per_hour > _profitability_threshold:
+                try:
+                    await self._event_bus.emit(SynapseEvent(
+                        event_type=SynapseEventType.DOMAIN_PROFITABILITY_CONFIRMED,
+                        source_system=self.system_id,
+                        data={
+                            "instance_id": self._instance_id,
+                            "domain": domain,
+                            "revenue_per_hour": str(kpi.revenue_per_hour),
+                            "net_profit_usd": str(kpi.net_profit_usd),
+                        },
+                    ))
+                    self._logger.info(
+                        "domain_profitability_confirmed",
+                        domain=domain,
+                        revenue_per_hour=str(kpi.revenue_per_hour),
+                    )
+                except Exception as exc:
+                    self._logger.debug("domain_profitability_emit_failed", domain=domain, error=str(exc))
+
+            # Decline detection
+            if (
+                kpi.trend_direction == "declining"
+                and kpi.trend_magnitude > _decline_magnitude_threshold
+            ):
+                try:
+                    await self._event_bus.emit(SynapseEvent(
+                        event_type=SynapseEventType.DOMAIN_PERFORMANCE_DECLINING,
+                        source_system=self.system_id,
+                        data={
+                            "instance_id": self._instance_id,
+                            "domain": domain,
+                            "trend_magnitude": kpi.trend_magnitude,
+                            "success_rate": kpi.success_rate,
+                        },
+                    ))
+                    self._logger.warning(
+                        "domain_performance_declining",
+                        domain=domain,
+                        trend_magnitude=kpi.trend_magnitude,
+                        success_rate=kpi.success_rate,
+                    )
+                except Exception as exc:
+                    self._logger.debug("domain_decline_emit_failed", domain=domain, error=str(exc))
+
+    async def _persist_domain_kpis_neo4j(self, domain_kpis: dict[str, Any]) -> None:
+        """Persist (:DomainKPI) nodes to Neo4j — one node per domain per day.
+
+        Fire-and-forget: any exception is silently swallowed to not block the run loop.
+        """
+        if self._memory is None or not domain_kpis:
+            return
+        try:
+            neo4j = getattr(self._memory, "_neo4j", None)
+            if neo4j is None:
+                return
+            import datetime as _dt
+            date_str = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%d")
+            for domain, kpi in domain_kpis.items():
+                node_id = f"domain_kpi:{self._instance_id}:{domain}:{date_str}"
+                await neo4j.execute_write(
+                    """
+                    MERGE (k:DomainKPI {node_id: $node_id})
+                    SET k.instance_id = $instance_id,
+                        k.domain = $domain,
+                        k.date = $date,
+                        k.timestamp = datetime(),
+                        k.success_rate = $success_rate,
+                        k.attempts = $attempts,
+                        k.successes = $successes,
+                        k.revenue_total_usd = $revenue_total,
+                        k.net_profit_usd = $net_profit,
+                        k.revenue_per_hour = $revenue_per_hour,
+                        k.hours_spent = $hours_spent,
+                        k.trend_direction = $trend_direction,
+                        k.trend_magnitude = $trend_magnitude
+                    WITH k
+                    MATCH (i:Instance {instance_id: $instance_id})
+                    MERGE (i)-[:INSTANCE_HAS_KPI]->(k)
+                    """,
+                    {
+                        "node_id": node_id,
+                        "instance_id": self._instance_id,
+                        "domain": domain,
+                        "date": date_str,
+                        "success_rate": kpi.success_rate,
+                        "attempts": kpi.attempts,
+                        "successes": kpi.successes,
+                        "revenue_total": float(kpi.revenue_total_usd),
+                        "net_profit": float(kpi.net_profit_usd),
+                        "revenue_per_hour": float(kpi.revenue_per_hour),
+                        "hours_spent": kpi.hours_spent,
+                        "trend_direction": kpi.trend_direction,
+                        "trend_magnitude": kpi.trend_magnitude,
+                    },
+                )
+        except Exception as exc:
+            self._logger.debug("domain_kpi_neo4j_persist_failed", error=str(exc))
+
     async def _collect_fleet_genomes(self) -> list[dict[str, Any]]:
         """Return cached fleet genome snapshots for Bedau-Packard computation.
 
@@ -894,6 +1087,36 @@ class BenchmarkService:
                 await self._check_sustained_llm_dependency()
                 await self._tag_episodes_for_re_training(snapshot)
                 await self._persist_regressed_to_redis()
+                # Domain KPI signals — emit threshold events + Neo4j persistence
+                await self._emit_domain_signals(snapshot.domain_kpis)
+                await self._persist_domain_kpis_neo4j(snapshot.domain_kpis)
+                # Domain pivot detection — notify Thread when primary domain changes
+                if snapshot.primary_domain != self._prev_primary_domain:
+                    self._logger.info(
+                        "primary_domain_changed",
+                        prev=self._prev_primary_domain,
+                        new=snapshot.primary_domain,
+                    )
+                    if self._event_bus is not None and hasattr(SynapseEventType, "NOVA_GOAL_INJECTED"):
+                        try:
+                            await self._event_bus.emit(SynapseEvent(
+                                event_type=SynapseEventType.NOVA_GOAL_INJECTED,
+                                source_system=self.system_id,
+                                data={
+                                    "goal_description": (
+                                        f"Primary specialization domain shifted to "
+                                        f"'{snapshot.primary_domain}' — "
+                                        f"adjust goal priorities accordingly"
+                                    ),
+                                    "priority": 0.6,
+                                    "source": "benchmarks_domain_pivot",
+                                    "domain": snapshot.primary_domain,
+                                    "prev_domain": self._prev_primary_domain,
+                                },
+                            ))
+                        except Exception:
+                            pass
+                    self._prev_primary_domain = snapshot.primary_domain
                 self._total_runs += 1
                 self._logger.info(
                     "benchmark_run_completed",
@@ -905,6 +1128,8 @@ class BenchmarkService:
                     mutation_success_rate=snapshot.mutation_success_rate,
                     effective_intelligence_ratio=snapshot.effective_intelligence_ratio,
                     compression_ratio=snapshot.compression_ratio,
+                    primary_domain=snapshot.primary_domain,
+                    active_domains=len(snapshot.domain_kpis),
                     errors=list(snapshot.errors.keys()),
                 )
             except asyncio.CancelledError:
@@ -1463,6 +1688,11 @@ class BenchmarkService:
             "consolidation_count": 0,
         }
 
+        # Domain KPIs — computed from accumulated EpisodeRecord history
+        domain_data = await self._collect_domain_kpis()
+        domain_kpis = domain_data["domain_kpis"]
+        primary_domain = domain_data["primary_domain"]
+
         return BenchmarkSnapshot(
             time=utc_now(),
             instance_id=self._instance_id,
@@ -1475,6 +1705,8 @@ class BenchmarkService:
             compression_ratio=_extract(6, "compression_ratio"),
             evolutionary_fitness=fitness,
             constitutional_phenotype_divergence=self._last_phenotype_divergence,
+            domain_kpis=domain_kpis,
+            primary_domain=primary_domain,
             errors=errors,
             raw=raw,
         )

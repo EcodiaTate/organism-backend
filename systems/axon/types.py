@@ -26,6 +26,8 @@ from typing import Any
 
 from pydantic import Field
 
+from decimal import Decimal
+
 from primitives.affect import AffectState
 from primitives.common import EOSBaseModel, Identified, Timestamped, new_id, utc_now
 from primitives.constitutional import ConstitutionalCheck
@@ -358,3 +360,86 @@ class AuditRecord(Identified, Timestamped):
             affect_state=context.affect_state,
             autonomy_level=context.intent.autonomy_level_granted,
         )
+
+
+# ── Dynamic Executor Types ────────────────────────────────────────────────────
+
+
+class ExecutorTemplate(EOSBaseModel):
+    """
+    Blueprint for a dynamically generated Axon executor.
+
+    Created by Evo when it discovers an opportunity the organism cannot yet act
+    on (e.g., a new DeFi protocol with high APY, a new bounty platform).  Passed
+    to Simula's ExecutorGenerator, which generates a Python executor class that
+    extends DynamicExecutorBase.
+
+    The safety envelope declared here (max_budget_usd, safety_constraints,
+    risk_tier) is injected into the generated executor class body and enforced
+    at runtime by DynamicExecutorBase — not by the generated code itself.
+
+    Lifecycle:
+      1. Evo generates ExecutorTemplate from OPPORTUNITY_DISCOVERED event data.
+      2. EVOLUTION_CANDIDATE(mutation_type="add_executor") emitted.
+      3. Simula's ExecutorGenerator validates and generates the executor.
+      4. Axon's ExecutorRegistry.register_dynamic_executor() hot-loads and registers it.
+      5. EXECUTOR_REGISTERED emitted — Thymos opens a 24h monitoring window.
+    """
+
+    name: str
+    """Unique snake_case name, e.g. 'uniswap_v4_yield'. Used as filename."""
+
+    action_type: str
+    """Registry key, e.g. 'deploy_yield_uniswap_v4'. Must be globally unique."""
+
+    description: str
+    """Human-readable capability description (shown in executor capabilities list)."""
+
+    protocol_or_platform: str
+    """Target protocol or platform name, e.g. 'Uniswap V4', 'Immunefi'."""
+
+    required_apis: list[str] = Field(default_factory=list)
+    """External API endpoints or RPC URLs the executor needs."""
+
+    risk_tier: str = "medium"
+    """'low' | 'medium' | 'high'. Controls required_autonomy level."""
+
+    max_budget_usd: Decimal = Decimal("100.00")
+    """Hard per-execution spending cap enforced by DynamicExecutorBase."""
+
+    capabilities: list[str] = Field(default_factory=list)
+    """Actions supported, e.g. ['deposit', 'withdraw', 'claim_rewards']."""
+
+    safety_constraints: list[str] = Field(default_factory=list)
+    """Architecture invariants injected into the generated executor docstring."""
+
+    source_hypothesis_id: str = ""
+    """Evo hypothesis ID that motivated this executor (for audit trail)."""
+
+    source_opportunity_id: str = ""
+    """OPPORTUNITY_DISCOVERED event opportunity_id (for Neo4j linkage)."""
+
+    @property
+    def required_autonomy(self) -> int:
+        """Map risk_tier → AutonomyLevel for Axon gate."""
+        _map = {"low": 2, "medium": 3, "high": 4}
+        return _map.get(self.risk_tier, 3)
+
+
+class DynamicExecutorRecord(EOSBaseModel):
+    """
+    Runtime record of a successfully registered dynamic executor.
+    Persisted to Neo4j and Redis for restart-survival.
+    """
+
+    template: ExecutorTemplate
+    module_path: str
+    """Absolute path to the generated Python module on disk."""
+
+    registered_at: datetime = Field(default_factory=utc_now)
+    enabled: bool = True
+    incident_count_24h: int = 0
+    """Rolling 24h incident counter — if ≥ 3, executor is auto-disabled."""
+
+    neo4j_node_id: str = ""
+    """Neo4j DynamicExecutor node ID for audit trail queries."""

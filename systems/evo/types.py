@@ -68,6 +68,7 @@ class MutationType(enum.StrEnum):
     PROCEDURE_CREATION = "procedure_creation"       # Codify a successful sequence
     SCHEMA_ADDITION = "schema_addition"             # Add entity/relation type
     EVOLUTION_PROPOSAL = "evolution_proposal"       # Structural change → Simula
+    EXPLORATION = "exploration"                     # Low-evidence experiment (Phase 8.5)
 
 
 class EvidenceDirection(enum.StrEnum):
@@ -250,6 +251,15 @@ class Hypothesis(Identified, Timestamped):
     # What to apply if hypothesis reaches SUPPORTED
     proposed_mutation: Mutation | None = None
 
+    # ── Exploration Hypotheses (Phase 8.5 gap closure) ───────────────────────
+    # For low-evidence, low-confidence hypotheses that fast-track to Simula
+    # exploration pipeline instead of waiting for full evidence accumulation.
+    is_exploration: bool = False            # Marks this hypothesis as exploration path
+    exploration_budget_usd: float = 0.0     # Hard cap on total spend for this exploration
+    exploration_attempts: int = 0           # Times we've tried this exploration
+    exploration_max_attempts: int = 3       # Give up after N failures
+    exploration_outcomes: list[str] = Field(default_factory=list)  # Brief outcome descriptions
+
     # ── Volatility tracking ──────────────────────────────────────────────────
     # confidence_flip_log records the direction (+1 up / -1 down) of the last
     # N outcome nudges. When the sign flips repeatedly the hypothesis is
@@ -356,6 +366,30 @@ class EvolutionProposal(EOSBaseModel):
     rationale: str
     supporting_hypotheses: list[str] = Field(default_factory=list)
     proposed_at: datetime = Field(default_factory=utc_now)
+
+
+# ─── Exploration Proposals (Phase 8.5 gap closure) ───────────────────────────
+
+
+class ExplorationProposal(EOSBaseModel):
+    """
+    Lightweight proposal for low-evidence, low-confidence exploration.
+
+    Submitted to Simula's lightweight pipeline which skips SIMULATE
+    and goes straight to VALIDATE → GATE → APPLY → VERIFY → RECORD.
+
+    Budget is hard-capped; Equor still gates for constitutional alignment.
+    """
+
+    hypothesis_id: str                      # Link back to the originating hypothesis
+    hypothesis_statement: str               # Natural language claim being explored
+    evidence_score: float                   # Current evidence (2.0–5.0 range)
+    proposed_mutation: Mutation | None = None  # The proposed change (lightweight)
+    budget_usd: float                       # Hard cap on spending for this exploration
+    max_attempts: int = 3                   # Give up after N failures
+    success_criteria: str = ""              # Natural language description of success
+    rollback_plan: str = ""                 # Mitigation if exploration fails
+    metabolic_tier: str = "NOMINAL"         # Starvation level when proposal was generated
 
 
 # ─── Self-Model ───────────────────────────────────────────────────────────────
@@ -653,6 +687,9 @@ class ConsolidationResult(EOSBaseModel):
     ring_species_detected: int = 0
     niche_forks_proposed: int = 0
     worldview_forks: int = 0
+    # Exploration hypotheses (Phase 8.5 — gap closure)
+    exploration_proposals_generated: int = 0
+    explorations_skipped: int = 0
     # Telos topology-aware hypothesis prioritisation (Phase D integration)
     telos_hypothesis_rankings: list[dict[str, Any]] = Field(default_factory=list)
 

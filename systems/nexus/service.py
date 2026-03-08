@@ -2081,8 +2081,21 @@ class NexusService:
         decision: PromotionDecision,
     ) -> None:
         """Emit an RE training example capturing the epistemic promotion reasoning."""
+        try:
+            from primitives.common import DriveAlignmentVector as _DAV
+            _tri_conf = fragment.triangulation.triangulation_confidence
+            _nexus_alignment = _DAV(
+                coherence=round(min(1.0, _tri_conf * 2.0 - 1.0), 3),
+                growth=round(min(1.0, _tri_conf), 3),
+                care=0.0,
+                honesty=round(min(1.0, fragment.triangulation.source_diversity), 3),
+            )
+        except Exception:
+            _nexus_alignment = None
+
         example = RETrainingExample(
             source_system=SystemID.NEXUS,
+            episode_id=fragment.fragment_id,
             instruction=(
                 "Evaluate an epistemic fragment for ground truth promotion. "
                 "Given the fragment's abstract structure, triangulation evidence, "
@@ -2108,6 +2121,7 @@ class NexusService:
             }),
             outcome_quality=min(decision.triangulation_confidence, 1.0),
             category="epistemic_promotion",
+            constitutional_alignment=_nexus_alignment,
         )
 
         await self._emit(

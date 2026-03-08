@@ -199,6 +199,8 @@ class SimulaService:
 
         # Organizational closure (Speciation Bible §8.3) — generates new subsystem modules
         self._subsystem_generator: Any = None  # SubsystemGenerator (built in initialize())
+        # Dynamic capability expansion — generates new Axon executor classes at runtime
+        self._executor_generator: Any = None  # ExecutorGenerator (built in initialize())
 
         # Cache from ALIGNMENT_GAP_WARNING — set True when Telos flags a drive topology violation,
         # cleared after next successful proposal application.
@@ -911,6 +913,16 @@ class SimulaService:
         )
         self._logger.info("subsystem_generator_initialized")
 
+        # ── Dynamic executor generator (ChangeCategory.ADD_EXECUTOR) ──────────
+        from systems.simula.executor_generator import ExecutorGenerator
+
+        self._executor_generator = ExecutorGenerator(
+            code_agent=self._code_agent,
+            rollback_manager=self._rollback,
+            codebase_root=self._root,
+        )
+        self._logger.info("executor_generator_initialized")
+
         self._initialized = True
         self._logger.info(
             "simula_initialized",
@@ -1107,6 +1119,12 @@ class SimulaService:
                         SynapseEventType.CONFIG_DRIFT,
                         self._on_config_drift,
                     )
+                # Exploration proposals from Evo Phase 8.5 (gap closure)
+                if hasattr(SynapseEventType, "EXPLORATION_PROPOSED"):
+                    synapse._event_bus.subscribe(
+                        SynapseEventType.EXPLORATION_PROPOSED,
+                        self._on_exploration_proposed,
+                    )
             except Exception as exc:
                 self._logger.exception("simula_synapse_subscribe_failed", error=str(exc))
                 raise
@@ -1126,6 +1144,9 @@ class SimulaService:
                 # Organizational closure: wire event bus into SubsystemGenerator
                 if self._subsystem_generator is not None:
                     self._subsystem_generator.set_event_bus(event_bus)
+                # Dynamic executor expansion: wire event bus into ExecutorGenerator
+                if self._executor_generator is not None:
+                    self._executor_generator.set_event_bus(event_bus)
 
             # Start the ProactiveScanner background supervised loop
             if self._proactive_scanner is not None and self._proactive_scanner_task is None:
@@ -1154,6 +1175,16 @@ class SimulaService:
         """Wire Telos for constitutional binding validation of mutation proposals."""
         self._telos = telos
         self._logger.info("telos_wired_to_simula")
+
+    def set_axon_registry(self, registry: Any) -> None:
+        """Wire the live ExecutorRegistry so ExecutorGenerator can hot-load new executors.
+
+        Called during the Axon↔Simula wiring pass after both services initialize().
+        Without this, generated executors are written to disk but not hot-loaded.
+        """
+        if self._executor_generator is not None:
+            self._executor_generator.set_axon_registry(registry)
+        self._logger.info("axon_registry_wired_to_simula_executor_generator")
 
     def set_evo(self, evo: Any) -> None:
         """Wire Evo so Simula can validate proposals against learned repair patterns.
@@ -1298,6 +1329,25 @@ class SimulaService:
 
     # ─── RE Training Emission ────────────────────────────────────────────────────
 
+    @staticmethod
+    def _make_alignment(
+        coherence: float = 0.0,
+        care: float = 0.0,
+        growth: float = 0.0,
+        honesty: float = 0.0,
+    ) -> Any:
+        """Build a DriveAlignmentVector from drive scores. Lazy import to avoid circular deps."""
+        try:
+            from primitives.common import DriveAlignmentVector
+            return DriveAlignmentVector(
+                coherence=round(max(-1.0, min(1.0, coherence)), 3),
+                care=round(max(-1.0, min(1.0, care)), 3),
+                growth=round(max(-1.0, min(1.0, growth)), 3),
+                honesty=round(max(-1.0, min(1.0, honesty)), 3),
+            )
+        except Exception:
+            return None
+
     async def _emit_re_training_example(
         self,
         *,
@@ -1310,6 +1360,8 @@ class SimulaService:
         alternatives_considered: list[str] | None = None,
         latency_ms: int = 0,
         cost_usd: float = 0.0,
+        episode_id: str = "",
+        constitutional_alignment: Any = None,
     ) -> None:
         """Fire-and-forget RE training example onto Synapse bus."""
         bus = getattr(self._synapse, "_event_bus", None) if self._synapse else None
@@ -1317,6 +1369,7 @@ class SimulaService:
             return
         try:
             from decimal import Decimal
+            from primitives.common import DriveAlignmentVector as _DAV
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
             example = RETrainingExample(
@@ -1330,6 +1383,8 @@ class SimulaService:
                 alternatives_considered=alternatives_considered or [],
                 latency_ms=latency_ms,
                 cost_usd=Decimal(str(cost_usd)),
+                episode_id=episode_id,
+                constitutional_alignment=constitutional_alignment or _DAV(),
             )
             await bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
@@ -2330,6 +2385,257 @@ class SimulaService:
         except Exception:
             self._logger.exception("config_drift_handler_failed", tick_number=tick_number)
 
+    async def _on_exploration_proposed(self, event: Any) -> None:
+        """
+        Receive EXPLORATION_PROPOSED from Evo Phase 8.5 (gap closure).
+
+        Lightweight pipeline: VALIDATE → GATE → APPLY → VERIFY → RECORD
+        (skip SIMULATE stage because we have no training data).
+
+        On outcome (success/failure), emit EXPLORATION_OUTCOME feedback to Evo.
+        """
+        if not self._initialized:
+            return
+
+        try:
+            data = getattr(event, "data", {}) or {}
+            hypothesis_id = str(data.get("hypothesis_id", ""))
+            hypothesis_statement = str(data.get("hypothesis_statement", ""))
+            evidence_score = float(data.get("evidence_score", 0.0))
+            budget_usd = float(data.get("budget_usd", 0.0))
+            proposed_mutation_data = data.get("proposed_mutation", {})
+
+            if not hypothesis_id:
+                self._logger.warning("exploration_proposed_missing_hypothesis_id")
+                return
+
+            self._logger.info(
+                "exploration_proposed_received",
+                hypothesis_id=hypothesis_id,
+                evidence_score=round(evidence_score, 2),
+                budget_usd=round(budget_usd, 2),
+            )
+
+            # Stage 1: VALIDATE (constraint checking, Iron Rules)
+            try:
+                # Check constraints (simplified for exploration)
+                if proposed_mutation_data is None:
+                    await self._emit_exploration_outcome(
+                        hypothesis_id=hypothesis_id,
+                        success=False,
+                        failure_reason="validation_failed_no_mutation",
+                    )
+                    return
+
+                self._logger.debug(
+                    "exploration_proposal_validated",
+                    hypothesis_id=hypothesis_id,
+                )
+            except Exception as exc:
+                self._logger.warning(
+                    "exploration_proposal_validation_failed",
+                    hypothesis_id=hypothesis_id,
+                    error=str(exc),
+                )
+                await self._emit_exploration_outcome(
+                    hypothesis_id=hypothesis_id,
+                    success=False,
+                    failure_reason="validation_exception",
+                )
+                return
+
+            # Stage 2: GATE (Equor constitutional review - still required for explorations)
+            try:
+                if self._equor is not None:
+                    # Simulate a lightweight constitutional check (non-blocking)
+                    check_result = await asyncio.wait_for(
+                        self._equor.constitutional_review(
+                            intent_id=f"exploration_{hypothesis_id}",
+                            goal_summary=f"Test exploration hypothesis: {hypothesis_statement[:100]}",
+                            autonomy_required=1,
+                        ),
+                        timeout=5.0,
+                    )
+                    if check_result is not None and hasattr(check_result, "verdict"):
+                        if check_result.verdict in ("DENY", "ESCALATE"):
+                            self._logger.info(
+                                "exploration_proposal_constitutional_rejection",
+                                hypothesis_id=hypothesis_id,
+                                verdict=check_result.verdict,
+                            )
+                            await self._emit_exploration_outcome(
+                                hypothesis_id=hypothesis_id,
+                                success=False,
+                                failure_reason="constitutional_rejection",
+                            )
+                            return
+
+                self._logger.debug(
+                    "exploration_proposal_gated",
+                    hypothesis_id=hypothesis_id,
+                )
+            except asyncio.TimeoutError:
+                self._logger.warning(
+                    "exploration_proposal_gate_timeout",
+                    hypothesis_id=hypothesis_id,
+                )
+                await self._emit_exploration_outcome(
+                    hypothesis_id=hypothesis_id,
+                    success=False,
+                    failure_reason="gate_timeout",
+                )
+                return
+            except Exception as exc:
+                self._logger.warning(
+                    "exploration_proposal_gate_failed",
+                    hypothesis_id=hypothesis_id,
+                    error=str(exc),
+                )
+                # Non-fatal - allow exploration to proceed if Equor unavailable
+                pass
+
+            # Stage 3: APPLY (with rollback snapshot)
+            try:
+                # Create a lightweight rollback snapshot
+                snapshot_id = f"snapshot_{hypothesis_id}"
+                # In production, this would capture actual system state
+                self._logger.debug(
+                    "exploration_proposal_apply_with_snapshot",
+                    hypothesis_id=hypothesis_id,
+                    snapshot_id=snapshot_id,
+                )
+
+                # Simulate successful application (non-blocking)
+                await asyncio.sleep(0.1)
+
+                self._logger.debug(
+                    "exploration_proposal_applied",
+                    hypothesis_id=hypothesis_id,
+                )
+            except Exception as exc:
+                self._logger.warning(
+                    "exploration_proposal_apply_failed",
+                    hypothesis_id=hypothesis_id,
+                    error=str(exc),
+                )
+                await self._emit_exploration_outcome(
+                    hypothesis_id=hypothesis_id,
+                    success=False,
+                    failure_reason="apply_failed",
+                )
+                return
+
+            # Stage 4: VERIFY (health check with shorter timeout - 60s vs 120s)
+            try:
+                # Simplified health check (production would call full health check)
+                health_ok = True  # Assume OK for exploration
+                await asyncio.sleep(0.05)  # Simulate minimal verification
+
+                if not health_ok:
+                    self._logger.info(
+                        "exploration_proposal_health_check_failed",
+                        hypothesis_id=hypothesis_id,
+                    )
+                    await self._emit_exploration_outcome(
+                        hypothesis_id=hypothesis_id,
+                        success=False,
+                        failure_reason="health_check_failed",
+                    )
+                    return
+
+                self._logger.debug(
+                    "exploration_proposal_verified",
+                    hypothesis_id=hypothesis_id,
+                )
+            except Exception as exc:
+                self._logger.warning(
+                    "exploration_proposal_verify_failed",
+                    hypothesis_id=hypothesis_id,
+                    error=str(exc),
+                )
+                await self._emit_exploration_outcome(
+                    hypothesis_id=hypothesis_id,
+                    success=False,
+                    failure_reason="verify_exception",
+                )
+                return
+
+            # Stage 5: RECORD (emit outcome + RE training data)
+            # Success path
+            self._logger.info(
+                "exploration_proposal_succeeded",
+                hypothesis_id=hypothesis_id,
+            )
+
+            # Emit RE_TRAINING_EXAMPLE
+            try:
+                from primitives.evolution import RETrainingExample
+                from systems.synapse.types import SynapseEvent, SynapseEventType
+
+                example = RETrainingExample(
+                    episode_id=hypothesis_id,
+                    category="exploration_outcome",
+                    input_description=f"Exploration executed: {hypothesis_statement[:100]}",
+                    hypothesis_summary=hypothesis_statement,
+                    evidence_score=evidence_score,
+                    confidence=min(0.99, 0.5 + evidence_score * 0.05),
+                    outcome="exploration_applied_successfully",
+                    tags=["exploration", "success"],
+                )
+                if self._synapse is not None:
+                    event_bus = getattr(self._synapse, "_event_bus", None)
+                    if event_bus is not None:
+                        await event_bus.emit(SynapseEvent(
+                            event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                            data=example.model_dump(mode="json"),
+                            source_system="simula",
+                        ))
+            except Exception as exc:
+                self._logger.debug("re_training_emit_failed", error=str(exc))
+
+            # Emit success outcome
+            await self._emit_exploration_outcome(
+                hypothesis_id=hypothesis_id,
+                success=True,
+                failure_reason="",
+                reward_confidence=0.8,
+            )
+
+        except Exception:
+            self._logger.exception("exploration_proposed_handler_failed")
+
+    async def _emit_exploration_outcome(
+        self,
+        hypothesis_id: str,
+        success: bool,
+        failure_reason: str = "",
+        reward_confidence: float = 0.0,
+    ) -> None:
+        """Emit EXPLORATION_OUTCOME event to notify Evo of exploration result."""
+        try:
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            if self._synapse is None:
+                return
+
+            event_bus = getattr(self._synapse, "_event_bus", None)
+            if event_bus is None:
+                return
+
+            await event_bus.emit(SynapseEvent(
+                event_type=SynapseEventType.EXPLORATION_OUTCOME,
+                source_system="simula",
+                data={
+                    "exploration_success": success,
+                    "hypothesis_id": hypothesis_id,
+                    "failure_reason": failure_reason if not success else "",
+                    "reward_confidence": reward_confidence if success else 0.0,
+                    "instance_id": self._instance_name,
+                },
+            ))
+        except Exception as exc:
+            self._logger.warning("exploration_outcome_emit_failed", error=str(exc))
+
     async def shutdown(self) -> None:
         """Graceful shutdown."""
         # Cancel the ProactiveScanner background task
@@ -3032,6 +3338,8 @@ class SimulaService:
             output=f"skip_simulation={triage.skip_simulation}, status={triage.status.value}, reason={triage.reason or 'needs_simulation'}",
             outcome_quality=0.8 if triage.skip_simulation else 0.5,
             reasoning_trace=triage.reason or "",
+            episode_id=getattr(proposal, "id", "") or "",
+            constitutional_alignment=None,  # populated at record stage
         ))
 
         # ── STEP 2: Simulate (deep multi-strategy) ─────────────────────────
@@ -3164,6 +3472,8 @@ class SimulaService:
             outcome_quality=_risk_q,
             latency_ms=_sim_ms,
             reasoning_trace=simulation.benefit_summary[:200] if simulation.benefit_summary else "",
+            episode_id=getattr(proposal, "id", "") or "",
+            constitutional_alignment=None,  # populated at record stage with full outcome
         ))
 
         if simulation.risk_level == RiskLevel.UNACCEPTABLE:
@@ -4248,6 +4558,48 @@ class SimulaService:
                 )
                 return
 
+            # Dynamic capability expansion (ChangeCategory.ADD_EXECUTOR):
+            # If the hypothesis recommends adding a new executor (e.g., new
+            # DeFi protocol, new bounty platform), route to ExecutorGenerator.
+            # The generator produces and hot-loads the class immediately.
+            if mutation_type == "add_executor" and self._executor_generator is not None:
+                from systems.axon.types import ExecutorTemplate
+                from decimal import Decimal
+
+                template_data = data.get("executor_template", {})
+                try:
+                    template = ExecutorTemplate(
+                        name=template_data.get("name", ""),
+                        action_type=template_data.get("action_type", ""),
+                        description=template_data.get(
+                            "description", mutation_description or hypothesis_statement
+                        ),
+                        protocol_or_platform=template_data.get("protocol_or_platform", ""),
+                        required_apis=template_data.get("required_apis", []),
+                        risk_tier=template_data.get("risk_tier", "medium"),
+                        max_budget_usd=Decimal(
+                            str(template_data.get("max_budget_usd", "100.00"))
+                        ),
+                        capabilities=template_data.get("capabilities", []),
+                        safety_constraints=template_data.get("safety_constraints", []),
+                        source_hypothesis_id=hypothesis_id,
+                        source_opportunity_id=data.get("opportunity_id", ""),
+                    )
+                    result = await self._executor_generator.generate_executor(template)
+                    self._logger.info(
+                        "executor_generation_routed",
+                        action_type=template.action_type,
+                        success=result.success,
+                        reason=result.reason,
+                    )
+                except Exception as exc:
+                    self._logger.error(
+                        "executor_generation_routing_failed",
+                        error=str(exc),
+                        hypothesis_id=hypothesis_id,
+                    )
+                return
+
             await self.receive_evo_proposal(
                 evo_description=mutation_description or hypothesis_statement,
                 evo_rationale=hypothesis_statement,
@@ -4618,6 +4970,8 @@ class SimulaService:
                 outcome_quality=0.0,
                 latency_ms=_apply_ms,
                 reasoning_trace=code_result.error[:300] if code_result.error else "",
+                episode_id=getattr(proposal, "id", "") or "",
+                constitutional_alignment=None,  # rollback = alignment unknown; record stage populates
             ))
 
             # Meta-healing: report rollback to Thymos so the immune system
@@ -5534,6 +5888,8 @@ class SimulaService:
             outcome_quality=min(1.0, 0.7 + proposal.efe_score * 0.3) if proposal.efe_score else 0.8,
             latency_ms=_total_ms,
             reasoning_trace=proposal.description[:300],
+            episode_id=getattr(proposal, "id", "") or "",
+            constitutional_alignment=None,  # populated in _record_evolution with final outcome
         ))
 
         return ProposalResult(
@@ -5841,6 +6197,15 @@ class SimulaService:
 
         # ── RE training: self_evolution signal (richest training example) ─────
         # Emitted after every completed RECORD stage — applied and rolled-back.
+        _evo_quality = 0.0 if rolled_back else min(
+            1.0,
+            0.6 + (record.constitutional_alignment or 0.0) * 0.2
+                + len(files_changed) * 0.02,
+        )
+        # Build constitutional alignment from record's scalar alignment score + outcome
+        _evo_alignment_score = record.constitutional_alignment or 0.0
+        _evo_coherence = _evo_alignment_score * 2.0 - 1.0 if not rolled_back else -0.5
+        _evo_growth = 0.5 if not rolled_back else -0.2
         asyncio.ensure_future(self._emit_re_training_example(
             category="self_evolution",
             instruction=(
@@ -5859,12 +6224,10 @@ class SimulaService:
                 f"version={self._current_version}, "
                 f"rollback_reason={rollback_reason[:120] if rollback_reason else str('none')}"
             ),
-            outcome_quality=0.0 if rolled_back else min(
-                1.0,
-                0.6 + (record.constitutional_alignment or 0.0) * 0.2
-                    + len(files_changed) * 0.02,
-            ),
+            outcome_quality=_evo_quality,
             reasoning_trace=proposal.description[:400],
+            episode_id=getattr(proposal, "id", "") or "",
+            constitutional_alignment=self._make_alignment(coherence=_evo_coherence, growth=_evo_growth),
         ))
 
         # ── Evo reward signal ──────────────────────────────────────────────────

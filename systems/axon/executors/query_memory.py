@@ -130,6 +130,7 @@ class QueryMemoryGraphExecutor(Executor):
                     "execution_id": context.execution_id,
                 },
             )
+            await self._emit_re_trace(context, params, success=False, result_count=0, error=str(exc))
             return ExecutionResult(success=False, error=str(exc))
 
     async def _emit_event(self, event_type: SynapseEventType, data: dict[str, Any]) -> None:
@@ -150,22 +151,101 @@ class QueryMemoryGraphExecutor(Executor):
         params: dict[str, Any],
         success: bool,
         result_count: int = 0,
+        error: str = "",
     ) -> None:
         if self._event_bus is None:
             return
         try:
-            from primitives.common import DriveAlignmentVector, SystemID, utc_now
+            import json as _json
+            from primitives.common import DriveAlignmentVector, SystemID
             from primitives.re_training import RETrainingExample
+
+            query_type = params.get("query_type", "")
+            limit = params.get("limit", 20)
+
+            # Build query summary without exposing raw Cypher or entity IDs verbatim
+            if query_type == "cypher":
+                query_summary = f"cypher: {params.get('cypher', '')[:120]!r}"
+            elif query_type == "semantic":
+                query_summary = f"semantic: {params.get('query_text', '')[:120]!r}"
+            elif query_type == "entity_lookup":
+                query_summary = f"entity_lookup: id={params.get('entity_id', '')} name={params.get('entity_name', '')!r}"
+            else:
+                query_summary = f"recent_episodes: limit={limit}"
+
+            # Quality: empty result on success is a soft failure (query ran but found nothing)
+            if success and result_count > 0:
+                quality = 1.0
+                quality_reason = "query succeeded with results"
+            elif success and result_count == 0:
+                quality = 0.5
+                quality_reason = "query succeeded but returned no results — possible knowledge gap"
+            else:
+                quality = 0.0
+                quality_reason = f"query failed: {error[:80]}"
+
+            reasoning_trace = "\n".join([
+                f"1. VALIDATE: query_type={query_type!r}, mutation check={'passed' if query_type != 'cypher' else 'verified no CREATE/MERGE/DELETE/SET/REMOVE'}",
+                f"2. MEMORY SERVICE: {'configured' if self._memory is not None else 'MISSING'}",
+                f"3. EXECUTE: {query_summary}",
+                f"4. RESULT: result_count={result_count}, limit={limit}",
+                f"5. QUALITY: {quality_reason}",
+            ])
+
+            alternatives = []
+            if query_type == "cypher":
+                alternatives.append(
+                    "Alternative: use 'semantic' query_type for natural-language retrieval when Cypher syntax is uncertain"
+                )
+            if result_count == 0 and success:
+                alternatives.append(
+                    "Alternative: broaden query constraints or use semantic fallback — zero results may indicate memory gap or overly specific filters"
+                )
+                alternatives.append(
+                    "Alternative: trigger memory consolidation (trigger_consolidation executor) if episodic → schema compression may have removed relevant nodes"
+                )
+            if not success:
+                alternatives.append(
+                    "Alternative: retry with simpler query_type (entity_lookup or recent_episodes) as fallback if Cypher/semantic fails"
+                )
+
+            counterfactual = ""
+            if success and result_count == 0:
+                counterfactual = (
+                    f"If the {query_type} query had returned results, downstream reasoning steps could "
+                    f"have grounded their actions in retrieved knowledge. The empty result forces the "
+                    f"organism to act under higher uncertainty or request clarification."
+                )
+            elif not success:
+                counterfactual = (
+                    f"If the memory query had succeeded, the organism would have retrieved grounded "
+                    f"context to inform its next action. Failure means the subsequent step proceeds "
+                    f"from prior belief alone — increasing the risk of a hallucinated or stale response."
+                )
+
+            equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None
 
             trace = RETrainingExample(
                 source_system=SystemID.AXON,
-                instruction=f"Query memory graph ({params.get('query_type', '')})",
-                input_context=str(params)[:500],
-                output=f"success={success}, results={result_count}",
-                outcome_quality=1.0 if success and result_count > 0 else 0.5,
+                episode_id=context.execution_id,
+                instruction=f"Query memory graph: {query_summary[:150]}",
+                input_context=_json.dumps({
+                    "query_type": query_type,
+                    "limit": limit,
+                    "query_summary": query_summary[:300],
+                }),
+                output=_json.dumps({
+                    "success": success,
+                    "result_count": result_count,
+                    "quality_reason": quality_reason,
+                    "error": error[:200] if error else None,
+                }),
+                outcome_quality=quality,
                 category="memory_query",
-                constitutional_alignment=DriveAlignmentVector(),
-                timestamp=utc_now(),
+                constitutional_alignment=equor_alignment or DriveAlignmentVector(),
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=alternatives,
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

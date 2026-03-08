@@ -851,18 +851,18 @@ class SomaService:
         )
 
         async def _on_hypothesis_confirmed(self, event: Any) -> None:
-        """Evo hypothesis confirmed — reinforce linked emotion region pattern.
+            """Evo hypothesis confirmed — reinforce linked emotion region pattern.
 
-        Spec §08 §12.2: Evo refines emotion region boundaries during learning.
-        EmotionDetector.on_hypothesis_confirmed() applies updated_pattern when
-        provided, or keeps the current pattern if the event carries no update.
-        """
-        data = getattr(event, "data", {}) or {}
-        hypothesis_id = data.get("hypothesis_id", "")
-        updated_pattern: dict[str, str] | None = data.get("updated_pattern")
-        if hypothesis_id:
-            self._emotion_detector.on_hypothesis_confirmed(hypothesis_id, updated_pattern)
-            logger.debug("soma_emotion_hypothesis_confirmed", hypothesis_id=hypothesis_id)
+            Spec §08 §12.2: Evo refines emotion region boundaries during learning.
+            EmotionDetector.on_hypothesis_confirmed() applies updated_pattern when
+            provided, or keeps the current pattern if the event carries no update.
+            """
+            data = getattr(event, "data", {}) or {}
+            hypothesis_id = data.get("hypothesis_id", "")
+            updated_pattern: dict[str, str] | None = data.get("updated_pattern")
+            if hypothesis_id:
+                self._emotion_detector.on_hypothesis_confirmed(hypothesis_id, updated_pattern)
+                logger.debug("soma_emotion_hypothesis_confirmed", hypothesis_id=hypothesis_id)
 
     async def _on_hypothesis_refuted(self, event: Any) -> None:
         """Evo hypothesis refuted — revert linked emotion region to hardcoded default.

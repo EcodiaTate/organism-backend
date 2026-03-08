@@ -30,7 +30,7 @@ from primitives.memory_trace import MemoryTrace  # noqa: TC001 — Pydantic need
 
 
 class ErrorType(enum.StrEnum):
-    """The six dimensions along which a prediction can fail."""
+    """The seven dimensions along which a prediction can fail."""
 
     CONTENT = "content"       # World model predicted different content
     TEMPORAL = "temporal"     # World model predicted different timing
@@ -38,6 +38,7 @@ class ErrorType(enum.StrEnum):
     SOURCE = "source"         # World model predicted different origin
     CATEGORY = "category"     # World model predicted a different type entirely
     CAUSAL = "causal"         # World model predicted different causes/effects
+    ECONOMIC = "economic"     # Revenue/cost model diverged from actuals
 
 
 class InternalErrorType(enum.StrEnum):
@@ -59,6 +60,7 @@ class ErrorRoute(enum.StrEnum):
     EQUOR = "equor"             # Constitutional drift -> governance
     ONEIROS = "oneiros"         # Unprocessed backlog -> sleep pressure
     THREAD = "thread"           # Behavioral inconsistency -> narrative coherence
+    OIKOS = "oikos"             # Economic errors -> metabolic system
 
 
 # ---------------------------------------------------------------------------
@@ -68,12 +70,13 @@ class ErrorRoute(enum.StrEnum):
 # ---------------------------------------------------------------------------
 
 DEFAULT_ERROR_WEIGHTS: dict[str, float] = {
-    ErrorType.CONTENT: 0.20,
-    ErrorType.TEMPORAL: 0.10,
-    ErrorType.MAGNITUDE: 0.15,
-    ErrorType.SOURCE: 0.15,
-    ErrorType.CATEGORY: 0.30,
-    ErrorType.CAUSAL: 0.10,
+    ErrorType.CONTENT: 0.18,
+    ErrorType.TEMPORAL: 0.09,
+    ErrorType.MAGNITUDE: 0.13,
+    ErrorType.SOURCE: 0.13,
+    ErrorType.CATEGORY: 0.27,   # Weighted highest — wrong ontology is most alarming
+    ErrorType.CAUSAL: 0.08,
+    ErrorType.ECONOMIC: 0.12,   # Revenue/cost divergence — pre-crisis early warning
 }
 
 
@@ -136,7 +139,7 @@ class FoveaPredictionError(EOSBaseModel):
     the world model's prediction, decomposed by error type with independent
     precision weights per component.
 
-    Salience = sum(component_i * precision_i * learned_weight_i) for i in 1..6
+    Salience = sum(component_i * precision_i * learned_weight_i) for i in 1..7
     """
 
     id: str = Field(default_factory=new_id)
@@ -151,6 +154,7 @@ class FoveaPredictionError(EOSBaseModel):
     source_error: float = 0.0
     category_error: float = 0.0
     causal_error: float = 0.0
+    economic_error: float = 0.0  # Revenue/cost model divergence [0, 1]
 
     # Per-component precision weights (learned, independent per dimension)
     component_precisions: dict[str, float] = Field(
@@ -223,6 +227,14 @@ class FoveaPredictionError(EOSBaseModel):
             self.routes.append(ErrorRoute.EQUOR)
         if self.constitutional_mismatch > 0.5:
             self.routes.append(ErrorRoute.ONEIROS)
+        # Economic errors route to Oikos (metabolic system) and Evo (hypothesis
+        # generation) — Oikos needs to know Fovea has detected a revenue divergence
+        # before it escalates to starvation.
+        if self.economic_error > 0.3:
+            if ErrorRoute.OIKOS not in self.routes:
+                self.routes.append(ErrorRoute.OIKOS)
+            if ErrorRoute.EVO not in self.routes:
+                self.routes.append(ErrorRoute.EVO)
 
     def get_dominant_error_type(self) -> ErrorType:
         """Return the error type with the highest weighted contribution."""
@@ -246,6 +258,7 @@ class FoveaPredictionError(EOSBaseModel):
             ErrorType.SOURCE: self.source_error,
             ErrorType.CATEGORY: self.category_error,
             ErrorType.CAUSAL: self.causal_error,
+            ErrorType.ECONOMIC: self.economic_error,
         }
 
     def get_signature(self) -> str:
@@ -370,6 +383,7 @@ class AttentionProfile(EOSBaseModel):
     mean_source_error: float = 0.0
     mean_category_error: float = 0.0
     mean_causal_error: float = 0.0
+    mean_economic_error: float = 0.0
     current_ignition_threshold: float = 0.0
     habituated_pattern_count: int = 0
     highest_recent_error_summary: str | None = None

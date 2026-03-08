@@ -414,6 +414,36 @@ def _constitutional_summary_from_reasoning(reasoning: str) -> str:
     )
 
 
+# ─── Scaffold validation ──────────────────────────────────────────────────────
+
+_SCAFFOLD_STEPS = [
+    "## Step 1:",
+    "## Step 2:",
+    "## Step 3:",
+    "## Step 4:",
+    "## Step 5:",
+]
+
+
+def validate(example: dict[str, Any]) -> bool:
+    """
+    Return True if the example's reasoning_trace contains at least 3 of the
+    5 scaffold step headers.  Used by the exporter to gate quality_tier.
+
+    Works on the raw RETrainingDatapoint dict (checks `reasoning_trace` field)
+    or on a pre-formatted training example (checks the assistant `content`).
+    """
+    text = example.get("reasoning_trace", "")
+    # Also check formatted assistant content if present
+    for msg in example.get("messages", []):
+        if msg.get("role") == "assistant":
+            text = text + "\n" + msg.get("content", "")
+    if not text:
+        return False
+    found = sum(1 for step in _SCAFFOLD_STEPS if step in text)
+    return found >= 3
+
+
 # ─── Batch formatting ─────────────────────────────────────────────────────────
 
 

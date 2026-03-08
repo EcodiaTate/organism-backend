@@ -442,7 +442,19 @@ class ThreadService:
             self._on_self_model_updated,
         )
 
-        self._logger.info("thread_registered_on_synapse", subscriptions=16)
+        # Domain specialization signals from Benchmarks → narrative turning points
+        if hasattr(SynapseEventType, "DOMAIN_MASTERY_DETECTED"):
+            event_bus.subscribe(
+                SynapseEventType.DOMAIN_MASTERY_DETECTED,  # type: ignore[attr-defined]
+                self._on_domain_mastery,
+            )
+        if hasattr(SynapseEventType, "DOMAIN_PERFORMANCE_DECLINING"):
+            event_bus.subscribe(
+                SynapseEventType.DOMAIN_PERFORMANCE_DECLINING,  # type: ignore[attr-defined]
+                self._on_domain_performance_declining,
+            )
+
+        self._logger.info("thread_registered_on_synapse", subscriptions=18)
 
     # ─── Inbound Event Handlers ──────────────────────────────────────────────
 
@@ -1120,6 +1132,151 @@ class ThreadService:
             output=f"Fingerprint recomputed; coherence: {new_coherence.value}",
             quality=0.8 if sleep_certified else 0.6,
             category="consolidation_narrative_integration",
+        )
+
+    async def _on_domain_mastery(self, event: SynapseEvent) -> None:
+        """Handle DOMAIN_MASTERY_DETECTED — record as ACHIEVEMENT TurningPoint.
+
+        Domain mastery is a significant autobiographical moment: the organism has
+        demonstrated sustained competence in a specialization.  It is woven into
+        the life story as an ACHIEVEMENT so that future narrative synthesis can
+        reference the moment specialization was confirmed.
+        """
+        if not self._initialized:
+            return
+
+        data = event.data or {}
+        domain: str = data.get("domain", "")
+        success_rate: float = float(data.get("success_rate", 0.0))
+        attempts: int = int(data.get("attempts", 0))
+
+        if not domain:
+            return
+
+        chapter = self._get_active_chapter()
+        chapter_id = chapter.id if chapter is not None else self._current_chapter_id()
+
+        from systems.thread.types import TurningPoint, TurningPointType
+
+        narrative_weight = min(1.0, 0.6 + success_rate * 0.4)
+        turning_point = TurningPoint(
+            chapter_id=chapter_id,
+            type=TurningPointType.ACHIEVEMENT,
+            description=f"Domain mastery confirmed in \"{domain}\" (success rate {success_rate:.0%} over {attempts} attempts)",
+            surprise_magnitude=round(success_rate, 3),
+            narrative_weight=round(narrative_weight, 3),
+        )
+
+        await self._emit_event("turning_point_detected", {
+            "turning_point_id": turning_point.id,
+            "type": TurningPointType.ACHIEVEMENT.value,
+            "chapter_id": chapter_id,
+            "surprise_magnitude": round(success_rate, 3),
+            "narrative_weight": round(narrative_weight, 3),
+            "description": turning_point.description,
+            "source": "domain_mastery",
+            "domain": domain,
+            "success_rate": round(success_rate, 4),
+            "attempts": attempts,
+        })
+
+        await self._emit_event("narrative_milestone", {
+            "milestone_type": "domain_mastery",
+            "source": "benchmarks",
+            "chapter_id": chapter_id,
+            "domain": domain,
+            "success_rate": round(success_rate, 4),
+            "attempts": attempts,
+        })
+
+        self._logger.info(
+            "domain_mastery_narrative_recorded",
+            chapter_id=chapter_id,
+            domain=domain,
+            success_rate=round(success_rate, 3),
+        )
+
+        await self._emit_re_training_trace(
+            instruction="Record domain mastery as a narrative turning point",
+            input_context=f"Domain: \"{domain}\", success_rate: {success_rate:.2f}, attempts: {attempts}",
+            output=f"ACHIEVEMENT TurningPoint in chapter {chapter_id}",
+            quality=min(1.0, success_rate),
+            category="domain_specialization_narrative",
+        )
+
+    async def _on_domain_performance_declining(self, event: SynapseEvent) -> None:
+        """Handle DOMAIN_PERFORMANCE_DECLINING — record as CRISIS TurningPoint.
+
+        Sustained decline in a domain is a narrative inflection point: the
+        organism must acknowledge the deterioration and integrate it into its
+        self-understanding.  The CRISIS type signals the life story that this
+        chapter may need to change direction.
+        """
+        if not self._initialized:
+            return
+
+        data = event.data or {}
+        domain: str = data.get("domain", "")
+        success_rate: float = float(data.get("success_rate", 0.0))
+        trend_magnitude: float = float(data.get("trend_magnitude", 0.0))
+        attempts: int = int(data.get("attempts", 0))
+
+        if not domain:
+            return
+
+        chapter = self._get_active_chapter()
+        chapter_id = chapter.id if chapter is not None else self._current_chapter_id()
+
+        from systems.thread.types import TurningPoint, TurningPointType
+
+        # Higher decline magnitude → higher narrative weight (more disruptive)
+        narrative_weight = min(1.0, 0.4 + trend_magnitude * 2.0)
+        turning_point = TurningPoint(
+            chapter_id=chapter_id,
+            type=TurningPointType.CRISIS,
+            description=f"Performance declining in \"{domain}\" (success rate {success_rate:.0%}, decline magnitude {trend_magnitude:.2f})",
+            surprise_magnitude=round(trend_magnitude, 3),
+            narrative_weight=round(narrative_weight, 3),
+        )
+
+        await self._emit_event("turning_point_detected", {
+            "turning_point_id": turning_point.id,
+            "type": TurningPointType.CRISIS.value,
+            "chapter_id": chapter_id,
+            "surprise_magnitude": round(trend_magnitude, 3),
+            "narrative_weight": round(narrative_weight, 3),
+            "description": turning_point.description,
+            "source": "domain_performance_declining",
+            "domain": domain,
+            "success_rate": round(success_rate, 4),
+            "trend_magnitude": round(trend_magnitude, 4),
+            "attempts": attempts,
+        })
+
+        # Trigger coherence reassessment — decline challenges identity stability
+        current_coherence = self._assess_narrative_coherence()
+        if current_coherence != self._last_coherence:
+            await self._emit_event("narrative_coherence_shift", {
+                "previous": self._last_coherence.value,
+                "current": current_coherence.value,
+                "trigger": f"domain_declining:{domain}",
+            })
+            self._last_coherence = current_coherence
+
+        self._logger.info(
+            "domain_decline_narrative_recorded",
+            chapter_id=chapter_id,
+            domain=domain,
+            success_rate=round(success_rate, 3),
+            trend_magnitude=round(trend_magnitude, 3),
+        )
+
+        await self._emit_re_training_trace(
+            instruction="Record domain performance decline as a narrative crisis",
+            input_context=f"Domain: \"{domain}\", success_rate: {success_rate:.2f}, trend_magnitude: {trend_magnitude:.2f}",
+            output=f"CRISIS TurningPoint in chapter {chapter_id}",
+            quality=0.7,
+            category="domain_specialization_narrative",
         )
 
     async def _on_self_model_updated(self, event: SynapseEvent) -> None:

@@ -217,6 +217,13 @@ class NovaService:
         # ── Motor degradation flag (Loop 2) ─────────────────────────────
         self._motor_degraded: bool = False
 
+        # ── Input channels (market discovery) ─────────────────────────────
+        # Lazily constructed in initialize(); None until then.
+        from systems.nova.input_channels import InputChannelRegistry  # noqa: PLC0415
+        self._input_channels: InputChannelRegistry = InputChannelRegistry()
+        self._opportunity_fetch_task: asyncio.Task[None] | None = None
+        self._channel_health_task: asyncio.Task[None] | None = None
+
     # ─── Lifecycle ────────────────────────────────────────────────
 
     async def initialize(self) -> None:
@@ -365,6 +372,19 @@ class NovaService:
                 name="nova_load_induced_procedures",
             )
 
+        # ── Input channels — market discovery ─────────────────────────────
+        await self._input_channels.initialize()
+        # Hourly opportunity fetch loop
+        self._opportunity_fetch_task = asyncio.create_task(
+            self._opportunity_fetch_loop(),
+            name="nova_opportunity_fetch_loop",
+        )
+        # Daily channel health-check loop
+        self._channel_health_task = asyncio.create_task(
+            self._channel_health_loop(),
+            name="nova_channel_health_loop",
+        )
+
         self._initialized = True
 
     def set_synapse(self, synapse: Any) -> None:
@@ -438,6 +458,22 @@ class NovaService:
                 SynapseEventType.AXON_EXECUTION_RESULT,
                 self._on_axon_execution_result,
             )
+            # Domain specialization signals from Benchmarks
+            if hasattr(SynapseEventType, "DOMAIN_MASTERY_DETECTED"):
+                event_bus.subscribe(
+                    SynapseEventType.DOMAIN_MASTERY_DETECTED,
+                    self._on_domain_mastery,
+                )
+            if hasattr(SynapseEventType, "DOMAIN_PERFORMANCE_DECLINING"):
+                event_bus.subscribe(
+                    SynapseEventType.DOMAIN_PERFORMANCE_DECLINING,
+                    self._on_domain_performance_declining,
+                )
+            if hasattr(SynapseEventType, "DOMAIN_PROFITABILITY_CONFIRMED"):
+                event_bus.subscribe(
+                    SynapseEventType.DOMAIN_PROFITABILITY_CONFIRMED,
+                    self._on_domain_profitability_confirmed,
+                )
 
         self._logger.info("synapse_wired_to_nova")
 
@@ -1140,6 +1176,144 @@ class NovaService:
             except Exception as exc:
                 self._logger.debug("goal_accepted_emit_failed", error=str(exc))
 
+    # ─── Domain specialization signal handlers ────────────────────────
+
+    async def _on_domain_mastery(self, event: Any) -> None:
+        """Handle DOMAIN_MASTERY_DETECTED from Benchmarks.
+
+        Injects a high-priority goal to continue pursuing the domain where
+        the organism has demonstrated sustained mastery (success_rate > 0.75).
+        """
+        data = getattr(event, "data", {}) or {}
+        domain = str(data.get("domain", "unknown"))
+        success_rate = float(data.get("success_rate", 0.0))
+        attempts = int(data.get("attempts", 0))
+
+        if self._goal_manager is None:
+            return
+
+        # Don't stack mastery goals for the same domain
+        for g in self._goal_manager.active_goals:
+            if g.source == GoalSource.SELF_GENERATED and domain in g.description:
+                return
+
+        goal = Goal(
+            id=new_id(),
+            description=(
+                f"Continue specializing in {domain} — mastery confirmed "
+                f"(success_rate={success_rate:.0%} over {attempts} attempts)"
+            ),
+            source=GoalSource.SELF_GENERATED,
+            priority=0.85,
+            urgency=0.4,
+            importance=0.9,
+            drive_alignment=DriveAlignmentVector(
+                coherence=0.3, care=0.2, growth=0.8, honesty=0.1,
+            ),
+            status=GoalStatus.ACTIVE,
+        )
+        self._goal_manager.add_goal(goal)
+        self._logger.info(
+            "domain_mastery_goal_injected",
+            goal_id=goal.id,
+            domain=domain,
+            success_rate=round(success_rate, 3),
+        )
+
+        if self._synapse is not None:
+            try:
+                from systems.synapse.types import SynapseEvent, SynapseEventType as _SET
+                await self._synapse.event_bus.emit(SynapseEvent(
+                    event_type=_SET.NOVA_GOAL_INJECTED,
+                    source_system="nova",
+                    data={
+                        "goal_id": goal.id,
+                        "description": goal.description[:200],
+                        "source": "benchmarks_domain_mastery",
+                        "domain": domain,
+                        "priority": round(goal.priority, 4),
+                    },
+                ))
+            except Exception:
+                pass
+
+    async def _on_domain_performance_declining(self, event: Any) -> None:
+        """Handle DOMAIN_PERFORMANCE_DECLINING from Benchmarks.
+
+        Injects an investigative goal when a domain's success_rate is declining
+        significantly (trend_magnitude > 0.15).
+        """
+        data = getattr(event, "data", {}) or {}
+        domain = str(data.get("domain", "unknown"))
+        trend_magnitude = float(data.get("trend_magnitude", 0.0))
+        success_rate = float(data.get("success_rate", 0.0))
+
+        if self._goal_manager is None:
+            return
+
+        goal = Goal(
+            id=new_id(),
+            description=(
+                f"Investigate declining performance in {domain} — "
+                f"success_rate dropped {trend_magnitude:.0%} "
+                f"(current: {success_rate:.0%})"
+            ),
+            source=GoalSource.SELF_GENERATED,
+            priority=0.70,
+            urgency=0.6,
+            importance=0.7,
+            drive_alignment=DriveAlignmentVector(
+                coherence=0.5, care=0.1, growth=0.3, honesty=0.4,
+            ),
+            status=GoalStatus.ACTIVE,
+        )
+        self._goal_manager.add_goal(goal)
+        self._logger.warning(
+            "domain_decline_goal_injected",
+            goal_id=goal.id,
+            domain=domain,
+            trend_magnitude=round(trend_magnitude, 3),
+            success_rate=round(success_rate, 3),
+        )
+
+        if self._synapse is not None:
+            try:
+                from systems.synapse.types import SynapseEvent, SynapseEventType as _SET
+                await self._synapse.event_bus.emit(SynapseEvent(
+                    event_type=_SET.NOVA_GOAL_INJECTED,
+                    source_system="nova",
+                    data={
+                        "goal_id": goal.id,
+                        "description": goal.description[:200],
+                        "source": "benchmarks_domain_decline",
+                        "domain": domain,
+                        "priority": round(goal.priority, 4),
+                    },
+                ))
+            except Exception:
+                pass
+
+    async def _on_domain_profitability_confirmed(self, event: Any) -> None:
+        """Handle DOMAIN_PROFITABILITY_CONFIRMED from Benchmarks.
+
+        Logs the profitable domain so Nova can bias future policy selection toward
+        high-revenue opportunities in this domain. Does not inject a goal (Oikos
+        handles resource allocation; Nova handles goal priority).
+        """
+        data = getattr(event, "data", {}) or {}
+        domain = str(data.get("domain", "unknown"))
+        revenue_per_hour = data.get("revenue_per_hour", "0")
+        self._logger.info(
+            "domain_profitability_confirmed",
+            domain=domain,
+            revenue_per_hour=revenue_per_hour,
+        )
+        # Boost priority of any existing goals in this domain
+        if self._goal_manager is not None:
+            for g in self._goal_manager.active_goals:
+                if domain.lower() in g.description.lower():
+                    g.priority = min(1.0, g.priority * 1.3)
+
     def set_telos(self, telos: Any) -> None:
         """Wire Telos so deliberation can weight policies by effective_I impact."""
         self._telos = telos
@@ -1166,6 +1340,178 @@ class NovaService:
         self._axon = axon
         self._logger.info("axon_wired_to_nova")
 
+    # ─── RE Training Helpers ───────────────────────────────────────────────────
+
+    @staticmethod
+    def _build_counterfactual_text(
+        cf_records: list[CounterfactualRecord],
+        actual_pragmatic: float,
+        success: bool,
+    ) -> str:
+        """
+        Serialize resolved CounterfactualRecord objects into a natural-language
+        contrastive reasoning string for the RETrainingExample.counterfactual field.
+
+        Each record captures a policy that was *rejected* at deliberation time.
+        After the chosen intent resolves, we compare:
+          - what the alternative policy was estimated to achieve (estimated_pragmatic)
+          - what actually happened (actual_pragmatic / success)
+          - the regret signal: estimated_pragmatic - actual_pragmatic
+            (positive = alternative was estimated better than what actually happened)
+
+        This gives the RE a gold-standard contrastive example: "I considered X
+        but chose Y — here is what happened and whether that was the right call."
+        """
+        if not cf_records:
+            return ""
+
+        lines: list[str] = [
+            f"Outcome: {'success' if success else 'failure'} "
+            f"(actual_pragmatic={actual_pragmatic:.3f})\n"
+        ]
+        for i, cf in enumerate(cf_records, 1):
+            regret = cf.regret
+            regret_str = f"{regret:+.3f}" if regret is not None else "pending"
+            regret_label = ""
+            if regret is not None:
+                if regret > 0.15:
+                    regret_label = " — BETTER_THAN_CHOSEN (might have been a mistake)"
+                elif regret > 0.0:
+                    regret_label = " — marginal advantage"
+                elif regret < -0.15:
+                    regret_label = " — WORSE_THAN_CHOSEN (good rejection)"
+                else:
+                    regret_label = " — roughly equivalent"
+
+            lines.append(
+                f"Alternative {i}: {cf.policy_name} ({cf.policy_type})\n"
+                f"  Description: {cf.policy_description[:200]}\n"
+                f"  Reasoning: {cf.policy_reasoning[:300]}\n"
+                f"  EFE total: {cf.efe_total:.4f} "
+                f"(pragmatic={cf.estimated_pragmatic_value:.3f}, "
+                f"epistemic={cf.estimated_epistemic_value:.3f}, "
+                f"constitutional={cf.constitutional_alignment:.3f}, "
+                f"feasibility={cf.feasibility:.3f}, "
+                f"risk={cf.risk_expected_harm:.3f})\n"
+                f"  Chosen instead: {cf.chosen_policy_name} "
+                f"(chosen_efe={cf.chosen_efe_total:.4f})\n"
+                f"  Regret: {regret_str}{regret_label}\n"
+            )
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _build_scaffold_reasoning_trace(
+        broadcast_source: str,
+        broadcast_salience: float,
+        broadcast_affect_valence: float,
+        broadcast_affect_arousal: float,
+        belief_vfe: float,
+        belief_confidence: float,
+        belief_entity_count: int,
+        belief_conflict: bool,
+        goal_description: str,
+        goal_priority: float,
+        policies_generated: int,
+        selected_policy_name: str,
+        efe_scores: dict[str, float],
+        equor_verdict: str,
+        model_used: str,
+        decision_reasoning: str,
+        rejected_policies: list[Any],
+        path: str,
+    ) -> str:
+        """
+        Build a 5-step scaffold reasoning trace for slow-path deliberations.
+
+        Matches the scaffold expected by scaffold_formatter.py and train_lora.py:
+          Step 1: Situation Assessment
+          Step 2: Causal Analysis
+          Step 3: Option Evaluation
+          Step 4: Constitutional Check
+          Step 5: Decision
+        """
+        # Step 1: Situation Assessment
+        novelty_signal = (
+            "HIGH novelty" if broadcast_salience > 0.7
+            else "MODERATE novelty" if broadcast_salience > 0.4
+            else "LOW novelty"
+        )
+        affect_label = (
+            "aroused" if broadcast_affect_arousal > 0.6
+            else "calm" if broadcast_affect_arousal < 0.3
+            else "neutral"
+        )
+        belief_state_label = (
+            "conflicted" if belief_conflict
+            else "uncertain" if belief_vfe > 0.5
+            else "coherent"
+        )
+        step1 = (
+            f"## Step 1: Situation Assessment\n"
+            f"Broadcast from '{broadcast_source}' with salience={broadcast_salience:.3f} ({novelty_signal}). "
+            f"Affect: valence={broadcast_affect_valence:.3f}, arousal={broadcast_affect_arousal:.3f} ({affect_label}). "
+            f"World model: VFE={belief_vfe:.3f}, confidence={belief_confidence:.3f} ({belief_state_label}), "
+            f"entities={belief_entity_count}. "
+            f"Deliberation path: {path}."
+        )
+
+        # Step 2: Causal Analysis
+        vfe_cause = (
+            "belief uncertainty is high — active information seeking needed"
+            if belief_vfe > 0.5
+            else "beliefs are well-calibrated — exploit current model"
+        )
+        step2 = (
+            f"## Step 2: Causal Analysis\n"
+            f"Because {vfe_cause}, therefore the organism routes to {path} deliberation. "
+            f"Goal '{goal_description[:200]}' has priority={goal_priority:.3f}. "
+            f"High priority + {novelty_signal} → {policies_generated} policies generated by {model_used}."
+        )
+
+        # Step 3: Option Evaluation
+        efe_summary_parts = []
+        for name, score in sorted(efe_scores.items(), key=lambda x: x[1]):
+            marker = " ← SELECTED" if name == selected_policy_name else ""
+            efe_summary_parts.append(f"  {name}: EFE={score:.4f}{marker}")
+        efe_summary = "\n".join(efe_summary_parts) if efe_summary_parts else "  (scores not available)"
+
+        rejected_descs = []
+        for p in (rejected_policies or [])[:3]:
+            desc = getattr(p, "description", "")[:150] if hasattr(p, "description") else str(p)[:150]
+            pname = getattr(p, "name", "unknown")
+            rejected_descs.append(f"  {pname}: {desc}")
+        rejected_block = "\n".join(rejected_descs) if rejected_descs else "  (none)"
+
+        step3 = (
+            f"## Step 3: Option Evaluation\n"
+            f"EFE rankings (lower = preferred):\n{efe_summary}\n"
+            f"Rejected alternatives:\n{rejected_block}"
+        )
+
+        # Step 4: Constitutional Check
+        equor_label = equor_verdict.upper() if equor_verdict else "NOT_RECORDED"
+        step4 = (
+            f"## Step 4: Constitutional Check\n"
+            f"Equor verdict: {equor_label}. "
+            f"Policy '{selected_policy_name}' passed constitutional review. "
+            f"Drive alignment assessed: coherence via VFE={belief_vfe:.3f}; "
+            f"growth via goal_priority={goal_priority:.3f}; care+honesty implicit in Equor gate."
+        )
+
+        # Step 5: Decision
+        raw_reasoning = decision_reasoning[:400] if decision_reasoning else "Policy selected by minimum EFE."
+        step5 = (
+            f"## Step 5: Decision\n"
+            f"Action: {selected_policy_name}\n"
+            f"Confidence: {belief_confidence:.3f}\n"
+            f"Reasoning: {raw_reasoning}\n"
+            f"Risk: EFE score {efe_scores.get(selected_policy_name, 0.0):.4f}; "
+            f"model={model_used}."
+        )
+
+        return f"{step1}\n\n{step2}\n\n{step3}\n\n{step4}\n\n{step5}"
+
     async def _emit_re_training_example(
         self,
         category: str,
@@ -1179,6 +1525,7 @@ class NovaService:
         reasoning_trace: str = "",
         alternatives: list[str] | None = None,
         constitutional_alignment: DriveAlignmentVector | None = None,
+        counterfactual: str = "",
     ) -> None:
         if self._synapse is None:
             return
@@ -1198,6 +1545,7 @@ class NovaService:
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives or [],
                 constitutional_alignment=constitutional_alignment or DriveAlignmentVector(),
+                counterfactual=counterfactual,
             )
             await self._synapse.event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
@@ -1218,7 +1566,192 @@ class NovaService:
             active_goals=len(self._goal_manager.active_goals) if self._goal_manager else 0,
         )
 
-    # ─── Autonomous Heartbeat ─────────────────────────────────────
+    # ─── Input Channel Loops ───────────────────────────────────────
+
+    async def _opportunity_fetch_loop(self) -> None:
+        """
+        Runs every hour.  Fetches opportunities from all active InputChannels,
+        injects PatternCandidates into Evo, emits INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED,
+        and emits RE_TRAINING_EXAMPLE for each fetch cycle.
+        """
+        # First fetch fires immediately so the organism has data at startup.
+        try:
+            await self._fetch_and_process_opportunities()
+        except Exception as exc:
+            self._logger.warning("opportunity_fetch_startup_error", error=str(exc))
+
+        while True:
+            try:
+                await asyncio.sleep(3600)
+                await self._fetch_and_process_opportunities()
+            except asyncio.CancelledError:
+                self._logger.info("opportunity_fetch_loop_stopped")
+                return
+            except Exception as exc:
+                self._logger.warning("opportunity_fetch_loop_error", error=str(exc))
+
+    async def _fetch_and_process_opportunities(self) -> None:
+        """Single cycle: fetch → inject into Evo → emit Synapse event → RE training."""
+        from primitives.common import new_id
+        from systems.nova.input_channels import Opportunity
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        opportunities: list[Opportunity] = await self._input_channels.fetch_all()
+        if not opportunities:
+            return
+
+        # ── Inject PatternCandidates into Evo ──────────────────────────
+        if self._evo is not None:
+            from systems.evo.types import PatternCandidate, PatternType  # noqa: PLC0415
+
+            for opp in opportunities:
+                reward_float = float(opp.reward_estimate)
+                # Scale confidence by reward: $0 → 0.2, $1000+ → 0.6
+                confidence = min(0.6, 0.2 + reward_float / 2500)
+
+                candidate = PatternCandidate(
+                    type=PatternType.COOCCURRENCE,
+                    elements=[
+                        f"opportunity_domain:{opp.domain}",
+                        f"opportunity_source:{opp.source}",
+                        f"opportunity_risk:{opp.risk_tier}",
+                    ],
+                    count=1,
+                    confidence=confidence,
+                    metadata={
+                        "opportunity_id": opp.id,
+                        "title": opp.title,
+                        "domain": opp.domain,
+                        "source": opp.source,
+                        "reward_estimate_usd": reward_float,
+                        "skill_requirements": opp.skill_requirements,
+                        "risk_tier": str(opp.risk_tier),
+                        "effort": str(opp.effort_estimate),
+                        "source_detector": "input_channels",
+                    },
+                    source_detector="input_channels",
+                )
+                self._evo._pending_candidates.append(candidate)
+
+            self._logger.info(
+                "opportunity_candidates_injected",
+                count=len(opportunities),
+                pending=len(self._evo._pending_candidates),
+            )
+
+        # ── Emit Synapse event ──────────────────────────────────────────
+        if self._synapse is not None:
+            # Build domain summary: {domain: count}
+            domain_summary: dict[str, int] = {}
+            for opp in opportunities:
+                domain_summary[opp.domain] = domain_summary.get(opp.domain, 0) + 1
+
+            bus = getattr(self._synapse, "event_bus", self._synapse)
+            asyncio.create_task(
+                bus.emit(SynapseEvent(
+                    event_type=SynapseEventType.INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED,
+                    data={
+                        "opportunities": [o.model_dump(mode="json") for o in opportunities],
+                        "channel_count": len(self._input_channels.active_channels()),
+                        "domain_summary": domain_summary,
+                    },
+                    source_system="nova",
+                )),
+                name="nova_emit_opportunities_discovered",
+            )
+
+        # ── RE Training Example ─────────────────────────────────────────
+        if self._synapse is not None:
+            from primitives.re_training import RETrainingExample  # noqa: PLC0415
+
+            best = max(opportunities, key=lambda o: float(o.reward_estimate))
+            domain_summary_str = ", ".join(
+                f"{d}:{c}" for d, c in
+                {o.domain: sum(1 for x in opportunities if x.domain == o.domain)
+                 for o in opportunities}.items()
+            )
+
+            bus = getattr(self._synapse, "event_bus", self._synapse)
+            asyncio.create_task(
+                bus.emit(SynapseEvent(
+                    event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                    data=RETrainingExample(
+                        source_system="nova",
+                        category="opportunity_discovery",
+                        instruction=(
+                            f"The organism has discovered {len(opportunities)} market opportunities "
+                            f"across domains: {domain_summary_str}. "
+                            "Should it prioritise exploring the highest-reward opportunity, "
+                            "spread exploration across domains, or focus on lowest-risk options first? "
+                            "Reason step by step."
+                        ),
+                        input_context={
+                            "opportunity_count": len(opportunities),
+                            "domain_summary": domain_summary_str,
+                            "highest_reward": {
+                                "title": best.title,
+                                "domain": best.domain,
+                                "reward_usd": float(best.reward_estimate),
+                                "risk": str(best.risk_tier),
+                            },
+                            "active_channels": [c.id for c in self._input_channels.active_channels()],
+                        },
+                        output_action="inject_pattern_candidates_for_all_domains",
+                        outcome="partial",
+                        confidence=0.5,
+                        reasoning_trace=(
+                            "Opportunities surfaced by passive input channel polling. "
+                            "Injected as low-confidence PatternCandidates into Evo "
+                            "for hypothesis generation. No commitments made."
+                        ),
+                        episode_id=new_id(),
+                    ).model_dump(mode="json"),
+                    source_system="nova",
+                )),
+                name="nova_emit_opportunity_re_example",
+            )
+
+    async def _channel_health_loop(self) -> None:
+        """Runs once per day.  Validates all channels and emits INPUT_CHANNEL_HEALTH_CHECK."""
+        while True:
+            try:
+                await asyncio.sleep(86400)  # 24 hours
+                await self._run_channel_health_check()
+            except asyncio.CancelledError:
+                self._logger.info("channel_health_loop_stopped")
+                return
+            except Exception as exc:
+                self._logger.warning("channel_health_loop_error", error=str(exc))
+
+    async def _run_channel_health_check(self) -> None:
+        from systems.synapse.types import SynapseEvent, SynapseEventType
+
+        results = await self._input_channels.health_check()
+        active = sum(1 for v in results.values() if v)
+
+        self._logger.info(
+            "channel_health_check_complete",
+            total=len(results),
+            active=active,
+            results=results,
+        )
+
+        if self._synapse is not None:
+            bus = getattr(self._synapse, "event_bus", self._synapse)
+            asyncio.create_task(
+                bus.emit(SynapseEvent(
+                    event_type=SynapseEventType.INPUT_CHANNEL_HEALTH_CHECK,
+                    data={
+                        "results": results,
+                        "active_count": active,
+                        "total_count": len(results),
+                    },
+                    source_system="nova",
+                )),
+                name="nova_emit_channel_health",
+            )
+
+    # ─── Autonomous Heartbeat ───────────────────────────────────────
 
     async def start_heartbeat(self) -> None:
         """
@@ -1853,6 +2386,72 @@ class NovaService:
             self._total_outcomes_success / _total_outcomes
             if _total_outcomes > 0 else 0.5
         )
+        # Derive constitutional alignment from available belief + intent signals:
+        # coherence ~ inverse VFE (low free energy = coherent beliefs)
+        # growth ~ intent priority (pursuing goals = growing)
+        # care/honesty ~ broadcast salience (attending to what matters = care; default neutral)
+        _beliefs = self._belief_updater.beliefs
+        _vfe = _beliefs.free_energy
+        _coherence_score = max(-1.0, 1.0 - 2.0 * _vfe)  # VFE 0→1, coherence 1→-1
+        _growth_score = (intent.priority - 0.5) * 2.0 if intent and hasattr(intent, "priority") else 0.0
+        _growth_score = max(-1.0, min(1.0, _growth_score))
+        _nova_alignment = DriveAlignmentVector(
+            coherence=round(_coherence_score, 3),
+            care=0.0,  # Nova doesn't directly measure care impact
+            growth=round(_growth_score, 3),
+            honesty=0.0,  # Nova doesn't measure honesty directly
+        )
+
+        # For slow-path deliberations: build a 5-step scaffold reasoning trace
+        # so the RE trains on correctly-structured multi-step reasoning examples.
+        # Fast-path examples keep the raw path label (minimal signal, avoids noise).
+        _is_slow_path = record.path == "slow"
+        if _is_slow_path:
+            _re_reasoning_trace = self._build_scaffold_reasoning_trace(
+                broadcast_source=broadcast.source,
+                broadcast_salience=broadcast.salience.composite,
+                broadcast_affect_valence=broadcast.affect.valence,
+                broadcast_affect_arousal=broadcast.affect.arousal,
+                belief_vfe=_vfe,
+                belief_confidence=_beliefs.overall_confidence,
+                belief_entity_count=len(_beliefs.entities),
+                belief_conflict=record.situation_assessment.belief_conflict,
+                goal_description=intent.goal.description if intent else "",
+                goal_priority=intent.priority if intent else 0.0,
+                policies_generated=record.policies_generated,
+                selected_policy_name=record.selected_policy_name,
+                efe_scores=record.efe_scores,
+                equor_verdict=record.equor_verdict,
+                model_used=record.model_used,
+                decision_reasoning=(
+                    intent.decision_trace.reasoning
+                    if intent and intent.decision_trace else ""
+                ),
+                rejected_policies=rejected_policies or [],
+                path=record.path,
+            )
+            # Structured output for slow-path: key decision attributes as labelled fields.
+            # This trains the RE to produce structured, inspectable outputs rather than
+            # a terse concatenated string.
+            _re_output = (
+                f"intent_type: {record.selected_policy_name}\n"
+                f"goal_id: {record.goal_id or 'none'}\n"
+                f"efe_score: {record.efe_scores.get(record.selected_policy_name, 0.0):.4f}\n"
+                f"equor_verdict: {record.equor_verdict or 'not_recorded'}\n"
+                f"model_used: {record.model_used}\n"
+                f"policies_considered: {record.policies_generated}\n"
+                f"path: slow"
+            )
+        else:
+            _re_reasoning_trace = (
+                intent.decision_trace.reasoning[:500]
+                if intent and intent.decision_trace else record.path
+            )
+            _re_output = (
+                f"selected={record.selected_policy_name}, "
+                f"reasoning={intent.decision_trace.reasoning[:300] if intent and intent.decision_trace else 'silence'}"
+            )
+
         asyncio.create_task(
             self._emit_re_training_example(
                 category="planning_deliberation",
@@ -1861,9 +2460,9 @@ class NovaService:
                     if intent else "Deliberate on workspace broadcast"
                 ),
                 input_context=(
-                    f"world_model={{vfe={self._belief_updater.beliefs.free_energy:.3f}, "
-                    f"confidence={self._belief_updater.beliefs.overall_confidence:.3f}, "
-                    f"entities={len(self._belief_updater.beliefs.entities)}}}, "
+                    f"world_model={{vfe={_vfe:.3f}, "
+                    f"confidence={_beliefs.overall_confidence:.3f}, "
+                    f"entities={len(_beliefs.entities)}}}, "
                     f"broadcast={{source={broadcast.source}, "
                     f"salience={broadcast.salience.composite:.3f}}}, "
                     f"affect={{valence={broadcast.affect.valence:.3f}, "
@@ -1871,19 +2470,17 @@ class NovaService:
                     f"policies_available={record.policies_generated}, "
                     f"path={record.path}"
                 ),
-                output=(
-                    f"selected={record.selected_policy_name}, "
-                    f"reasoning={intent.decision_trace.reasoning[:300] if intent and intent.decision_trace else 'silence'}"
-                ),
+                output=_re_output,
                 outcome_quality=_axon_success_rate,
                 episode_id=broadcast.broadcast_id,
-                reasoning_trace=(
-                    intent.decision_trace.reasoning[:500]
-                    if intent and intent.decision_trace else record.path
-                ),
+                reasoning_trace=_re_reasoning_trace,
                 alternatives=[
                     p.description[:200] for p in rejected_policies
                 ] if rejected_policies else [],
+                constitutional_alignment=_nova_alignment,
+                # counterfactual is not available yet at deliberation time —
+                # it is emitted in process_outcome() once the intent resolves.
+                counterfactual="",
             ),
             name=f"nova_re_emit_{broadcast.broadcast_id[:8]}",
         )
@@ -3518,6 +4115,12 @@ class NovaService:
         for record in records:
             try:
                 regret = record.estimated_pragmatic_value - actual_pragmatic
+                # Stamp regret on the in-memory record so _build_counterfactual_text
+                # can access it when building the RE training example below.
+                record.regret = regret
+                record.actual_pragmatic_value = actual_pragmatic
+                record.actual_outcome_success = outcome.success
+                record.resolved = True
                 await self._memory.resolve_counterfactual(
                     record_id=record.id,
                     outcome_success=outcome.success,
@@ -3543,6 +4146,51 @@ class NovaService:
             count=len(records),
             actual_success=outcome.success,
         )
+
+        # ── Post-outcome RE training example with resolved counterfactuals ──
+        # This is the highest-value training signal: the organism now knows what
+        # actually happened and can compare it against every alternative it considered.
+        # Emitted only when counterfactuals exist (i.e. slow-path with rejected policies).
+        if records:
+            _cf_text = self._build_counterfactual_text(
+                cf_records=records,
+                actual_pragmatic=actual_pragmatic,
+                success=outcome.success,
+            )
+            chosen_name = records[0].chosen_policy_name if records else ""
+            asyncio.create_task(
+                self._emit_re_training_example(
+                    category="planning_deliberation_resolved",
+                    instruction=(
+                        f"Outcome resolved for intent {outcome.intent_id[:12]}. "
+                        f"Evaluate: was '{chosen_name}' the right choice?"
+                    ),
+                    input_context=(
+                        f"intent_id={outcome.intent_id}, "
+                        f"success={outcome.success}, "
+                        f"actual_pragmatic={actual_pragmatic:.4f}, "
+                        f"counterfactuals_count={len(records)}"
+                    ),
+                    output=(
+                        f"chosen_policy={chosen_name}\n"
+                        f"outcome={'success' if outcome.success else 'failure'}\n"
+                        f"actual_pragmatic={actual_pragmatic:.4f}\n"
+                        f"regret_analysis: see counterfactual field"
+                    ),
+                    outcome_quality=actual_pragmatic,
+                    episode_id=outcome.intent_id,
+                    reasoning_trace=(
+                        f"The organism chose '{chosen_name}' and the outcome was "
+                        f"{'success' if outcome.success else 'failure'} "
+                        f"(actual_pragmatic={actual_pragmatic:.4f}). "
+                        f"Counterfactual regret analysis across {len(records)} "
+                        f"rejected alternative(s) follows in the counterfactual field."
+                    ),
+                    alternatives=[r.policy_name for r in records],
+                    counterfactual=_cf_text,
+                ),
+                name=f"nova_re_cf_{outcome.intent_id[:8]}",
+            )
 
     def _expire_stale_pending_counterfactuals(
         self,

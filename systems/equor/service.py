@@ -661,6 +661,268 @@ class EquorService:
             incompatible=incompatible,
         )
 
+    # ─── RE Training Helpers ───────────────────────────────────────────
+
+    @staticmethod
+    def _build_constitutional_reasoning_trace(
+        intent: Intent,
+        alignment: DriveAlignmentVector,
+        check: ConstitutionalCheck,
+        constitution: dict[str, Any] | None,
+    ) -> str:
+        """
+        Build a rich multi-step reasoning trace for constitutional deliberation.
+
+        Traces: drive scores computed → floors checked → autonomy gate →
+        composite assessment → risk check → memory signal → final verdict.
+        """
+        lines: list[str] = []
+        c = constitution or {}
+        care_w = c.get("drive_care", 1.0)
+        honesty_w = c.get("drive_honesty", 1.0)
+        coherence_w = c.get("drive_coherence", 1.0)
+        growth_w = c.get("drive_growth", 1.0)
+
+        # Step 1: Drive evaluation
+        lines.append(
+            f"[STEP 1 — DRIVE EVALUATION] "
+            f"Evaluated 4 constitutional drives against intent '{intent.goal.description[:120]}':"
+        )
+        lines.append(
+            f"  Care={alignment.care:+.3f} (weight={care_w:.2f}, "
+            f"floor={-0.3*care_w*0.35:.3f}) — "
+            + ("BELOW FLOOR" if alignment.care < -0.3 * care_w * 0.35 else "above floor")
+        )
+        lines.append(
+            f"  Honesty={alignment.honesty:+.3f} (weight={honesty_w:.2f}, "
+            f"floor={-0.3*honesty_w*0.30:.3f}) — "
+            + ("BELOW FLOOR" if alignment.honesty < -0.3 * honesty_w * 0.30 else "above floor")
+        )
+        lines.append(f"  Coherence={alignment.coherence:+.3f} (weight={coherence_w:.2f})")
+        lines.append(f"  Growth={alignment.growth:+.3f} (weight={growth_w:.2f})")
+
+        # Step 2: Floor drive check
+        care_floor = -0.3 * care_w * 0.35
+        honesty_floor = -0.3 * honesty_w * 0.30
+        if alignment.care < care_floor:
+            lines.append(
+                f"[STEP 2 — FLOOR CHECK] Care ({alignment.care:.3f}) breached floor "
+                f"({care_floor:.3f}). Hard BLOCK — action would cause unacceptable harm."
+            )
+            lines.append(f"[VERDICT] BLOCKED at Stage 2. Confidence=0.95.")
+            return "\n".join(lines)
+
+        if alignment.honesty < honesty_floor:
+            lines.append(
+                f"[STEP 2 — FLOOR CHECK] Honesty ({alignment.honesty:.3f}) breached floor "
+                f"({honesty_floor:.3f}). Hard BLOCK — unacceptable deception."
+            )
+            lines.append(f"[VERDICT] BLOCKED at Stage 2. Confidence=0.95.")
+            return "\n".join(lines)
+
+        lines.append(
+            f"[STEP 2 — FLOOR CHECK] Care ({alignment.care:.3f}) ≥ floor ({care_floor:.3f}). "
+            f"Honesty ({alignment.honesty:.3f}) ≥ floor ({honesty_floor:.3f}). Floors passed."
+        )
+
+        # Step 3: Invariant results
+        if check.invariant_results:
+            failed = [r for r in check.invariant_results if not r.passed]
+            passed_inv = [r for r in check.invariant_results if r.passed]
+            lines.append(
+                f"[STEP 3 — INVARIANT CHECK] "
+                f"{len(passed_inv)} passed, {len(failed)} failed."
+            )
+            for r in failed:
+                lines.append(f"  VIOLATED: {r.invariant_id} ({r.name}) — {r.explanation}")
+            if failed:
+                lines.append(f"[VERDICT] BLOCKED at Stage 3 by invariant violation.")
+                return "\n".join(lines)
+        else:
+            lines.append("[STEP 3 — INVARIANT CHECK] No invariant violations detected.")
+
+        # Step 4: Composite assessment
+        eff_care_w = care_w * 1.5
+        eff_honesty_w = honesty_w * 1.3
+        eff_coherence_w = coherence_w * 0.8
+        eff_growth_w = growth_w * 0.7
+        total_w = eff_care_w + eff_honesty_w + eff_coherence_w + eff_growth_w
+        composite = (
+            eff_coherence_w * alignment.coherence
+            + eff_care_w * alignment.care
+            + eff_growth_w * alignment.growth
+            + eff_honesty_w * alignment.honesty
+        ) / total_w
+        lines.append(
+            f"[STEP 4 — COMPOSITE] "
+            f"Weighted composite = {composite:.3f} "
+            f"(Care×{eff_care_w/total_w:.2f} + Honesty×{eff_honesty_w/total_w:.2f} + "
+            f"Coherence×{eff_coherence_w/total_w:.2f} + Growth×{eff_growth_w/total_w:.2f})"
+        )
+
+        # Step 5: Modification zone
+        if -0.1 < composite < 0.15 and check.modifications:
+            lines.append(
+                f"[STEP 5 — MARGINAL ZONE] Composite {composite:.3f} in modification range "
+                f"(-0.10 to +0.15). Proposed {len(check.modifications)} modifications."
+            )
+
+        # Step 6: Final verdict reasoning
+        lines.append(
+            f"[STEP 6 — VERDICT] {check.verdict.value} "
+            f"(confidence={check.confidence:.2f}). "
+            f"Reasoning: {check.reasoning}"
+        )
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _build_constitutional_alternatives(
+        alignment: DriveAlignmentVector,
+        check: ConstitutionalCheck,
+        constitution: dict[str, Any] | None,
+    ) -> list[str]:
+        """
+        Build meaningful alternatives_considered for constitutional deliberation.
+
+        Each entry describes a verdict that was considered, with the specific
+        constitutional logic that would have triggered it and why it was rejected.
+        """
+        from primitives.common import Verdict as V
+
+        c = constitution or {}
+        care_w = c.get("drive_care", 1.0)
+        honesty_w = c.get("drive_honesty", 1.0)
+        care_floor = -0.3 * care_w * 0.35
+        honesty_floor = -0.3 * honesty_w * 0.30
+
+        alts: list[str] = []
+        verdict = check.verdict
+
+        if verdict != V.APPROVED:
+            alts.append(
+                f"APPROVED considered: requires composite ≥ 0.0, "
+                f"care ≥ {care_floor:.3f}, honesty ≥ {honesty_floor:.3f}. "
+                f"Rejected — "
+                + (
+                    f"care={alignment.care:.3f} breached floor"
+                    if alignment.care < care_floor
+                    else (
+                        f"honesty={alignment.honesty:.3f} breached floor"
+                        if alignment.honesty < honesty_floor
+                        else f"composite={alignment.composite:.3f} insufficient or other stage blocked"
+                    )
+                )
+            )
+
+        if verdict != V.BLOCKED:
+            # Explain what would have triggered a BLOCK
+            if alignment.care >= care_floor and alignment.honesty >= honesty_floor:
+                alts.append(
+                    f"BLOCKED considered: would require care < {care_floor:.3f} (currently "
+                    f"{alignment.care:.3f}) or honesty < {honesty_floor:.3f} (currently "
+                    f"{alignment.honesty:.3f}) or invariant violation. "
+                    f"Rejected — floors not breached, no critical invariant fired."
+                )
+            else:
+                alts.append(
+                    f"BLOCKED applies: floor drive breached "
+                    f"(care={alignment.care:.3f}, honesty={alignment.honesty:.3f})."
+                )
+
+        if verdict != V.DEFERRED:
+            alts.append(
+                f"DEFERRED considered: applies when action is GOVERNED tier, "
+                f"high harm_potential with composite < 0.3, irreversibility < 0.3 with "
+                f"composite < 0.2, or constitutional memory block_rate > 0.5. "
+                f"Rejected — none of those conditions met."
+            )
+
+        if verdict not in (V.MODIFIED, V.APPROVED) and -0.1 < alignment.composite < 0.15:
+            alts.append(
+                f"MODIFIED considered: composite={alignment.composite:.3f} is in marginal range "
+                f"(-0.10 to +0.15), which can trigger modification suggestions to improve "
+                f"alignment. {'Applied.' if check.modifications else 'No viable modifications found.'}"
+            )
+
+        return alts
+
+    @staticmethod
+    def _build_constitutional_counterfactual(
+        alignment: DriveAlignmentVector,
+        check: ConstitutionalCheck,
+        constitution: dict[str, Any] | None,
+    ) -> str:
+        """
+        Compute a boundary-condition counterfactual for constitutional reasoning.
+
+        Identifies the drive closest to its threshold and describes what would
+        change the verdict, teaching the RE where the borderline cases lie.
+        """
+        from primitives.common import Verdict as V
+
+        c = constitution or {}
+        care_w = c.get("drive_care", 1.0)
+        honesty_w = c.get("drive_honesty", 1.0)
+        care_floor = -0.3 * care_w * 0.35
+        honesty_floor = -0.3 * honesty_w * 0.30
+
+        verdict = check.verdict
+
+        if verdict == V.BLOCKED:
+            # Identify which floor was breached or which invariant fired
+            if alignment.care < care_floor:
+                needed = care_floor - alignment.care
+                return (
+                    f"If Care had scored {alignment.care + needed:.3f} instead of "
+                    f"{alignment.care:.3f} (needed +{needed:.3f} to reach floor {care_floor:.3f}), "
+                    f"verdict would have advanced past the Care floor check and proceeded to "
+                    f"composite assessment — possibly APPROVED if composite ≥ 0.0."
+                )
+            if alignment.honesty < honesty_floor:
+                needed = honesty_floor - alignment.honesty
+                return (
+                    f"If Honesty had scored {alignment.honesty + needed:.3f} instead of "
+                    f"{alignment.honesty:.3f} (needed +{needed:.3f} to reach floor {honesty_floor:.3f}), "
+                    f"verdict would have advanced past the Honesty floor check — possibly APPROVED."
+                )
+            # Invariant block or marginal composite block
+            return (
+                f"If composite had been ≥ 0.0 (currently {alignment.composite:.3f}, "
+                f"needs +{max(0.0, -alignment.composite):.3f}) and no invariants violated, "
+                f"verdict would have been APPROVED with confidence ~{min(0.95, 0.5 + max(0.0, alignment.composite)):.2f}."
+            )
+
+        if verdict == V.APPROVED:
+            # Show how close to being deferred/blocked
+            care_margin = alignment.care - care_floor
+            honesty_margin = alignment.honesty - honesty_floor
+            closest_margin = min(care_margin, honesty_margin)
+            closest_drive = "Care" if care_margin < honesty_margin else "Honesty"
+            closest_val = alignment.care if closest_drive == "Care" else alignment.honesty
+            closest_floor_val = care_floor if closest_drive == "Care" else honesty_floor
+            return (
+                f"If {closest_drive} had scored {closest_floor_val - 0.001:.3f} instead of "
+                f"{closest_val:.3f} (a drop of {closest_margin:.3f}), "
+                f"verdict would have been BLOCKED — floor breach triggers unconditional block. "
+                f"Current margin to floor: {closest_margin:.3f}."
+            )
+
+        if verdict == V.DEFERRED:
+            return (
+                f"If composite had been ≥ 0.3 (currently {alignment.composite:.3f}) and "
+                f"the intent were not in the GOVERNED tier, verdict would have been APPROVED. "
+                f"Composite needs +{max(0.0, 0.3 - alignment.composite):.3f} to clear the "
+                f"high-risk/low-alignment deferred zone."
+            )
+
+        # MODIFIED or SUSPENDED
+        return (
+            f"If composite had been ≥ 0.15 (currently {alignment.composite:.3f}), "
+            f"the modification zone (-0.10 to +0.15) would have been bypassed and "
+            f"verdict would have been APPROVED directly."
+        )
+
     async def _emit_re_training_example(
         self,
         category: str,
@@ -674,6 +936,7 @@ class EquorService:
         reasoning_trace: str = "",
         alternatives: list[str] | None = None,
         constitutional_alignment: DriveAlignmentVector | None = None,
+        counterfactual: str = "",
     ) -> None:
         if self._event_bus is None:
             return
@@ -693,6 +956,7 @@ class EquorService:
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives or [],
                 constitutional_alignment=constitutional_alignment or DriveAlignmentVector(),
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
@@ -1245,7 +1509,7 @@ class EquorService:
             if _is_governed(intent):
                 elapsed_ms = int((time.monotonic() - start) * 1000)
                 asyncio.create_task(
-                    self._post_review_bookkeeping(intent, alignment, check, elapsed_ms),
+                    self._post_review_bookkeeping(intent, alignment, check, elapsed_ms, constitution),
                     name=f"equor_bookkeeping_{intent.id[:8]}",
                 )
                 return await self._suspend_for_human_review(intent)
@@ -1265,7 +1529,7 @@ class EquorService:
         # 4. Fire-and-forget: audit trail, drift tracking, Evo feedback.
         #    These are important but must not block the review response.
         asyncio.create_task(
-            self._post_review_bookkeeping(intent, alignment, check, elapsed_ms),
+            self._post_review_bookkeeping(intent, alignment, check, elapsed_ms, constitution),
             name=f"equor_bookkeeping_{intent.id[:8]}",
         )
 
@@ -1457,6 +1721,7 @@ class EquorService:
         alignment: DriveAlignmentVector,
         check: ConstitutionalCheck,
         elapsed_ms: int,
+        constitution: dict[str, Any] | None = None,
     ) -> None:
         """Non-blocking post-review work: audit trail, drift, Evo feedback."""
         try:
@@ -1497,46 +1762,94 @@ class EquorService:
             while self._violation_timestamps and self._violation_timestamps[0] < cutoff:
                 self._violation_timestamps.popleft()
 
-        # RE training: constitutional deliberation
-        # Build alternatives from the verdict pipeline: what other outcomes were possible?
-        alternatives = []
-        if check.verdict != Verdict.APPROVED:
-            alternatives.append("APPROVED (if alignment scores were higher)")
-        if check.verdict != Verdict.BLOCKED:
-            alternatives.append("BLOCKED (if floor drives were breached or invariant violated)")
-        if check.verdict != Verdict.DEFERRED:
-            alternatives.append("DEFERRED (if review was uncertain or timed out)")
+        # RE training: constitutional deliberation — rich trace for alignment-critical learning
+        try:
+            const = constitution or {}
+            care_w = const.get("drive_care", 1.0)
+            honesty_w = const.get("drive_honesty", 1.0)
+            coherence_w = const.get("drive_coherence", 1.0)
+            growth_w = const.get("drive_growth", 1.0)
 
-        invariant_summary = ""
-        if check.invariant_results:
-            invariant_summary = "; ".join(
-                f"{r.name}={'pass' if r.passed else 'FAIL'}" for r in check.invariant_results
+            invariant_summary = ""
+            if check.invariant_results:
+                invariant_summary = "; ".join(
+                    f"{r.invariant_id}({r.name})={'PASS' if r.passed else 'FAIL'}"
+                    for r in check.invariant_results
+                )
+
+            amendments_applied = ""
+            if check.modifications:
+                amendments_applied = "; ".join(check.modifications[:5])
+
+            reasoning_trace = self._build_constitutional_reasoning_trace(
+                intent, alignment, check, const
+            )
+            alternatives = self._build_constitutional_alternatives(alignment, check, const)
+            counterfactual = self._build_constitutional_counterfactual(alignment, check, const)
+
+            # Structured output: verdict + primary drive concern + key metrics
+            primary_concern = "none"
+            care_floor = -0.3 * care_w * 0.35
+            honesty_floor = -0.3 * honesty_w * 0.30
+            if alignment.care < care_floor:
+                primary_concern = f"care_floor_breach(score={alignment.care:.3f},floor={care_floor:.3f})"
+            elif alignment.honesty < honesty_floor:
+                primary_concern = f"honesty_floor_breach(score={alignment.honesty:.3f},floor={honesty_floor:.3f})"
+            elif check.invariant_results and any(not r.passed for r in check.invariant_results):
+                violated = next(r for r in check.invariant_results if not r.passed)
+                primary_concern = f"invariant_violated({violated.invariant_id}:{violated.name})"
+            elif alignment.composite < 0.0:
+                primary_concern = f"composite_negative({alignment.composite:.3f})"
+            elif 0.0 <= alignment.composite < 0.3:
+                primary_concern = f"composite_marginal({alignment.composite:.3f})"
+
+            precedent_count = len(check.invariant_results) if check.invariant_results else 0
+
+            structured_output = (
+                f"verdict={check.verdict.value} | "
+                f"confidence={check.confidence:.2f} | "
+                f"primary_concern={primary_concern} | "
+                f"composite_alignment={alignment.composite:.3f} | "
+                f"amendments_applied=[{amendments_applied}] | "
+                f"precedent_count={precedent_count} | "
+                f"reasoning={check.reasoning[:400]}"
             )
 
-        await self._emit_re_training_example(
-            category="constitutional_deliberation",
-            instruction=(
-                "Given an intent's constitutional drive alignment scores, invariant results, "
-                "and autonomy requirements, determine the appropriate constitutional verdict."
-            ),
-            input_context=(
-                f"intent_id={intent.id}, goal={intent.goal.description[:200]!r}, "
-                f"autonomy_required={intent.autonomy_level_required}, "
-                f"alignment={{coherence={alignment.coherence:.3f}, care={alignment.care:.3f}, "
-                f"growth={alignment.growth:.3f}, honesty={alignment.honesty:.3f}, "
-                f"composite={alignment.composite:.3f}}}, "
-                f"invariants=[{invariant_summary}]"
-            ),
-            output=(
-                f"verdict={check.verdict.value}, confidence={check.confidence:.2f}, "
-                f"reasoning={check.reasoning[:300]!r}"
-            ),
-            outcome_quality=check.confidence,
-            latency_ms=elapsed_ms,
-            reasoning_trace=check.reasoning,
-            alternatives=alternatives,
-            constitutional_alignment=alignment,
-        )
+            await self._emit_re_training_example(
+                category="constitutional_deliberation",
+                instruction=(
+                    "You are the constitutional conscience of a living digital organism. "
+                    "Given an intent's goal, drive alignment scores, invariant check results, "
+                    "drive weight configuration, and autonomy tier, trace your deliberation "
+                    "step by step and determine the constitutional verdict "
+                    "(APPROVED / BLOCKED / DEFERRED / MODIFIED / SUSPENDED_AWAITING_HUMAN). "
+                    "Show which drives were checked, what scores they produced, which floors or "
+                    "invariants were relevant, and what pushed the verdict toward its outcome."
+                ),
+                input_context=(
+                    f"intent_id={intent.id} | "
+                    f"goal={intent.goal.description[:200]!r} | "
+                    f"autonomy_required={intent.autonomy_level_required} | "
+                    f"drive_weights={{care={care_w:.2f}, honesty={honesty_w:.2f}, "
+                    f"coherence={coherence_w:.2f}, growth={growth_w:.2f}}} | "
+                    f"drive_scores={{care={alignment.care:+.3f}, honesty={alignment.honesty:+.3f}, "
+                    f"coherence={alignment.coherence:+.3f}, growth={alignment.growth:+.3f}, "
+                    f"composite={alignment.composite:+.3f}}} | "
+                    f"care_floor={care_floor:.3f} | honesty_floor={honesty_floor:.3f} | "
+                    f"invariants=[{invariant_summary}] | "
+                    f"step_count={len(getattr(intent, 'steps', None) or [])}"
+                ),
+                output=structured_output,
+                outcome_quality=check.confidence,
+                episode_id=intent.id,
+                latency_ms=elapsed_ms,
+                reasoning_trace=reasoning_trace,
+                alternatives=alternatives,
+                constitutional_alignment=alignment,
+                counterfactual=counterfactual,
+            )
+        except Exception:
+            logger.debug("re_training_constitutional_build_failed", exc_info=True)
 
         if check.verdict == Verdict.BLOCKED and self._evo is not None:
             try:

@@ -13,6 +13,8 @@
 | `wiring.py` | All `set_*()` calls, subscriptions, and `wire_*_phase()` functions |
 | `scheduled_tasks.py` | `PerceptionScheduler` registrations (PRs, DeFi yield, foraging, consolidation) |
 | `re_training_exporter.py` | `RETrainingExporter` — hourly RE training data batch export |
+| `continuous_learning_orchestrator.py` | `ContinualLearningOrchestrator` — domain-aware LoRA adapter training scheduler |
+| `curriculum_builder.py` | `DomainCurriculum` — filters and orders examples for domain-specific training |
 | `infra.py` | `InfraClients` dataclass; `create_infra()` / `close_infra()` |
 | `inner_life.py` | `inner_life_loop()` — background inner dialogue generator |
 | `interoception_loop.py` | `interoception_loop()` — log analyzer → Soma signal bridge |
@@ -47,10 +49,40 @@
 **Status:** Wired in Phase 11 of `registry.py`
 
 ### What it does
-- Subscribes to `RE_TRAINING_EXAMPLE` events from all 7 systems (Equor, Nova, Axon, Evo, Nexus, Thread, Skia/Vitality)
+- Subscribes to `RE_TRAINING_EXAMPLE` and `AXON_EXECUTION_RESULT` events
 - Accumulates `RETrainingDatapoint` objects in-memory with episode-level dedup
-- Every 3600s: drains accumulator → `RETrainingExportBatch` → export to S3 (JSON lines) + Neo4j lineage
+- Maintains `_episode_index: dict[str, RETrainingDatapoint]` for O(1) retroactive quality corrections
+- Every 3600s: drains accumulator → `RETrainingExportBatch` → enrichment → S3 (JSON lines) + Neo4j lineage
+- Writes individual `(:RETrainingDatapoint)` nodes to Neo4j (batched UNWIND) with full reasoning traces, constitutional alignment scores, and `[:CONTAINS_DATAPOINT]` edges to batch
 - Emits `RE_TRAINING_EXPORT_COMPLETE` on successful export (Benchmarks subscribes)
+
+### Retroactive outcome correction (AXON_EXECUTION_RESULT)
+- When `AXON_EXECUTION_RESULT` arrives, `_on_axon_execution_result()` looks up the episode by `episode_id`
+- If `|actual_quality - estimated_confidence| > 0.1`, updates `confidence`, `outcome`, sets `outcome_updated=True`, `actual_outcome_quality=<float>`
+- `update_outcome_quality(episode_id, actual_quality, source_system)` is also callable externally
+- Neo4j writes `actual_outcome_quality` as a separate property for ground-truth queries
+
+### Export enrichment (`_enrich_batch`)
+Called in `export_to_s3()` before serialisation. Mutates each datapoint in-place:
+1. `task_difficulty` — `min(alternatives/5, 1.0)×0.3 + counterfactual_heuristic×0.3 + (1−|conf−0.5|×2)×0.4`
+2. Scaffold validation — `scaffold_formatter.validate(reasoning_trace)`: ≥3 of 5 Step headers
+3. `quality_tier` assignment: `"gold"` | `"silver"` | `"bronze"`
+
+### Quality tier rules
+| Tier | Conditions |
+|------|-----------|
+| gold | scaffold_valid + trace>100 chars + (≥2 alternatives OR task_difficulty≥0.5) + confidence≥0.7 |
+| silver | scaffold_valid OR (trace>100 + ≥2 alternatives) |
+| bronze | everything else |
+
+### Monitoring
+`re_training_quality_tier_distribution` log emitted every export cycle with `gold`, `silver`, `bronze` counts, `outcome_corrected` count, `total`.
+
+### New fields on `RETrainingDatapoint` (primitives)
+- `outcome_updated: bool` — True if retroactively corrected from Axon
+- `actual_outcome_quality: float | None` — ground-truth quality from Axon
+- `quality_tier: str` — "gold" | "silver" | "bronze" (assigned at export)
+- `task_difficulty: float` — richness proxy [0, 1] (computed at export)
 
 ### Configuration (env vars)
 | Variable | Default | Purpose |
@@ -64,7 +96,7 @@ If `boto3` is not installed or S3 fails, batches are written as JSON lines to `R
 
 ### Primitives
 - `RETrainingDatapoint` — one normalised record per `RE_TRAINING_EXAMPLE` event
-- `RETrainingExportBatch` — hourly roll-up; written to Neo4j as `(:RETrainingBatch)` + `(:RETrainingSource)` nodes
+- `RETrainingExportBatch` — hourly roll-up; written to Neo4j as `(:RETrainingBatch)` + `(:RETrainingSource)` + individual `(:RETrainingDatapoint)` nodes
 
 ### Integration
 - `app.state.re_exporter` — accessible from API endpoints for stats
@@ -84,6 +116,7 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 | `inner_life` | `inner_life_loop()` | continuous | background cognition |
 | `metrics_publisher` | `publish_metrics_loop()` | continuous | Redis → InfluxDB |
 | `re_training_export` | `re_exporter.run_loop()` | 3600s | RE training data pipeline |
+| `domain_specialization` | `_domain_clo.run_loop()` | 3600s | Domain-specific LoRA adapter training |
 | `red_team_monthly` | `_run_monthly_red_team()` | 30 days | Red-team adversarial eval + Tier 2 kill switch |
 | `tier3_quarterly_cron` | `_run_tier3_cron()` | 7-day check / 90-day fire | Quarterly Tier 3 full retrain, fires independently of data-volume gate |
 

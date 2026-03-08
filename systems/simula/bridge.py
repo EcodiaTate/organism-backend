@@ -186,6 +186,58 @@ class EvoSimulaBridge:
         )
         return proposal
 
+    async def translate_exploration_proposal(
+        self, proposal: Any
+    ) -> Any:
+        """
+        Convert lightweight ExplorationProposal to EvolutionProposal.
+
+        Minimal metadata: no EFE scoring, no canary plan.
+        Budget constraint stored in metadata for Simula to enforce.
+
+        Args:
+            proposal: ExplorationProposal with hypothesis_id, statement, evidence_score, etc.
+
+        Returns:
+            EvolutionProposal with exploration metadata tagged.
+        """
+        try:
+            from systems.simula.evolution_types import EvolutionProposal
+
+            # Extract fields from ExplorationProposal
+            hypothesis_id = getattr(proposal, "hypothesis_id", "")
+            hypothesis_statement = getattr(proposal, "hypothesis_statement", "")
+            evidence_score = getattr(proposal, "evidence_score", 0.0)
+            proposed_mutation = getattr(proposal, "proposed_mutation", None)
+            budget_usd = getattr(proposal, "budget_usd", 0.0)
+            max_attempts = getattr(proposal, "max_attempts", 3)
+
+            # Create EvolutionProposal with exploration metadata
+            result = EvolutionProposal(
+                description=f"[EXPLORATION] {hypothesis_statement}",
+                rationale=proposed_mutation.description if proposed_mutation else hypothesis_statement,
+                supporting_hypotheses=[hypothesis_id] if hypothesis_id else [],
+            )
+
+            # Tag with exploration metadata (stored in result for Simula to consume)
+            if not hasattr(result, "metadata"):
+                result.metadata = {}
+            result.metadata["is_exploration"] = True
+            result.metadata["exploration_budget_usd"] = budget_usd
+            result.metadata["exploration_max_attempts"] = max_attempts
+            result.metadata["exploration_evidence_score"] = evidence_score
+
+            self._log.info(
+                "exploration_proposal_translated",
+                hypothesis_id=hypothesis_id,
+                budget_usd=round(budget_usd, 2),
+            )
+
+            return result
+        except Exception as exc:
+            self._log.error("exploration_proposal_translation_failed", error=str(exc))
+            raise
+
     async def _infer_category(
         self,
         mutation_target: str,

@@ -6,6 +6,7 @@ Shared primitives for the benchmarks system.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 from datetime import datetime
 
@@ -13,6 +14,87 @@ from pydantic import Field
 
 from primitives.common import EOSBaseModel, utc_now
 from primitives.evolutionary import BedauPackardStats
+
+
+class DomainKPI(EOSBaseModel):
+    """KPIs specific to a domain specialization.
+
+    Computed daily by DomainKPICalculator from EpisodeOutcome history.
+    Emitted on the Synapse bus as DOMAIN_KPI_SNAPSHOT payloads.
+    """
+
+    domain: str
+    """Domain identifier: 'software_development', 'art', 'trading', 'yield', etc."""
+
+    timestamp: datetime = Field(default_factory=utc_now)
+
+    # ── Task outcomes ─────────────────────────────────────────────────
+    attempts: int = 0
+    """Total tasks attempted in this domain within the lookback window."""
+
+    successes: int = 0
+    """Tasks that completed with outcome == 'success'."""
+
+    success_rate: float = 0.0
+    """successes / attempts. 0.0 when attempts == 0."""
+
+    # ── Domain economics ──────────────────────────────────────────────
+    revenue_total_usd: Decimal = Decimal(0)
+    """Total revenue earned from this domain (sum of EpisodeOutcome.revenue)."""
+
+    cost_total_usd: Decimal = Decimal(0)
+    """Total compute/resource cost spent on this domain."""
+
+    net_profit_usd: Decimal = Decimal(0)
+    """revenue_total_usd − cost_total_usd."""
+
+    profitability: float = 0.0
+    """net_profit / revenue_total when revenue > 0, else 0.0."""
+
+    revenue_per_hour: Decimal = Decimal(0)
+    """revenue_total_usd / hours_spent. Key efficiency metric."""
+
+    revenue_per_attempt: Decimal = Decimal(0)
+    """revenue_total_usd / attempts."""
+
+    # ── Time ─────────────────────────────────────────────────────────
+    hours_spent: float = 0.0
+    """Total wall-clock hours spent on domain tasks."""
+
+    tasks_completed: int = 0
+    """Alias for successes — counts fully completed tasks."""
+
+    avg_task_duration_hours: float = 0.0
+    """hours_spent / attempts."""
+
+    # ── Quality ───────────────────────────────────────────────────────
+    customer_satisfaction: float = 0.0
+    """[0, 1] — averaged from EpisodeOutcome.custom_metrics['customer_satisfaction']."""
+
+    rework_rate: float = 0.0
+    """[0, 1] — fraction of tasks requiring revision (from episode metadata)."""
+
+    # ── Domain-specific custom metrics ────────────────────────────────
+    custom_metrics: dict[str, float] = Field(default_factory=dict)
+    """
+    Domain-specific measurements averaged across episodes.
+    Examples:
+      software_development: {'code_quality': 0.85, 'deployment_time_hours': 2.3}
+      art: {'aesthetic_score': 0.72, 'revision_count': 1.4}
+      trading: {'sharpe_ratio': 1.8, 'max_drawdown': 0.05}
+    """
+
+    # ── Trend ─────────────────────────────────────────────────────────
+    trend_direction: str = "stable"
+    """'improving' | 'declining' | 'stable' — based on success_rate vs prior period."""
+
+    trend_magnitude: float = 0.0
+    """Absolute change in success_rate vs prior period [0, 1]."""
+
+    # ── Lookback metadata ─────────────────────────────────────────────
+    lookback_hours: int = 168
+    """Window over which these KPIs were computed (default: 7 days)."""
+
 
 class BenchmarkSnapshot(EOSBaseModel):
     """A single benchmark run result, stored in TimescaleDB."""
@@ -56,6 +138,13 @@ class BenchmarkSnapshot(EOSBaseModel):
     Rising trend alongside Bedau-Packard A(t) = adaptive speciation, not just random drift.
     None until first TELOS_POPULATION_SNAPSHOT is received with ≥2 instances.
     """
+
+    # ── Domain specialization KPIs ───────────────────────────────────
+    domain_kpis: dict[str, DomainKPI] = Field(default_factory=dict)
+    """Per-domain KPI snapshots. Keys are domain names ('software_development', etc.)."""
+
+    primary_domain: str = "generalist"
+    """The domain with the highest success_rate. 'generalist' when no episodes yet."""
 
     # ── Diagnostic metadata ───────────────────────────────────────────
     errors: dict[str, str] = Field(default_factory=dict)

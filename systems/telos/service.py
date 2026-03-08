@@ -384,6 +384,7 @@ class TelosService:
                 "Partial audit (single drive) — rejected: all 4 must be verified together",
                 "Skip audit if last was < 12h ago — rejected: consistency matters more than frequency",
             ],
+            episode_id=f"drive_audit:{self._instance_id}:{int(self._last_constitutional_check)}",
         ))
 
         return result
@@ -1013,6 +1014,7 @@ class TelosService:
             output=f"nominal_I_boost={boost:.6f}",
             outcome_quality=confidence,
             reasoning_trace=f"Tier 3 substrate-independent invariant: confidence={confidence:.3f}, entropy_reduction={entropy_reduction:.4f}. Boost = 0.01 * {confidence:.3f} * {entropy_reduction:.4f} = {boost:.6f}",
+            episode_id=event.data.get("invariant_id", ""),
         ))
 
     async def _on_commitment_violated(self, event: SynapseEvent) -> None:
@@ -1312,6 +1314,7 @@ class TelosService:
                     f"Primary cause is {primary_cause or 'unknown'} — alternatives: {'growth_stagnation' if primary_cause != 'growth' else 'honesty_deficit'}",
                     "Could be measurement artifact if I-history < 4 samples",
                 ],
+                episode_id=f"alignment:{self._instance_id}:{int(report.timestamp) if hasattr(report, 'timestamp') else ''}",
             ))
 
         # Evolutionary observable: intelligence milestone
@@ -1413,6 +1416,7 @@ class TelosService:
                 "Use geometric mean instead of product — rejected: product preserves floor drives",
                 "Weight drives differently — rejected: topology formalization requires equal weighting",
             ],
+            episode_id=f"I_measure:{self._instance_id}:{self._cycle_count}",
         ))
 
         return report
@@ -1761,12 +1765,28 @@ class TelosService:
         reasoning_trace: str = "",
         alternatives_considered: list[str] | None = None,
         latency_ms: int = 0,
+        episode_id: str = "",
+        constitutional_alignment: Any = None,
     ) -> None:
         """Fire-and-forget RE training example onto Synapse bus."""
         if self._event_bus is None:
             return
         try:
+            from primitives.common import DriveAlignmentVector as _DAV
             from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            # Auto-populate constitutional_alignment from live drive topology if not provided
+            if constitutional_alignment is None:
+                try:
+                    drive_state = self.get_drive_state()
+                    constitutional_alignment = _DAV(
+                        care=round(drive_state.get("care", 0.0), 3),
+                        coherence=round(drive_state.get("coherence", 0.0), 3),
+                        growth=round(drive_state.get("growth", 0.0), 3),
+                        honesty=round(drive_state.get("honesty", 0.0), 3),
+                    )
+                except Exception:
+                    constitutional_alignment = _DAV()
 
             example = RETrainingExample(
                 source_system=SystemID.TELOS,
@@ -1775,9 +1795,11 @@ class TelosService:
                 input_context=input_context,
                 output=output,
                 outcome_quality=max(0.0, min(1.0, outcome_quality)),
-                reasoning_trace=reasoning_trace[:2000],
+                reasoning_trace=reasoning_trace[:4000],
                 alternatives_considered=alternatives_considered or [],
                 latency_ms=latency_ms,
+                episode_id=episode_id,
+                constitutional_alignment=constitutional_alignment,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

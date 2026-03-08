@@ -95,6 +95,7 @@ class SendEmailExecutor(Executor):
                     "execution_id": context.execution_id,
                 },
             )
+            await self._emit_re_trace(context, params, success=False, error=str(exc))
             return ExecutionResult(success=False, error=str(exc))
 
     async def _emit_event(self, event_type: SynapseEventType, data: dict[str, Any]) -> None:
@@ -110,23 +111,70 @@ class SendEmailExecutor(Executor):
             pass
 
     async def _emit_re_trace(
-        self, context: ExecutionContext, params: dict[str, Any], success: bool
+        self,
+        context: ExecutionContext,
+        params: dict[str, Any],
+        success: bool,
+        error: str = "",
     ) -> None:
         if self._event_bus is None:
             return
         try:
-            from primitives.common import DriveAlignmentVector, SystemID, utc_now
+            import json as _json
+            from primitives.common import DriveAlignmentVector, SystemID
             from primitives.re_training import RETrainingExample
+
+            to = params.get("to", "unknown")
+            subject = params.get("subject", "")
+            body_len = len(params.get("body", ""))
+            from_addr = params.get("from", "noreply@ecodiaos.org")
+
+            reasoning_trace = "\n".join([
+                f"1. VALIDATE: recipient={to!r}, subject present={bool(subject)}, body_length={body_len}",
+                f"2. CLIENT CHECK: email_client={'configured' if self._email_client is not None else 'MISSING'}",
+                f"3. SEND: from={from_addr!r} → to={to!r}, subject={subject[:80]!r}",
+                f"4. OUTCOME: success={success}" + (f", error={error[:120]!r}" if error else ""),
+            ])
+
+            alternatives = [
+                "Alternative: queue email for async retry if provider is temporarily unavailable",
+                "Alternative: use notification executor instead if email delivery confirmation is not required",
+            ]
+            if not success:
+                alternatives.append(
+                    "Alternative: escalate to human-in-the-loop if email delivery is critical for the intent"
+                )
+
+            counterfactual = ""
+            if not success:
+                counterfactual = (
+                    f"If the email had been sent successfully, the intent's communication goal would be "
+                    f"fulfilled. Failure leaves the recipient '{to}' uninformed — downstream steps that "
+                    f"depend on the recipient's response cannot proceed."
+                )
+
+            equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None
 
             trace = RETrainingExample(
                 source_system=SystemID.AXON,
-                instruction=f"Send email to {params.get('to', 'unknown')}",
-                input_context=f"subject={params.get('subject', '')!r}",
-                output=f"success={success}",
+                episode_id=context.execution_id,
+                instruction=f"Send email from {from_addr!r} to {to!r}: subject={subject[:80]!r}",
+                input_context=_json.dumps({
+                    "to": to,
+                    "from": from_addr,
+                    "subject": subject[:200],
+                    "body_length": body_len,
+                }),
+                output=_json.dumps({
+                    "success": success,
+                    "error": error[:200] if error else None,
+                }),
                 outcome_quality=1.0 if success else 0.0,
                 category="email_delivery",
-                constitutional_alignment=DriveAlignmentVector(),
-                timestamp=utc_now(),
+                constitutional_alignment=equor_alignment or DriveAlignmentVector(),
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=alternatives,
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

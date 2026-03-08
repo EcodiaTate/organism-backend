@@ -2,7 +2,7 @@
 
 **Spec:** `.claude/EcodiaOS_Spec_24_Benchmarks.md` (v1.3, Phase 3 complete)
 **System ID:** `benchmarks`
-**Role:** Fitness sensor and regression detection layer. Measures 7 KPIs every N seconds, persists to TimescaleDB, fires Synapse events on regression/recovery/RE progress.
+**Role:** Fitness sensor and regression detection layer. Measures 7 KPIs every N seconds, persists to TimescaleDB, fires Synapse events on regression/recovery/RE progress. Also measures per-domain specialization KPIs and emits mastery/decline/profitability signals.
 
 ---
 
@@ -527,6 +527,118 @@ from systems.benchmarks.pillars import (
     measure_specialization,
 )
 ```
+
+---
+
+## Domain KPI System (8 Mar 2026)
+
+### Overview
+
+Per-specialization KPI measurement so the organism can determine which domain is worth specializing in. Answers: "Is my $50/month yield revenue worth more than my $30/month code delivery, and which is improving?"
+
+### New Type: `DomainKPI` (`types.py`)
+
+```python
+class DomainKPI(EOSBaseModel):
+    domain: str                          # e.g. "software_development", "yield"
+    timestamp: datetime
+    attempts: int; successes: int; success_rate: float
+    revenue_total_usd: Decimal; cost_total_usd: Decimal; net_profit_usd: Decimal
+    profitability: float                 # net_profit / revenue; 0.0 if no revenue
+    revenue_per_hour: Decimal; revenue_per_attempt: Decimal
+    hours_spent: float; tasks_completed: int; avg_task_duration_hours: float
+    customer_satisfaction: float         # from custom_metrics["customer_satisfaction"]
+    rework_rate: float                   # from custom_metrics["rework_rate"]
+    custom_metrics: dict[str, float]     # domain-specific averaged metrics
+    trend_direction: str                 # "stable" | "improving" | "declining"
+    trend_magnitude: float               # |delta| in success_rate vs prior half-period
+    lookback_hours: int                  # default 168 (7 days)
+```
+
+`BenchmarkSnapshot` extended with `domain_kpis: dict[str, DomainKPI] = {}` and `primary_domain: str = "generalist"`.
+
+### New File: `domain_kpi_calculator.py`
+
+`DomainKPICalculator` — stateful in-process `deque[EpisodeRecord]` (max 10,000):
+- `record_episode(data)` — ingests from `DOMAIN_EPISODE_RECORDED` event payload
+- `calculate_for_domain(domain, lookback_hours=168)` — computes full `DomainKPI`; trend = compare `[now-168h, now]` vs `[now-336h, now-168h]`; `threshold=0.05` for stable/improving/declining
+- `calculate_all(lookback_hours, min_attempts)` — all active domains
+- `primary_domain(domain_kpis)` — domain with highest `success_rate`
+- `active_domains(min_attempts, lookback_hours)` — domains with enough episodes
+
+`EpisodeRecord` uses `__slots__` + `time.time()` monotonic `recorded_at` for fast cutoff checks.
+
+### New Primitive: `primitives/episodes.py`
+
+`EpisodeOutcome(EOSBaseModel)` — canonical type for emitting `DOMAIN_EPISODE_RECORDED`:
+- Fields: `domain`, `outcome`, `revenue`, `cost_usd`, `duration_ms`, `custom_metrics`, `timestamp`, `episode_id`, `source_system`
+- `to_bus_payload()` — serialise to Synapse event payload
+
+Domain conventions: `software_development`, `art`, `trading`, `yield`, `bounty_hunting`, `consulting`, `generalist`.
+
+Exported from `primitives/__init__.py` as `EpisodeOutcome`.
+
+### Service Wiring (`service.py`)
+
+**New `__init__` fields:**
+- `self._domain_kpi_calc = DomainKPICalculator(max_history=10_000)`
+- `self._prev_primary_domain: str = "generalist"`
+
+**New Synapse subscription** (9th inbound — with `hasattr` guard):
+- `DOMAIN_EPISODE_RECORDED` → `_on_domain_episode_recorded` — delegates to `_domain_kpi_calc.record_episode(data)`
+
+**New `_collect()` return fields:**
+- `domain_kpis: dict[str, DomainKPI]` — from `_collect_domain_kpis()`
+- `primary_domain: str` — domain with highest success_rate
+
+**New `_run_loop` additions** (after daily snapshot):
+- `_emit_domain_signals(domain_kpis)` — per-domain Synapse events
+- `_persist_domain_kpis_neo4j(domain_kpis)` — MERGE `(:DomainKPI)` nodes
+- Primary domain pivot detection: if `primary_domain != _prev_primary_domain`, emits `NOVA_GOAL_INJECTED` to inform Nova of specialization shift
+
+### Domain Signal Emission (`_emit_domain_signals`)
+
+Per domain, each daily cycle:
+
+| Condition | Event emitted |
+|---|---|
+| Always | `DOMAIN_KPI_SNAPSHOT` — full `DomainKPI` dict payload |
+| `success_rate > 0.75` AND `attempts >= 5` | `DOMAIN_MASTERY_DETECTED` |
+| `revenue_per_hour > Decimal("10")` | `DOMAIN_PROFITABILITY_CONFIRMED` |
+| `trend_direction == "declining"` AND `trend_magnitude > 0.15` | `DOMAIN_PERFORMANCE_DECLINING` |
+
+### Neo4j Persistence (`_persist_domain_kpis_neo4j`)
+
+```cypher
+MERGE (k:DomainKPI {node_id: "domain_kpi:{instance_id}:{domain}:{date}"})
+SET k += {domain, attempts, successes, success_rate, revenue_total_usd, ...}
+WITH k
+MATCH (i:Instance {instance_id: $instance_id})
+MERGE (i)-[:INSTANCE_HAS_KPI]->(k)
+```
+
+Idempotent daily MERGE. Silently no-ops if `Instance` node not yet created.
+
+### New `SynapseEventType` Entries
+
+| Event | Purpose |
+|---|---|
+| `DOMAIN_EPISODE_RECORDED` | Inbound: any system emits when a domain task completes |
+| `DOMAIN_KPI_SNAPSHOT` | Daily per-domain snapshot (full `DomainKPI` payload) |
+| `DOMAIN_MASTERY_DETECTED` | success_rate > 0.75 AND attempts >= 5 |
+| `DOMAIN_PROFITABILITY_CONFIRMED` | revenue_per_hour > $10 |
+| `DOMAIN_PERFORMANCE_DECLINING` | declining trend AND magnitude > 0.15 |
+
+### Downstream Integration
+
+**Nova** (`nova/service.py`):
+- `DOMAIN_MASTERY_DETECTED` → `_on_domain_mastery`: injects SELF_GENERATED goal (priority=0.85) to continue specializing; deduplicates against active goals
+- `DOMAIN_PERFORMANCE_DECLINING` → `_on_domain_performance_declining`: injects investigative goal (priority=0.70) to debug the decline
+- `DOMAIN_PROFITABILITY_CONFIRMED` → `_on_domain_profitability_confirmed`: boosts priority of existing goals in that domain by 1.3×
+
+**Thread** (`thread/service.py`):
+- `DOMAIN_MASTERY_DETECTED` → `_on_domain_mastery`: ACHIEVEMENT TurningPoint + `narrative_milestone` (milestone_type="domain_mastery")
+- `DOMAIN_PERFORMANCE_DECLINING` → `_on_domain_performance_declining`: CRISIS TurningPoint + `narrative_coherence_shift` reassessment
 
 ---
 

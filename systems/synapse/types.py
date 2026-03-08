@@ -783,6 +783,41 @@ class SynapseEventType(enum.StrEnum):
     #   instance_id        (str)   — Instance that generated the benchmark
     BENCHMARK_RECOVERY = "benchmark_recovery"
 
+    # Domain specialization KPI signals — emitted by BenchmarkService daily after
+    # computing per-domain KPI snapshots from EpisodeOutcome history.
+    #
+    # DOMAIN_KPI_SNAPSHOT — full DomainKPI payload for a single domain.
+    # Payload fields: domain (str), success_rate (float), revenue_per_hour (str),
+    #                 net_profit_usd (str), hours_spent (float), attempts (int),
+    #                 trend_direction (str), trend_magnitude (float),
+    #                 custom_metrics (dict[str, float])
+    DOMAIN_KPI_SNAPSHOT = "domain_kpi_snapshot"
+    #
+    # DOMAIN_MASTERY_DETECTED — success_rate > 0.75 sustained.
+    # Nova injects a goal to continue pursuing this domain.
+    # Payload fields: domain (str), success_rate (float), attempts (int),
+    #                 instance_id (str)
+    DOMAIN_MASTERY_DETECTED = "domain_mastery_detected"
+    #
+    # DOMAIN_PROFITABILITY_CONFIRMED — revenue_per_hour crosses $10/hr threshold.
+    # Oikos can use this to allocate more budget to this domain.
+    # Payload fields: domain (str), revenue_per_hour (str), net_profit_usd (str),
+    #                 instance_id (str)
+    DOMAIN_PROFITABILITY_CONFIRMED = "domain_profitability_confirmed"
+    #
+    # DOMAIN_PERFORMANCE_DECLINING — trend_direction == 'declining' and
+    # trend_magnitude > 0.15. Nova injects a debugging goal.
+    # Payload fields: domain (str), trend_magnitude (float), success_rate (float),
+    #                 instance_id (str)
+    DOMAIN_PERFORMANCE_DECLINING = "domain_performance_declining"
+    #
+    # DOMAIN_EPISODE_RECORDED — emitted by any system when an episode carries
+    # domain context. BenchmarkService subscribes to feed DomainKPICalculator.
+    # Payload fields: domain (str), outcome (str), revenue (str), cost_usd (str),
+    #                 duration_ms (int), custom_metrics (dict[str, float]),
+    #                 timestamp (str ISO 8601), source_system (str)
+    DOMAIN_EPISODE_RECORDED = "domain_episode_recorded"
+
     # Thymos successfully repaired an API/system error — emitted after crystallising
     # the fix into the antibody library. Evo subscribes to extract repair patterns
     # and generate preventive hypotheses. Simula uses learned patterns for validation.
@@ -1248,6 +1283,32 @@ class SynapseEventType(enum.StrEnum):
     #   hypothesis_ids     (list)  — Source hypothesis IDs (if from Evo)
     #   source             (str)   — "evo" | "thymos" | "arxiv" | "manual"
     EVOLUTION_ROLLED_BACK = "evolution_rolled_back"
+
+    # ── Exploration Hypotheses (Phase 8.5 gap closure) ────────────────────────
+    #
+    # EXPLORATION_PROPOSED — Evo Phase 8.5 emits after collecting low-evidence
+    # hypotheses (evidence_score >= 2.0, < 5.0) that passed metabolic gating.
+    # Simula subscribes and routes to lightweight pipeline (skip SIMULATE).
+    #
+    # Payload fields:
+    #   hypothesis_id         (str)   — Source hypothesis ID
+    #   hypothesis_statement  (str)   — Natural language claim
+    #   evidence_score        (float) — Current evidence (2.0–5.0 range)
+    #   proposed_mutation     (dict)  — Lightweight mutation spec
+    #   budget_usd            (float) — Hard cap on spending
+    #   max_attempts          (int)   — Give up after N failures
+    #   metabolic_tier        (str)   — Starvation level when proposed
+    EXPLORATION_PROPOSED = "exploration_proposed"
+
+    # EXPLORATION_OUTCOME — Simula emits after completing exploration attempt
+    # (success or failure). Evo subscribes and updates hypothesis evidence/attempts.
+    #
+    # Payload fields:
+    #   exploration_success   (bool)   — Whether exploration succeeded
+    #   hypothesis_id         (str)    — Source hypothesis ID
+    #   failure_reason        (str)    — If failed, why (validation_failed, health_check_failed, etc.)
+    #   reward_confidence     (float)  — If successful, confidence to boost evidence
+    EXPLORATION_OUTCOME = "exploration_outcome"
 
     # Emitted by Evo at Phase 7 (Drift Data Feed) of each consolidation cycle.
     # Equor subscribes to update its drift model with Evo's latest self-model stats.
@@ -2703,6 +2764,39 @@ class SynapseEventType(enum.StrEnum):
     #          export_duration_ms (int), hour_window (str ISO-8601)
     RE_TRAINING_EXPORT_COMPLETE = "re_training_export_complete"
 
+    # ── Domain Specialization & Adapter Lifecycle ─────────────────────────────
+    #
+    # ADAPTER_TRAINING_STARTED — emitted by ContinualLearningOrchestrator when a
+    # LoRA training job is submitted to RunPod. Benchmarks subscribes to track
+    # training cadence. Thread subscribes to record a narrative milestone.
+    # Payload: domain (str), strategy (AdapterStrategy), job_id (str),
+    #          num_examples (int), base_adapter (str | None),
+    #          instance_id (str)
+    ADAPTER_TRAINING_STARTED = "adapter_training_started"
+    #
+    # ADAPTER_TRAINING_COMPLETE — emitted by the RunPod callback endpoint when a
+    # training job succeeds. ContinualLearningOrchestrator subscribes to register
+    # the new adapter in InstanceAdapterRegistry and emit domain events.
+    # Payload: domain (str), strategy (AdapterStrategy), job_id (str),
+    #          adapter_path (str), instance_id (str), eval_loss (float | None)
+    ADAPTER_TRAINING_COMPLETE = "adapter_training_complete"
+    #
+    # DOMAIN_SPECIALIZATION_DETECTED — emitted by SpecializationTracker when an
+    # instance's primary domain changes (success_rate > 0.75 for >100 examples).
+    # Thread subscribes to open a new narrative chapter. Oikos subscribes to
+    # increase growth budget allocation.
+    # Payload: instance_id (str), new_domain (str), old_domain (str),
+    #          success_rate (float), examples_trained (int)
+    DOMAIN_SPECIALIZATION_DETECTED = "domain_specialization_detected"
+    #
+    # SPECIALIZATION_PROFILE_UPDATED — emitted by SpecializationTracker after
+    # each Neo4j persist of a DomainProfile. Benchmarks subscribes to record
+    # specialization depth as an evolutionary observable.
+    # Payload: instance_id (str), domain (str), success_rate (float),
+    #          examples_trained (int), skill_areas (dict[str, float]),
+    #          confidence (float), is_primary (bool)
+    SPECIALIZATION_PROFILE_UPDATED = "specialization_profile_updated"
+
     # ── Oikos → Evo / Benchmarks Metabolic Feedback ──────────────────────────
     #
     # METABOLIC_EFFICIENCY_PRESSURE — emitted by Oikos inside
@@ -2971,6 +3065,56 @@ class SynapseEventType(enum.StrEnum):
     #          target_instances (list[str]), kl_divergence (float),
     #          genome_distance (float), weight_a (float), weight_b (float)
     ADAPTER_SHARE_OFFER = "adapter_share_offer"
+
+    # ── Dynamic Executor Lifecycle (Speciation Bible §8.3 — Executor Closure) ──
+    #
+    # EXECUTOR_REGISTERED — emitted by Axon when a new dynamic executor is
+    # successfully validated and registered in the ExecutorRegistry at runtime.
+    # Thymos subscribes to open a monitoring window for the new executor (any
+    # 3 incidents within 24h → auto-disable).  Evo subscribes to boost the
+    # source hypothesis confidence.
+    # Payload: action_type (str), name (str), protocol_or_platform (str),
+    #          risk_tier (str), max_budget_usd (str),
+    #          capabilities (list[str]), source_hypothesis_id (str),
+    #          registered_at (str ISO-8601)
+    EXECUTOR_REGISTERED = "executor_registered"
+    #
+    # EXECUTOR_DISABLED — emitted by Axon when a dynamic executor is soft-disabled
+    # (deregistered but code kept on disk for audit).  Thymos subscribes to close
+    # any open monitoring windows.  Evo treats this as strong negative evidence for
+    # the source hypothesis.
+    # Payload: action_type (str), name (str), reason (str),
+    #          incident_count (int), disabled_at (str ISO-8601)
+    EXECUTOR_DISABLED = "executor_disabled"
+    #
+    # OPPORTUNITY_DISCOVERED — emitted by Oikos ProtocolScanner when it finds a
+    # yield/bounty opportunity that the organism currently has no executor for.
+    # Evo subscribes and may generate an exploration hypothesis → EVOLUTION_CANDIDATE
+    # with mutation_type="add_executor".  Payload deliberately rich so Evo can
+    # generate a concrete ExecutorTemplate without additional LLM calls.
+    # Payload: opportunity_id (str), opportunity_type (str — "yield" | "bounty"),
+    #          protocol_or_platform (str), estimated_apy_or_reward (str),
+    #          description (str), required_capabilities (list[str]),
+    #          risk_tier (str), data_source (str), discovered_at (str ISO-8601)
+    OPPORTUNITY_DISCOVERED = "opportunity_discovered"
+    #
+    # INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED — Nova emits every hour after polling
+    # all active InputChannels.  Evo subscribes to generate domain-specific
+    # PatternCandidates; Oikos may use for metabolic planning.
+    # Payload: opportunities (list[dict]) — serialised Opportunity objects,
+    #          channel_count (int), domain_summary (dict[str, int] domain→count)
+    INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED = "input_channel_opportunities_discovered"
+    #
+    # INPUT_CHANNEL_HEALTH_CHECK — Nova emits once per day with the status of all
+    # registered InputChannels.  Used for observability and Thymos alerting.
+    # Payload: results (dict[str, bool] channel_id→is_healthy),
+    #          active_count (int), total_count (int)
+    INPUT_CHANNEL_HEALTH_CHECK = "input_channel_health_check"
+    #
+    # INPUT_CHANNEL_REGISTERED — emitted when a new InputChannel is added at
+    # runtime (e.g. via Simula exploration or operator injection).
+    # Payload: channel_id (str), domain (str), name (str), description (str)
+    INPUT_CHANNEL_REGISTERED = "input_channel_registered"
 
 
 class SynapseEvent(EOSBaseModel):

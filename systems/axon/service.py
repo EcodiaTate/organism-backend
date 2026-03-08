@@ -486,6 +486,7 @@ class AxonService:
         reasoning_trace: str = "",
         alternatives: list[str] | None = None,
         constitutional_alignment: DriveAlignmentVector | None = None,
+        counterfactual: str = "",
     ) -> None:
         if self._event_bus is None:
             return
@@ -505,6 +506,7 @@ class AxonService:
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives or [],
                 constitutional_alignment=constitutional_alignment or DriveAlignmentVector(),
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
@@ -1267,18 +1269,164 @@ class AxonService:
 
         # ── RE training: execution decision ──
         value_gained = 0.0
+        steps_completed = 0
+        steps_failed = 0
+        retry_count = 0
+        rollback_triggered = False
         for step in outcome.step_outcomes:
-            if step.result.success and "economic_delta_usd" in step.result.data:
-                with contextlib.suppress(ValueError, TypeError):
-                    value_gained += float(step.result.data["economic_delta_usd"])
+            if step.result.success:
+                steps_completed += 1
+                if "economic_delta_usd" in step.result.data:
+                    with contextlib.suppress(ValueError, TypeError):
+                        value_gained += float(step.result.data["economic_delta_usd"])
+            else:
+                steps_failed += 1
+                if "retry_count" in step.result.data:
+                    with contextlib.suppress(ValueError, TypeError):
+                        retry_count += int(step.result.data["retry_count"])
+            if step.rolled_back:
+                rollback_triggered = True
+
+        # Derive constitutional alignment from the Equor check that approved this intent
+        equor_alignment = None
+        equor_verdict = "approved"
+        equor_reasoning_snippet = ""
+        if request.equor_check is not None:
+            equor_alignment = getattr(request.equor_check, "drive_alignment", None)
+            equor_verdict = request.equor_check.verdict.value if hasattr(request.equor_check.verdict, "value") else str(request.equor_check.verdict)
+            equor_reasoning_snippet = (request.equor_check.reasoning or "")[:300]
+
+        # Executor selection trace: what ran, in order, and how each did
+        executor_trace_parts = []
+        for i, step in enumerate(outcome.step_outcomes):
+            status = "ok" if step.result.success else f"FAIL({(step.result.error or '')[:60]})"
+            rb = " [rolled_back]" if step.rolled_back else ""
+            executor_trace_parts.append(f"  step{i}: {step.action_type} → {status} ({step.duration_ms}ms){rb}")
+        executor_trace = "\n".join(executor_trace_parts) if executor_trace_parts else "  (no steps executed)"
+
+        # Build multi-step reasoning trace
+        plan_steps_desc = ", ".join(
+            step.executor for step in request.intent.plan.steps
+        ) or "none"
+        autonomy_level = getattr(request.intent, "autonomy_level_granted", "?")
+
+        reasoning_trace_parts = [
+            f"1. INTENT RECEIVED: goal={request.intent.goal.description[:200]!r}, steps=[{plan_steps_desc}], autonomy={autonomy_level}",
+            f"2. EQUOR GATE: verdict={equor_verdict}, reasoning={equor_reasoning_snippet!r}",
+            f"3. PRE-EXECUTION VALIDATION: all {len(request.intent.plan.steps)} step(s) passed param validation and autonomy check",
+            f"4. STEP EXECUTION:\n{executor_trace}",
+            f"5. OUTCOME: success={outcome.success}, partial={outcome.partial}, steps_completed={steps_completed}/{len(outcome.step_outcomes)}, rollback_triggered={rollback_triggered}, retry_count={retry_count}",
+            f"6. VALUE: economic_delta_usd={value_gained:.4f}, duration_ms={outcome.duration_ms}",
+        ]
+        if not outcome.success and outcome.failure_reason:
+            reasoning_trace_parts.append(f"7. FAILURE ANALYSIS: {outcome.failure_reason}")
+        reasoning_trace = "\n".join(reasoning_trace_parts)
+
+        # Alternatives considered: other executors that could have handled each step
+        introspector_profiles = {}
+        if self._introspector is not None:
+            with contextlib.suppress(Exception):
+                introspector_profiles = {
+                    p["action_type"]: p
+                    for p in self._introspector.get_degrading_executors()
+                }
+        alternatives: list[str] = []
+        if outcome.failure_reason == "circuit_open":
+            alternatives.append("Alternative: wait for circuit-breaker HALF_OPEN recovery (300s) then retry with same executor")
+        if outcome.failure_reason in ("rate_limited", "budget_exceeded"):
+            alternatives.append("Alternative: defer to next theta cycle when rate-limit window resets")
+        if steps_failed > 0 and not rollback_triggered:
+            alternatives.append("Alternative: continue_on_failure=True would allow subsequent steps to proceed despite partial failure")
+        if rollback_triggered:
+            alternatives.append("Rollback path taken: completed prior steps reversed in LIFO order; non-reversible steps (financial, external) could not be undone")
+        for step in outcome.step_outcomes:
+            if not step.result.success and step.action_type in introspector_profiles:
+                p = introspector_profiles[step.action_type]
+                alternatives.append(
+                    f"Executor '{step.action_type}' degrading (success_rate={p.get('success_rate', '?'):.2f}, "
+                    f"consecutive_failures={p.get('consecutive_failures', '?')}); consider fallback executor or human escalation"
+                )
+
+        # Counterfactual: for failures, reason about what a different path would have produced
+        counterfactual = ""
+        if not outcome.success:
+            if outcome.failure_reason == "equor_constitutional_block":
+                counterfactual = (
+                    "If constitutional check had not blocked this intent, execution would have proceeded without "
+                    "ethical oversight — risking drive misalignment. Block was correct."
+                )
+            elif outcome.failure_reason == "circuit_open":
+                counterfactual = (
+                    f"If circuit breaker had not been OPEN, the executor would have been called despite "
+                    f"recent failures. Forcing the call risks propagating cascading failures to downstream systems."
+                )
+            elif outcome.failure_reason in ("rate_limited", "budget_exceeded"):
+                counterfactual = (
+                    "If rate limiting had been bypassed, the per-cycle action budget would be exceeded, "
+                    "potentially exhausting external-service quotas and triggering ban/suspension."
+                )
+            elif rollback_triggered:
+                if steps_completed > 0:
+                    counterfactual = (
+                        f"If rollback had not been triggered after step {steps_completed}, "
+                        f"partial state mutations would have persisted — leaving {steps_completed} completed "
+                        f"step(s) with no corresponding follow-through, corrupting downstream intent coherence."
+                    )
+            elif steps_failed > 0:
+                first_fail = next((s for s in outcome.step_outcomes if not s.result.success), None)
+                if first_fail is not None:
+                    counterfactual = (
+                        f"If executor '{first_fail.action_type}' had succeeded, "
+                        f"the remaining {len(outcome.step_outcomes) - steps_completed - 1} step(s) would have proceeded. "
+                        f"Root cause: {(first_fail.result.error or 'unknown')[:120]}"
+                    )
+
+        # Structured output
+        step_detail = [
+            {
+                "action_type": s.action_type,
+                "success": s.result.success,
+                "duration_ms": s.duration_ms,
+                "rolled_back": s.rolled_back,
+                "error": (s.result.error or "")[:120] if not s.result.success else "",
+            }
+            for s in outcome.step_outcomes
+        ]
+        import json as _json
+        structured_output = _json.dumps({
+            "executor_used": plan_steps_desc,
+            "steps_completed": steps_completed,
+            "steps_total": len(outcome.step_outcomes),
+            "rollback_triggered": rollback_triggered,
+            "retry_count": retry_count,
+            "actual_outcome_quality": 1.0 if outcome.success else (0.5 if outcome.partial else 0.0),
+            "economic_delta_usd": round(value_gained, 6),
+            "duration_ms": outcome.duration_ms,
+            "failure_reason": outcome.failure_reason or None,
+            "step_detail": step_detail,
+        }, default=str)
+
         await self._emit_re_training_example(
             category="execution",
-            instruction="Execute approved intent: route to executors, manage timeouts/retries, track outcomes.",
-            input_context=f"intent_id={request.intent.id}, goal={request.intent.goal.description[:200]!r}, steps={len(request.intent.plan.steps)}",
-            output=f"success={outcome.success}, duration_ms={outcome.duration_ms}, failure={outcome.failure_reason or 'none'}, value_gained={value_gained:.4f}",
-            outcome_quality=1.0 if outcome.success else 0.0,
+            instruction=(
+                f"Execute Equor-approved intent (autonomy={autonomy_level}): "
+                f"route [{plan_steps_desc}] executor(s), enforce safety pipeline, manage timeouts, rollback on failure."
+            ),
+            input_context=(
+                f"intent_id={request.intent.id}, "
+                f"goal={request.intent.goal.description[:200]!r}, "
+                f"steps={len(request.intent.plan.steps)}, "
+                f"equor_verdict={equor_verdict}, "
+                f"autonomy_level={autonomy_level}"
+            ),
+            output=structured_output,
+            outcome_quality=1.0 if outcome.success else (0.5 if outcome.partial else 0.0),
             episode_id=outcome.episode_id or "",
             latency_ms=outcome.duration_ms or 0,
+            reasoning_trace=reasoning_trace,
+            alternatives=alternatives,
+            constitutional_alignment=equor_alignment,
+            counterfactual=counterfactual,
         )
 
         # ── Self-healing: auto-evict persistently failing executors ──

@@ -238,6 +238,11 @@ class ConsolidationOrchestrator:
         # ── Phase 8: Evolution Proposals ──────────────────────────────────────
         await self._phase_evolution_proposals()
 
+        # ── Phase 8.5: Exploration Proposals (gap closure) ───────────────────
+        proposals_generated, skipped_count = await self._phase_exploration_proposals()
+        result.exploration_proposals_generated = proposals_generated
+        result.explorations_skipped = skipped_count
+
         # ── Housekeeping ──────────────────────────────────────────────────────
         pattern_context.reset()
         self._last_run_at = utc_now()
@@ -1052,6 +1057,198 @@ class ConsolidationOrchestrator:
 
         # Causal self-surgery: targeted proposals from failure patterns (Prompt #16)
         await self._phase_causal_surgery_proposals()
+
+    async def _phase_exploration_proposals(self) -> tuple[int, int]:
+        """
+        Phase 8.5: Submit exploration proposals for low-evidence hypotheses.
+
+        Fast-tracked exploration experiments for hypotheses with:
+          - evidence_score >= 2.0 AND < 5.0 (too weak for full evolution)
+          - proposed_mutation.type == EXPLORATION (explicitly marked)
+
+        Applies metabolic gating: NO explorations when starvation >= AUSTERITY.
+        Max 2 concurrent explorations (prevent resource exhaustion).
+
+        Returns (proposals_generated, skipped_due_to_gate).
+        """
+        # Use the pre-Phase-2 snapshot pattern (like Phase 8)
+        supported = getattr(self, "_supported_snapshot", [])
+
+        exploration_candidates = [
+            h for h in supported
+            if (
+                h.proposed_mutation is not None
+                and h.proposed_mutation.type == MutationType.EXPLORATION
+                and 2.0 <= h.evidence_score < 5.0
+            )
+        ]
+
+        if not exploration_candidates:
+            return 0, 0
+
+        # Check metabolic gate: no explorations during starvation
+        if self._oikos is not None:
+            try:
+                from systems.oikos.types import MetabolicPriority
+
+                gate_result = await self._oikos.check_metabolic_gate(
+                    MetabolicPriority.GROWTH
+                )
+                if not gate_result:
+                    self._logger.info(
+                        "exploration_proposals_skipped_metabolic_gate",
+                        candidates=len(exploration_candidates),
+                        reason="metabolic_gate_denied",
+                    )
+                    return 0, len(exploration_candidates)
+            except Exception as exc:
+                self._logger.warning(
+                    "metabolic_gate_check_failed",
+                    error=str(exc),
+                )
+                return 0, len(exploration_candidates)
+
+        # Check concurrency limit: max 2 active explorations
+        # Count active explorations from Neo4j
+        active_explorations = 0
+        if self._memory is not None:
+            try:
+                result = await self._memory._neo4j.session.run(
+                    """
+                    MATCH (h:Hypothesis {is_exploration: true})
+                    WHERE h.status IN ['testing', 'proposed']
+                    RETURN count(h) as count
+                    """
+                )
+                record = await result.single()
+                active_explorations = record["count"] if record else 0
+            except Exception as exc:
+                self._logger.warning(
+                    "active_exploration_count_failed",
+                    error=str(exc),
+                )
+                active_explorations = 0
+
+        if active_explorations >= 2:
+            self._logger.info(
+                "exploration_proposals_skipped_concurrency_limit",
+                candidates=len(exploration_candidates),
+                active_explorations=active_explorations,
+            )
+            return 0, len(exploration_candidates)
+
+        # Get liquid reserves for budget calculation
+        liquid_reserves = 0.0
+        if self._oikos is not None:
+            try:
+                state = await self._oikos.get_economic_state()
+                liquid_reserves = float(state.liquid_reserve_usd) if state else 0.0
+            except Exception as exc:
+                self._logger.warning("liquid_reserves_fetch_failed", error=str(exc))
+
+        # Sort by evidence score (highest first)
+        exploration_candidates.sort(key=lambda h: h.evidence_score, reverse=True)
+
+        proposals_generated = 0
+        self._logger.info(
+            "exploration_proposals_phase_8_5",
+            candidates=len(exploration_candidates),
+            active_explorations=active_explorations,
+            liquid_reserves=round(liquid_reserves, 2),
+        )
+
+        for h in exploration_candidates:
+            if h.proposed_mutation is None:
+                continue
+
+            # Calculate budget based on metabolic state (simplified: 3% of liquid reserves for exploration)
+            # In production, this should be informed by actual starvation level
+            budget_usd = liquid_reserves * 0.03
+
+            # Mark hypothesis as exploration
+            h.is_exploration = True
+            h.exploration_budget_usd = budget_usd
+            h.exploration_max_attempts = 3
+            h.exploration_attempts = 0
+
+            try:
+                from systems.evo.types import ExplorationProposal
+                from systems.synapse.types import SynapseEvent, SynapseEventType
+
+                proposal = ExplorationProposal(
+                    hypothesis_id=h.id,
+                    hypothesis_statement=h.statement,
+                    evidence_score=h.evidence_score,
+                    proposed_mutation=h.proposed_mutation,
+                    budget_usd=budget_usd,
+                    max_attempts=3,
+                    success_criteria=f"Hypothesis '{h.statement}' successfully tested",
+                    rollback_plan="Revert proposed changes and mark exploration as failed",
+                    metabolic_tier="NOMINAL",  # Could be more sophisticated
+                )
+
+                # Emit EXPLORATION_PROPOSED on Synapse
+                if self._event_bus is not None:
+                    await self._event_bus.emit(
+                        SynapseEvent(
+                            event_type=SynapseEventType.EXPLORATION_PROPOSED,
+                            source_system="evo.consolidation",
+                            data={
+                                "hypothesis_id": proposal.hypothesis_id,
+                                "hypothesis_statement": proposal.hypothesis_statement,
+                                "evidence_score": proposal.evidence_score,
+                                "budget_usd": proposal.budget_usd,
+                                "max_attempts": proposal.max_attempts,
+                                "success_criteria": proposal.success_criteria,
+                                "rollback_plan": proposal.rollback_plan,
+                                "metabolic_tier": proposal.metabolic_tier,
+                                "proposed_mutation": proposal.proposed_mutation.model_dump(mode="json") if proposal.proposed_mutation else None,
+                            },
+                        )
+                    )
+
+                # Emit RE_TRAINING_EXAMPLE for exploration proposal
+                try:
+                    from primitives.evolution import RETrainingExample
+
+                    example = RETrainingExample(
+                        episode_id=h.id,
+                        category="exploration_proposed",
+                        input_description=f"Low-evidence hypothesis ready for exploration: {h.statement}",
+                        hypothesis_summary=h.statement,
+                        evidence_score=h.evidence_score,
+                        confidence=min(0.99, 0.5 + h.evidence_score * 0.05),
+                        outcome="exploration_queued",
+                        tags=["exploration", "phase_8_5", h.category.value],
+                    )
+                    await self._synapse.emit_event(
+                        SynapseEvent(
+                            event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                            data=example.model_dump(mode="json"),
+                            source_system="evo",
+                        )
+                    )
+                except Exception as exc:
+                    self._logger.debug(
+                        "re_training_emit_failed",
+                        error=str(exc),
+                    )
+
+                proposals_generated += 1
+                self._logger.info(
+                    "exploration_proposal_generated",
+                    hypothesis_id=h.id,
+                    budget_usd=round(budget_usd, 2),
+                )
+
+            except Exception as exc:
+                self._logger.warning(
+                    "exploration_proposal_generation_failed",
+                    hypothesis_id=h.id,
+                    error=str(exc),
+                )
+
+        return proposals_generated, len(exploration_candidates) - proposals_generated
 
     async def _phase_failure_pattern_detection(self) -> list[FailurePattern]:
         """

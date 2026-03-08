@@ -10,7 +10,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 ## What's Implemented
 
 ### Phase A — Error Computation
-- 6-dimensional error decomposition: content, temporal, magnitude, source, category, causal
+- 7-dimensional error decomposition: content, temporal, magnitude, source, category, causal, **economic**
 - `FoveaPredictionEngine` with `generate_prediction()` and `compute_error()`
 - `PrecisionWeightComputer` — **per-dimension precision** (2026-03-07): each of the 6 error dimensions gets an independent precision weight from `get_dimension_accuracy(context_type, dimension)` — no longer uniform
 - `LogosWorldModel` protocol (now includes `get_dimension_accuracy()`) + `StubWorldModel` fallback + `LogosWorldModelAdapter`
@@ -35,7 +35,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 
 ### Cross-Cutting
 - **Synapse events emitted:** `PREDICTION_ERROR`, `HABITUATION_DECAY`, `DISHABITUATION`, `INTERNAL_PREDICTION_ERROR`, `ATTENTION_PROFILE_UPDATE`, `WORKSPACE_IGNITION`, `HABITUATION_COMPLETE`, `FOVEA_ATTENTIONAL_DIVERGENCE`
-- **Synapse events consumed:** `WORLD_MODEL_UPDATED`, `FOVEA_PREDICTION_ERROR`, `SELF_AFFECT_UPDATED`, `SLEEP_STAGE_TRANSITION`, `EVO_HYPOTHESIS_CONFIRMED`, `EVO_HYPOTHESIS_REFUTED`, `PERCEPT_ARRIVED` (timing gaps → WorldModelAdapter), `FOVEA_ATTENTION_PROFILE_UPDATE` (fleet sibling weight samples → KL divergence), `AXON_EXECUTION_REQUEST` (→ `_on_axon_execution_request()`: `_internal_engine.predict()` competency self-model; prediction_id stored in `_axon_prediction_ids[intent_id]`), `AXON_EXECUTION_RESULT` (→ `_on_axon_execution_result()`: `_internal_engine.resolve()` computes competency error delta)
+- **Synapse events consumed:** `WORLD_MODEL_UPDATED`, `FOVEA_PREDICTION_ERROR`, `SELF_AFFECT_UPDATED`, `SLEEP_STAGE_TRANSITION`, `EVO_HYPOTHESIS_CONFIRMED`, `EVO_HYPOTHESIS_REFUTED`, `PERCEPT_ARRIVED` (timing gaps → WorldModelAdapter), `FOVEA_ATTENTION_PROFILE_UPDATE` (fleet sibling weight samples → KL divergence), `AXON_EXECUTION_REQUEST` (→ `_on_axon_execution_request()`: `_internal_engine.predict()` competency self-model; prediction_id stored in `_axon_prediction_ids[intent_id]`), `AXON_EXECUTION_RESULT` (→ `_on_axon_execution_result()`: `_internal_engine.resolve()` computes competency error delta), `ECONOMIC_VITALITY` (→ `_on_economic_vitality()`: feeds `EconomicPredictionModel`; emits ECONOMIC prediction errors when composite > 0.3)
 - **Neo4j persistence:** `FoveaWeights` and `FoveaHabituation` nodes (batched writes, max 1 per 10 changes; force on sleep/shutdown; restore on startup)
 - **Genome:** `GenomeExtractionProtocol` — exports/imports learned weights, learning_rate, false_alarm_decay
 - **Fitness:** `EvolutionaryObservable` emission with `attention_calibration` TPR metric
@@ -61,6 +61,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 | `workspace.py` | `GlobalWorkspace` — competitive selection, broadcast |
 | `internal.py` | `InternalPredictionEngine` — self-model violation detection |
 | `types.py` | All Fovea types: `FoveaPredictionError`, `ErrorType`, weights, routing |
+| `economic_model.py` | `EconomicPredictionModel` — EMA revenue/cost predictions, per-source trackers, trend velocity, composite error |
 | `normalisation.py` | Input normalisation for 11 channel types |
 | `protocols.py` | `LogosWorldModel` protocol, stub, adapter |
 | `world_model_adapter.py` | `WorldModelAdapter` — Memory-backed `LogosWorldModel`; distance helpers; TTL cache |
@@ -72,6 +73,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 
 ## What's Missing / Known Gaps
 
+1. ~~**Economic prediction error dimension** (revenue-side blind spot)~~ — **RESOLVED (2026-03-08)**: `ErrorType.ECONOMIC` + `economic_error` field + `EconomicPredictionModel` + `ECONOMIC_VITALITY` subscription in `service.py`. Routes to `ErrorRoute.OIKOS` + `EVO` at threshold > 0.3.
 1. ~~**Attentional divergence metric** (M4/SG2)~~ — **RESOLVED (2026-03-07)**: `_emit_attentional_divergence()` in `service.py` emits `FOVEA_ATTENTIONAL_DIVERGENCE` every 100 errors with KL(P||Q) between this instance's weight vector and fleet mean from sibling `FOVEA_ATTENTION_PROFILE_UPDATE` samples
 2. **RE backend for semantic/causal distance** (M5) — cosine distance and key-overlap heuristic used; RE invocation deferred
 3. **Neo4j graph writes for RE training pairs** — Stream 6 flows via Synapse only, not persisted to graph
@@ -95,6 +97,7 @@ All emit functions guard with `if self._event_bus is None: return` and wrap `try
 ## Integration Surface
 
 **Gives to the organism:**
+- **Economic prediction errors** → Oikos (early warning before starvation), Evo (hypothesis about revenue failure source)
 - Salience signal (prediction error magnitude) → workspace ignition → all systems
 - Error routing → Evo (hypotheses), Logos (world model updates), Kairos (causal patterns)
 - **Constitutional mismatch routing** → Equor (`constitutional_mismatch > 0.3`), Oneiros (`constitutional_mismatch > 0.5`)
@@ -105,6 +108,7 @@ All emit functions guard with `if self._event_bus is None: return` and wrap `try
 - **Attentional divergence** → Benchmarks (`FOVEA_ATTENTIONAL_DIVERGENCE`: KL divergence vs fleet mean, speciation signal)
 
 **Receives from the organism:**
+- **Economic actuals** → Oikos (`ECONOMIC_VITALITY`) — revenue_24h, costs_24h, metabolic_efficiency, revenue_by_source
 - World model predictions → Memory Episode graph (via `WorldModelAdapter`, replaces stub Logos)
 - World model update correlation → Logos (`WORLD_MODEL_UPDATED`)
 - Affect state → Soma (`SELF_AFFECT_UPDATED`) — τ coupling
@@ -116,4 +120,4 @@ All emit functions guard with `if self._event_bus is None: return` and wrap `try
 
 ---
 
-_Last updated: 2026-03-07 (P1 per-dimension precision, A1 public API, A6 identity fix, D1-D3 dead type docs, WorldModelAdapter, 18ms budget, constitutional routing, PERCEPT_ARRIVED subscription, KL attentional divergence)_
+_Last updated: 2026-03-08 (Economic prediction error dimension — ErrorType.ECONOMIC, EconomicPredictionModel, ECONOMIC_VITALITY subscription, OIKOS ErrorRoute, per-source revenue tracking, trend velocity error, RE training on revenue divergence)_

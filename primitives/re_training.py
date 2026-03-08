@@ -67,6 +67,13 @@ class RETrainingDatapoint(EOSBaseModel):
     latency_ms: int = 0
     # Dedup key (source_system:episode_id) — empty string means no episode
     episode_id: str = ""
+    # Retroactive outcome correction (set when AXON_EXECUTION_RESULT arrives later)
+    outcome_updated: bool = False
+    actual_outcome_quality: float | None = None
+    # Quality tier assigned at export time: "gold" | "silver" | "bronze"
+    quality_tier: str = "bronze"
+    # Task difficulty [0, 1] computed at export time from richness signals
+    task_difficulty: float = 0.0
 
 
 class RETrainingExportBatch(Identified):
@@ -127,6 +134,17 @@ class RETrainingExample(EOSBaseModel):
     reasoning_trace: str = ""
     alternatives_considered: list[str] = Field(default_factory=list)
     counterfactual: str = ""
+
+    # Domain specialization — optional; generalist by default
+    domain: str = "generalist"        # e.g. "art", "trading", "software", "defi"
+    skill_area: str = ""               # e.g. "code_quality_assessment", "risk_evaluation"
+    transferable_skills: list[str] = Field(default_factory=list)
+    # ["causal_reasoning", "constraint_satisfaction", ...]
+    domain_difficulty: str = "novice"  # "novice" | "intermediate" | "expert"
+    skill_improvement: float = Field(0.0, ge=0.0, le=1.0)
+    # How much this example is expected to improve skill mastery
+    prerequisite_skills: list[str] = Field(default_factory=list)
+    # Skills that should exist before this example is maximally useful
 
 
 class RETrainingBatch(Identified):

@@ -111,6 +111,12 @@ from primitives.re_training import (
     RETrainingExample,
     RETrainingExportBatch,
 )
+from primitives.evolution import (
+    AdapterStrategy,
+    DomainProfile,
+    ChangeCategory,
+    ProposalStatus,
+)
 from primitives.telemetry import InstanceHealth, MetricPoint, SystemHealth
 from primitives.causal import (
     ApplicableDomain,
@@ -128,6 +134,7 @@ from primitives.vitality import (
 )
 from primitives.mitosis import ChildPosition, ChildStatus
 from primitives.blockchain import BlockCompetitionSnapshot
+from primitives.episodes import EpisodeOutcome
 
 __all__ = [
     # Common
@@ -165,6 +172,10 @@ __all__ = [
     # RE Training
     "RETrainingExample", "RETrainingBatch",
     "RETrainingDatapoint", "RETrainingExportBatch",
+    # Domain Specialization
+    "DomainProfile", "AdapterStrategy",
+    # Evolution (self-evolution primitives)
+    "ChangeCategory", "ProposalStatus",
     # Genome
     "OrganGenomeSegment", "OrganismGenome", "GenomeExtractionProtocol",
     # Genome Inheritance (spawn-time schemas)
@@ -190,4 +201,6 @@ __all__ = [
     "ExperimentDesign", "ExperimentResult",
     # Incident classification (sentinel cross-system primitive)
     "IncidentClass", "IncidentSeverity",
+    # Episode outcomes (domain KPI ingestion)
+    "EpisodeOutcome",
 ]

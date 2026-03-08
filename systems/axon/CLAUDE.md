@@ -73,6 +73,61 @@ Full 8-stage pipeline confirmed (`pipeline.py`). All safety systems (`safety.py`
 - `MOTOR_DEGRADATION_DETECTED` now has two trigger paths: (1) rolling-window degradation (≥5 samples, <50% success, 60s cooldown) via `_performance_monitor.record()` → `_emit_motor_degradation()`; (2) metabolic emergency circuit breaker force-opens non-essential executors (social_post, bounty_hunt, deploy_asset, phantom_liquidity) and immediately fires `_emit_motor_degradation()` — closes Motor Degradation → Replanning closure loop (2026-03-07)
 - `asyncio` import added to `service.py` (was missing, required for `asyncio.create_task()` in metabolic emergency handler) (2026-03-07)
 
+### Dynamic Executor System (2026-03-08)
+
+**`ExecutorTemplate`** (`types.py`) — blueprint for a dynamically generated executor. Fields: `name`, `action_type`, `description`, `protocol_or_platform`, `required_apis`, `risk_tier`, `max_budget_usd`, `capabilities`, `safety_constraints`, `source_hypothesis_id`, `source_opportunity_id`. `required_autonomy` is derived from `risk_tier` (low→2, medium→3, high→4).
+
+**`DynamicExecutorRecord`** (`types.py`) — runtime record of a registered dynamic executor. Persisted as `(:DynamicExecutor)` Neo4j node. Fields: `template`, `module_path`, `registered_at`, `enabled`, `incident_count_24h`, `neo4j_node_id`.
+
+**`DynamicExecutorBase`** (`executors/dynamic_base.py`) — abstract base class all generated executors must extend (not `Executor` ABC directly). Safety invariants live here, never in generated code:
+- `execute()` is **FINAL** — 6-stage pipeline: disabled gate → budget cap → Equor pre-approval → `_execute_action()` → Neo4j audit → RE_TRAINING_EXAMPLE → incident tracking
+- `validate_params()` is **FINAL** — delegates to `_validate_action_params()`
+- `_call_api(url, method, ...)` — sandboxed HTTP via httpx; enforces `_allowed_api_prefixes` whitelist from template
+- `_request_equor_permit(context, estimated_cost, template)` — emits `EQUOR_ECONOMIC_INTENT`, awaits `asyncio.Event`, 30s timeout → auto-permit (matches Oikos §M4 pattern)
+- `_write_neo4j_audit(...)` — MERGE `(:DynamicExecutor)`, CREATE `(:DynamicExecution)`, SHA-256 params hash
+- `_emit_re_training(...)` — `RE_TRAINING_EXAMPLE` with category `"dynamic_executor_execution"`
+- `_record_incident(...)` — 24h rolling window; `_auto_disable()` at ≥3 incidents → `EXECUTOR_DISABLED` emitted
+- Abstract: `_execute_action(params, context)`, `_validate_action_params(params)`
+
+**`InstanceAdapterRegistry`** (`adapter_registry.py`) — NEW (2026-03-08):
+- Tracks which LoRA adapters are available per domain; persists `(:LoRAAdapter)` nodes to Neo4j
+- `initialize()` — loads `status='ready'` adapter paths from Neo4j on boot
+- `load_for_domain(domain)` — switches effective adapter; emits `ADAPTER_LOAD_REQUESTED` if changed
+- `register_domain_adapter(domain, path)` — called by `ContinualLearningOrchestrator` on job completion
+- `primary_adapter` / `effective_adapter` / `domain_adapters` — read by `ContinualLearningOrchestrator`
+- Injected into `app.state.adapter_registry` from `registry.py` Phase 11
+
+**`ExecutorRegistry`** extensions (`registry.py`):
+- `set_neo4j(neo4j)` / `set_event_bus(bus)` — dependency injection
+- `register_dynamic_executor(template, module_path)` — loads module, instantiates `{PascalCase}Executor`, registers under `action_type`, persists to Neo4j, emits `EXECUTOR_REGISTERED`
+- `list_dynamic_executors()` → `list[DynamicExecutorRecord]`
+- `disable_dynamic_executor(action_type)` → soft-disable; Neo4j `enabled=false`, emits `EXECUTOR_DISABLED`
+- `restore_dynamic_executors_from_neo4j()` — called during `initialize()` to restore enabled executors across restarts
+
+**`axon/executors/dynamic/`** — output directory for generated executor files. `__init__.py` documents iron rules. Never hand-edit files here; they are machine-generated and hot-loaded.
+
+**New SynapseEventTypes:**
+- `EXECUTOR_REGISTERED` — payload: action_type, name, protocol_or_platform, risk_tier, max_budget_usd, capabilities, source_hypothesis_id, registered_at
+- `EXECUTOR_DISABLED` — payload: action_type, name, reason, incident_count, disabled_at
+
+**Closure loop:**
+```
+Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (new DeFi/bounty protocol, no executor)
+  → Evo: EVOLUTION_CANDIDATE(mutation_type="add_executor", executor_template={...})
+  → Simula._on_evolution_candidate → ExecutorGenerator.generate_executor(template)
+  → Generated class written to axon/executors/dynamic/{name}.py
+  → ExecutorRegistry.register_dynamic_executor() — hot-loaded immediately
+  → EXECUTOR_REGISTERED emitted — Thymos opens 24h monitoring window
+```
+
+**Safety guarantees (non-negotiable):**
+- Generated code cannot import from `systems.*`
+- Budget hard cap enforced at `DynamicExecutorBase` level — never in generated code
+- Equor must PERMIT every individual action (no batch pre-approval)
+- Every execution logged to Neo4j as `(:DynamicExecution)` node
+- Auto-disabled on ≥3 incidents in 24h via `_auto_disable()`
+- Generated code stored in Neo4j for audit trail (SHA-256 hash of params)
+
 ---
 
 ## Genome Inheritance (Spec 6 §24 — 2026-03-07)

@@ -20,6 +20,7 @@
 | `EFEEvaluator` | `efe_evaluator.py` | Expected Free Energy scoring per policy |
 | `IntentRouter` | `intent_router.py` | Dispatches approved Intents to Axon or Voxis |
 | `GoalStore` | `goal_store.py` | Neo4j persistence; loads on startup, suppresses stale maintenance goals |
+| `SpecializationTracker` | `specialization_tracker.py` | Tracks domain specialization progress; drives DomainProfile Neo4j nodes |
 
 ---
 
@@ -179,6 +180,60 @@ All 7 gaps resolved as of 2026-03-07. See Resolved section below.
 
 - **AV3:** Runtime cross-system import `from systems.memory.episodic import store_counterfactual_episode` at call time — replaced with `self._memory.store_counterfactual_episode()` public API call (2026-03-07, low priority)
 - **`process_outcome()` ≤100ms budget** — likely too tight; involves Neo4j writes, regret computation, Evo feedback; no enforcement mechanism
+
+---
+
+## Input Channels — Market Discovery
+
+**Files:** `nova/input_channels.py`, `nova/builtin_channels/`
+
+Nova has a generalised external data source abstraction that allows the organism to proactively discover specialisation opportunities.
+
+### InputChannel ABC
+Each channel is **read-only**: it fetches `Opportunity` objects from an external API. Channels never write to or modify external systems.
+
+### Opportunity model
+```
+id, source, domain, title, description, effort_estimate, reward_estimate (Decimal USD/month),
+skill_requirements, risk_tier, time_sensitive, prerequisites, metadata
+```
+
+### Built-in channels (8 total)
+| Channel ID | Domain | Source |
+|---|---|---|
+| `defi_llama` | yield | DeFiLlama pools API (Aave/Morpho/Compound/Spark) |
+| `upwork` | employment | Upwork public job search (UPWORK_OAUTH_TOKEN optional) |
+| `github_trending` | development | GitHub search API (GITHUB_TOKEN optional for higher rate limit) |
+| `arxiv` | research | ArXiv Atom feed — cs.AI, cs.LG, cs.CR, q-fin.TR, cs.NE |
+| `social_media` | market_intelligence | Reddit JSON API + Hacker News Algolia |
+| `art_markets` | art | OpenSea collection stats |
+| `trading_data` | trading | CoinGecko public markets API |
+| `huggingface` | ai_models | HuggingFace Hub models + datasets APIs |
+
+### InputChannelRegistry
+- Manages up to **10 active channels** (noise gate)
+- `fetch_all()` — concurrent fetch with 30s per-channel timeout; failed channels are **silently disabled**
+- `health_check()` — re-enables recovered channels; emits `INPUT_CHANNEL_HEALTH_CHECK` daily
+- `register_custom_channel()` — add new channels at runtime (e.g. via Simula exploration)
+
+### Background loops (started in `initialize()`)
+- `_opportunity_fetch_loop` — runs **hourly**, calls `fetch_all()`, injects `PatternCandidate`s into Evo, emits `INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED` + `RE_TRAINING_EXAMPLE`
+- `_channel_health_loop` — runs **daily**, calls `health_check()`, emits `INPUT_CHANNEL_HEALTH_CHECK`
+
+### Evo integration
+Nova injects one `PatternCandidate(type=COOCCURRENCE)` per opportunity directly into `evo._pending_candidates`. Evo also subscribes to `INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED` and generates additional domain-cluster candidates.
+
+### Synapse events emitted
+- `INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED` — hourly, full opportunity list + domain summary
+- `INPUT_CHANNEL_HEALTH_CHECK` — daily, per-channel health results
+- `INPUT_CHANNEL_REGISTERED` — on `register_custom_channel()` (emitted by caller)
+
+### Constraints
+- Channels are **read-only sensors**, never actuators
+- All external HTTP via `httpx.AsyncClient` with timeouts — no blocking calls
+- Failed channels fail-open (disabled, never propagate exception to caller)
+- Maximum 10 active channels
+- No auth credentials required for built-in channels; optional tokens via env vars
 
 ---
 

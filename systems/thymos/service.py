@@ -3459,12 +3459,18 @@ class ThymosService:
         incident.repair_tier = initial_tier
 
         # ── RE training: anomaly detection decision ──
+        # care alignment: incidents harm wellbeing; severity inversely proportional to care
+        _sev_map = {"critical": -0.8, "high": -0.5, "medium": -0.2, "low": 0.1, "info": 0.3}
+        _care_score = _sev_map.get(scored_severity.value, 0.0)
+        _coh_score = -0.3 if scored_severity.value in ("critical", "high") else 0.1
         asyncio.ensure_future(self._emit_re_training_example(
             category="anomaly_detection",
             instruction="Detect, deduplicate, score, and route an incident through the immune pipeline.",
             input_context=f"source={incident.source_system}, class={incident.incident_class.value}, fingerprint={incident.fingerprint[:16]}",
             output=f"severity={scored_severity.value}, tier={initial_tier.name}",
             outcome_quality={"critical": 0.2, "high": 0.4, "medium": 0.6, "low": 0.8, "info": 0.9}.get(scored_severity.value, 0.5),
+            episode_id=incident.id,
+            constitutional_alignment=self._build_incident_alignment(care=_care_score, coherence=_coh_score),
         ))
 
         # Step 6: Process through the immune pipeline
@@ -3688,6 +3694,11 @@ class ThymosService:
             latency_ms=int(diagnosis_ms),
             reasoning_trace=diagnosis.reasoning[:200] if hasattr(diagnosis, "reasoning") and diagnosis.reasoning else "",
             alternatives_considered=[h.statement[:100] for h in diagnosis.all_hypotheses[:5]] if hasattr(diagnosis, "all_hypotheses") else [],
+            episode_id=incident.id,
+            constitutional_alignment=self._build_incident_alignment(
+                coherence=diagnosis.confidence * 2.0 - 1.0,  # high confidence = coherent diagnosis
+                honesty=diagnosis.confidence - 0.5,           # confident diagnosis = honest about reality
+            ),
         ))
 
         # ── Step 2b: Inject urgent goal for critical incidents ──
@@ -3819,6 +3830,11 @@ class ThymosService:
             input_context=f"root_cause={diagnosis.root_cause[:150]}, confidence={diagnosis.confidence:.2f}, severity={incident.severity.value}, stress={composite_stress:.2f}",
             output=f"tier={repair.tier.name}, action={repair.action[:200]}, target={repair.target_system}",
             outcome_quality=diagnosis.confidence,
+            episode_id=incident.id,
+            constitutional_alignment=self._build_incident_alignment(
+                coherence=diagnosis.confidence - 0.3,  # partial alignment: confident but not certain
+                care=0.3,                              # repair = care for the organism
+            ),
         ))
 
         # ── Step 4: Validate ──
@@ -4054,6 +4070,12 @@ class ThymosService:
                 outcome_quality=min(1.0, 0.6 + diagnosis.confidence * 0.4),
                 latency_ms=int(elapsed_ms),
                 reasoning_trace=diagnosis.root_cause[:200],
+                episode_id=incident.id,
+                constitutional_alignment=self._build_incident_alignment(
+                    care=0.7,       # successful healing = high care
+                    growth=0.5,     # antibody creation = growth/learning
+                    coherence=0.4,  # resolved incident = restored coherence
+                ),
             ))
 
             await self._emit_evolutionary_observable(
@@ -5300,6 +5322,12 @@ class ThymosService:
                 f"Root cause: {incident.root_cause_hypothesis or 'unknown'}. "
                 f"Repair: {repair.reason[:200]}"
             ),
+            episode_id=incident.id,
+            constitutional_alignment=self._build_incident_alignment(
+                care=0.8,
+                coherence=measured_quality * 2.0 - 1.0,
+                growth=0.4,
+            ),
         )
 
     async def _learn_from_failure(
@@ -5402,6 +5430,11 @@ class ThymosService:
             reasoning_trace=(
                 f"Root cause: {incident.root_cause_hypothesis or 'unknown'}. "
                 f"Failed repair: {repair.reason[:200]}"
+            ),
+            episode_id=incident.id,
+            constitutional_alignment=self._build_incident_alignment(
+                care=-0.3,      # failure = unresolved harm
+                coherence=-0.4, # failure = incoherence persists
             ),
         )
 
@@ -6621,6 +6654,20 @@ class ThymosService:
         except Exception:
             pass  # Evolutionary telemetry must never block immune function
 
+    @staticmethod
+    def _build_incident_alignment(
+        care: float = 0.0,
+        coherence: float = 0.0,
+        growth: float = 0.0,
+        honesty: float = 0.0,
+    ) -> Any:
+        """Build a DriveAlignmentVector from incident-derived scores. Lazy import to avoid circular deps."""
+        try:
+            from primitives.common import DriveAlignmentVector
+            return DriveAlignmentVector(care=care, coherence=coherence, growth=growth, honesty=honesty)
+        except Exception:
+            return None
+
     async def _emit_re_training_example(
         self,
         *,
@@ -6632,6 +6679,8 @@ class ThymosService:
         reasoning_trace: str = "",
         alternatives_considered: list[str] | None = None,
         latency_ms: int = 0,
+        episode_id: str = "",
+        constitutional_alignment: Any = None,
     ) -> None:
         """Fire-and-forget RE training example onto Synapse bus."""
         bus = self._synapse._event_bus if self._synapse is not None else None
@@ -6639,6 +6688,7 @@ class ThymosService:
             return
         try:
             from decimal import Decimal
+            from primitives.common import DriveAlignmentVector as _DAV
 
             example = RETrainingExample(
                 source_system=SystemID.THYMOS,
@@ -6650,6 +6700,8 @@ class ThymosService:
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives_considered or [],
                 latency_ms=latency_ms,
+                episode_id=episode_id,
+                constitutional_alignment=constitutional_alignment or _DAV(),
             )
             await bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

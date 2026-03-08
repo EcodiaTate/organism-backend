@@ -85,6 +85,7 @@
 
 **Synapse events consumed:**
 - `EVOLUTION_PROPOSAL` (from Evo) → routed via `EvoSimulaBridge`
+- **`EXPLORATION_PROPOSED` (from Evo Phase 8.5)** → `_on_exploration_proposed()` — lightweight handler skips SIMULATE stage, goes VALIDATE → GATE → APPLY → VERIFY → RECORD
 - `SIMULA_SANDBOX_REQUESTED` (from Thymos) → replay episodes with proposed fix → emit `SIMULA_SANDBOX_RESULT`
 - `THYMOS_REPAIR_REQUESTED` → synthesise a structural repair proposal for a high-tier incident
 - `THYMOS_REPAIR_APPROVED` → record governance approval; fast-track the queued repair proposal
@@ -98,15 +99,16 @@
 - `EVOLUTION_ROLLED_BACK` — after health check failure triggers rollback
 - `EVOLUTION_REJECTED` — on constraint violation (VALIDATE stage) or unacceptable simulation risk (SIMULATE stage); Evo uses this to penalise hypotheses
 - `EVOLUTION_AWAITING_GOVERNANCE` — when a proposal is routed to 24-hour community approval gate
+- **`EXPLORATION_OUTCOME` (Gap Closure 8 Mar 2026)** — after exploration attempt completes (success/failure); payload: `exploration_success`, `hypothesis_id`, `failure_reason` (if failed), `reward_confidence` (if success)
 - `SIMULA_HEALTH_DEGRADED` — (reserved) on persistent health-check failure patterns
 - `SIMULA_GENOME_EXTRACTED` — after successful genome segment extraction for Mitosis
 - `INSPECTOR_VULNERABILITY_FOUND` — (reserved) when Inspector reports a new CVE
 - `SIMULA_SANDBOX_RESULT` — Thymos sandbox response (30s timeout, fail-closed)
 - **`SIMULA_HEALTH_DEGRADED`** (IMPLEMENTED 2026-03-07) — emitted from `health_check()` when `overall` status is `"degraded"` or `"unhealthy"`; payload: `status`, `reason`, `degraded_components`, `unhealthy_components`. Previously marked `# (reserved)`.
 - **`INSPECTOR_VULNERABILITY_FOUND`** (IMPLEMENTED 2026-03-07) — emitted from `_emit_vulnerability_confirmed()` in `service.py` before the existing `VULNERABILITY_CONFIRMED` event; payload: `vuln_id`, `severity`, `target`, `cwe_id`, `poc_hash`. Previously marked `# (reserved)`.
-- `RE_TRAINING_EXAMPLE` — emitted after every RECORD stage (category=`self_evolution`) and from code agent on significant proposals
-- `EVO_HYPOTHESIS_CONFIRMED` — after APPLIED proposal: reward = `verification_confidence × (1 − risk_score)`
-- `EVO_HYPOTHESIS_REFUTED` — after ROLLED_BACK proposal: reward = `−0.3`; `hypothesis_id = "simula.evolution.{category}"`
+- `RE_TRAINING_EXAMPLE` — emitted after every RECORD stage (category=`self_evolution` or `exploration_outcome`) and from code agent on significant proposals
+- `EVO_HYPOTHESIS_CONFIRMED` — after APPLIED proposal or successful exploration: reward = `verification_confidence × (1 − risk_score)`
+- `EVO_HYPOTHESIS_REFUTED` — after ROLLED_BACK proposal or exhausted exploration attempts: reward = `−0.3`; `hypothesis_id = "simula.evolution.{category}"`
 - `SIMULA_CANARY_PROGRESS` — at each canary ramp step for MODERATE-risk proposals (10%→25%→50%→100%)
 
 **Memory:** Reads recent episodes for counterfactual replay (read-only). Writes `EvolutionRecord` + `ConfigVersion` (append-only).
@@ -251,3 +253,61 @@ python -m cli.simula list-generated
 - **Genome not yet inherited** — generated subsystems don't automatically inherit a genome fragment
 - **No test generation** — `generate_subsystem` does not create test files for the new module
 - **LLM quality not verified post-generation** — only AST + import check; no semantic correctness guarantee
+
+---
+
+## Dynamic Capability Expansion — Round 2E (8 Mar 2026)
+
+**Speciation Bible §8.3** — Constructive closure: the organism can generate AND immediately deploy new Axon executor classes when it discovers opportunities it cannot yet act on.
+
+### ExecutorGenerator (`executor_generator.py`)
+
+**Purpose:** Generate new Axon executor classes from `ExecutorTemplate` objects at runtime, then hot-load and register them immediately in the live `ExecutorRegistry`.
+
+Unlike `SubsystemGenerator` (which defers to next boot), `ExecutorGenerator` hot-loads the generated executor in the current process. This is safe because `DynamicExecutorBase` enforces all runtime invariants — budget cap, Equor approval, audit trail — and `registry.disable_dynamic_executor()` can instantly gate any misbehaving executor.
+
+**`generate_executor(template: ExecutorTemplate)`** — 9-step flow:
+1. Iron Rule validation of template (forbidden names: equor, simula, constitution, invariant, memory)
+2. Snapshot target file for rollback (if it exists)
+3. Build LLM prompt from ExecutorTemplate (protocol, capabilities, required APIs, safety constraints)
+4. Generate Python class via LLM (60s timeout, scaffold fallback)
+5. AST syntax check
+6. Source scan: no cross-system imports, no dangerous calls (eval/exec/subprocess), no inline secrets
+7. Required method check: `_execute_action` + `_validate_action_params` must be present
+8. Write to `axon/executors/dynamic/{name}.py`
+9. Hot-register via `ExecutorRegistry.register_dynamic_executor()` + emit `RE_TRAINING_EXAMPLE`
+
+**`_build_scaffold(template)`** — minimal valid executor skeleton when LLM is unavailable. Returns `ExecutionResult(success=False, error="scaffold")` so it's safe to deploy but won't accidentally do anything.
+
+**Iron Rules (harder than SubsystemGenerator):**
+- Generated class MUST extend `DynamicExecutorBase` — not `Executor` ABC
+- CANNOT import from `systems.*`
+- CANNOT contain `eval()`, `exec()`, `__import__()`, `subprocess`, `os.system()`
+- CANNOT contain wallet private keys, mnemonics, or HMAC/AES secrets inline
+- MUST implement `_execute_action()` and `_validate_action_params()`
+- Budget cap lives in `DynamicExecutorBase` — never in generated code
+
+**Wiring:**
+- `SimulaService.initialize()` — builds `ExecutorGenerator(code_agent, rollback_manager, codebase_root)`
+- `SimulaService.set_synapse(bus)` — calls `_executor_generator.set_event_bus(bus)`
+- `SimulaService.set_axon_registry(registry)` — injects live registry; called from `core/wiring.py` after both services initialize
+- `SimulaService._on_evolution_candidate()` — routes `mutation_type == "add_executor"` to `ExecutorGenerator`; builds `ExecutorTemplate` from `data["executor_template"]` + hypothesis metadata
+
+**ADD_EXECUTOR Closure Loop:**
+```
+Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (no executor for new protocol)
+  → Evo subscribes; generates EVOLUTION_CANDIDATE(mutation_type="add_executor",
+      executor_template={name, action_type, description, protocol_or_platform,
+                         required_apis, risk_tier, max_budget_usd, capabilities,
+                         safety_constraints})
+  → SimulaService._on_evolution_candidate routes to ExecutorGenerator
+  → Generate + AST validate + write axon/executors/dynamic/{name}.py
+  → ExecutorRegistry.register_dynamic_executor() — hot-loaded in current process
+  → EXECUTOR_REGISTERED emitted — Thymos opens 24h monitoring window
+  → RE_TRAINING_EXAMPLE emitted (category="executor_generation")
+```
+
+### New SynapseEventTypes (8 Mar 2026)
+- `EXECUTOR_REGISTERED` — payload: action_type, name, protocol_or_platform, risk_tier, max_budget_usd, capabilities, source_hypothesis_id, registered_at
+- `EXECUTOR_DISABLED` — payload: action_type, name, reason, incident_count, disabled_at
+- `OPPORTUNITY_DISCOVERED` — emitted by `oikos/protocol_scanner.py` when a DeFiLlama pool or Immunefi bounty has no matching executor

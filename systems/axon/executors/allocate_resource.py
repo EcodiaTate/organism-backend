@@ -85,7 +85,7 @@ class AllocateResourceExecutor(Executor):
                 },
             )
 
-            await self._emit_re_trace(context, params, success=True)
+            await self._emit_re_trace(context, params, success=True, allocation_id=allocation_id)
 
             return ExecutionResult(
                 success=True,
@@ -109,6 +109,7 @@ class AllocateResourceExecutor(Executor):
                     "execution_id": context.execution_id,
                 },
             )
+            await self._emit_re_trace(context, params, success=False, error=str(exc))
             return ExecutionResult(success=False, error=str(exc))
 
     async def _emit_event(self, event_type: SynapseEventType, data: dict[str, Any]) -> None:
@@ -124,23 +125,82 @@ class AllocateResourceExecutor(Executor):
             pass
 
     async def _emit_re_trace(
-        self, context: ExecutionContext, params: dict[str, Any], success: bool
+        self,
+        context: ExecutionContext,
+        params: dict[str, Any],
+        success: bool,
+        allocation_id: str = "",
+        error: str = "",
     ) -> None:
         if self._event_bus is None:
             return
         try:
-            from primitives.common import DriveAlignmentVector, SystemID, utc_now
+            import json as _json
+            from primitives.common import DriveAlignmentVector, SystemID
             from primitives.re_training import RETrainingExample
+
+            resource_type = params.get("resource_type", "")
+            amount = params.get("amount", 0)
+            target_system = params.get("target_system", "")
+            duration_s = params.get("duration_s", 3600)
+            has_manager = self._resource_manager is not None
+
+            reasoning_trace = "\n".join([
+                f"1. VALIDATE: resource_type={resource_type!r}, amount={amount}, target_system={target_system!r}",
+                f"2. RESOURCE MANAGER: {'configured' if has_manager else 'MISSING — proceeding as informational no-op'}",
+                f"3. ALLOCATION: {amount} {resource_type} → {target_system} for {duration_s}s",
+                f"4. OUTCOME: success={success}"
+                + (f", allocation_id={allocation_id!r}" if allocation_id else "")
+                + (f", error={error[:120]!r}" if error else ""),
+            ])
+
+            alternatives = [
+                f"Alternative: allocate smaller amount to stay within metabolic budget if full allocation is denied",
+                f"Alternative: use SACM (remote_compute executor) for elastic cloud resource allocation instead of local resource_manager",
+            ]
+            if not success:
+                alternatives.append(
+                    f"Alternative: check Oikos metabolic gate — if starvation_level is critical, resource allocation may be blocked"
+                )
+
+            counterfactual = ""
+            if success:
+                counterfactual = (
+                    f"If {amount} {resource_type} had not been allocated to '{target_system}', "
+                    f"that subsystem would operate under its prior resource constraint — potentially "
+                    f"causing performance degradation or execution timeouts in resource-intensive tasks."
+                )
+            else:
+                counterfactual = (
+                    f"If resource allocation had succeeded, '{target_system}' would have "
+                    f"{amount} additional {resource_type} for {duration_s}s. "
+                    f"Failure leaves the subsystem at its current capacity."
+                )
+
+            equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None
 
             trace = RETrainingExample(
                 source_system=SystemID.AXON,
-                instruction=f"Allocate {params.get('resource_type', '')} for {params.get('target_system', '')}",
-                input_context=f"amount={params.get('amount', 0)}, duration_s={params.get('duration_s', 3600)}",
-                output=f"success={success}",
+                episode_id=context.execution_id,
+                instruction=f"Allocate {amount} {resource_type} for {target_system!r} ({duration_s}s lease)",
+                input_context=_json.dumps({
+                    "resource_type": resource_type,
+                    "amount": amount,
+                    "target_system": target_system,
+                    "duration_s": duration_s,
+                    "resource_manager_available": has_manager,
+                }),
+                output=_json.dumps({
+                    "success": success,
+                    "allocation_id": allocation_id or None,
+                    "error": error[:200] if error else None,
+                }),
                 outcome_quality=1.0 if success else 0.0,
                 category="resource_allocation",
-                constitutional_alignment=DriveAlignmentVector(),
-                timestamp=utc_now(),
+                constitutional_alignment=equor_alignment or DriveAlignmentVector(),
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=alternatives,
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,

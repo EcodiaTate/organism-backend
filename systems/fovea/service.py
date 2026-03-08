@@ -33,6 +33,7 @@ from primitives.evolutionary import EvolutionaryObservable
 from primitives.genome import GenomeExtractionProtocol, OrganGenomeSegment
 from primitives.re_training import RETrainingExample
 
+from .economic_model import EconomicPredictionModel
 from .habituation import _HABITUATION_INCREMENT, _MAX_HABITUATION
 from .integration import FoveaAtuneBridge
 from .internal import InternalPredictionEngine
@@ -143,6 +144,10 @@ class FoveaService:
         # Per-percept arrival time tracking (feeds WorldModelAdapter timing history)
         self._last_percept_arrival_by_source: dict[str, float] = {}
 
+        # Economic prediction model — tracks revenue/cost EMA and emits
+        # ECONOMIC error dimension when actuals diverge from predictions.
+        self._economic_model = EconomicPredictionModel()
+
     # ------------------------------------------------------------------
     # Wiring
     # ------------------------------------------------------------------
@@ -157,6 +162,7 @@ class FoveaService:
         self._subscribe_to_percept_arrived(event_bus)
         self._subscribe_to_fleet_attention_profiles(event_bus)
         self._subscribe_to_axon_events(event_bus)
+        self._subscribe_to_economic_vitality(event_bus)
         self._logger.info("event_bus_wired")
 
     def set_workspace(self, workspace: GlobalWorkspace) -> None:
@@ -578,6 +584,9 @@ class FoveaService:
             "source": ErrorType.SOURCE,
             "category": ErrorType.CATEGORY,
             "causal": ErrorType.CAUSAL,
+            "economic": ErrorType.ECONOMIC,
+            "economic_revenue": ErrorType.ECONOMIC,
+            "revenue": ErrorType.ECONOMIC,
         }
         return mapping.get(domain.lower())
 
@@ -693,15 +702,13 @@ class FoveaService:
         recent = list(self._weight_learner.recent_errors)
 
         # Accumulators for each error dimension
-        content = timing = magnitude = source = category = causal = 0.0
+        content = timing = magnitude = source = category = causal = economic = 0.0
         top_salience: float = -1.0
         top_summary: str | None = None
 
         for tracked in recent:
-            content += 0.0   # _TrackedError only stores dominant_type + salience
-            # We use salience as a proxy for each error dimension via dominant_type
-            # to avoid coupling to the full error object (not stored in tracker).
-            # A zero-floor per-dimension approach: weight salience by dominance.
+            # _TrackedError only stores dominant_type + salience; use salience
+            # as a proxy for each error dimension via dominant_type.
             dim = tracked.dominant_type.value
             s = tracked.salience
             if dim == "content":
@@ -716,6 +723,8 @@ class FoveaService:
                 category += s
             elif dim == "causal":
                 causal += s
+            elif dim == "economic":
+                economic += s
 
             if s > top_salience:
                 top_salience = s
@@ -729,6 +738,7 @@ class FoveaService:
             mean_source_error=round(source / n, 4),
             mean_category_error=round(category / n, 4),
             mean_causal_error=round(causal / n, 4),
+            mean_economic_error=round(economic / n, 4),
             current_ignition_threshold=round(
                 self._bridge.dynamic_threshold.current, 4
             ),
@@ -1129,6 +1139,155 @@ class FoveaService:
             pass
 
     # ------------------------------------------------------------------
+    # Economic prediction error (ECONOMIC_VITALITY from Oikos)
+    # ------------------------------------------------------------------
+
+    def _subscribe_to_economic_vitality(self, event_bus: EventBus) -> None:
+        """Subscribe to ECONOMIC_VITALITY from Oikos for revenue prediction errors."""
+        try:
+            from systems.synapse.types import SynapseEventType
+
+            event_bus.subscribe(
+                SynapseEventType.ECONOMIC_VITALITY,
+                self._on_economic_vitality,
+            )
+            self._logger.info("subscribed_to_economic_vitality")
+        except (ImportError, ValueError):
+            self._logger.debug(
+                "economic_vitality_subscription_skipped",
+                reason="event_type_unavailable",
+            )
+
+    async def _on_economic_vitality(self, event: Any) -> None:
+        """
+        Handle ECONOMIC_VITALITY from Oikos.
+
+        Feeds actuals into EconomicPredictionModel. If the composite
+        prediction error exceeds 0.3, creates a FoveaPredictionError with
+        economic_error set and routes it to OIKOS + EVO. If it exceeds 0.6,
+        also emits FOVEA_INTERNAL_PREDICTION_ERROR (mirrors SACM cost surprise).
+        """
+        if not self._economic_model.is_warmed_up and self._economic_model._observation_count < 1:
+            # Prime the model on first event, no error yet
+            data: dict[str, Any] = event.data if hasattr(event, "data") else {}
+            self._economic_model.update_from_economic_vitality(data)
+            return
+
+        data = event.data if hasattr(event, "data") else {}
+        composite_error = self._economic_model.update_from_economic_vitality(data)
+
+        if not self._economic_model.is_warmed_up:
+            return
+
+        if composite_error < 0.3:
+            return
+
+        # Build a FoveaPredictionError in the economic dimension
+        error = FoveaPredictionError(
+            economic_error=min(1.0, composite_error),
+        )
+        self._weight_learner.apply_learned_weights(error)
+        error.compute_precision_weighted_salience()
+        self._bridge.habituation_engine.apply_habituation(error)
+        error.compute_routing(self._bridge.dynamic_threshold.current)
+
+        # Ensure OIKOS + EVO are in routes regardless of generic threshold logic
+        from .types import ErrorRoute as _ER
+        if _ER.OIKOS not in error.routes:
+            error.routes.append(_ER.OIKOS)
+        if _ER.EVO not in error.routes:
+            error.routes.append(_ER.EVO)
+        if _ER.WORKSPACE not in error.routes and composite_error > 0.5:
+            error.routes.append(_ER.WORKSPACE)
+
+        # Emit standard prediction error
+        await self._emit_prediction_error(error)
+
+        worst_source = self._economic_model.worst_source
+        worst_error = self._economic_model.worst_source_error
+
+        self._logger.info(
+            "economic_prediction_error_emitted",
+            composite_error=round(composite_error, 3),
+            worst_source=worst_source or "aggregate",
+            worst_source_error=round(worst_error, 3),
+            routes=error.routes,
+        )
+
+        # If error crosses 0.6: mirror SACM cost-surprise pattern with a
+        # FOVEA_INTERNAL_PREDICTION_ERROR (domain="economic_revenue")
+        if composite_error > 0.6 and self._event_bus is not None:
+            failed_source = worst_source or "aggregate"
+            try:
+                from systems.synapse.types import SynapseEvent, SynapseEventType
+
+                await self._event_bus.emit(SynapseEvent(
+                    event_type=SynapseEventType(FOVEA_INTERNAL_PREDICTION_ERROR),
+                    source_system=self.system_id,
+                    data={
+                        "domain": "economic_revenue",
+                        "prediction_error": {
+                            "economic": round(composite_error, 4),
+                            "source": "fovea.economic_prediction_model",
+                            "failed_source": failed_source,
+                        },
+                        "salience_hint": round(min(1.0, composite_error), 4),
+                    },
+                ))
+            except (ImportError, ValueError):
+                pass
+
+        # Emit RE training example for significant economic errors
+        if composite_error > 0.3 and self._event_bus is not None:
+            await self._emit_economic_re_training(composite_error, data)
+
+    async def _emit_economic_re_training(
+        self,
+        composite_error: float,
+        vitality_payload: dict[str, Any],
+    ) -> None:
+        """Emit RE_TRAINING_EXAMPLE for economic prediction errors."""
+        import json as _json
+
+        worst_source = self._economic_model.worst_source
+        worst_error = self._economic_model.worst_source_error
+        context = self._economic_model.build_re_context()
+
+        instruction = (
+            f"Revenue from '{worst_source}' diverged from prediction by "
+            f"{round(worst_error * 100, 1)}%."
+            if worst_source
+            else f"Aggregate revenue diverged from prediction (composite error {round(composite_error, 3)})."
+        )
+
+        try:
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+
+            example = RETrainingExample(
+                source_system=SystemID.FOVEA,
+                category="economic_prediction_error",
+                instruction=instruction,
+                input_context=_json.dumps(context),
+                output=_json.dumps({
+                    "composite_error": round(composite_error, 4),
+                    "revenue_error": round(self._economic_model.revenue_prediction_error, 4),
+                    "efficiency_trend_error": round(self._economic_model.efficiency_trend_error, 4),
+                    "worst_source": worst_source,
+                    "worst_source_error": round(worst_error, 4),
+                    "urgency": float(vitality_payload.get("urgency", 0) or 0),
+                }),
+                outcome_quality=min(1.0, composite_error),
+            )
+            event = SynapseEvent(
+                event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                source_system=self.system_id,
+                data=example.model_dump(),
+            )
+            await self._event_bus.emit(event)  # type: ignore[union-attr]
+        except (ImportError, ValueError):
+            self._logger.debug("economic_re_training_emit_skipped", reason="event_type_unavailable")
+
+    # ------------------------------------------------------------------
     # Attentional divergence emission (speciation signal → Benchmarks)
     # ------------------------------------------------------------------
 
@@ -1342,6 +1501,7 @@ class FoveaService:
                     "source_error": round(error.source_error, 4),
                     "category_error": round(error.category_error, 4),
                     "causal_error": round(error.causal_error, 4),
+                    "economic_error": round(error.economic_error, 4),
                     "precision_weighted_salience": round(
                         error.precision_weighted_salience, 4
                     ),

@@ -197,6 +197,10 @@ def wire_synapse_phase(
     # Simula → Synapse (GRID_METABOLISM_CHANGED)
     simula.set_synapse(synapse)
     simula.subscribe_to_evolution_candidates(synapse.event_bus)
+    # Dynamic executor expansion: inject live ExecutorRegistry so ExecutorGenerator
+    # can hot-load generated executors immediately rather than deferring to next boot.
+    if hasattr(simula, "set_axon_registry") and hasattr(axon, "registry"):
+        simula.set_axon_registry(axon.registry)
 
     # SACM → Synapse
     sacm_compute_manager.set_synapse(synapse)
@@ -431,6 +435,7 @@ def wire_oikos_phase(
     thymos: Any,
     sacm_accounting: Any,
     sacm_prewarm_engine: Any,
+    axon: Any | None = None,
 ) -> None:
     """Wire Oikos economic references into consumer systems."""
     thymos.set_oikos(oikos)
@@ -439,6 +444,9 @@ def wire_oikos_phase(
     soma.set_oikos(oikos)
     sacm_accounting.wire_oikos(oikos)
     sacm_prewarm_engine.wire_oikos(oikos)
+    # ProtocolScanner gap detection: inject Axon registry so it can skip known protocols
+    if hasattr(oikos, "set_axon_registry_for_scanner") and hasattr(axon, "registry"):
+        oikos.set_axon_registry_for_scanner(axon.registry)
 
 
 def wire_mitosis_phase(

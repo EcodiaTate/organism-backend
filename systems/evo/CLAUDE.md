@@ -54,9 +54,24 @@
 - Persisted to `:Self` node; emitted as `EVO_DRIFT_DATA` to Equor
 
 ### Consolidation Orchestrator (Sleep Mode, ≤60s)
-8 sequential phases: Memory consolidation → Hypothesis review → Belief aging → Belief consolidation → Genetic fixation → Schema induction → Procedure extraction → Parameter optimization → Self-model → Drift feed → Evolution proposals
+9 sequential phases: Memory consolidation → Hypothesis review → Belief aging → Belief consolidation → Genetic fixation → Schema induction → Procedure extraction → Parameter optimization → Self-model → Drift feed → Evolution proposals → **Exploration proposals (Phase 8.5)**
 - All phases wrapped in try/except; failures don't block subsequent phases
 - Triggered every 6h or 10K cycles (whichever first)
+
+### Exploration Hypotheses (Phase 8.5 — Gap Closure 8 Mar 2026)
+**Problem solved:** Enable bootstrap of entirely new strategies when existing revenue streams dry up.
+**Solution:** Fast-track low-evidence hypotheses (evidence_score 2.0–5.0) through lightweight Simula pipeline.
+
+- **Phase 8.5 logic**: Collects SUPPORTED hypotheses with evidence_score ∈ [2.0, 5.0) and proposed_mutation.type == EXPLORATION
+- **Metabolic gating**: No explorations when starvation >= AUSTERITY; budget scales 2–5% of liquid reserves
+- **Concurrency limit**: Max 2 concurrent explorations (prevent resource exhaustion)
+- **Lightweight Simula pipeline**: VALIDATE → GATE → APPLY → VERIFY → RECORD (skip SIMULATE — no training data)
+- **Equor integration**: Full constitutional check still applied; no bypass
+- **Outcome feedback**: Success boosts evidence_score by 3.0 (fast-track to full EVOLUTION_PROPOSAL); failure increments attempts counter (max 3)
+- **RE training**: Emits RE_TRAINING_EXAMPLE at proposed/success/failed stages (category=`exploration_outcome`)
+- **Hypothesis fields added**: `is_exploration`, `exploration_budget_usd`, `exploration_attempts`, `exploration_max_attempts`, `exploration_outcomes`
+- **Synapse events**: `EXPLORATION_PROPOSED` (Evo → Simula), `EXPLORATION_OUTCOME` (Simula → Evo)
+- **Success criteria**: Hypothesis can now discover novel strategies without requiring full evidence accumulation first
 
 ### Schema Induction & Procedure Extraction
 - `schema_induction.py` — proposes new entity/relation types to Simula from graph clusters

@@ -378,6 +378,7 @@ class SystemRegistry:
             thymos=thymos,
             sacm_accounting=sacm_parts["sacm_accounting"],
             sacm_prewarm_engine=sacm_parts["sacm_prewarm_engine"],
+            axon=axon,
         )
 
         # Build AdapterSharer for cross-instance LoRA merging (Share 2025 framework).
@@ -597,6 +598,59 @@ class SystemRegistry:
             logger.info(
                 "continual_learning_skipped",
                 reason="RE service not available or Neo4j not connected",
+            )
+
+        # Domain Specialization Orchestrator — skill acquisition pipeline.
+        # Checks hourly whether a domain-specific LoRA adapter should be trained
+        # (success_rate > 0.70 for ≥100 domain examples).  Operates independently
+        # of the RE CLO above (which trains the generalist model).
+        try:
+            from core.continuous_learning_orchestrator import (
+                ContinualLearningOrchestrator as _DomainCLO,
+            )
+            from systems.axon.adapter_registry import InstanceAdapterRegistry as _AdapterReg
+
+            _dspec_instance_id = (
+                app.state.instance_id if hasattr(app.state, "instance_id") else "genesis"
+            )
+            _domain_clo = _DomainCLO(instance_id=_dspec_instance_id)
+            _domain_clo.set_exporter(re_exporter)
+            _domain_clo.set_synapse(synapse)
+            if infra.neo4j is not None:
+                _domain_clo.set_neo4j(infra.neo4j)
+
+            _adapter_reg = _AdapterReg(instance_id=_dspec_instance_id)
+            _adapter_reg.set_synapse(synapse)
+            if infra.neo4j is not None:
+                _adapter_reg.set_neo4j(infra.neo4j)
+            await _adapter_reg.initialize()
+
+            _domain_clo.set_adapter_registry(_adapter_reg)
+
+            # Wire SpecializationTracker from Nova if present
+            if (
+                hasattr(nova, "_specialization_tracker")
+                and nova._specialization_tracker is not None
+            ):
+                _domain_clo.set_specialization_tracker(nova._specialization_tracker)
+
+            app.state.domain_specialization = _domain_clo
+            app.state.adapter_registry = _adapter_reg
+
+            self._tasks["domain_specialization"] = supervised_task(
+                _domain_clo.run_loop(),
+                name="domain_specialization",
+                restart=True,
+                max_restarts=5,
+                event_bus=synapse.event_bus,
+                source_system="core",
+            )
+            logger.info("domain_specialization_orchestrator_started", interval_s=3600)
+        except Exception as _dspec_exc:
+            logger.warning(
+                "domain_specialization_init_failed",
+                error=str(_dspec_exc),
+                note="Domain specialization disabled; organism continues as generalist",
             )
 
         # Tier 3 quarterly cron — fires independently of data volume.

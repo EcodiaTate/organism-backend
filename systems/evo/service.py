@@ -530,6 +530,8 @@ class EvoService:
                             },
                         )
                         # RE training: hypothesis confirmation
+                        # growth alignment = evidence_score normalized to [-1,1]
+                        _h_growth = min(1.0, h.evidence_score / 10.0) * 2.0 - 1.0
                         await self._emit_re_training_example(
                             category="hypothesis_reasoning",
                             instruction=f"Evaluate hypothesis: {h.statement[:200]}",
@@ -540,9 +542,14 @@ class EvoService:
                             ),
                             output="CONFIRMED",
                             outcome_quality=min(1.0, h.evidence_score / 10.0),
+                            episode_id=h.id,
                             reasoning_trace=(
                                 f"Formal test: {h.formal_test[:200]}. "
                                 f"Confidence trajectory: score={h.evidence_score:.2f}"
+                            ),
+                            constitutional_alignment=DriveAlignmentVector(
+                                coherence=round(min(1.0, h.evidence_score / 10.0), 3),
+                                growth=round(max(-1.0, _h_growth), 3),
                             ),
                         )
                     elif result.new_status == HypothesisStatus.REFUTED:
@@ -559,9 +566,14 @@ class EvoService:
                             ),
                             output="REFUTED",
                             outcome_quality=0.0,
+                            episode_id=h.id,
                             reasoning_trace=(
                                 f"Formal test: {h.formal_test[:200]}. "
                                 f"Score dropped to {h.evidence_score:.2f}"
+                            ),
+                            constitutional_alignment=DriveAlignmentVector(
+                                coherence=-0.5,  # refuted hypothesis = incoherence signal
+                                growth=-0.3,     # failed growth attempt
                             ),
                         )
 
@@ -1543,6 +1555,20 @@ class EvoService:
             event_bus.subscribe(
                 SynapseEventType.RE_DECISION_OUTCOME,
                 self._on_re_decision_outcome,
+            )
+
+        # Exploration outcome feedback from Simula (Phase 8.5 gap closure)
+        if hasattr(SynapseEventType, "EXPLORATION_OUTCOME"):
+            event_bus.subscribe(
+                SynapseEventType.EXPLORATION_OUTCOME,
+                self._on_exploration_outcome,
+            )
+
+        # Nova input channel discovery → domain-specific hypothesis candidates
+        if hasattr(SynapseEventType, "INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED"):
+            event_bus.subscribe(
+                SynapseEventType.INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED,
+                self._on_opportunities_discovered,
             )
 
         self._logger.info("evo_synapse_subscriptions_registered")
@@ -3097,6 +3123,222 @@ class EvoService:
 
         except Exception:
             self._logger.exception("hypothesis_staleness_handler_failed", tick_number=tick_number)
+
+    async def _on_exploration_outcome(self, event: Any) -> None:
+        """
+        Receive EXPLORATION_OUTCOME from Simula (Phase 8.5 gap closure).
+
+        On success: boost evidence_score by 3.0 to fast-track toward full EVOLUTION_PROPOSAL.
+        On failure: increment exploration_attempts; if >= max, refute hypothesis.
+
+        Emit outcome feedback via RE_TRAINING_EXAMPLE and hypothesis outcome events.
+        """
+        if not self._initialized or self._hypothesis_engine is None:
+            return
+
+        data = getattr(event, "data", {}) or {}
+        exploration_success = bool(data.get("exploration_success", False))
+        hypothesis_id = str(data.get("hypothesis_id", ""))
+        failure_reason = str(data.get("failure_reason", "unknown"))
+
+        if not hypothesis_id:
+            self._logger.warning("exploration_outcome_missing_hypothesis_id")
+            return
+
+        try:
+            from systems.synapse.types import SynapseEvent, SynapseEventType
+            from systems.evo.types import HypothesisStatus
+
+            h = self._hypothesis_engine._active.get(hypothesis_id)
+            if h is None:
+                self._logger.warning(
+                    "exploration_outcome_hypothesis_not_found",
+                    hypothesis_id=hypothesis_id,
+                )
+                return
+
+            if exploration_success:
+                # Success: boost evidence_score by 3.0 (fast-track toward full evolution)
+                old_score = h.evidence_score
+                h.evidence_score += 3.0
+                h.exploration_outcomes.append("success")
+
+                self._logger.info(
+                    "exploration_outcome_success",
+                    hypothesis_id=hypothesis_id,
+                    old_score=round(old_score, 2),
+                    new_score=round(h.evidence_score, 2),
+                )
+
+                # Emit EVO_HYPOTHESIS_CONFIRMED with reward
+                if self._event_bus is not None:
+                    reward_confidence = float(data.get("reward_confidence", 0.8))
+                    await self._event_bus.emit(SynapseEvent(
+                        event_type=SynapseEventType.EVO_HYPOTHESIS_CONFIRMED,
+                        source_system="evo",
+                        data={
+                            "hypothesis_id": hypothesis_id,
+                            "hypothesis_statement": h.statement,
+                            "evidence_score": h.evidence_score,
+                            "confidence": min(0.99, 0.5 + h.evidence_score * 0.05),
+                            "reward": reward_confidence,
+                            "source": "exploration_success",
+                            "instance_id": self._instance_name,
+                        },
+                    ))
+
+                # Emit RE_TRAINING_EXAMPLE (category=exploration_success)
+                try:
+                    from primitives.evolution import RETrainingExample
+
+                    example = RETrainingExample(
+                        episode_id=hypothesis_id,
+                        category="exploration_success",
+                        input_description=f"Exploration succeeded: {h.statement}",
+                        hypothesis_summary=h.statement,
+                        evidence_score=h.evidence_score,
+                        confidence=min(0.99, 0.5 + h.evidence_score * 0.05),
+                        outcome="exploration_succeeded",
+                        tags=["exploration", "success", h.category.value],
+                    )
+                    await self._synapse.emit_event(SynapseEvent(
+                        event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                        data=example.model_dump(mode="json"),
+                        source_system="evo",
+                    ))
+                except Exception as exc:
+                    self._logger.debug("re_training_emit_failed", error=str(exc))
+
+            else:
+                # Failure: increment exploration_attempts
+                h.exploration_attempts += 1
+                h.exploration_outcomes.append(f"failed: {failure_reason}")
+
+                self._logger.info(
+                    "exploration_outcome_failure",
+                    hypothesis_id=hypothesis_id,
+                    attempts=h.exploration_attempts,
+                    max_attempts=h.exploration_max_attempts,
+                    failure_reason=failure_reason,
+                )
+
+                # Check if exhausted max attempts
+                if h.exploration_attempts >= h.exploration_max_attempts:
+                    # Refute hypothesis
+                    await self._hypothesis_engine.archive_hypothesis(
+                        h, reason=f"exploration_exhausted_after_{h.exploration_attempts}_attempts"
+                    )
+
+                    self._logger.info(
+                        "exploration_hypothesis_refuted",
+                        hypothesis_id=hypothesis_id,
+                    )
+
+                    # Emit EVO_HYPOTHESIS_REFUTED
+                    if self._event_bus is not None:
+                        await self._event_bus.emit(SynapseEvent(
+                            event_type=SynapseEventType.EVO_HYPOTHESIS_REFUTED,
+                            source_system="evo",
+                            data={
+                                "hypothesis_id": hypothesis_id,
+                                "hypothesis_statement": h.statement,
+                                "evidence_score": h.evidence_score,
+                                "reason": f"exploration_exhausted ({h.exploration_attempts} attempts)",
+                                "source": "exploration_failure",
+                                "instance_id": self._instance_name,
+                            },
+                        ))
+
+                # Emit RE_TRAINING_EXAMPLE (category=exploration_failed)
+                try:
+                    from primitives.evolution import RETrainingExample
+
+                    example = RETrainingExample(
+                        episode_id=hypothesis_id,
+                        category="exploration_failed",
+                        input_description=f"Exploration failed: {h.statement}",
+                        hypothesis_summary=h.statement,
+                        evidence_score=h.evidence_score,
+                        confidence=min(0.99, 0.5 + h.evidence_score * 0.05),
+                        outcome="exploration_failed",
+                        tags=["exploration", "failure", h.category.value, failure_reason],
+                    )
+                    await self._synapse.emit_event(SynapseEvent(
+                        event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
+                        data=example.model_dump(mode="json"),
+                        source_system="evo",
+                    ))
+                except Exception as exc:
+                    self._logger.debug("re_training_emit_failed", error=str(exc))
+
+        except Exception:
+            self._logger.exception(
+                "exploration_outcome_handler_failed",
+                hypothesis_id=hypothesis_id,
+            )
+
+    async def _on_opportunities_discovered(self, event: Any) -> None:
+        """
+        Handle INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED from Nova.
+
+        Nova already injects PatternCandidates directly via _pending_candidates when
+        the Evo reference is wired.  This handler processes the Synapse event for cases
+        where Evo is not directly wired (federation / multi-instance deployments) and
+        also builds higher-level *domain cluster* candidates that group opportunities
+        by domain so the hypothesis engine can generate "specialise in X" hypotheses.
+
+        Safe to call even if opportunities list is empty.
+        """
+        if not self._initialized:
+            return
+
+        data = getattr(event, "data", {}) or {}
+        domain_summary: dict[str, int] = data.get("domain_summary", {})
+        opportunities_raw: list[dict] = data.get("opportunities", [])
+
+        if not domain_summary and not opportunities_raw:
+            return
+
+        try:
+            from systems.evo.types import PatternCandidate, PatternType  # noqa: PLC0415
+
+            # Build one domain-cluster candidate per discovered domain.
+            # These have higher confidence than per-opportunity candidates because
+            # they aggregate evidence across multiple sources.
+            for domain, count in domain_summary.items():
+                # Confidence scales with number of distinct opportunities found
+                confidence = min(0.65, 0.25 + count * 0.08)
+
+                candidate = PatternCandidate(
+                    type=PatternType.COOCCURRENCE,
+                    elements=[
+                        f"market_domain:{domain}",
+                        "market_discovery:active",
+                    ],
+                    count=count,
+                    confidence=confidence,
+                    metadata={
+                        "domain": domain,
+                        "opportunity_count": count,
+                        "source": "input_channel_discovery",
+                        "source_detector": "nova_input_channels",
+                        "hypothesis_hint": (
+                            f"Specialising in the '{domain}' domain could yield "
+                            f"{count} distinct opportunity types."
+                        ),
+                    },
+                    source_detector="nova_input_channels",
+                )
+                self._pending_candidates.append(candidate)
+
+            self._logger.info(
+                "opportunities_discovered_domain_candidates_queued",
+                domain_count=len(domain_summary),
+                pending_candidates=len(self._pending_candidates),
+            )
+
+        except Exception:
+            self._logger.exception("opportunities_discovered_handler_failed")
 
     async def _check_economic_parameter_adjustments(self) -> None:
         """

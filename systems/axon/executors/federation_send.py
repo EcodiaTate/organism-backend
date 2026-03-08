@@ -93,26 +93,78 @@ class FederationSendExecutor(Executor):
                     ))
                 except Exception:
                     pass
+            await self._emit_re_trace(context, params, success=False, error=str(exc))
             return ExecutionResult(success=False, error=str(exc))
 
     async def _emit_re_trace(
-        self, context: ExecutionContext, params: dict[str, Any], success: bool
+        self,
+        context: ExecutionContext,
+        params: dict[str, Any],
+        success: bool,
+        error: str = "",
     ) -> None:
         if self._event_bus is None:
             return
         try:
-            from primitives.common import DriveAlignmentVector, SystemID, utc_now
+            import json as _json
+            from primitives.common import DriveAlignmentVector, SystemID
             from primitives.re_training import RETrainingExample
+
+            target = params.get("target_instance_id", "unknown")
+            message_type = params.get("message_type", "")
+            payload = params.get("payload", {})
+            payload_size = len(_json.dumps(payload, default=str)) if payload else 0
+
+            reasoning_trace = "\n".join([
+                f"1. VALIDATE: target_instance_id={target!r}, message_type={message_type!r}, payload_size={payload_size}B",
+                f"2. TRANSPORT: emit FEDERATION_MESSAGE_SENT via Synapse event bus (Federation system is subscriber)",
+                f"3. OUTCOME: success={success}" + (f", error={error[:120]!r}" if error else ""),
+                "4. NOTE: federation_send is fire-and-forget — delivery confirmation depends on Federation system ACK",
+            ])
+
+            alternatives = [
+                "Alternative: store-and-forward via Memory if target instance is temporarily unreachable",
+                f"Alternative: broadcast to all federated instances instead of targeting {target!r} if ground-truth propagation is the goal",
+            ]
+            if not success:
+                alternatives.append(
+                    f"Alternative: retry with exponential backoff; federation messages are idempotent if message_id is stable"
+                )
+
+            counterfactual = ""
+            if not success:
+                counterfactual = (
+                    f"If the federation message had reached '{target}', the receiving instance would have "
+                    f"processed '{message_type}' and potentially updated its world model or belief state. "
+                    f"Failure leaves a knowledge gap between this instance and its federation peers."
+                )
+            else:
+                counterfactual = (
+                    f"If this message had not been sent, '{target}' would operate without this "
+                    f"'{message_type}' update — federation divergence grows with each unsent sync."
+                )
+
+            equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None
 
             trace = RETrainingExample(
                 source_system=SystemID.AXON,
-                instruction=f"Send federation message to {params.get('target_instance_id', 'unknown')}",
-                input_context=f"message_type={params.get('message_type', '')}",
-                output=f"success={success}",
+                episode_id=context.execution_id,
+                instruction=f"Send federation message type={message_type!r} to instance={target!r}",
+                input_context=_json.dumps({
+                    "target_instance_id": target,
+                    "message_type": message_type,
+                    "payload_size_bytes": payload_size,
+                }),
+                output=_json.dumps({
+                    "success": success,
+                    "error": error[:200] if error else None,
+                }),
                 outcome_quality=1.0 if success else 0.0,
                 category="federation_communication",
-                constitutional_alignment=DriveAlignmentVector(),
-                timestamp=utc_now(),
+                constitutional_alignment=equor_alignment or DriveAlignmentVector(),
+                reasoning_trace=reasoning_trace,
+                alternatives_considered=alternatives,
+                counterfactual=counterfactual,
             )
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.RE_TRAINING_EXAMPLE,
