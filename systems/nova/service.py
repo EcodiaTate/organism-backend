@@ -474,6 +474,26 @@ class NovaService:
                     SynapseEventType.DOMAIN_PROFITABILITY_CONFIRMED,
                     self._on_domain_profitability_confirmed,
                 )
+            # NOVA-ECON-1: Economic event subscriptions — closes the 60-minute blind spot.
+            # Nova used to only learn about economic state via a 1-hour heartbeat oikos.snapshot().
+            # These subscriptions make cost spikes, revenue changes, and yield outcomes visible
+            # within 50ms of emission, enabling immediate deliberation under economic stress.
+            event_bus.subscribe(
+                SynapseEventType.FOVEA_INTERNAL_PREDICTION_ERROR,
+                self._on_fovea_econ_error,
+            )
+            event_bus.subscribe(
+                SynapseEventType.REVENUE_INJECTED,
+                self._on_revenue_change,
+            )
+            event_bus.subscribe(
+                SynapseEventType.BOUNTY_PAID,
+                self._on_bounty_outcome,
+            )
+            event_bus.subscribe(
+                SynapseEventType.YIELD_DEPLOYMENT_RESULT,
+                self._on_yield_outcome,
+            )
 
         self._logger.info("synapse_wired_to_nova")
 
