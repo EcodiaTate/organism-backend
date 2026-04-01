@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Epistemic Antibody System (Adaptive Immunity)
+EcodiaOS - EIS Epistemic Antibody System (Adaptive Immunity)
 
 Epistemic antibodies are crystallised threat signatures that allow the
 EIS to instantly recognise and neutralise previously-seen attack patterns
@@ -7,12 +7,12 @@ without invoking the full quarantine evaluation pipeline.
 
 Two core pipelines:
 
-  1. extract_epitopes  — Given a QuarantineVerdict, extract the minimal
+  1. extract_epitopes  - Given a QuarantineVerdict, extract the minimal
      distinctive "epitope" signatures that uniquely identify this class
      of threat. Analogous to how biological antibodies bind to specific
      protein fragments.
 
-  2. generate_antibody — Given extracted epitopes and the original
+  2. generate_antibody - Given extracted epitopes and the original
      QuarantineVerdict, compile them into a KnownPathogen record
      suitable for the vector store, plus an optional innate rule
      suggestion for the fast path.
@@ -56,7 +56,7 @@ class Epitope:
     """
     A minimal distinctive signature extracted from a threat.
 
-    Epitopes are the "binding sites" — the specific patterns that
+    Epitopes are the "binding sites" - the specific patterns that
     distinguish this threat from benign content. They come in three
     flavours:
 
@@ -132,7 +132,7 @@ def _extract_lexical_epitopes(
     epitopes: list[Epitope] = []
     seen_hashes: set[str] = set()
 
-    # From innate check matches — these are the highest-quality epitopes
+    # From innate check matches - these are the highest-quality epitopes
     for match in pathogen.innate_flags.matches:
         if not match.matched or not match.matched_text:
             continue
@@ -262,7 +262,7 @@ def extract_epitopes(
     Given a Pathogen that was quarantined and evaluated, extract the
     minimal set of distinctive signatures that identify this threat.
 
-    Only runs for non-PASS verdicts — benign inputs don't generate
+    Only runs for non-PASS verdicts - benign inputs don't generate
     antibodies.
     """
     start = time.monotonic()
@@ -406,7 +406,7 @@ def suggest_innate_rule(
     it to the innate layer for instant future detection.
 
     Only suggests rules for HIGH or CRITICAL threats with high-confidence
-    lexical epitopes. The suggestion is NOT auto-applied — it requires
+    lexical epitopes. The suggestion is NOT auto-applied - it requires
     review and manual addition to the innate checks.
     """
     if verdict.severity not in (ThreatSeverity.HIGH, ThreatSeverity.CRITICAL):

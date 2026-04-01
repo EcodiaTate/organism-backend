@@ -1,42 +1,42 @@
 """
-EcodiaOS — RE Training Data Extractor
+EcodiaOS - RE Training Data Extractor
 
 Batch-extracts the 5 structured training streams from Neo4j as defined in
-the speciation bible §2.2. This is historical extraction — it queries what
+the speciation bible §2.2. This is historical extraction - it queries what
 has already been stored in the graph, rather than collecting real-time events.
 
 Schema reality (verified against Memory/Evo/Kairos/Equor source):
 
-  Stream 1 — Successful reasoning chains
+  Stream 1 - Successful reasoning chains
     Episode {id, context_summary, novelty_score, event_time}
     -[:GENERATED]-> Intent {id, action_type, reasoning, confidence}
     -[:RESULTED_IN]-> Outcome {id, success, value_gained}
 
-  Stream 2 — Failures with corrections
+  Stream 2 - Failures with corrections
     Same node labels; Episode.is_correction = true marks correction episodes.
     Correction linked via Episode -[:FOLLOWED_BY]-> correction:Episode.
 
-  Stream 3 — Constitutional edge cases
+  Stream 3 - Constitutional edge cases
     EquorVerdict {id, verdict, composite_alignment, confidence, reasoning,
                   recorded_at, autonomy_level}
     Self -[:CONSCIENCE_VERDICT]-> EquorVerdict
-    Bible assumed :EquorCheck / :CHECKED_BY — these do not exist.
+    Bible assumed :EquorCheck / :CHECKED_BY - these do not exist.
     We join EquorVerdict back to Episode via intent_id on Intent.
 
-  Stream 4 — Kairos causal chains
+  Stream 4 - Kairos causal chains
     CausalInvariant {id, abstract_form, cause, effect, confidence,
                      invariance_hold_rate, validated, tier, created_at}
     CausalNode {name} -[:CAUSES {confidence, validated}]-> CausalNode
-    Bible's `r.mechanism` does not exist on the CAUSES edge — omitted.
+    Bible's `r.mechanism` does not exist on the CAUSES edge - omitted.
 
-  Stream 5 — Evo experimental results
+  Stream 5 - Evo experimental results
     Hypothesis {hypothesis_id, statement, status, evidence_score,
                 category, created_at}
     No :Experiment or :ExperimentResult nodes in Neo4j (in-memory Pydantic
     objects only). We emit Hypothesis records directly; confirmed/refuted
     status and evidence_score carry the training signal.
 
-No cross-system imports — Neo4j queries only.
+No cross-system imports - Neo4j queries only.
 """
 
 from __future__ import annotations
@@ -141,7 +141,7 @@ class TrainingDataExtractor:
         Adapted from bible §2.2 Stream 1:
           - `intent.description` → `intent.action_type` (actual field name)
           - `ctx.state_snapshot` / HAS_CONTEXT removed (no Context nodes)
-          - `eq.result` (EquorCheck) removed — EquorVerdict not directly
+          - `eq.result` (EquorCheck) removed - EquorVerdict not directly
             linked to Intent (linked via Self.CONSCIENCE_VERDICT); excluded
             to avoid expensive cross-join
         """
@@ -221,7 +221,7 @@ class TrainingDataExtractor:
     ) -> list[dict[str, Any]]:
         """
         EquorVerdict nodes where the verdict was 'blocked' or 'deferred'
-        (i.e. Equor intervened — MODIFY/ESCALATE/DENY in the bible's terms).
+        (i.e. Equor intervened - MODIFY/ESCALATE/DENY in the bible's terms).
 
         Adapted from bible §2.2 Stream 3:
           - :EquorCheck / CHECKED_BY do not exist → :EquorVerdict, CONSCIENCE_VERDICT
@@ -352,7 +352,7 @@ class TrainingDataExtractor:
     ) -> dict[str, int]:
         """
         Cheap COUNT queries for the stats CLI subcommand.
-        Does not fetch full records — much faster than extract_all_streams().
+        Does not fetch full records - much faster than extract_all_streams().
         """
         cutoff = (datetime.now(UTC) - timedelta(days=lookback_days)).isoformat()
 

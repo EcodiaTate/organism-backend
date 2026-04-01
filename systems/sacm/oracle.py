@@ -1,7 +1,7 @@
 """
-EcodiaOS — SACM Compute Market Oracle
+EcodiaOS - SACM Compute Market Oracle
 
-The ComputeMarketOracle maintains a live "pricing surface" — the
+The ComputeMarketOracle maintains a live "pricing surface" - the
 complete set of valid SubstrateOffers from all registered providers.
 It is the single source of truth the optimizer queries when placing
 workloads.
@@ -16,7 +16,7 @@ Responsibilities:
   5. Track per-provider health and disable unhealthy providers
   6. Emit pricing telemetry for Oikos cost modelling
 
-The oracle does NOT make placement decisions — that is the optimizer's
+The oracle does NOT make placement decisions - that is the optimizer's
 job (optimizer.py).  The oracle is a read-side cache of market state.
 
 Concurrency model:
@@ -79,7 +79,7 @@ class PricingSurfaceSnapshot(Identified, Timestamped):
     """
     Immutable snapshot of the complete pricing surface at a point in time.
 
-    The optimizer receives a snapshot and scores against it — concurrent
+    The optimizer receives a snapshot and scores against it - concurrent
     refreshes do not mutate in-flight scoring.
     """
 
@@ -383,7 +383,7 @@ class ComputeMarketOracle:
         """
         Return an immutable snapshot of the current pricing surface.
 
-        The snapshot is a value object — it will not be mutated by
+        The snapshot is a value object - it will not be mutated by
         subsequent refresh calls.
         """
         return PricingSurfaceSnapshot(

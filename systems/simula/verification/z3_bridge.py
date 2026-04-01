@@ -48,7 +48,7 @@ Respond with a JSON array of invariant objects. Each object has:
   "monotonicity", "relationship", "loop_invariant"
 - "expression": human-readable invariant statement (e.g., "risk_score is always in [0.0, 1.0]")
 - "z3_expression": Z3 Python expression using z3.And, z3.Or, z3.Not, z3.Implies, etc.
-  Variables are pre-declared as z3.Int or z3.Real — just reference them by name.
+  Variables are pre-declared as z3.Int or z3.Real - just reference them by name.
   Example: "z3.And(risk_score >= 0, risk_score <= 1)"
 - "variable_declarations": dict mapping variable names to z3 types ("Int", "Real", "Bool")
   Example: {"risk_score": "Real", "episode_count": "Int"}
@@ -287,7 +287,7 @@ class Z3Bridge:
             )
 
             if not counterexamples:
-                # All invariants valid or unknown — stop iterating
+                # All invariants valid or unknown - stop iterating
                 break
 
             # Feed counterexamples back to LLM

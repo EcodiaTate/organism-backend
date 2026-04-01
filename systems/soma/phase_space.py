@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Phase-Space Model
+EcodiaOS - Soma Phase-Space Model
 
 Topological model of the organism's interoceptive state space.
 Detects attractors (stable states the organism settles into),
@@ -37,7 +37,7 @@ class PhaseSpaceModel:
     Topological model of the organism's 9D interoceptive state space.
 
     Maintains attractors, bifurcation boundaries, and navigation state.
-    Attractors are the organism's "moods" — stable basins in the landscape.
+    Attractors are the organism's "moods" - stable basins in the landscape.
     Bifurcations are the tipping points between them.
     """
 
@@ -172,7 +172,7 @@ class PhaseSpaceModel:
             nearest.visits += 1
             self._transient_buffer.clear()
         else:
-            # Transient — not in any basin
+            # Transient - not in any basin
             if self._current_attractor is not None:
                 self._previous_attractor = self._current_attractor
             self._current_attractor = None

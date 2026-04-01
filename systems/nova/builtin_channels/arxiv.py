@@ -1,5 +1,5 @@
 """
-ArXivChannel — research opportunities from recent ArXiv preprints.
+ArXivChannel - research opportunities from recent ArXiv preprints.
 
 Uses the ArXiv public API (Atom feed, no auth required).
 Maps new papers to Opportunity objects that signal:
@@ -82,7 +82,7 @@ class ArXivChannel(InputChannel):
                 self._make_opp(
                     title=f"[ArXiv/{category}] {title[:100]}",
                     description=summary or f"Recent preprint in {category}.",
-                    # Research doesn't have direct financial yield — low estimate
+                    # Research doesn't have direct financial yield - low estimate
                     reward_estimate=Decimal("0"),
                     effort_estimate=EffortLevel.HIGH,
                     skill_requirements=["research", "academic_writing", category.split(".")[1].lower()],

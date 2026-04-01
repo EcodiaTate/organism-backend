@@ -1,4 +1,4 @@
-"""EcodiaOS Mitosis REST Router — Phase 16e
+"""EcodiaOS Mitosis REST Router - Phase 16e
 
 Endpoints:
   GET  /api/v1/mitosis/status          - Reproductive fitness + metrics
@@ -435,7 +435,7 @@ async def trigger_spawn(body: SpawnRequest, request: Request) -> dict[str, Any]:
             autonomy_level_granted=AutonomyLevel.STEWARD,
         )
 
-        # Route through Equor for constitutional review — no bypasses
+        # Route through Equor for constitutional review - no bypasses
         equor_service = getattr(request.app.state, "equor", None)
         if equor_service is not None:
             equor_check = await equor_service.review(intent)
@@ -446,7 +446,7 @@ async def trigger_spawn(body: SpawnRequest, request: Request) -> dict[str, Any]:
                     "intent_id": intent.id,
                 }
         else:
-            # Equor not initialized — fail closed, do not silently approve
+            # Equor not initialized - fail closed, do not silently approve
             logger.warning("equor_not_available_for_spawn", intent_id=intent.id)
             return {
                 "status": "error",

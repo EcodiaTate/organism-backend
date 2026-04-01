@@ -110,7 +110,7 @@ class AttentionWeightLearner:
             maxlen=_RECENT_ERROR_BUFFER_SIZE
         )
 
-        # Optional habituation engine — wired post-construction so habituation
+        # Optional habituation engine - wired post-construction so habituation
         # record_update() is called when a world model update is correlated.
         # Without this, times_led_to_update stays 0 for all signatures, causing
         # the habituation-complete diagnosis to always read "learning_failure"

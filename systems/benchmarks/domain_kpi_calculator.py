@@ -1,17 +1,17 @@
 """
-EcodiaOS — Domain KPI Calculator
+EcodiaOS - Domain KPI Calculator
 
 Computes per-domain KPI snapshots from EpisodeOutcome history.
 Used by BenchmarkService to populate BenchmarkSnapshot.domain_kpis daily.
 
 Design
 ──────
-• Stateful deque of EpisodeOutcome objects — systems enrich episodes with
+• Stateful deque of EpisodeOutcome objects - systems enrich episodes with
   domain/outcome/revenue/cost/duration_ms/custom_metrics before emitting
   DOMAIN_EPISODE_RECORDED on the Synapse bus.
 • calculate_for_domain(domain) slices the deque, computes all DomainKPI
   fields, and compares to the prior half-period for trend detection.
-• No LLM calls, no I/O — pure in-process computation.
+• No LLM calls, no I/O - pure in-process computation.
 • Thread-safe: asyncio single-threaded; deque operations are atomic.
 """
 

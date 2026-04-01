@@ -1,5 +1,5 @@
 """
-EcodiaOS — Tollbooth Types
+EcodiaOS - Tollbooth Types
 
 Request/response schemas for the external monetization API.
 """
@@ -7,7 +7,7 @@ Request/response schemas for the external monetization API.
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — used at runtime by Pydantic
+from datetime import datetime  # noqa: TC003 - used at runtime by Pydantic
 
 from pydantic import Field
 

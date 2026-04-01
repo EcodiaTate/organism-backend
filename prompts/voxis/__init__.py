@@ -1,1 +1,1 @@
-"""EcodiaOS — Voxis LLM Prompt Registry."""
+"""EcodiaOS - Voxis LLM Prompt Registry."""

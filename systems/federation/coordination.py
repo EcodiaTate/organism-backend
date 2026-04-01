@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Coordinated Action
+EcodiaOS - Federation Coordinated Action
 
 Instances can request assistance from each other. Coordinated action
 requires COLLEAGUE trust level or higher. The requesting instance

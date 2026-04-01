@@ -1,10 +1,10 @@
 """
-EcodiaOS — Memory Genome Extraction & Seeding
+EcodiaOS - Memory Genome Extraction & Seeding
 
 Implements GenomeExtractionProtocol for the Memory system. Extracts the
-heritable core of the knowledge graph — high-salience entities, semantic
+heritable core of the knowledge graph - high-salience entities, semantic
 relations, community summaries, the Self node's personality vector, and
-consolidated episode summaries — so a child instance inherits the parent's
+consolidated episode summaries - so a child instance inherits the parent's
 accumulated understanding without raw episode baggage.
 
 Heritable state (what crosses the generational boundary):
@@ -70,7 +70,7 @@ class MemoryGenomeExtractor:
         summaries. Returns an empty segment (version=0) if no meaningful
         state exists yet.
 
-        Drive weights and floor thresholds are now evolvable parameters —
+        Drive weights and floor thresholds are now evolvable parameters -
         children inherit the parent's constitutional phenotype so they do not
         start from a fixed baseline. Spec: Philosophical Context §genome.
         """
@@ -338,7 +338,7 @@ class MemoryGenomeExtractor:
         without inheriting the full history (which may exceed genome budget).
 
         Children seed from this to understand which drive directions have been
-        rewarded over the parent's lifetime — effectively inheriting learned
+        rewarded over the parent's lifetime - effectively inheriting learned
         constitutional preferences.
         """
         try:
@@ -366,7 +366,7 @@ class MemoryGenomeExtractor:
         else:
             return []
 
-        # Return only the last 100 entries — enough to reconstruct trajectory
+        # Return only the last 100 entries - enough to reconstruct trajectory
         return parsed[-100:] if len(parsed) > 100 else parsed
 
     async def _extract_floor_threshold_snapshots(self) -> list[dict[str, Any]]:
@@ -376,7 +376,7 @@ class MemoryGenomeExtractor:
         Floor thresholds define the minimum acceptable drive scores for PERMIT
         verdicts from Equor. They are evolvable: Evo may shift them based on
         hypothesis outcomes. The latest snapshot is what matters for child seeding
-        — the child inherits the parent's evolved floor, not the factory default.
+        - the child inherits the parent's evolved floor, not the factory default.
 
         Reads from `Constitution.floor_care` and `Constitution.floor_honesty`
         (written by Equor when thresholds drift). Falls back to querying
@@ -629,7 +629,7 @@ class MemoryGenomeExtractor:
         """
         Initialise the child's drive weight history from the parent's.
 
-        Written to `Self.drive_weight_history` as a JSON string — the child
+        Written to `Self.drive_weight_history` as a JSON string - the child
         starts with visibility into the parent's constitutional drift so
         `update_personality_from_evo()` can continue the trajectory rather
         than starting from zero.
@@ -659,7 +659,7 @@ class MemoryGenomeExtractor:
         Apply the parent's most recent floor threshold snapshot to the child's Constitution.
 
         Only the most recent snapshot (index 0, ordered DESC by ts in extraction)
-        is applied — the child inherits the evolved floor, not the full history.
+        is applied - the child inherits the evolved floor, not the full history.
         If the Constitution node carries `floor_care` / `floor_honesty` fields
         from the snapshot, Equor will use those instead of the factory defaults.
         """

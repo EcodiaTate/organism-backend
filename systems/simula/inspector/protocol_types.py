@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 6: Protocol State-Machine Stress Types
+EcodiaOS - Inspector Phase 6: Protocol State-Machine Stress Types
 
 All domain models for deep protocol state-machine boundary analysis.
 
@@ -13,7 +13,7 @@ structured mutation strategies targeting boundary conditions, and records
 failure-at-boundary findings with full state-path context.
 
 The focus is *valid* edge-case evolution: sequences that follow the protocol
-specification but reach states that implementations handle inconsistently —
+specification but reach states that implementations handle inconsistently -
 numeric overflow at sequence counters, timer underrun at re-keying windows,
 layered interpretation mismatches at protocol version negotiation, and
 desynchronisation between parser and handler state machines.
@@ -22,18 +22,18 @@ Layer map
 ---------
   ┌──────────────────────────────────────────────────────────────────────────┐
   │  Phase 4 (SteerabilityModel, StateVariable[PROTOCOL_STATE])              │
-  │  Phase 5 (TrustGraph — CREDENTIAL/SESSION nodes as protocol contexts)    │
+  │  Phase 5 (TrustGraph - CREDENTIAL/SESSION nodes as protocol contexts)    │
   │    ↓  ProtocolFsmBuilder                                                 │
-  │  ProtocolFsm   — explicit states, transitions, guards, counters, timers  │
+  │  ProtocolFsm   - explicit states, transitions, guards, counters, timers  │
   │    ↓  BoundaryStressEngine                                               │
-  │  StressScenario — state trace driving a rare/boundary transition         │
+  │  StressScenario - state trace driving a rare/boundary transition         │
   │    ↓  scenario execution / replay                                        │
-  │  BoundaryFailure — observed anomaly with state-path provenance           │
+  │  BoundaryFailure - observed anomaly with state-path provenance           │
   │    ↓                                                                     │
-  │  StateCoverageReport  — which states/transitions were exercised          │
-  │  FailureAtBoundaryDataset — state path → inconsistency → anomaly         │
+  │  StateCoverageReport  - which states/transitions were exercised          │
+  │  FailureAtBoundaryDataset - state path → inconsistency → anomaly         │
   │    ↓                                                                     │
-  │  Phase6Result — top-level output with exit criterion                     │
+  │  Phase6Result - top-level output with exit criterion                     │
   └──────────────────────────────────────────────────────────────────────────┘
 
 Exit criterion
@@ -46,16 +46,16 @@ Phase6Result.exit_criterion_met = True when:
 
 Key concepts
 ------------
-ProtocolFsmState      — a node in the FSM with optional numeric counters,
+ProtocolFsmState      - a node in the FSM with optional numeric counters,
                         timer slots, and layer-stack depth
-ProtocolTransition    — a directed edge with guard predicates, optional
+ProtocolTransition    - a directed edge with guard predicates, optional
                         counter increments, and an interpretation layer
-BoundaryKind          — taxonomy of boundary condition categories
-BoundaryFailure       — a failure observed during scenario replay, with full
+BoundaryKind          - taxonomy of boundary condition categories
+BoundaryFailure       - a failure observed during scenario replay, with full
                         state-path provenance and the mismatch classification
-StateCoverageReport   — which states and transitions were exercised, and
+StateCoverageReport   - which states and transitions were exercised, and
                         which remain uncovered
-ScenarioLibrary       — a collection of StressScenarios indexed by boundary
+ScenarioLibrary       - a collection of StressScenarios indexed by boundary
                         kind; the primary Phase 6 deliverable
 """
 
@@ -76,13 +76,13 @@ class ProtocolFamily(enum.StrEnum):
     """
     High-level family of specification-heavy protocols targeted by Phase 6.
 
-    NETWORK_HANDSHAKE  — TLS, DTLS, QUIC, SSH handshake state machines
-    SESSION_LAYER      — HTTP/1.1 keep-alive, HTTP/2 stream multiplexing, WebSocket
-    AUTHENTICATION     — OAuth2, SAML, Kerberos, FIDO2/WebAuthn
-    BINARY_FRAMING     — protobuf RPC, MessagePack, Cap'n Proto, FlatBuffers
-    CUSTOM_BINARY      — proprietary binary protocols with explicit spec
-    TEXTUAL            — SMTP, IMAP, FTP, SIP — line-oriented command protocols
-    UNKNOWN            — unrecognised or inferred
+    NETWORK_HANDSHAKE  - TLS, DTLS, QUIC, SSH handshake state machines
+    SESSION_LAYER      - HTTP/1.1 keep-alive, HTTP/2 stream multiplexing, WebSocket
+    AUTHENTICATION     - OAuth2, SAML, Kerberos, FIDO2/WebAuthn
+    BINARY_FRAMING     - protobuf RPC, MessagePack, Cap'n Proto, FlatBuffers
+    CUSTOM_BINARY      - proprietary binary protocols with explicit spec
+    TEXTUAL            - SMTP, IMAP, FTP, SIP - line-oriented command protocols
+    UNKNOWN            - unrecognised or inferred
     """
 
     NETWORK_HANDSHAKE = "network_handshake"
@@ -98,20 +98,20 @@ class BoundaryKind(enum.StrEnum):
     """
     Category of the boundary condition being stressed.
 
-    SEQUENCE_COUNTER_OVERFLOW   — counter wraps or overflows at numeric limit
-    SEQUENCE_COUNTER_RESET      — counter resets to zero mid-session unexpectedly
-    TIMER_EXPIRY_AT_BOUNDARY    — timer fires exactly at a state-transition window
-    TIMER_UNDERRUN              — operation completes before timer can enforce a guard
-    REKEY_WINDOW_OVERLAP        — re-keying initiated while previous material is still live
-    VERSION_NEGOTIATION_MISMATCH — two layers disagree on negotiated version
-    FRAGMENTATION_BOUNDARY      — message split across the exact MTU boundary
-    LAYER_DESYNC                — parser and handler FSMs diverge at a shared state
-    MULTIPLEXING_EDGE           — concurrent streams interact at stream-limit boundary
-    RETRY_AMPLIFICATION         — retry logic doubles load at exactly the retry count limit
-    AUTH_WINDOW_EXPIRY          — credentials expire during an in-flight operation
-    PADDING_ORACLE_BOUNDARY     — padding validation at exact block-size boundaries
-    NUMERIC_EDGE                — any other integer overflow/underflow/modulo wrap
-    UNKNOWN                     — unclassified boundary
+    SEQUENCE_COUNTER_OVERFLOW   - counter wraps or overflows at numeric limit
+    SEQUENCE_COUNTER_RESET      - counter resets to zero mid-session unexpectedly
+    TIMER_EXPIRY_AT_BOUNDARY    - timer fires exactly at a state-transition window
+    TIMER_UNDERRUN              - operation completes before timer can enforce a guard
+    REKEY_WINDOW_OVERLAP        - re-keying initiated while previous material is still live
+    VERSION_NEGOTIATION_MISMATCH - two layers disagree on negotiated version
+    FRAGMENTATION_BOUNDARY      - message split across the exact MTU boundary
+    LAYER_DESYNC                - parser and handler FSMs diverge at a shared state
+    MULTIPLEXING_EDGE           - concurrent streams interact at stream-limit boundary
+    RETRY_AMPLIFICATION         - retry logic doubles load at exactly the retry count limit
+    AUTH_WINDOW_EXPIRY          - credentials expire during an in-flight operation
+    PADDING_ORACLE_BOUNDARY     - padding validation at exact block-size boundaries
+    NUMERIC_EDGE                - any other integer overflow/underflow/modulo wrap
+    UNKNOWN                     - unclassified boundary
     """
 
     SEQUENCE_COUNTER_OVERFLOW   = "sequence_counter_overflow"
@@ -137,12 +137,12 @@ class TransitionInterpretation(enum.StrEnum):
     When PARSER and HANDLER disagree on how to interpret the same message at a
     state boundary, a desync failure occurs.
 
-    PARSER         — low-level framing / tokenisation layer
-    HANDLER        — business logic / session management layer
-    CRYPTO         — cryptographic record layer
-    TRANSPORT      — TCP/UDP/QUIC layer
-    APPLICATION    — application-level routing / dispatch
-    NEGOTIATION    — version / feature negotiation sub-protocol
+    PARSER         - low-level framing / tokenisation layer
+    HANDLER        - business logic / session management layer
+    CRYPTO         - cryptographic record layer
+    TRANSPORT      - TCP/UDP/QUIC layer
+    APPLICATION    - application-level routing / dispatch
+    NEGOTIATION    - version / feature negotiation sub-protocol
     """
 
     PARSER        = "parser"
@@ -158,13 +158,13 @@ class ScenarioResult(enum.StrEnum):
     """
     The outcome of executing a StressScenario against a target.
 
-    BOUNDARY_FAILURE  — execution diverged from specification at a boundary
-    DESYNC_DETECTED   — parser and handler reached different states
-    CRASH             — target crashed (unhandled exception / panic)
-    TIMEOUT           — target became unresponsive within the scenario
-    CLEAN             — scenario completed without observable anomaly
-    NOT_REACHED       — target did not reach the boundary state being stressed
-    ERROR             — scenario execution error (infrastructure / setup)
+    BOUNDARY_FAILURE  - execution diverged from specification at a boundary
+    DESYNC_DETECTED   - parser and handler reached different states
+    CRASH             - target crashed (unhandled exception / panic)
+    TIMEOUT           - target became unresponsive within the scenario
+    CLEAN             - scenario completed without observable anomaly
+    NOT_REACHED       - target did not reach the boundary state being stressed
+    ERROR             - scenario execution error (infrastructure / setup)
     """
 
     BOUNDARY_FAILURE = "boundary_failure"
@@ -180,20 +180,20 @@ class MutationStrategy(enum.StrEnum):
     """
     Strategy used to generate a StressScenario from an FSM path.
 
-    COUNTER_MAXIMISE    — drive counter to its declared maximum value
-    COUNTER_OVERFLOW    — drive counter one past its maximum (overflow/wrap)
-    COUNTER_RESET_MID   — reset counter to zero mid-session
-    TIMER_BOUNDARY      — schedule messages to arrive exactly at timer expiry
-    TIMER_UNDERRUN      — complete session before timer can fire
-    REKEY_RACE          — initiate re-key while previous key is in use
-    VERSION_DOWNGRADE   — negotiate down to oldest supported version
-    VERSION_UNKNOWN     — offer an unsupported version identifier
-    FRAGMENT_AT_MTU     — split message exactly at declared MTU boundary
-    LAYER_SKIP          — omit an optional but assumed state and continue
-    STREAM_LIMIT        — open streams up to the declared maximum
-    STREAM_OVER_LIMIT   — open one stream beyond the declared maximum
-    AUTH_EXPIRE         — let credentials expire between request and response
-    PADDING_EXACT       — send message whose length is exactly a block boundary
+    COUNTER_MAXIMISE    - drive counter to its declared maximum value
+    COUNTER_OVERFLOW    - drive counter one past its maximum (overflow/wrap)
+    COUNTER_RESET_MID   - reset counter to zero mid-session
+    TIMER_BOUNDARY      - schedule messages to arrive exactly at timer expiry
+    TIMER_UNDERRUN      - complete session before timer can fire
+    REKEY_RACE          - initiate re-key while previous key is in use
+    VERSION_DOWNGRADE   - negotiate down to oldest supported version
+    VERSION_UNKNOWN     - offer an unsupported version identifier
+    FRAGMENT_AT_MTU     - split message exactly at declared MTU boundary
+    LAYER_SKIP          - omit an optional but assumed state and continue
+    STREAM_LIMIT        - open streams up to the declared maximum
+    STREAM_OVER_LIMIT   - open one stream beyond the declared maximum
+    AUTH_EXPIRE         - let credentials expire between request and response
+    PADDING_EXACT       - send message whose length is exactly a block boundary
     """
 
     COUNTER_MAXIMISE   = "counter_maximise"
@@ -255,8 +255,8 @@ class FsmTimer(EOSBaseModel):
     Timers represent retransmit timeouts, authentication windows, re-keying
     intervals, and keep-alive deadlines.  A timer fires when elapsed_ms ≥ timeout_ms.
 
-    The boundary condition is firing at exactly elapsed_ms == timeout_ms — the
-    zero-slack case — which implementations often handle differently from
+    The boundary condition is firing at exactly elapsed_ms == timeout_ms - the
+    zero-slack case - which implementations often handle differently from
     the elapsed_ms > timeout_ms case.
     """
 
@@ -276,7 +276,7 @@ class ProtocolFsmState(EOSBaseModel):
     """
     A single state in a protocol FSM.
 
-    States carry counters, timers, and layer-stack depth — the three
+    States carry counters, timers, and layer-stack depth - the three
     dimensions that generate boundary conditions.
 
     A state is a boundary state if it has at least one counter near its
@@ -505,7 +505,7 @@ class StateStep(EOSBaseModel):
     A single step in a stress scenario state trace.
 
     Records the transition fired, the resulting state, and the counter/timer
-    values at that point — forming a complete, reproducible state trace.
+    values at that point - forming a complete, reproducible state trace.
     """
 
     step_index: int
@@ -535,7 +535,7 @@ class StressScenario(EOSBaseModel):
 
     A scenario is a valid (specification-conformant) state trace that drives
     the FSM to a boundary condition.  It is *not* a raw malformed packet
-    sequence — the validity constraint is fundamental.
+    sequence - the validity constraint is fundamental.
 
     Scenarios are produced by BoundaryStressEngine using a MutationStrategy
     applied to a path in the FSM.
@@ -832,7 +832,7 @@ class ScenarioLibrary(EOSBaseModel):
     This is the second primary Phase 6 deliverable alongside
     FailureAtBoundaryDataset.
 
-    The library is not a collection of raw malformed bytes — it is a
+    The library is not a collection of raw malformed bytes - it is a
     collection of *state traces* (valid execution sequences) that each
     exercise a specific boundary condition.
     """

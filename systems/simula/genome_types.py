@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Genome Types
+EcodiaOS - Simula Genome Types
 
 Data types for the Simula evolution genome: the accumulated engineering
 knowledge that a parent instance passes to its children during mitosis.
@@ -17,7 +17,7 @@ Neo4j, and linked to the instance's :Self node via [:SIMULA_GENOME_OF].
 
 During mitosis, the parent's SimulaGenome is extracted, transmitted to
 the child (via env var or Neo4j reference), and seeded into the child's
-Simula subsystems — so it starts with a trained code model, a populated
+Simula subsystems - so it starts with a trained code model, a populated
 library, and calibrated risk thresholds rather than learning from scratch.
 
 Multi-generation lineage tracking uses :GenerationRecord nodes linked
@@ -72,7 +72,7 @@ class MutationRecord(EOSBaseModel):
     """
     A single successful mutation distilled for genome transmission.
 
-    Captures the *conclusion* — what changed and whether it worked —
+    Captures the *conclusion* - what changed and whether it worked -
     not the full simulation/verification history.
     """
 

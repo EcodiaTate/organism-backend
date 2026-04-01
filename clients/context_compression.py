@@ -1,5 +1,5 @@
 """
-EcodiaOS — KVzip Context Compression
+EcodiaOS - KVzip Context Compression
 
 API-level context window compression for agentic tool loops.
 Since EOS calls LLMs via API (not running local models), true KV-cache
@@ -181,7 +181,7 @@ class ContextCompressor:
                     compressed_content.append(block)
             return {"role": role, "content": compressed_content}
 
-        # Assistant messages with tool_use blocks — compress text, preserve tool calls
+        # Assistant messages with tool_use blocks - compress text, preserve tool calls
         if role == "assistant" and isinstance(content, list):
             compressed_content = []
             for block in content:
@@ -198,7 +198,7 @@ class ContextCompressor:
                     compressed_content.append(block)
             return {"role": role, "content": compressed_content}
 
-        # Plain text messages — compress if large
+        # Plain text messages - compress if large
         if isinstance(content, str) and len(content) > 1000:
             return {"role": role, "content": self._summarise_text(content, 500)}
 

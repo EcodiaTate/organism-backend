@@ -223,7 +223,7 @@ class TestHealthCheckDafny:
 class TestHealthCheckZ3:
     @pytest.mark.asyncio
     async def test_z3_advisory_does_not_block(self, tmp_path: Path):
-        """Z3 results are advisory — even with valid invariants, it passes."""
+        """Z3 results are advisory - even with valid invariants, it passes."""
         f = tmp_path / "code.py"
         f.write_text("def f(x): return x * x\n", encoding="utf-8")
 

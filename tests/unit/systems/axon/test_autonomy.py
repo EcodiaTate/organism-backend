@@ -74,7 +74,7 @@ def _make_registry() -> ExecutorRegistry:
     return reg
 
 
-# ─── Tests: ExecutorRegistry — capabilities() ────────────────────
+# ─── Tests: ExecutorRegistry - capabilities() ────────────────────
 
 
 class TestRegistryCapabilities:
@@ -101,7 +101,7 @@ class TestRegistryCapabilities:
         assert action_types == sorted(action_types)
 
 
-# ─── Tests: ExecutorRegistry — find_by_autonomy() ────────────────
+# ─── Tests: ExecutorRegistry - find_by_autonomy() ────────────────
 
 
 class TestRegistryFindByAutonomy:
@@ -124,7 +124,7 @@ class TestRegistryFindByAutonomy:
         assert result == []
 
 
-# ─── Tests: ExecutorRegistry — deregister() ──────────────────────
+# ─── Tests: ExecutorRegistry - deregister() ──────────────────────
 
 
 class TestRegistryDeregister:
@@ -151,7 +151,7 @@ class TestRegistryDeregister:
         assert reg.get("observe") is None
 
 
-# ─── Tests: RateLimiter — Adaptive Multipliers ───────────────────
+# ─── Tests: RateLimiter - Adaptive Multipliers ───────────────────
 
 
 class TestRateLimiterMultipliers:
@@ -163,7 +163,7 @@ class TestRateLimiterMultipliers:
         for _ in range(5):
             limiter.record("test")
 
-        # 5 calls against effective max of 5 (10 * 0.5) — should block
+        # 5 calls against effective max of 5 (10 * 0.5) - should block
         assert limiter.check("test", limit) is False
 
     def test_global_multiplier_loosens(self) -> None:
@@ -174,7 +174,7 @@ class TestRateLimiterMultipliers:
         for _ in range(15):
             limiter.record("test")
 
-        # 15 calls against effective max of 20 (10 * 2.0) — should allow
+        # 15 calls against effective max of 20 (10 * 2.0) - should allow
         assert limiter.check("test", limit) is True
 
     def test_per_action_multiplier(self) -> None:
@@ -234,7 +234,7 @@ class TestRateLimiterMultipliers:
         assert limiter.check("test", limit) is False
 
 
-# ─── Tests: BudgetTracker — Per-Intent Budgets ───────────────────
+# ─── Tests: BudgetTracker - Per-Intent Budgets ───────────────────
 
 
 class TestPerIntentBudget:
@@ -276,7 +276,7 @@ class TestPerIntentBudget:
         assert allowed is False
 
 
-# ─── Tests: AxonReactiveAdapter — Threat Adaptation ──────────────
+# ─── Tests: AxonReactiveAdapter - Threat Adaptation ──────────────
 
 
 class TestReactiveThreatAdaptation:
@@ -317,7 +317,7 @@ class TestReactiveThreatAdaptation:
         saved_multiplier = limiter._global_multiplier
 
         await adapter._on_immune_cycle_complete({"active_incidents": 2})
-        # Should NOT restore — incidents still active
+        # Should NOT restore - incidents still active
         assert limiter._global_multiplier == saved_multiplier
 
     @pytest.mark.asyncio
@@ -335,7 +335,7 @@ class TestReactiveThreatAdaptation:
         assert limiter._global_multiplier == pytest.approx(1.0)
 
 
-# ─── Tests: AxonIntrospector — Degradation Detection ─────────────
+# ─── Tests: AxonIntrospector - Degradation Detection ─────────────
 
 
 class TestIntrospectorDegradation:
@@ -353,7 +353,7 @@ class TestIntrospectorDegradation:
             profile.record_success(50)
         for _ in range(2):
             profile.record_failure(100, "error")
-        # 60% success rate, 2 consecutive — not degrading
+        # 60% success rate, 2 consecutive - not degrading
         assert profile.is_degrading is False
 
     def test_introspector_generates_recommendations(self) -> None:

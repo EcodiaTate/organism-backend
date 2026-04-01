@@ -1,4 +1,4 @@
-"""Tests for Soma Allostatic Controller — setpoints, urgency, signal construction."""
+"""Tests for Soma Allostatic Controller - setpoints, urgency, signal construction."""
 
 from __future__ import annotations
 

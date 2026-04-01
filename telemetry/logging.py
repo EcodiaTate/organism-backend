@@ -1,5 +1,5 @@
 """
-EcodiaOS — Structured Logging
+EcodiaOS - Structured Logging
 
 All logging via structlog. Every log entry includes system context.
 """
@@ -62,7 +62,7 @@ class SSELogHandler(logging.Handler):
         if not _log_subscribers:
             return
 
-        # Build a lean dict — only the fields we want to stream
+        # Build a lean dict - only the fields we want to stream
         entry: dict[str, Any] = {
             "ts": _format_record_time(record),
             "level": record.levelname.lower(),
@@ -91,7 +91,7 @@ class SSELogHandler(logging.Handler):
             try:
                 q.put_nowait(entry)
             except asyncio.QueueFull:
-                # Subscriber is too slow — drop oldest entry and retry
+                # Subscriber is too slow - drop oldest entry and retry
                 try:
                     q.get_nowait()
                     q.put_nowait(entry)
@@ -104,7 +104,7 @@ class RedisStreamLogHandler(logging.Handler):
     Logging handler that fire-and-forgets each log record into the
     LogAnalyzer's Redis Streams for real-time querying via /api/logs/*.
 
-    Safe to attach before the analyzer is initialized — records are
+    Safe to attach before the analyzer is initialized - records are
     silently dropped until ``set_analyzer()`` is called.
     """
 
@@ -146,7 +146,7 @@ class RedisStreamLogHandler(logging.Handler):
             loop = asyncio.get_running_loop()
             loop.create_task(self._analyzer.ingest_log(**fields))
         except RuntimeError:
-            pass  # no running loop — startup phase, skip
+            pass  # no running loop - startup phase, skip
 
 
 # Module-level handle so registry can wire the analyzer after init

@@ -1,5 +1,5 @@
 """
-Fovea — Habituation Engine
+Fovea - Habituation Engine
 
 Reduces salience of repeated identical errors that haven't led to learning.
 

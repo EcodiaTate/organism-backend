@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova Policy Generation Prompts
+EcodiaOS - Nova Policy Generation Prompts
 
 Prompts for LLM-based policy generation and EFE component estimation.
 These prompts ground the LLM's reasoning in the current belief state,
@@ -44,7 +44,7 @@ Your role: generate candidate strategies (policies) for achieving a goal, given 
 
 ## GOAL
 {goal.description}
-Success criteria: {goal.success_criteria or "Not specified — infer from goal description"}
+Success criteria: {goal.success_criteria or "Not specified - infer from goal description"}
 Urgency: {"High" if goal.urgency > 0.6 else "Moderate" if goal.urgency > 0.3 else "Low"}
 
 ## CURRENT WORLD BELIEFS
@@ -76,7 +76,7 @@ action_type.  That step's parameters MUST include:
   - required_capabilities: list of string capability tags
   - expected_outcome: what the action accomplishes for this goal
   - justification: why none of the existing action types is adequate
-Use propose_novel_action sparingly — prefer existing types wherever possible.
+Use propose_novel_action sparingly - prefer existing types wherever possible.
 
 For each strategy, respond with valid JSON in this exact format:
 {{
@@ -157,7 +157,7 @@ Steps: {policy_steps_desc}
 {beliefs_summary}
 
 ## KNOWN UNCERTAINTIES
-{known_uncertainties or "Not specified — infer from context"}
+{known_uncertainties or "Not specified - infer from context"}
 
 ## TASK
 Estimate what this strategy would teach us, regardless of whether it achieves the goal.
@@ -280,7 +280,7 @@ AVAILABLE_ACTION_TYPES: list[str] = [
     "respond_text: Compose and send a structured text response via Axon pipeline",
     "schedule_event: Create a scheduled event or reminder",
     # ── Axon-routed (foraging / bounty solving) ──────────────────
-    "bounty_hunt: Full autonomous bounty-hunt loop — discover open bounties, select the best "
+    "bounty_hunt: Full autonomous bounty-hunt loop - discover open bounties, select the best "
     "candidate, generate a real solution via LLM or Simula, and stage it for PR submission. "
     "Use this when the goal is 'earn revenue now'. "
     "Optional parameters: target_platforms (list, default [github, algora]), "
@@ -299,12 +299,12 @@ AVAILABLE_ACTION_TYPES: list[str] = [
     # and you can clearly articulate what a new action type would do.  The
     # proposal is routed to Simula for feasibility evaluation, Equor review,
     # and dynamic executor generation.  Required parameters in the step:
-    #   action_name (str)             — proposed canonical action type (snake_case)
-    #   description (str)             — what the action does in 1–2 sentences
-    #   required_capabilities (list)  — e.g. ["http_client", "defi_write"]
-    #   expected_outcome (str)        — what the action accomplishes for the goal
-    #   justification (str)           — why none of the existing types is adequate
+    #   action_name (str)             - proposed canonical action type (snake_case)
+    #   description (str)             - what the action does in 1–2 sentences
+    #   required_capabilities (list)  - e.g. ["http_client", "defi_write"]
+    #   expected_outcome (str)        - what the action accomplishes for the goal
+    #   justification (str)           - why none of the existing types is adequate
     "propose_novel_action: Propose a new action capability when no existing type fits "
-    "the current goal. Use sparingly — only when the goal genuinely cannot be achieved "
+    "the current goal. Use sparingly - only when the goal genuinely cannot be achieved "
     "with any of the action types listed above.",
 ]

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Voxis Content Renderer
+EcodiaOS - Voxis Content Renderer
 
 The expression generation engine. Implements the full 9-step pipeline
 (spec §III.1) with Active Inference-grounded policy selection.
@@ -9,22 +9,22 @@ The expression generation engine. Implements the full 9-step pipeline
 Expression is **action** in the Active Inference framework (spec §II.1).
 When the organism speaks, it acts on the world to reduce Expected Free Energy.
 
-    G(π) = -E_q[ln p(o|π)]     (pragmatic value — preference satisfaction)
-           - H[q(s|o,π)]       (epistemic value — uncertainty reduction)
+    G(π) = -E_q[ln p(o|π)]     (pragmatic value - preference satisfaction)
+           - H[q(s|o,π)]       (epistemic value - uncertainty reduction)
 
 Three expression policy classes correspond to three EFE components:
 
-    PRAGMATIC   — changes the world toward preferred states
+    PRAGMATIC   - changes the world toward preferred states
                   (inform, respond, coordinate)
                   Serves: Coherence + Care drives
                   EFE reduction: reduces ambiguity and relational distance
 
-    EPISTEMIC   — reduces uncertainty in the generative model
+    EPISTEMIC   - reduces uncertainty in the generative model
                   (ask questions, seek clarification)
                   Serves: Growth + Coherence drives
                   EFE reduction: expected information gain about hidden states
 
-    AFFILIATIVE — maintains relational bonds and shared context
+    AFFILIATIVE - maintains relational bonds and shared context
                   (acknowledge, empathise, celebrate)
                   Serves: Care + Honesty drives
                   EFE reduction: reduces predicted relational prediction error
@@ -170,7 +170,7 @@ def _derive_candidate_policies(
     ) else 0.5
     # Care alignment: moderate for informational, high for response
     care_al = 0.6 if trigger == ExpressionTrigger.NOVA_RESPOND else 0.4
-    # Epistemic value: low — we're providing info, not seeking it
+    # Epistemic value: low - we're providing info, not seeking it
     policies.append(ExpressionPolicy(
         policy_class=ExpressionPolicyClass.PRAGMATIC,
         strategy=pragmatic_strategy,
@@ -192,7 +192,7 @@ def _derive_candidate_policies(
         epistemic_strategy.include_followup_question = True
         epistemic_strategy.exploratory_tangents_allowed = affect.curiosity > 0.6
         epistemic_strategy.information_density = "normal"
-        # Epistemic value: high — this policy genuinely reduces model uncertainty
+        # Epistemic value: high - this policy genuinely reduces model uncertainty
         ep_val = min(0.6, 0.3 + affect.curiosity * 0.4)
         policies.append(ExpressionPolicy(
             policy_class=ExpressionPolicyClass.EPISTEMIC,
@@ -230,7 +230,7 @@ def _derive_candidate_policies(
         ))
 
     # ── Balanced policy: blend of pragmatic and affiliative ───────
-    # Always included as a fallback — moderate scores across all drives
+    # Always included as a fallback - moderate scores across all drives
     balanced_strategy = base_strategy.model_copy(deep=True)
     balanced_strategy.emotional_acknowledgment = "implicit"
     balanced_strategy.uncertainty_acknowledgment = (
@@ -327,7 +327,7 @@ class BaseContentRenderer(ABC):
     ``ContentRenderer`` instance on ``VoxisService`` atomically.
 
     Evolved subclasses **must** implement ``render``.
-    They can accept any constructor args they need — the ``VoxisService``
+    They can accept any constructor args they need - the ``VoxisService``
     ``instance_factory`` callback handles instantiation.
     """
 
@@ -344,7 +344,7 @@ class BaseContentRenderer(ABC):
         Execute the full expression pipeline for the given intent and context.
 
         Must always return a complete ``Expression``.
-        Must never raise — return a fallback ``Expression`` on failure.
+        Must never raise - return a fallback ``Expression`` on failure.
         """
         ...
 
@@ -357,15 +357,15 @@ class ContentRenderer(BaseContentRenderer):
     Full 9-step expression pipeline with Active Inference policy selection.
 
     Steps:
-    1. Intent Analysis — parse ExpressionIntent
-    2. Audience Profiling — build/update AudienceProfile
-    3. Base Strategy — derive StrategyParams from trigger and context
-    4. Policy Generation — derive candidate policies (pragmatic/epistemic/affiliative/balanced)
-    5. EFE Selection — select minimum Expected Free Energy policy
-    6. Personality + Affect application — shape selected strategy
-    7. Content Generation — construct prompt, call LLM
-    8. Honesty Check — authenticity validation (one retry allowed)
-    9. Expression Assembly — build and return Expression
+    1. Intent Analysis - parse ExpressionIntent
+    2. Audience Profiling - build/update AudienceProfile
+    3. Base Strategy - derive StrategyParams from trigger and context
+    4. Policy Generation - derive candidate policies (pragmatic/epistemic/affiliative/balanced)
+    5. EFE Selection - select minimum Expected Free Energy policy
+    6. Personality + Affect application - shape selected strategy
+    7. Content Generation - construct prompt, call LLM
+    8. Honesty Check - authenticity validation (one retry allowed)
+    9. Expression Assembly - build and return Expression
     """
 
     def __init__(
@@ -465,7 +465,7 @@ class ContentRenderer(BaseContentRenderer):
         )
         user_prompt = build_user_prompt(intent)
 
-        # Anthropic requires system content in the top-level `system` parameter —
+        # Anthropic requires system content in the top-level `system` parameter -
         # it rejects `{"role": "system", ...}` entries in the messages array (400).
         # ConversationManager.prepare_context can inject a system-role entry for the
         # rolling conversation summary when history exceeds the context window.
@@ -706,7 +706,7 @@ def _build_template_fallback(
     """
     Build a minimal template-based expression when LLM budget is exhausted.
 
-    This is deliberately simple — it maintains conversational coherence
+    This is deliberately simple - it maintains conversational coherence
     without burning tokens. The content is honest about the limitation
     (Honesty drive compliance).
     """

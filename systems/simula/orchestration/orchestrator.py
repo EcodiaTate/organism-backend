@@ -111,7 +111,7 @@ class MultiAgentOrchestrator:
             if self._task_planner and len(files_to_change) > 1:
                 dag = await self._task_planner.plan(proposal, files_to_change)
 
-            # Stage 1: SPEC — Generate specification artifact
+            # Stage 1: SPEC - Generate specification artifact
             spec_result = await self._stage_spec(proposal, files_to_change)
             stage_results.append(spec_result)
 
@@ -120,7 +120,7 @@ class MultiAgentOrchestrator:
                     stage_results, dag, start, error="Spec generation failed"
                 )
 
-            # Stage 2: DESIGN — Generate design artifact
+            # Stage 2: DESIGN - Generate design artifact
             design_result = await self._stage_design(proposal, spec_result, files_to_change)
             stage_results.append(design_result)
 
@@ -129,7 +129,7 @@ class MultiAgentOrchestrator:
                     stage_results, dag, start, error="Design generation failed"
                 )
 
-            # Stage 3: CODE — Generate code (parallel sub-tasks if multi-file)
+            # Stage 3: CODE - Generate code (parallel sub-tasks if multi-file)
             code_result = await self._stage_code(proposal, dag, design_result)
             stage_results.append(code_result)
 
@@ -138,11 +138,11 @@ class MultiAgentOrchestrator:
                     stage_results, dag, start, error="Code generation failed"
                 )
 
-            # Stage 4: TEST — Generate and run tests
+            # Stage 4: TEST - Generate and run tests
             test_result = await self._stage_test(proposal, code_result)
             stage_results.append(test_result)
 
-            # Stage 5: REVIEW — Self-review of generated code
+            # Stage 5: REVIEW - Self-review of generated code
             review_result = await self._stage_review(proposal, code_result, test_result)
             stage_results.append(review_result)
 
@@ -266,7 +266,7 @@ class MultiAgentOrchestrator:
         dag: TaskDAG | None,
         design_result: StageResult,
     ) -> StageResult:
-        """Generate code — parallel sub-tasks for multi-file DAGs."""
+        """Generate code - parallel sub-tasks for multi-file DAGs."""
         start = time.monotonic()
 
         if dag and len(dag.nodes) > 1:
@@ -341,7 +341,7 @@ class MultiAgentOrchestrator:
                     break
 
             if not ready:
-                # Break cycle — just execute next in order
+                # Break cycle - just execute next in order
                 ready = [remaining[0]]
 
             # Execute ready tasks in parallel (up to max_agents)

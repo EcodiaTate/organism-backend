@@ -1,5 +1,5 @@
 """
-EcodiaOS — Dynamic Executor Directory
+EcodiaOS - Dynamic Executor Directory
 
 This directory holds Python executor classes generated at runtime by
 Simula's ExecutorGenerator.  Each file is named {template.name}.py and
@@ -13,9 +13,9 @@ Files here are:
   - Subject to 24h monitoring window; auto-disabled on ≥3 incidents
 
 Iron Rules (enforced by ExecutorGenerator + DynamicExecutorBase):
-  - Must extend DynamicExecutorBase — never Executor ABC directly
-  - Cannot import from systems.* — only dynamic_base and axon.types allowed
+  - Must extend DynamicExecutorBase - never Executor ABC directly
+  - Cannot import from systems.* - only dynamic_base and axon.types allowed
   - Cannot use eval(), exec(), subprocess, os.system()
   - Budget cap enforced by DynamicExecutorBase, never in generated code
-  - All HTTP through self._call_api() — URL whitelist from template.required_apis
+  - All HTTP through self._call_api() - URL whitelist from template.required_apis
 """

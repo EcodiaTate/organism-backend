@@ -1,11 +1,11 @@
 """
-TradingDataChannel — crypto / stock tradeable instrument signals.
+TradingDataChannel - crypto / stock tradeable instrument signals.
 
 Uses CoinGecko's public API (no auth for basic market data, 30 req/min free tier)
 to identify high-volatility, high-liquidity trading opportunities.
 
 Maps instruments with significant price movement to Opportunity objects that
-tell the organism: "this asset is moving — trading opportunity exists."
+tell the organism: "this asset is moving - trading opportunity exists."
 """
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ class TradingDataChannel(InputChannel):
         async with httpx.AsyncClient(timeout=_FETCH_TIMEOUT) as client:
             resp = await client.get(_COINGECKO_MARKETS, params=params)
             if resp.status_code == 429:
-                # Rate limited — return empty
+                # Rate limited - return empty
                 return []
             resp.raise_for_status()
             coins: list[dict[str, Any]] = resp.json()

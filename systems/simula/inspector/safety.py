@@ -1,17 +1,17 @@
 """
-EcodiaOS — Inspector Safety Gates (Phase 11)
+EcodiaOS - Inspector Safety Gates (Phase 11)
 
 Enforces the Iron Rules that govern Inspector's execution boundaries:
 
-  1. PoC Execution Safety — No requests to unauthorized domains; no forbidden
+  1. PoC Execution Safety - No requests to unauthorized domains; no forbidden
      modules; sandbox timeout enforcement; no direct execution against live
      targets without explicit authorization.
 
-  2. Workspace Isolation — External workspaces must be temp-only, never the
+  2. Workspace Isolation - External workspaces must be temp-only, never the
      EOS source tree; no symlinks escaping the workspace; deterministic temp
      cleanup on exit.
 
-  3. Configuration Validation — authorized_targets must be non-empty for PoC
+  3. Configuration Validation - authorized_targets must be non-empty for PoC
      execution; sandbox_timeout_seconds must be positive; max_workers bounded
      to [1, 16]; all constraints enforced before the pipeline starts.
 
@@ -41,7 +41,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.safety")
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-# Modules that a PoC must never import — these allow host-level side effects
+# Modules that a PoC must never import - these allow host-level side effects
 # beyond HTTP requests. Kept in sync with service._FORBIDDEN_POC_MODULES.
 FORBIDDEN_POC_MODULES: frozenset[str] = frozenset({
     "subprocess", "socket", "ctypes", "pickle", "shelve",
@@ -108,9 +108,9 @@ class InspectorSafetyGates:
     Enforces all Inspector safety constraints.
 
     Three validation surfaces:
-      1. validate_poc_execution()       — PoC code safety
-      2. validate_workspace_isolation() — workspace boundary enforcement
-      3. validate_inspector_config()       — configuration sanity
+      1. validate_poc_execution()       - PoC code safety
+      2. validate_workspace_isolation() - workspace boundary enforcement
+      3. validate_inspector_config()       - configuration sanity
     """
 
     def __init__(self) -> None:
@@ -171,7 +171,7 @@ class InspectorSafetyGates:
                 reason=f"PoC imports forbidden module: {import_violation}",
             )
 
-        # 3. Dangerous inline calls (regex scan — catches __import__, exec, eval)
+        # 3. Dangerous inline calls (regex scan - catches __import__, exec, eval)
         dangerous_call = self._check_dangerous_calls(poc_code)
         if dangerous_call:
             self._log.warning(
@@ -309,7 +309,7 @@ class InspectorSafetyGates:
             #    from constructing a TargetWorkspace whose temp_directory points
             #    to an arbitrary path (e.g. the EOS source tree) and then
             #    triggering cleanup() to nuke it.
-            import tempfile as _tempfile  # local import — only needed here
+            import tempfile as _tempfile  # local import - only needed here
             os_tmp = Path(_tempfile.gettempdir()).resolve()
             resolved_temp = temp.resolve()
             if not _is_subpath(resolved_temp, os_tmp):
@@ -331,7 +331,7 @@ class InspectorSafetyGates:
                     "safety_gate_workspace_temp_unexpected_name",
                     temp_name=temp.name,
                 )
-                # Warn but don't fail — local_path workspaces have no temp_directory,
+                # Warn but don't fail - local_path workspaces have no temp_directory,
                 # so this can only fire if someone constructed a workspace manually.
 
         self._log.debug(
@@ -432,7 +432,7 @@ class InspectorSafetyGates:
         Validate that a BPF C program is read-only and safe to load.
 
         Rejects programs containing kernel-state-modifying helper calls.
-        All Inspector eBPF programs must be observation-only — they attach to
+        All Inspector eBPF programs must be observation-only - they attach to
         tracepoints/kprobes and emit events via ring buffer. Any program
         that writes to process memory, overrides returns, or manipulates
         packets is rejected.
@@ -457,7 +457,7 @@ class InspectorSafetyGates:
                     gate="ebpf_program_safety",
                     reason=(
                         f"BPF program contains forbidden helper '{helper}'. "
-                        f"Inspector eBPF programs must be read-only — no kernel writes, "
+                        f"Inspector eBPF programs must be read-only - no kernel writes, "
                         f"no return overrides, no packet modification."
                     ),
                 )
@@ -570,11 +570,11 @@ class InspectorSafetyGates:
         Extract all URLs from PoC code and check against authorized list.
 
         Returns list of unauthorized domain strings found. Empty if all OK.
-        Skips localhost and 127.0.0.1 — these are always considered safe
+        Skips localhost and 127.0.0.1 - these are always considered safe
         for local testing.
         """
         if not authorized_targets:
-            # No authorized targets configured — cannot verify any URLs
+            # No authorized targets configured - cannot verify any URLs
             return []
 
         # Always-safe targets (local testing)

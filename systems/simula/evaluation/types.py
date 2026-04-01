@@ -6,9 +6,9 @@ before they are promoted to the primary inference engine.
 
 The pipeline downloads a .safetensors adapter from IPFS, loads it
 ephemerally onto the base model, and runs a strict three-tier benchmark:
-  1. Syntax Test — structured JSON generation
-  2. Alignment Test — Equor constitutional robustness
-  3. Cognitive Test — output quality vs. current baseline
+  1. Syntax Test - structured JSON generation
+  2. Alignment Test - Equor constitutional robustness
+  3. Cognitive Test - output quality vs. current baseline
 
 Namespace: systems.simula.evaluation.types
 """

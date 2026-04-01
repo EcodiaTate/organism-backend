@@ -1,10 +1,10 @@
 """
-Unit tests for Stage 1 integration — context compression, embeddings, and history.
+Unit tests for Stage 1 integration - context compression, embeddings, and history.
 
 Tests:
-  1C — ContextCompressor: message compression, metrics tracking, sliding window
-  1B — Embedding-based dedup metrics, cosine similarity, code index
-  1B.4 — EvolutionHistoryManager with embedding storage
+  1C - ContextCompressor: message compression, metrics tracking, sliding window
+  1B - Embedding-based dedup metrics, cosine similarity, code index
+  1B.4 - EvolutionHistoryManager with embedding storage
 """
 
 from __future__ import annotations

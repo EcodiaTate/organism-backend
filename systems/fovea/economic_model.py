@@ -1,5 +1,5 @@
 """
-Fovea — Economic Prediction Model
+Fovea - Economic Prediction Model
 
 Tracks revenue and cost expectations using exponential moving averages,
 computes prediction errors when actuals diverge from expectations, and
@@ -64,7 +64,7 @@ class _SourceTracker:
         self._history.append(actual)
 
         if self.observation_count <= 1:
-            # Seed: no prior — accept actual as prediction, no error yet.
+            # Seed: no prior - accept actual as prediction, no error yet.
             self.predicted = actual
             return 0.0
 
@@ -113,7 +113,7 @@ class EconomicPredictionModel:
     Tracks revenue and cost expectations; computes prediction errors.
 
     Design principles:
-    - Uses EMA — simple, no ARIMA, no external deps.
+    - Uses EMA - simple, no ARIMA, no external deps.
     - Tracks per-source revenue so localised failures (e.g. only yield drops)
       are distinguishable from global revenue collapse.
     - Detects TREND divergence (declining revenue that is still above threshold)
@@ -223,7 +223,7 @@ class EconomicPredictionModel:
         """
         self._observation_count += 1
 
-        # Extract actuals — Oikos sends Decimal-serialised strings or floats
+        # Extract actuals - Oikos sends Decimal-serialised strings or floats
         try:
             revenue_24h = float(payload.get("revenue_24h", 0) or 0)
             costs_24h = float(payload.get("costs_24h", 0) or 0)
@@ -263,7 +263,7 @@ class EconomicPredictionModel:
 
         # Aggregate-level revenue error
         if self._observation_count <= 1:
-            # Seed run — accept actuals as baseline, no error yet
+            # Seed run - accept actuals as baseline, no error yet
             self._predicted_revenue_24h = revenue_24h
             self._predicted_costs_24h = costs_24h
             self._predicted_efficiency = efficiency
@@ -337,7 +337,7 @@ class EconomicPredictionModel:
         self._source_trackers[source].update(amount)
 
     # ------------------------------------------------------------------
-    # Properties — current error state
+    # Properties - current error state
     # ------------------------------------------------------------------
 
     @property
@@ -414,7 +414,7 @@ class EconomicPredictionModel:
         """
         Build reasoning context for RE training examples.
 
-        Returns a dict describing the current prediction state — what was
+        Returns a dict describing the current prediction state - what was
         predicted, what happened, and where the worst divergence occurred.
         """
         source_summary = {

@@ -1,17 +1,17 @@
 """
-EcodiaOS — Benchmarks API Router
+EcodiaOS - Benchmarks API Router
 
 Read-only endpoints for the dashboard to query benchmark trends and snapshots.
 
-  GET /api/v1/benchmarks/latest      — Most recent snapshot across all KPIs
-  GET /api/v1/benchmarks/trend/{metric} — Time-series for a single KPI
-  GET /api/v1/benchmarks/trends      — Time-series for all KPIs (one call)
-  GET /api/v1/benchmarks/health      — Service health + regression status
+  GET /api/v1/benchmarks/latest      - Most recent snapshot across all KPIs
+  GET /api/v1/benchmarks/trend/{metric} - Time-series for a single KPI
+  GET /api/v1/benchmarks/trends      - Time-series for all KPIs (one call)
+  GET /api/v1/benchmarks/health      - Service health + regression status
 """
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Pydantic needs at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs at runtime
 from typing import Any
 
 import structlog
@@ -88,7 +88,7 @@ async def benchmarks_trend(
     """
     Return time-series data for a single KPI.
 
-    metric — one of: decision_quality, llm_dependency, economic_ratio,
+    metric - one of: decision_quality, llm_dependency, economic_ratio,
              learning_rate, mutation_success_rate, effective_intelligence_ratio,
              compression_ratio
     """
@@ -133,7 +133,7 @@ class RETrainingHaltClearResponse(EOSBaseModel):
 
 @router.get("/re-training/status", response_model=RETrainingStatusResponse)
 async def re_training_status(request: Request) -> RETrainingStatusResponse:
-    """Return current RE training gate status — halted flag, halt reason, last run."""
+    """Return current RE training gate status - halted flag, halt reason, last run."""
     clo = getattr(request.app.state, "continual_learning", None)
     if clo is None:
         raise HTTPException(status_code=503, detail="ContinualLearningOrchestrator not initialized")
@@ -156,7 +156,7 @@ async def re_training_clear_halt(request: Request) -> RETrainingHaltClearRespons
     cause is addressed.  The next scheduled training check (≤6 hours) will
     re-evaluate should_train() without the halt gate.
 
-    This endpoint is intentionally unauthenticated at the router level — the
+    This endpoint is intentionally unauthenticated at the router level - the
     organism itself calls it via Thymos self-healing when the RE monitor
     confirms quality has recovered above the floor.
     """

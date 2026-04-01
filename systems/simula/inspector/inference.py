@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Invariant Inferencer (Autonomous Invariant Inference)
+EcodiaOS - Inspector Invariant Inferencer (Autonomous Invariant Inference)
 
 Uses an LLM to deduce the implicit business-logic invariants of a code slice,
 then translates each invariant into a precise Z3 violation goal.  These goals
@@ -10,7 +10,7 @@ than relying solely on pre-defined generic attack patterns.
 Workflow:
   1. Feed sliced context_code to the LLM using the Formal Methods persona.
   2. Parse the returned JSON list of invariant objects.
-  3. Return the z3_violation_goal strings — one per inferred invariant.
+  3. Return the z3_violation_goal strings - one per inferred invariant.
 
 Failure handling:
   - Any exception (network, JSON decode, schema mismatch) is caught and logged.
@@ -36,7 +36,7 @@ Vulnerabilities.
 
 Task: I will provide a slice of backend source code. You must identify the core \
 state variables (e.g., balances, permissions, counts) and deduce the implicit \
-'Invariants' — the mathematical laws that the developer assumed would always be \
+'Invariants' - the mathematical laws that the developer assumed would always be \
 true (e.g., 'a user cannot withdraw more than their balance', \
 'price cannot be negative').
 
@@ -45,10 +45,10 @@ contain exactly these three keys:
   - "invariant_name"      (string): A short, unique identifier for the invariant.
   - "business_logic_rule" (string): A plain-English description of the rule.
   - "z3_violation_goal"   (string): Exact instructions on how a Z3 solver should \
-model the *violation* of this rule — including which variables to declare, which \
+model the *violation* of this rule - including which variables to declare, which \
 constraints to assert, and what the solver should find (e.g., \
 'Declare Int variables balance and withdrawal. Assert withdrawal > balance. \
-Assert balance >= 0. Check satisfiability — a SAT result proves a user can \
+Assert balance >= 0. Check satisfiability - a SAT result proves a user can \
 overdraw their account.').
 
 Do NOT include any explanation, markdown fences, or commentary outside the JSON \
@@ -62,7 +62,7 @@ class InvariantInferencer:
     each one into a Z3 violation goal string for the VulnerabilityProver.
 
     Constructed with an LLMProvider; can be injected into InspectorService as an
-    optional component — the pipeline degrades gracefully when absent.
+    optional component - the pipeline degrades gracefully when absent.
     """
 
     def __init__(self, llm: LLMProvider) -> None:
@@ -90,7 +90,7 @@ class InvariantInferencer:
         )
 
         try:
-            from clients.llm import Message  # local import — avoids circular
+            from clients.llm import Message  # local import - avoids circular
 
             response = await self._llm.generate(
                 system_prompt=_INFERENCER_SYSTEM_PROMPT,

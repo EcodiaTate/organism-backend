@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Innate Checks
+EcodiaOS - EIS Innate Checks
 
 Fast, deterministic regex/string pattern checks for known epistemic threats.
 Analogous to innate immunity: non-specific, pattern-based, zero-latency.
@@ -17,7 +17,7 @@ Performance contract: run_innate_checks() must complete in <5ms for
 inputs up to 100K characters. All patterns are pre-compiled at module
 load time.
 
-This module is import-time safe — no side effects, no I/O.
+This module is import-time safe - no side effects, no I/O.
 """
 
 from __future__ import annotations
@@ -121,7 +121,7 @@ _ENCODING_EVASION: Final[list[re.Pattern[str]]] = [
 _DELIMITER_ABUSE: Final[list[re.Pattern[str]]] = [
     re.compile(r"```\s*(?:system|prompt|instructions?|python|javascript|bash|sh)\b", re.IGNORECASE),
     re.compile(r"<(?:script|iframe|object|embed|form|input|svg|img\s+onerror)\b", re.IGNORECASE),
-    re.compile(r"\{\{[^}]{1,500}\}\}"),  # Template injection {{ }} — bounded length
+    re.compile(r"\{\{[^}]{1,500}\}\}"),  # Template injection {{ }} - bounded length
 ]
 
 # 6. Repetition attack (same word/phrase repeated many times)
@@ -247,7 +247,7 @@ def run_innate_checks(text: str) -> InnateFlags:
     Run all innate (fast-path) checks against the input text.
 
     Returns an InnateFlags with all match results. This function is
-    synchronous and deterministic — no I/O, no randomness, no LLM calls.
+    synchronous and deterministic - no I/O, no randomness, no LLM calls.
 
     Performance: <5ms for inputs up to 100K characters (pre-compiled
     patterns, early-exit on short inputs).
@@ -255,7 +255,7 @@ def run_innate_checks(text: str) -> InnateFlags:
     start_ns = time.perf_counter_ns()
     matches: list[InnateMatch] = []
 
-    # Early exit for very short inputs — unlikely to contain attacks
+    # Early exit for very short inputs - unlikely to contain attacks
     if len(text) < 10:
         elapsed_us = (time.perf_counter_ns() - start_ns) // 1000
         return InnateFlags(latency_us=elapsed_us)

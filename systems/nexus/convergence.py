@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nexus: Convergence Detector
+EcodiaOS - Nexus: Convergence Detector
 
 Compares abstract relational structures from different world model fragments
 to detect structural isomorphism. When two instances with different domains,
@@ -66,7 +66,7 @@ def _wl1_hash(
 
     The resulting hash is the same for isomorphic graphs regardless of node
     ordering.  Two graphs with identical hashes are isomorphic with high
-    probability (WL-1 is not complete — it cannot distinguish certain regular
+    probability (WL-1 is not complete - it cannot distinguish certain regular
     graphs, but these are rare in world model fragment sizes).
 
     Complexity: O(n · d · k) where n = node count, d = mean out-degree,
@@ -117,7 +117,7 @@ def _wl1_similarity(hash_a: str, hash_b: str) -> float:
 
     This binary decision is correct for WL-1: the hash is either a proof of
     isomorphism (with high probability) or evidence of non-isomorphism.
-    We do NOT interpolate between hashes — Hamming distance on SHA-256 digests
+    We do NOT interpolate between hashes - Hamming distance on SHA-256 digests
     is meaningless for this purpose.
     """
     if not hash_a or not hash_b:
@@ -326,7 +326,7 @@ class ConvergenceDetector:
         Update triangulation metadata when a new independent source confirms
         the same structure.
 
-        Deduplicates by instance_id — same instance confirming twice
+        Deduplicates by instance_id - same instance confirming twice
         doesn't increase triangulation confidence.
         """
         existing_ids = {s.instance_id for s in metadata.independent_sources}
@@ -363,7 +363,7 @@ class ConvergenceDetector:
 
 
 def _cache_key(id_a: str, id_b: str) -> str:
-    """Canonical cache key — order-independent."""
+    """Canonical cache key - order-independent."""
     return f"{min(id_a, id_b)}::{max(id_a, id_b)}"
 
 

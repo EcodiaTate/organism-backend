@@ -1,8 +1,8 @@
 """
-EcodiaOS — Axon Service
+EcodiaOS - Axon Service
 
 The motor cortex. Axon receives approved Intents from Nova and turns them into
-real-world effects — memory writes, API calls, scheduled tasks, notifications,
+real-world effects - memory writes, API calls, scheduled tasks, notifications,
 and federated messages.
 
 Axon does not decide. It does not judge. It executes.
@@ -10,10 +10,10 @@ Decision authority lives in Nova. Ethical authority lives in Equor.
 Axon is the disciplined hand that carries out the will.
 
 Lifecycle:
-  initialize() — builds the executor registry, wires safety systems
-  execute()    — main entry point: accepts ExecutionRequest, returns AxonOutcome
-  set_nova()   — wires the Nova feedback loop for outcome delivery
-  shutdown()   — graceful teardown
+  initialize() - builds the executor registry, wires safety systems
+  execute()    - main entry point: accepts ExecutionRequest, returns AxonOutcome
+  set_nova()   - wires the Nova feedback loop for outcome delivery
+  shutdown()   - graceful teardown
 
 Interface contracts (from spec):
   Validation (all steps):       ≤50ms
@@ -66,7 +66,7 @@ logger = structlog.get_logger()
 
 class AxonService:
     """
-    Axon — the EOS action execution system.
+    Axon - the EOS action execution system.
 
     AxonService is the single entry point for action execution.
     It owns and coordinates all sub-systems:
@@ -127,7 +127,7 @@ class AxonService:
         self._audit: AuditLogger | None = None
         self._shield: TransactionShield | None = None
         self._mev_analyzer: MEVAnalyzer | None = None
-        self._block_competition_monitor: Any = None  # BlockCompetitionMonitor — injected via set_block_competition_monitor()
+        self._block_competition_monitor: Any = None  # BlockCompetitionMonitor - injected via set_block_competition_monitor()
         self._fast_path: FastPathExecutor | None = None
 
         # Metrics
@@ -135,29 +135,29 @@ class AxonService:
         self._successful_executions: int = 0
         self._failed_executions: int = 0
 
-        # Telemetry broadcast — emit full introspector state every N theta cycles
+        # Telemetry broadcast - emit full introspector state every N theta cycles
         self._telemetry_cycle_counter: int = 0
         self._telemetry_emit_interval: int = 50  # matches COHERENCE_SNAPSHOT / METABOLIC_SNAPSHOT cadence
 
-        # Recent outcomes ring buffer — last 50 executions for /api/v1/axon/outcomes
+        # Recent outcomes ring buffer - last 50 executions for /api/v1/axon/outcomes
         self._recent_outcomes: deque[AxonOutcome] = deque(maxlen=50)
 
-        # Optional event bus — wired via set_event_bus()
+        # Optional event bus - wired via set_event_bus()
         self._event_bus: Any = None
 
-        # Fovea — self-prediction loop: predict before action, resolve after
+        # Fovea - self-prediction loop: predict before action, resolve after
         self._fovea: Any = None
 
-        # Oneiros — sleep safety: defer execution when organism is sleeping
+        # Oneiros - sleep safety: defer execution when organism is sleeping
         self._oneiros: Any = None
 
-        # Introspection — learns from execution patterns to improve performance
+        # Introspection - learns from execution patterns to improve performance
         self._introspector = AxonIntrospector()
 
-        # Performance monitor — tracks rolling success rate for Loop 2 closure
+        # Performance monitor - tracks rolling success rate for Loop 2 closure
         self._performance_monitor = ActionPerformanceMonitor()
 
-        # Reactive adapter — subscribes to Synapse events and adapts safety systems
+        # Reactive adapter - subscribes to Synapse events and adapts safety systems
         self._reactive: AxonReactiveAdapter | None = None
 
         # ── Metabolic gating ──────────────────────────────────────────────
@@ -174,17 +174,17 @@ class AxonService:
 
 
         # ── PR merge polling (30-min background loop) ─────────────────
-        self._pr_poll_task: Any = None  # asyncio.Task — cancelled in shutdown()
-        _PR_POLL_INTERVAL_S = 30 * 60   # 30 minutes — conservative GitHub API usage
+        self._pr_poll_task: Any = None  # asyncio.Task - cancelled in shutdown()
+        _PR_POLL_INTERVAL_S = 30 * 60   # 30 minutes - conservative GitHub API usage
         self._pr_poll_interval_s: int = _PR_POLL_INTERVAL_S
-        # NeuroplasticityBus registration — done in initialize() when bus is available
+        # NeuroplasticityBus registration - done in initialize() when bus is available
 
     async def initialize(self) -> None:
         """
         Initialise all Axon sub-systems and build the executor registry.
 
         Must be called before any execute() calls.
-        Idempotent — safe to call multiple times.
+        Idempotent - safe to call multiple times.
         """
         if self._initialized:
             return
@@ -226,7 +226,7 @@ class AxonService:
             await self._mev_analyzer.connect()
 
             # Block competition monitor is injected via set_block_competition_monitor()
-            # after initialize() — avoids cross-system import from systems.fovea.
+            # after initialize() - avoids cross-system import from systems.fovea.
             # Wiring layer (main.py / core/wiring.py) constructs and injects it.
             if self._block_competition_monitor is not None:
                 self._block_competition_monitor.add_listener(
@@ -281,7 +281,7 @@ class AxonService:
             shield=self._shield,
         )
 
-        # Reactive adapter — adapts safety systems based on organism state
+        # Reactive adapter - adapts safety systems based on organism state
         self._reactive = AxonReactiveAdapter(
             budget_tracker=self._budget,
             circuit_breaker=self._circuit_breaker,
@@ -352,7 +352,7 @@ class AxonService:
         """
         Wire Atune so execution outcomes become workspace percepts.
 
-        The organism should perceive its own actions — closing the
+        The organism should perceive its own actions - closing the
         intention→execution→perception loop.
         """
         if self._pipeline is None:
@@ -384,7 +384,7 @@ class AxonService:
         if self._registry is not None:
             executor = self._registry.get("request_funding")
             if executor is not None:
-                # duck-type update — avoids importing RequestFundingExecutor here
+                # duck-type update - avoids importing RequestFundingExecutor here
                 executor._synapse = synapse  # type: ignore[attr-defined]
         self._logger.info("synapse_wired", system="axon")
 
@@ -410,7 +410,7 @@ class AxonService:
 
         Call after both AxonService.initialize() and GitHubConnector are ready
         (i.e. after the identity connectors block in main.py). Mutates the
-        already-registered BountySubmitExecutor in place — no re-initialization needed.
+        already-registered BountySubmitExecutor in place - no re-initialization needed.
         """
         if self._registry is not None:
             executor = self._registry.get("submit_bounty_solution")
@@ -440,7 +440,7 @@ class AxonService:
                 # Hot-wire: replace the client on the live executor
                 executor._client = sacm_client  # type: ignore[attr-defined]
             else:
-                # Registry was built without a sacm_client — register now
+                # Registry was built without a sacm_client - register now
                 from systems.sacm.remote_compute_executor import RemoteComputeExecutor
                 self._registry.register(RemoteComputeExecutor(sacm_client=sacm_client))
         self._logger.info("sacm_wired", system="axon")
@@ -474,7 +474,7 @@ class AxonService:
         """
         Execute a FastPathIntent through the Arbitrage Reflex Arc.
 
-        This is the fast-path entry point — Atune's MarketPatternDetector
+        This is the fast-path entry point - Atune's MarketPatternDetector
         calls this directly when a market percept matches a pre-approved
         ConstitutionalTemplate. Bypasses Nova and Equor.
 
@@ -636,7 +636,7 @@ class AxonService:
         yield operation directly via DeFiYieldExecutor, then emit
         YIELD_DEPLOYMENT_RESULT so Oikos can complete its request/response future.
 
-        This is a direct executor dispatch — it bypasses the Nova/Equor pipeline
+        This is a direct executor dispatch - it bypasses the Nova/Equor pipeline
         because the request already originates from an Oikos-internal metabolic
         decision.  The DeFiYieldExecutor's own safety gates (APY floor, gas floor,
         rate limit, WalletClient guard) still apply.
@@ -936,7 +936,7 @@ class AxonService:
             ]
             for action_type in non_essential:
                 self._circuit_breaker.force_open(action_type)
-            # Metabolic emergency forces multiple circuit breaks — this IS motor
+            # Metabolic emergency forces multiple circuit breaks - this IS motor
             # degradation: several executor types are now unreachable.
             if self._event_bus is not None:
                 asyncio.create_task(
@@ -958,7 +958,7 @@ class AxonService:
             self._reactive._is_sleeping = True
             self._reactive._record_adaptation("organism_sleep_direct")
 
-        # No need to cancel in-flight actions — the pipeline handles timeouts.
+        # No need to cancel in-flight actions - the pipeline handles timeouts.
         # We just prevent new executions via the Oneiros gate and reactive adapter.
 
     async def _emit_evolutionary_observable(
@@ -999,7 +999,7 @@ class AxonService:
         When wired, Axon calls predict_self() before each execution and
         resolve_self() after completion. If the prediction is violated,
         the resulting InternalPredictionError flows through Fovea's
-        standard pipeline with the 3x precision multiplier — the organism
+        standard pipeline with the 3x precision multiplier - the organism
         notices when its actions don't produce expected outcomes.
         """
         self._fovea = fovea
@@ -1030,7 +1030,7 @@ class AxonService:
 
         When the organism is sleeping (Oneiros is in an active sleep stage),
         Axon defers execution of non-emergency intents. This prevents the
-        motor cortex from acting while the cognitive system is consolidating —
+        motor cortex from acting while the cognitive system is consolidating -
         analogous to sleep paralysis in biological organisms.
         """
         self._oneiros = oneiros
@@ -1070,7 +1070,7 @@ class AxonService:
                 success_rate = float(data.get("success_rate", 0.0))
                 total = int(data.get("total_observed", data.get("total", 0)))
                 if total < 5:
-                    # Skip executors with too few observations — not yet reliable
+                    # Skip executors with too few observations - not yet reliable
                     continue
                 mean_cost = float(data.get("mean_cost_usd", data.get("mean_ms", 0.0)) or 0.0)
                 variance_cost = float(data.get("variance_cost_usd", 0.0))
@@ -1172,7 +1172,7 @@ class AxonService:
         execution history and falls back to conservative defaults.
 
         After seeding, emits AXON_TEMPLATES_INHERITED so Evo can track the ratio
-        of inherited vs. self-discovered execution strategies — a speciation metric.
+        of inherited vs. self-discovered execution strategies - a speciation metric.
 
         Call this from initialize() when ECODIAOS_AXON_GENOME_PAYLOAD env var is set,
         or wire the caller to call it explicitly after boot.
@@ -1319,7 +1319,7 @@ class AxonService:
         """
         Execute an approved Intent.
 
-        This is the main external interface — Nova calls this via IntentRouter
+        This is the main external interface - Nova calls this via IntentRouter
         after Equor has approved the Intent.
 
         Args:
@@ -1327,7 +1327,7 @@ class AxonService:
 
         Returns:
             AxonOutcome with full step-level detail and outcome summary.
-            Never raises — failures are captured in the outcome.
+            Never raises - failures are captured in the outcome.
         """
         if not self._initialized or self._pipeline is None:
             raise RuntimeError(
@@ -1346,7 +1346,7 @@ class AxonService:
                 success=False,
                 status=ExecutionStatus.REJECTED,
                 failure_reason="metabolic_critical_halt",
-                error="Metabolic starvation (critical) — all execution halted.",
+                error="Metabolic starvation (critical) - all execution halted.",
             )
         if self._starvation_level == "emergency":
             urgency = getattr(request.intent, "urgency", 0.0)
@@ -1359,7 +1359,7 @@ class AxonService:
                     success=False,
                     status=ExecutionStatus.REJECTED,
                     failure_reason="metabolic_emergency_low_urgency",
-                    error="Metabolic emergency — only survival-priority intents executed.",
+                    error="Metabolic emergency - only survival-priority intents executed.",
                 )
 
         # ── Skia modulation halt ──────────────────────────────────────────
@@ -1373,7 +1373,7 @@ class AxonService:
                 success=False,
                 status=ExecutionStatus.REJECTED,
                 failure_reason="modulation_halted",
-                error="Skia modulation halt — execution suspended.",
+                error="Skia modulation halt - execution suspended.",
             )
 
         # ── Oneiros sleep safety gate ─────────────────────────────
@@ -1433,7 +1433,7 @@ class AxonService:
                 action_types = [
                     step.executor for step in request.intent.plan.steps
                 ]
-                # Pass InternalErrorType as a string literal — avoids a direct
+                # Pass InternalErrorType as a string literal - avoids a direct
                 # cross-system import from systems.fovea.types (AV3 fix).
                 fovea_prediction_id = self._fovea.predict_self(
                     action_type=",".join(action_types) or "unknown",
@@ -1460,7 +1460,7 @@ class AxonService:
         }
 
         # ── Bus: notify Nova/Thymos/Fovea of incoming execution ──────
-        # Fire-and-forget — never blocks or delays execution.
+        # Fire-and-forget - never blocks or delays execution.
         # Replaces any need for direct cross-system imports of Axon types.
         await self._emit_execution_request(request, execution_id="")
 
@@ -1643,7 +1643,7 @@ class AxonService:
             if outcome.failure_reason == "equor_constitutional_block":
                 counterfactual = (
                     "If constitutional check had not blocked this intent, execution would have proceeded without "
-                    "ethical oversight — risking drive misalignment. Block was correct."
+                    "ethical oversight - risking drive misalignment. Block was correct."
                 )
             elif outcome.failure_reason == "circuit_open":
                 counterfactual = (
@@ -1659,7 +1659,7 @@ class AxonService:
                 if steps_completed > 0:
                     counterfactual = (
                         f"If rollback had not been triggered after step {steps_completed}, "
-                        f"partial state mutations would have persisted — leaving {steps_completed} completed "
+                        f"partial state mutations would have persisted - leaving {steps_completed} completed "
                         f"step(s) with no corresponding follow-through, corrupting downstream intent coherence."
                     )
             elif steps_failed > 0:
@@ -1725,7 +1725,7 @@ class AxonService:
         # ── Loop 2: track motor performance and emit degradation if needed ──
         executor_types = [s.action_type for s in outcome.step_outcomes] if outcome.step_outcomes else []
         if not executor_types and outcome.failure_reason == "circuit_open":
-            # Circuit-open short-circuit produces no step_outcomes — derive executor
+            # Circuit-open short-circuit produces no step_outcomes - derive executor
             # types from the intent's plan so that OPEN events count toward the
             # rolling degradation window. This allows MOTOR_DEGRADATION_DETECTED to
             # fire when a circuit stays open, which is exactly the signal Nova needs.
@@ -1755,7 +1755,7 @@ class AxonService:
         the upcoming action without requiring direct imports from Axon.
 
         Emitted after the Equor gate passes, before pipeline execution.
-        Fires-and-forgets — never blocks execution.
+        Fires-and-forgets - never blocks execution.
         """
         if self._event_bus is None:
             return
@@ -1796,7 +1796,7 @@ class AxonService:
         """
         Emit AXON_EXECUTION_RESULT after pipeline completion.
 
-        Richer than ACTION_EXECUTED/ACTION_FAILED — carries the full
+        Richer than ACTION_EXECUTED/ACTION_FAILED - carries the full
         result shape so Nova can update Thompson scores and Fovea can
         resolve competency prediction errors without importing Axon types.
         """
@@ -2177,7 +2177,7 @@ class AxonService:
         return report
 
     async def shutdown(self) -> None:
-        """Graceful shutdown — log final stats."""
+        """Graceful shutdown - log final stats."""
         if self._bus is not None:
             self._bus.deregister(Executor)
 
@@ -2207,7 +2207,7 @@ class AxonService:
 
     async def _pr_merge_poll_loop(self) -> None:
         """
-        Background coroutine — polls pending bounty PRs for merge status every
+        Background coroutine - polls pending bounty PRs for merge status every
         30 minutes.
 
         Flow:
@@ -2215,12 +2215,12 @@ class AxonService:
           2. Scan Redis for all ``axon:bounty_submit:pr:*`` keys
           3. Build ``pending_prs`` list from stored JSON payloads
           4. Emit EQUOR_ECONOMIC_INTENT and await EQUOR_ECONOMIC_PERMIT (30s).
-             If Equor denies or times out, skip the cycle — never auto-permit.
+             If Equor denies or times out, skip the cycle - never auto-permit.
           5. If permitted, invoke MonitorPRsExecutor with a ConstitutionalCheck
              whose verdict is explicitly set from the Equor PERMIT response.
           6. Repeat until cancelled
 
-        Never raises — exceptions are logged and the loop continues.
+        Never raises - exceptions are logged and the loop continues.
         supervised_task() in initialize() provides restart if the loop exits
         abnormally.
         """
@@ -2283,7 +2283,7 @@ class AxonService:
 
             # ── Constitutional gate before polling ────────────────────
             # MonitorPRsExecutor is Level 1 (read-only) but still requires
-            # Equor consent — we must not fabricate an APPROVED verdict.
+            # Equor consent - we must not fabricate an APPROVED verdict.
             # Emit EQUOR_ECONOMIC_INTENT and await EQUOR_ECONOMIC_PERMIT (30s).
             # Read-only polling has no capital at risk so Equor approves quickly.
             try:
@@ -2321,7 +2321,7 @@ class AxonService:
                         "rationale": (
                             f"Background 30-minute poll of {len(pending_prs)} "
                             "pending bounty PRs. Level 1 read-only GitHub API "
-                            "calls — no capital at risk, no writes."
+                            "calls - no capital at risk, no writes."
                         ),
                         "pr_count": len(pending_prs),
                     },
@@ -2371,7 +2371,7 @@ class AxonService:
                         target_domain="bounty",
                     ),
                 )
-                # Verdict explicitly set — Equor gate above confirmed PERMIT.
+                # Verdict explicitly set - Equor gate above confirmed PERMIT.
                 _check = ConstitutionalCheck(
                     intent_id=_intent.id,
                     verdict=Verdict.APPROVED,
@@ -2445,25 +2445,25 @@ class AxonService:
         """
         Called on every CYCLE_COMPLETED event.
 
-        Every cycle:  emit AXON_CAPABILITY_SNAPSHOT — Nova needs to know what
+        Every cycle:  emit AXON_CAPABILITY_SNAPSHOT - Nova needs to know what
                       is executable *right now* before deliberating.
-        Every 50:     emit AXON_TELEMETRY_REPORT — deep introspector state for
+        Every 50:     emit AXON_TELEMETRY_REPORT - deep introspector state for
                       Evo/Fovea/RE learning loops.
 
         Also runs in-cycle adaptive learning: if the introspector detects a
         degrading executor, Axon proactively tightens its own rate limit and
-        proposes a pre-emptive circuit half-open — the organism doesn't wait
+        proposes a pre-emptive circuit half-open - the organism doesn't wait
         for 5 hard failures before protecting itself.
         """
         self._telemetry_cycle_counter += 1
 
-        # ── Capability snapshot — every cycle (cheap, critical for planning) ──
+        # ── Capability snapshot - every cycle (cheap, critical for planning) ──
         asyncio.create_task(self._emit_capability_snapshot())
 
-        # ── In-cycle adaptive learning — act on introspection data NOW ──
+        # ── In-cycle adaptive learning - act on introspection data NOW ──
         self._apply_introspective_adaptations()
 
-        # ── Deep telemetry — every 50 cycles ──
+        # ── Deep telemetry - every 50 cycles ──
         if self._telemetry_cycle_counter % self._telemetry_emit_interval == 0:
             asyncio.create_task(self._emit_axon_telemetry_report())
 
@@ -2485,7 +2485,7 @@ class AxonService:
         if not hasattr(SynapseEventType, "AXON_TELEMETRY_REPORT"):
             return
 
-        # Full introspector report — executor profiles + patterns
+        # Full introspector report - executor profiles + patterns
         report = self._introspector.full_report
 
         # Drain pending recommendations so they're surfaced exactly once
@@ -2598,13 +2598,13 @@ class AxonService:
                 data=payload,
             ))
         except Exception:
-            pass  # best-effort, every cycle — never block
+            pass  # best-effort, every cycle - never block
 
     # ── In-cycle Adaptive Learning ────────────────────────────────────
 
     def _apply_introspective_adaptations(self) -> None:
         """
-        Act on introspection data NOW — not just observe.
+        Act on introspection data NOW - not just observe.
 
         Every theta cycle:
         1. Degrading executors (success_rate < 0.5, consecutive_failures >= 3)
@@ -2624,7 +2624,7 @@ class AxonService:
             consecutive_failures = getattr(profile, "consecutive_failures", 0)
 
             if is_degrading and self._rate_limiter is not None:
-                # Throttle degrading executors — let them breathe
+                # Throttle degrading executors - let them breathe
                 self._rate_limiter.set_multiplier(action_type, 0.5)
                 self._logger.debug(
                     "adaptive_rate_limit_tightened",
@@ -2633,7 +2633,7 @@ class AxonService:
                 )
 
             if consecutive_failures >= 5 and self._circuit_breaker is not None:
-                # Force a probe — don't let it stay OPEN forever
+                # Force a probe - don't let it stay OPEN forever
                 if self._circuit_breaker.status(action_type) == "OPEN":
                     self._circuit_breaker.force_half_open(action_type)
                     self._logger.info(
@@ -2643,7 +2643,7 @@ class AxonService:
                     )
 
             if not is_degrading and success_rate > 0.7 and self._rate_limiter is not None:
-                # Recovered — restore normal rate
+                # Recovered - restore normal rate
                 self._rate_limiter.clear_multiplier(action_type)
 
         # Tick budget override countdown
@@ -2657,7 +2657,7 @@ class AxonService:
 
     async def _on_equor_budget_override(self, event: Any) -> None:
         """
-        Handle EQUOR_BUDGET_OVERRIDE — Equor can temporarily increase (or
+        Handle EQUOR_BUDGET_OVERRIDE - Equor can temporarily increase (or
         decrease) the per-cycle action budget during emergencies.
 
         Payload: multiplier (float, 0.1–5.0), reason (str),
@@ -2794,7 +2794,7 @@ class AxonService:
 
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply Skia modulation directives to Axon runtime state."""
-        # No specific Skia directives defined for axon — halt-only modulation
+        # No specific Skia directives defined for axon - halt-only modulation
         self._logger.info("system_modulation_directives_applied", directives=directives)
 
     # ── Evo ADJUST_BUDGET tunable baseline parameters ─────────────────
@@ -2805,7 +2805,7 @@ class AxonService:
         budget parameters. Only applied when Evo confidence > 0.75.
 
         Tunable baseline parameters (these set the *default* limit that ActionBudget
-        starts from each restart — temporary expansions from Equor still stack on top):
+        starts from each restart - temporary expansions from Equor still stack on top):
           max_actions_per_cycle     : [2, 15]
           max_concurrent_executions : [1, 8]
           max_api_calls_per_minute  : [10, 90]
@@ -2836,7 +2836,7 @@ class AxonService:
             )
             return
 
-        # Axon baseline budget parameter bounds: (lo, hi) — integers
+        # Axon baseline budget parameter bounds: (lo, hi) - integers
         _PARAM_BOUNDS: dict[str, tuple[int, int]] = {
             "max_actions_per_cycle": (2, 15),
             "max_concurrent_executions": (1, 8),
@@ -2909,7 +2909,7 @@ class AxonService:
     ) -> None:
         """
         Public method: any system can tell Axon 'I need an executor that
-        doesn't exist yet'. Axon emits AXON_EXECUTOR_REQUEST — Evo picks it
+        doesn't exist yet'. Axon emits AXON_EXECUTOR_REQUEST - Evo picks it
         up and generates an EVOLUTION_CANDIDATE for Simula to synthesize.
 
         This closes the gap: previously the organism could not express the
@@ -2995,7 +2995,7 @@ class AxonService:
         except Exception as exc:
             self._logger.debug("intent_pivot_emit_failed", error=str(exc))
 
-    # ── Welfare Outcome Recording (Spec 18 §XIII — Telos CareTopology) ───────
+    # ── Welfare Outcome Recording (Spec 18 §XIII - Telos CareTopology) ───────
 
     # Action types that directly affect wellbeing and map to the Care drive
     _CARE_ACTION_TYPES: frozenset[str] = frozenset({
@@ -3021,7 +3021,7 @@ class AxonService:
         its care obligations or drifting toward self-serving behaviour.
 
         Only emitted for action types in _CARE_ACTION_TYPES and only on success
-        — failed attempts don't constitute welfare outcomes.
+        - failed attempts don't constitute welfare outcomes.
         """
         if self._event_bus is None:
             return
@@ -3075,7 +3075,7 @@ class AxonService:
           3. Log the vulnerability so Thymos can escalate if needed
 
         The organism should not continue executing risky actions while a
-        known vulnerability is unpatched — this is the Care drive applying
+        known vulnerability is unpatched - this is the Care drive applying
         to Axon's own operational integrity.
         """
         data = getattr(event, "data", {}) or {}
@@ -3120,7 +3120,7 @@ class AxonService:
             )
 
         # Step 3: Emit MOTOR_DEGRADATION_DETECTED so Nova re-evaluates planning
-        # A confirmed vulnerability IS motor degradation — the organism cannot
+        # A confirmed vulnerability IS motor degradation - the organism cannot
         # safely rely on potentially compromised execution paths.
         if self._event_bus is not None and severity in ("high", "critical"):
             asyncio.create_task(

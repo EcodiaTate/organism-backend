@@ -1,8 +1,8 @@
 """
-EcodiaOS — Simula Executor Generator
-Speciation Bible §8.3 — Organizational Closure (dynamic capability expansion).
+EcodiaOS - Simula Executor Generator
+Speciation Bible §8.3 - Organizational Closure (dynamic capability expansion).
 
-Enables Simula to generate NEW Axon executor classes at runtime — not on the
+Enables Simula to generate NEW Axon executor classes at runtime - not on the
 next incarnation, but immediately hot-loaded and registered.  This closes the
 loop from Evo opportunity discovery through to live action capability.
 
@@ -13,17 +13,17 @@ The closure loop:
   → ExecutorGenerator validates template, generates Python class extending
     DynamicExecutorBase, AST-checks, writes to axon/executors/dynamic/{name}.py
   → Calls AxonService.registry.register_dynamic_executor(template, path)
-  → EXECUTOR_REGISTERED emitted — Thymos opens 24h monitoring window
+  → EXECUTOR_REGISTERED emitted - Thymos opens 24h monitoring window
 
 Iron Rules (harder than SubsystemGenerator):
-  - Generated class MUST extend DynamicExecutorBase — no direct Executor ABC
-  - CANNOT import from systems.* — all comms via Synapse or injected clients
+  - Generated class MUST extend DynamicExecutorBase - no direct Executor ABC
+  - CANNOT import from systems.* - all comms via Synapse or injected clients
   - CANNOT contain eval(), exec(), __import__(), subprocess, os.system()
   - CANNOT contain wallet private keys, mnemonics, or HMAC/AES secrets inline
   - MUST implement _execute_action() and _validate_action_params()
-  - Budget cap lives in DynamicExecutorBase — never in generated code
-  - Written to axon/executors/dynamic/{name}.py — never to systems/* directly
-  - Auto-registered by this class after validation — NOT deferred to next boot
+  - Budget cap lives in DynamicExecutorBase - never in generated code
+  - Written to axon/executors/dynamic/{name}.py - never to systems/* directly
+  - Auto-registered by this class after validation - NOT deferred to next boot
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ _FORBIDDEN_CALL_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\bctypes\b", re.MULTILINE),
 ]
 
-# Secrets patterns — generated executors must never embed raw credentials
+# Secrets patterns - generated executors must never embed raw credentials
 _FORBIDDEN_SECRET_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"private.?key\s*=\s*['\"][0-9a-fA-F]{32,}", re.MULTILINE | re.IGNORECASE),
     re.compile(r"mnemonic\s*=\s*['\"]", re.MULTILINE | re.IGNORECASE),
@@ -101,8 +101,8 @@ class ExecutorGenerator:
 
     Unlike SubsystemGenerator (which defers to next boot), ExecutorGenerator
     hot-loads and registers the executor in the current process.  This is safe
-    because DynamicExecutorBase enforces all runtime invariants — budget cap,
-    Equor approval, audit trail — and the registry's disable_dynamic_executor()
+    because DynamicExecutorBase enforces all runtime invariants - budget cap,
+    Equor approval, audit trail - and the registry's disable_dynamic_executor()
     can instantly gate any misbehaving executor.
 
     Flow per generation:
@@ -223,7 +223,7 @@ class ExecutorGenerator:
             loop = asyncio.get_running_loop()
             loop.create_task(_emit())
         except RuntimeError:
-            pass  # No running event loop — skip silently
+            pass  # No running event loop - skip silently
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -233,7 +233,7 @@ class ExecutorGenerator:
         """
         Generate and hot-register a new executor from *template*.
 
-        Never raises — errors captured in result.validation_errors.
+        Never raises - errors captured in result.validation_errors.
         """
         log = self._log.bind(
             action_type=template.action_type,
@@ -381,7 +381,7 @@ class ExecutorGenerator:
         else:
             log.warning(
                 "executor_registry_not_wired",
-                note="executor written to disk but not hot-loaded — wire set_axon_registry()",
+                note="executor written to disk but not hot-loaded - wire set_axon_registry()",
             )
 
         # 8. Emit RE_TRAINING_EXAMPLE
@@ -522,7 +522,7 @@ class ExecutorGenerator:
         # Forbidden inline secrets
         for pattern in _FORBIDDEN_SECRET_PATTERNS:
             if pattern.search(code):
-                errors.append("Detected potential inline secret — remove hardcoded credentials")
+                errors.append("Detected potential inline secret - remove hardcoded credentials")
 
         return errors
 
@@ -535,7 +535,7 @@ class ExecutorGenerator:
         )
         allowed_prefixes = "\n".join(
             f"  - {api}" for api in template.required_apis
-        ) or "  (none specified — use _call_api() with any URL from the API)"
+        ) or "  (none specified - use _call_api() with any URL from the API)"
         capabilities = ", ".join(template.capabilities) or "general interaction"
         constraints = "\n".join(
             f"  - {c}" for c in template.safety_constraints
@@ -543,7 +543,7 @@ class ExecutorGenerator:
 
         return textwrap.dedent(f"""
             You are generating an EcodiaOS Axon executor for {template.protocol_or_platform}.
-            The class MUST follow the strict template below — no deviations.
+            The class MUST follow the strict template below - no deviations.
 
             ## Required class signature
             ```python
@@ -592,13 +592,13 @@ class ExecutorGenerator:
             {constraints}
 
             ## Iron Rules (NEVER violate):
-            1. DO NOT import from systems.* — only from systems.axon.executors.dynamic_base
+            1. DO NOT import from systems.* - only from systems.axon.executors.dynamic_base
                and systems.axon.types (these are allowed as they are the base module)
             2. DO NOT use eval(), exec(), __import__(), subprocess, os.system()
             3. DO NOT embed API keys, private keys, or mnemonics as string literals
-            4. DO NOT override execute() or validate_params() — use _execute_action() and _validate_action_params()
-            5. Budget enforcement is handled by DynamicExecutorBase — do not add your own budget checks
-            6. ALL HTTP calls must go through self._call_api() — never use httpx/aiohttp directly
+            4. DO NOT override execute() or validate_params() - use _execute_action() and _validate_action_params()
+            5. Budget enforcement is handled by DynamicExecutorBase - do not add your own budget checks
+            6. ALL HTTP calls must go through self._call_api() - never use httpx/aiohttp directly
 
             Write ONLY the Python class code. No markdown fences, no explanation.
         """).strip()
@@ -630,7 +630,7 @@ class ExecutorGenerator:
                     error=str(exc),
                 )
 
-        # Scaffold fallback — minimal but valid code
+        # Scaffold fallback - minimal but valid code
         return self._build_scaffold(template)
 
     def _build_scaffold(self, template: ExecutorTemplate) -> str:
@@ -668,14 +668,14 @@ class ExecutorGenerator:
                 async def _validate_action_params(
                     self, params: dict[str, Any]
                 ) -> list[str]:
-                    \"\"\"Scaffold — no validation implemented yet.\"\"\"
+                    \"\"\"Scaffold - no validation implemented yet.\"\"\"
                     return []
 
                 async def _execute_action(
                     self, params: dict[str, Any], context: ExecutionContext
                 ) -> ExecutionResult:
                     \"\"\"
-                    Scaffold — returns a not-implemented error.
+                    Scaffold - returns a not-implemented error.
                     Replace this with actual {template.protocol_or_platform} API calls.
                     \"\"\"
                     return ExecutionResult(

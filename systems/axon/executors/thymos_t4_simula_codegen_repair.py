@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos T4 Synapse SimulaCodegen Crash Repair Executor
+EcodiaOS - Thymos T4 Synapse SimulaCodegen Crash Repair Executor
 
 Specialized executor for resolving crash incidents in the Synapse
 simula_codegen subsystem.

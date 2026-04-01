@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Topology Detonation Chamber
+EcodiaOS - Inspector Topology Detonation Chamber
 
 Upgrades the single-container LiveDetonationChamber to support distributed
 microservice targets defined via docker-compose. Parses the workspace's
@@ -9,7 +9,7 @@ service's mapped port.
 
 Iron Rules:
   - The entire cluster is ALWAYS torn down on exit (no zombie services).
-  - The mutated compose file is written to a temporary location — the original
+  - The mutated compose file is written to a temporary location - the original
     workspace compose file is never modified.
   - If no compose file is found, spin_up_cluster returns None so the caller
     can fall back to the single-container LiveDetonationChamber.
@@ -274,7 +274,7 @@ class TopologyDetonationChamber:
 
     async def teardown(self) -> None:
         """
-        Tear down the cluster. Idempotent — safe to call multiple times.
+        Tear down the cluster. Idempotent - safe to call multiple times.
 
         Closes the taint client, runs ``docker compose down -v --remove-orphans``
         against the mutated compose file, then removes the temp file.
@@ -415,7 +415,7 @@ class TopologyDetonationChamber:
         Create a TaintCollectorClient and wait for the sidecar to become ready.
 
         Updates topology.taint_collector_url and taint_collector_status in place.
-        On failure, logs a warning and leaves the fields at their defaults —
+        On failure, logs a warning and leaves the fields at their defaults -
         the pipeline proceeds without taint data.
         """
         from systems.simula.inspector.taint_client import TaintCollectorClient
@@ -449,7 +449,7 @@ class TopologyDetonationChamber:
     async def _compose_up(self, log: Any) -> None:
         """Run ``docker compose up -d --build`` and await completion."""
         if self._mutated_compose_path is None:
-            msg = "No mutated compose file — call spin_up_cluster first"
+            msg = "No mutated compose file - call spin_up_cluster first"
             raise RuntimeError(msg)
 
         proc = await asyncio.create_subprocess_exec(

@@ -1,20 +1,20 @@
 """
-EcodiaOS — EIS Threshold Calibration (Split Conformal Prediction)
+EcodiaOS - EIS Threshold Calibration (Split Conformal Prediction)
 
 Automatically calibrates the EIS detection thresholds using split
-conformal prediction — a distribution-free statistical method that
+conformal prediction - a distribution-free statistical method that
 provides finite-sample coverage guarantees.
 
 Key insight: Traditional threshold tuning requires distributional
 assumptions. Conformal prediction gives us a rigorous guarantee:
 "at most α fraction of future benign percepts will be falsely
-quarantined" — without knowing the underlying distribution.
+quarantined" - without knowing the underlying distribution.
 
 Algorithm (split conformal):
   1. SPLIT: Hold out a calibration set of labelled Pathogen evaluations
      (known-benign and known-threat)
   2. SCORE: Compute nonconformity scores for each calibration example
-  3. QUANTILE: Find the (1-α) quantile of benign scores — this is the
+  3. QUANTILE: Find the (1-α) quantile of benign scores - this is the
      threshold that guarantees ≤ α false positive rate
   4. VALIDATE: Check coverage on held-out test split
   5. ADJUST: Apply the calibrated thresholds to the live EIS gate

@@ -1,12 +1,12 @@
 """
-InputChannel abstraction — generalised external data source for market discovery.
+InputChannel abstraction - generalised external data source for market discovery.
 
 Each InputChannel is a READ-ONLY sensor that fetches Opportunity objects from an
 external source (DeFi protocols, job boards, research databases, art markets, etc.).
 
 Architecture:
-- InputChannel (ABC) + Opportunity (data model) — lingua franca
-- InputChannelRegistry — manages a bounded set of active channels
+- InputChannel (ABC) + Opportunity (data model) - lingua franca
+- InputChannelRegistry - manages a bounded set of active channels
 - Built-in channels are imported lazily from nova.builtin_channels.*
 
 Constraints (from spec):
@@ -101,7 +101,7 @@ class InputChannel(ABC):
 
     @abstractmethod
     async def validate(self) -> bool:
-        """Health check — return True iff the source is reachable and healthy."""
+        """Health check - return True iff the source is reachable and healthy."""
 
     # ── helpers subclasses can use ────────────────────────────────────────────
 

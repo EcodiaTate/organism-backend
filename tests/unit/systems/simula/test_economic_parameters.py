@@ -171,7 +171,7 @@ class TestOnEvoAdjustBudget:
             await self.service._on_evo_adjust_budget(event)
         except Exception:
             pass  # Any exception here is a failure
-        # If it applied NaN, the field will be NaN — that's detectable
+        # If it applied NaN, the field will be NaN - that's detectable
         import math
         # We just assert it didn't raise an unhandled exception (the try above catches)
 

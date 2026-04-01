@@ -1,5 +1,5 @@
 """
-EcodiaOS — Curiosity-Driven Exploration Engine
+EcodiaOS - Curiosity-Driven Exploration Engine
 
 The difference between a database that learns and an organism that WANTS to know.
 
@@ -7,7 +7,7 @@ CuriosityEngine maintains an epistemic value map: for each active hypothesis,
 it computes the Expected Information Gain (EIG) of possible observations using
 KL-divergence between current posterior and expected posterior given observation.
 
-It generates EpistemicIntents — actions the organism takes purely to gather
+It generates EpistemicIntents - actions the organism takes purely to gather
 evidence (not to achieve user goals). These are ranked by:
     priority = EIG × hypothesis_importance × (1 / cost_estimate)
 
@@ -20,7 +20,7 @@ Integration:
 Active Hypothesis Seeking:
   - When a hypothesis has been TESTING for >48h with <3 evidence episodes,
     the engine actively constructs scenarios that would confirm or refute it.
-  - These probe actions bypass normal pattern detection — they are DESIGNED experiments.
+  - These probe actions bypass normal pattern detection - they are DESIGNED experiments.
 """
 
 from __future__ import annotations
@@ -117,14 +117,14 @@ class CuriosityEngine:
         if not testing:
             return []
 
-        # Check exploration ratio — throttle if we're over target
+        # Check exploration ratio - throttle if we're over target
         current_ratio = self._compute_exploration_ratio()
         ratio_multiplier = 1.0
         if current_ratio > _TARGET_EXPLORATION_RATIO + _EXPLORATION_RATIO_TOLERANCE:
-            # Over-exploring — reduce priority
+            # Over-exploring - reduce priority
             ratio_multiplier = 0.3
         elif current_ratio < _TARGET_EXPLORATION_RATIO - _EXPLORATION_RATIO_TOLERANCE:
-            # Under-exploring — boost priority
+            # Under-exploring - boost priority
             ratio_multiplier = 1.5
 
         intents: list[EpistemicIntent] = []
@@ -228,9 +228,9 @@ class CuriosityEngine:
             intent = EpistemicIntent(
                 hypothesis_id=h.id,
                 hypothesis_statement=h.statement[:200],
-                expected_information_gain=0.5,  # High EIG — this is a designed experiment
+                expected_information_gain=0.5,  # High EIG - this is a designed experiment
                 hypothesis_importance=0.8,
-                cost_estimate=1.5,              # Slightly higher cost — active seeking
+                cost_estimate=1.5,              # Slightly higher cost - active seeking
                 priority=round(
                     0.5 * 0.8 * (1.0 / 1.5) * urgency_boost
                     * self._soma_curiosity_multiplier, 4,

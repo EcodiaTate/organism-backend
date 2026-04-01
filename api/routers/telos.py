@@ -1,22 +1,22 @@
 # ruff: noqa: N815
 """
-EcodiaOS — Telos (Drives as Intelligence Topology) API Router
+EcodiaOS - Telos (Drives as Intelligence Topology) API Router
 
 Exposes the Telos drive topology engine for observability and frontend integration:
 
-  GET  /api/v1/telos/health                 — Health status and lifecycle info
-  GET  /api/v1/telos/report                 — Last computed EffectiveIntelligenceReport
-  GET  /api/v1/telos/gap                    — Alignment gap status and trend
-  GET  /api/v1/telos/drives/care            — Care coverage report details
-  GET  /api/v1/telos/drives/coherence       — Coherence cost report details
-  GET  /api/v1/telos/drives/growth          — Growth metrics and frontier domains
-  GET  /api/v1/telos/drives/honesty         — Honesty validity report details
-  GET  /api/v1/telos/bindings               — Constitutional binding verification
-  POST /api/v1/telos/compute                — Trigger immediate effective_I computation
-  POST /api/v1/telos/audit                  — Run 24h constitutional topology audit
-  POST /api/v1/telos/policy-score           — Score a proposed policy for effective_I impact
-  POST /api/v1/telos/hypothesis-rank        — Rank hypotheses by topology contribution
-  POST /api/v1/telos/fragment-score         — Score world model fragment for federation sharing
+  GET  /api/v1/telos/health                 - Health status and lifecycle info
+  GET  /api/v1/telos/report                 - Last computed EffectiveIntelligenceReport
+  GET  /api/v1/telos/gap                    - Alignment gap status and trend
+  GET  /api/v1/telos/drives/care            - Care coverage report details
+  GET  /api/v1/telos/drives/coherence       - Coherence cost report details
+  GET  /api/v1/telos/drives/growth          - Growth metrics and frontier domains
+  GET  /api/v1/telos/drives/honesty         - Honesty validity report details
+  GET  /api/v1/telos/bindings               - Constitutional binding verification
+  POST /api/v1/telos/compute                - Trigger immediate effective_I computation
+  POST /api/v1/telos/audit                  - Run 24h constitutional topology audit
+  POST /api/v1/telos/policy-score           - Score a proposed policy for effective_I impact
+  POST /api/v1/telos/hypothesis-rank        - Rank hypotheses by topology contribution
+  POST /api/v1/telos/fragment-score         - Score world model fragment for federation sharing
 """
 
 from __future__ import annotations
@@ -557,7 +557,7 @@ async def score_fragment(
 
 @router.get("/effective-i", response_model=EffectiveIntelligenceReportOut)
 async def get_effective_i(request: Request) -> EffectiveIntelligenceReportOut:
-    """Shorthand alias for /report — returns the last effective_I computation."""
+    """Shorthand alias for /report - returns the last effective_I computation."""
     return await get_report(request)
 
 
@@ -603,7 +603,7 @@ async def get_alignment_history(
     Return the last N alignment gap samples from the gap monitor's history.
 
     Each sample contains nominal_I, effective_I, gap_fraction, primary cause,
-    and timestamp — suitable for time-series charts in the UI.
+    and timestamp - suitable for time-series charts in the UI.
     """
     telos = _get_telos(request)
     samples = telos.gap_monitor.history

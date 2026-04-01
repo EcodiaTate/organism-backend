@@ -4,7 +4,7 @@ EcodiaOS -- EIS Taint Analysis Engine (Constitutional Risk Flagging)
 BOUNDARY CONTRACT
 -----------------
 The TaintEngine identifies CONSTITUTIONAL RISK in mutation proposals.
-It does NOT render constitutional verdicts — that is Equor's exclusive role.
+It does NOT render constitutional verdicts - that is Equor's exclusive role.
 
 The engine flags that a mutation *touches* constitutional paths and routes
 the mutation to Equor for actual constitutional review. The severity levels
@@ -21,7 +21,7 @@ suitable for consumption by:
 
 Entry point: TaintEngine.analyse_mutation(proposal) -> TaintRiskAssessment
 
-Severity ladder (output — risk proximity, not constitutional verdict):
+Severity ladder (output - risk proximity, not constitutional verdict):
   CLEAR    -- No constitutional paths affected. Normal governance path.
   ADVISORY -- Transitive/low-risk proximity. Noted in Equor review context.
   ELEVATED -- Direct or shallow-chain proximity. Routes to Equor for mandatory

@@ -1,17 +1,17 @@
 """
-EcodiaOS — Evo Pattern Detectors
+EcodiaOS - Evo Pattern Detectors
 
 Online pattern detectors that scan the continuous stream of episodes
 during wake mode. Each detector looks for one class of regularity.
 
-Detectors are stateless — all accumulation lives in PatternContext.
+Detectors are stateless - all accumulation lives in PatternContext.
 They run in ≤20ms per episode (latency budget from spec Section X).
 
 Four detectors (spec Section III):
-  CooccurrenceDetector  — entities that appear together repeatedly
-  SequenceDetector      — action sequences that produce successful outcomes
-  TemporalDetector      — time-based patterns (hour-of-day, day-of-week)
-  AffectPatternDetector — stimuli that reliably shift emotional state
+  CooccurrenceDetector  - entities that appear together repeatedly
+  SequenceDetector      - action sequences that produce successful outcomes
+  TemporalDetector      - time-based patterns (hour-of-day, day-of-week)
+  AffectPatternDetector - stimuli that reliably shift emotional state
 """
 
 from __future__ import annotations

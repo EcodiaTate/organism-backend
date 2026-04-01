@@ -1,13 +1,13 @@
 """
-EcodiaOS — Oikos Risk Manager (Phase 16d: DeFi Intelligence Expansion)
+EcodiaOS - Oikos Risk Manager (Phase 16d: DeFi Intelligence Expansion)
 
 Monitors portfolio health, enforces concentration limits, caps leverage, and
 triggers emergency deleveraging when positions become unsafe.
 
 Safety constraints (non-negotiable):
-  MAX_SINGLE_PROTOCOL_PCT = 0.60  — no more than 60% of deployed capital in one protocol
-  MAX_LEVERAGE             = 2.0  — never exceed 2× leverage on any borrowed position
-  EMERGENCY_WITHDRAW_TRIGGER = 0.85 — withdraw if health factor < 0.85 on any loan
+  MAX_SINGLE_PROTOCOL_PCT = 0.60  - no more than 60% of deployed capital in one protocol
+  MAX_LEVERAGE             = 2.0  - never exceed 2× leverage on any borrowed position
+  EMERGENCY_WITHDRAW_TRIGGER = 0.85 - withdraw if health factor < 0.85 on any loan
 
 Integration:
   - Called from OikosService.run_consolidation_cycle() every cycle
@@ -15,7 +15,7 @@ Integration:
   - Emits PORTFOLIO_REBALANCED on rebalance execution
   - Emits METABOLIC_PRESSURE on emergency deleverage
 
-All USD math uses Decimal. Never raises — failures return degraded RiskReport.
+All USD math uses Decimal. Never raises - failures return degraded RiskReport.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ MAX_SINGLE_PROTOCOL_PCT = Decimal("0.60")   # 60% cap per protocol
 MAX_LEVERAGE = Decimal("2.0")               # 2× leverage cap
 EMERGENCY_WITHDRAW_TRIGGER = Decimal("0.85")  # Health factor floor
 
-# Aave V3 health factor read — returns the minimum health factor across positions
+# Aave V3 health factor read - returns the minimum health factor across positions
 # health factor < 1.0 = liquidation risk; < EMERGENCY_WITHDRAW_TRIGGER = EOS exits
 _AAVE_POOL_BASE = "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
 _AAVE_GET_USER_ACCOUNT_DATA = "0xbf92857c"  # getUserAccountData(address)
@@ -123,7 +123,7 @@ class RiskManager:
     Lifecycle:
       1. Call initialize() once at system startup.
       2. Call assess_portfolio() each consolidation cycle.
-      3. Call rebalance_if_needed() after assess — issues rebalance requests on the bus.
+      3. Call rebalance_if_needed() after assess - issues rebalance requests on the bus.
       4. Call emergency_deleverage() immediately if health factor drops below trigger.
 
     The RiskManager does NOT execute transactions directly. It emits
@@ -401,7 +401,7 @@ class RiskManager:
         try:
             from web3 import Web3  # noqa: PLC0415
 
-            # Need wallet address — read from env
+            # Need wallet address - read from env
             import os  # noqa: PLC0415
             wallet_addr = os.environ.get("ECODIAOS_WALLET__ADDRESS", "")
             if not wallet_addr:

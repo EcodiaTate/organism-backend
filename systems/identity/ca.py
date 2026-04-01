@@ -1,5 +1,5 @@
 """
-EcodiaOS — Genesis Certificate Authority (Spec 23, CRITICAL #1-3)
+EcodiaOS - Genesis Certificate Authority (Spec 23, CRITICAL #1-3)
 
 Self-contained CA implemented within the Identity system. No external CA
 dependency. The Genesis Node holds the root Ed25519 private key in the
@@ -7,7 +7,7 @@ vault on first boot; all subsequent issuances use that key.
 
 Responsibilities:
   1. Store the Genesis CA private key in the vault (encrypted at rest).
-  2. issue_certificate(instance_id) — signs an official 30-day certificate
+  2. issue_certificate(instance_id) - signs an official 30-day certificate
      for any instance that has passed provisioning approval.
   3. Embed a live constitutional hash (queried from Equor via Synapse) in
      every issued certificate so the cert carries the organism's alignment
@@ -111,7 +111,7 @@ class GenesisCA:
                 raise ValueError("Provided key is not an Ed25519 private key")
             self._ca_private_key = key
         else:
-            # First boot — generate new keypair and seal it
+            # First boot - generate new keypair and seal it
             self._ca_private_key = Ed25519PrivateKey.generate()
             self._log.info("genesis_ca_key_generated")
 
@@ -138,7 +138,7 @@ class GenesisCA:
         Returns the raw ciphertext bytes of the SealedEnvelope (JSON-encoded).
         """
         if self._ca_private_key is None:
-            raise RuntimeError("GenesisCA not initialized — call initialize() first")
+            raise RuntimeError("GenesisCA not initialized - call initialize() first")
 
         pem = self._ca_private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -280,7 +280,7 @@ class GenesisCA:
         """
         drive_vector: dict[str, Any] = payload.get("mean_alignment", {})
         if not drive_vector:
-            # Composite scalar fallback — less information but still live
+            # Composite scalar fallback - less information but still live
             composite = payload.get("composite", payload.get("alignment_score", 0.0))
             drive_vector = {"composite": composite}
 

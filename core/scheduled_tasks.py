@@ -1,5 +1,5 @@
 """
-EcodiaOS — Scheduled Perception Tasks
+EcodiaOS - Scheduled Perception Tasks
 
 Register periodic tasks (PR monitoring, DeFi yield deployment,
 yield accrual) with the PerceptionScheduler.

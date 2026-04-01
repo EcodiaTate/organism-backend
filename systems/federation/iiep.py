@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inter-Instance Economic Protocol (Phase 16j: The Interspecies Economy)
+EcodiaOS - Inter-Instance Economic Protocol (Phase 16j: The Interspecies Economy)
 
 The IIEP extends the Federation Protocol with economic message types, enabling
 certified EcodiaOS instances to trade cognitive capabilities, insure each other

@@ -1,5 +1,5 @@
 """
-Unit tests for Stage 1A — Extended-thinking model routing in SimulaCodeAgent.
+Unit tests for Stage 1A - Extended-thinking model routing in SimulaCodeAgent.
 
 Tests:
   - Budget guard routes to thinking model only for governance/high-risk

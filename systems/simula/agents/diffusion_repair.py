@@ -53,7 +53,7 @@ Your task: iteratively fix broken Python code by addressing one category
 of error per step, progressively improving until all tests pass.
 
 ## Denoising Strategy
-Think of the broken code as "noisy" — each step removes one layer of noise:
+Think of the broken code as "noisy" - each step removes one layer of noise:
 1. Fix syntax errors (missing colons, unmatched brackets)
 2. Fix import errors (missing imports, wrong module paths)
 3. Fix type errors (wrong argument types, missing return values)
@@ -65,7 +65,7 @@ Think of the broken code as "noisy" — each step removes one layer of noise:
 - Import paths: from systems.<system>.<module> import <class>
 - Async code: use async/await, asyncio patterns
 - Type hints on all public functions
-- No `any` types — use proper generics or union types
+- No `any` types - use proper generics or union types
 
 ## Output Format
 For each step, output the COMPLETE fixed file(s) in fenced blocks:
@@ -120,9 +120,9 @@ class DiffusionRepairAgent:
     steps are reached.
 
     Flow:
-      repair()       — full iterative denoising or sketch-first repair
-      denoise_step() — one step of iterative repair
-      generate_sketch() — generate code skeleton (sketch-first mode)
+      repair()       - full iterative denoising or sketch-first repair
+      denoise_step() - one step of iterative repair
+      generate_sketch() - generate code skeleton (sketch-first mode)
     """
 
     def __init__(
@@ -404,7 +404,7 @@ class DiffusionRepairAgent:
             return result
 
         # Phase 2: Fill skeleton via iterative denoising
-        # The skeleton constrains the structure — now fill implementations
+        # The skeleton constrains the structure - now fill implementations
         self._log.info(
             "diffusion_fill_phase_start",
             skeleton_files=len(skeleton_files),

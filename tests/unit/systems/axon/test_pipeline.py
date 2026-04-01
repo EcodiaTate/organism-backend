@@ -248,7 +248,7 @@ async def test_single_step_failure():
 
 @pytest.mark.asyncio
 async def test_partial_success_multi_step():
-    """First step succeeds, second fails — partial outcome."""
+    """First step succeeds, second fails - partial outcome."""
     pipeline = make_pipeline()
     intent = Intent(
         goal=GoalDescriptor(description="Partial goal"),

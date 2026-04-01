@@ -175,7 +175,7 @@ class HealthChecker:
         Fire-and-forget a RE_TRAINING_EXAMPLE with outcome_quality=0.0 whenever
         generated or mutated code fails a build check.
 
-        Wrapped entirely in try/except — must never raise or delay the caller.
+        Wrapped entirely in try/except - must never raise or delay the caller.
         Uses asyncio.create_task so it doesn't block the health check pipeline.
         """
         bus = getattr(self._synapse, "_event_bus", None) if self._synapse else None
@@ -242,7 +242,7 @@ class HealthChecker:
             loop = asyncio.get_running_loop()
             loop.create_task(_emit())
         except RuntimeError:
-            pass  # No running loop (sync context) — skip silently
+            pass  # No running loop (sync context) - skip silently
 
     async def check(
         self,
@@ -299,7 +299,7 @@ class HealthChecker:
             return HealthCheckResult(healthy=False, issues=import_errors)
         self._log.info("health_import_passed", files=len(files_written))
 
-        # 3. Unit tests — 20% of health_check_timeout_s, minimum 10s absolute floor
+        # 3. Unit tests - 20% of health_check_timeout_s, minimum 10s absolute floor
         # so pytest can always start even when the overall budget is tight.
         _test_budget = max(self._health_check_timeout_s * 0.20, 10.0)
         try:
@@ -402,7 +402,7 @@ class HealthChecker:
                 duration_ms=mutation_result.total_duration_ms,
             )
 
-        # 4. Formal verification (Stage 2) — 40% of health_check_timeout_s, minimum 15s
+        # 4. Formal verification (Stage 2) - 40% of health_check_timeout_s, minimum 15s
         _formal_budget = max(self._health_check_timeout_s * 0.40, 15.0)
         try:
             formal_result = await asyncio.wait_for(
@@ -411,7 +411,7 @@ class HealthChecker:
             )
         except (asyncio.TimeoutError, TimeoutError):
             self._log.warning("health_formal_verify_timeout", timeout_s=_formal_budget)
-            formal_result = None  # advisory — missing timeout is not a blocking failure
+            formal_result = None  # advisory - missing timeout is not a blocking failure
         if formal_result is not None:
             if not formal_result.passed and formal_result.blocking_issues:
                 self._log.warning(
@@ -457,7 +457,7 @@ class HealthChecker:
                 )
             self._log.info("health_formal_verification_passed")
 
-        # 5. Lean 4 proof verification (Stage 4A) — 10% of health_check_timeout_s, minimum 10s
+        # 5. Lean 4 proof verification (Stage 4A) - 10% of health_check_timeout_s, minimum 10s
         # Skipped entirely in shallow verification mode (metabolic pressure)
         _shallow = getattr(self, "_shallow_verification_mode", False)
         _lean_budget = max(self._health_check_timeout_s * 0.10, 10.0)
@@ -514,7 +514,7 @@ class HealthChecker:
                 copilot_rate=f"{lean_result.copilot_automation_rate:.0%}",
             )
 
-        # 6. Formal guarantees (Stage 6D + 6E) — 10% of health_check_timeout_s, minimum 10s
+        # 6. Formal guarantees (Stage 6D + 6E) - 10% of health_check_timeout_s, minimum 10s
         # Skipped entirely in shallow verification mode (metabolic pressure)
         _fg_budget = max(self._health_check_timeout_s * 0.10, 10.0)
         if _shallow:
@@ -618,7 +618,7 @@ class HealthChecker:
     async def _check_imports(self, files: list[str]) -> list[str]:
         """""""""
         Derive dotted module paths from written file paths and check
-        whether importlib can locate them — including transitive imports
+        whether importlib can locate them - including transitive imports
         discovered by walking the AST of each written file.
 
         Transitive scan detects broken imports one hop deep (the written
@@ -1124,7 +1124,7 @@ class HealthChecker:
             if isinstance(raw, InvariantVerificationResult):
                 z3_result = raw
                 if self._z3_blocking:
-                    # Stage 3: Z3 graduates to blocking — invalid invariants fail the check
+                    # Stage 3: Z3 graduates to blocking - invalid invariants fail the check
                     invalid_count = sum(
                         1 for i in raw.discovered_invariants
                         if i.status == InvariantVerificationStatus.INVALID
@@ -1373,13 +1373,13 @@ class HealthChecker:
         # Build parallel tasks
         tasks: dict[str, asyncio.Task[object]] = {}
 
-        # 6D: E-graph equivalence — check if rewritten code is semantically equivalent
+        # 6D: E-graph equivalence - check if rewritten code is semantically equivalent
         if self._egraph is not None and proposal is not None:
             tasks["egraph"] = asyncio.create_task(
                 self._run_egraph_check(files_written, proposal),
             )
 
-        # 6E: Symbolic execution — prove mission-critical properties
+        # 6E: Symbolic execution - prove mission-critical properties
         if self._symbolic_execution is not None:
             tasks["symbolic"] = asyncio.create_task(
                 self._run_symbolic_execution(files_written),
@@ -1431,7 +1431,7 @@ class HealthChecker:
                 symbolic_result = raw
                 if raw.counterexamples:
                     msg = (
-                        f"Symbolic execution found {len(raw.counterexamples)} counterexample(s) — "
+                        f"Symbolic execution found {len(raw.counterexamples)} counterexample(s) - "
                         f"mission-critical properties violated"
                     )
                     if self._symbolic_execution_blocking:

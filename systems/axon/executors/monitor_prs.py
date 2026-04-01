@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon MonitorPRsExecutor (PR Monitoring & Bounty Payout Loop)
+EcodiaOS - Axon MonitorPRsExecutor (PR Monitoring & Bounty Payout Loop)
 
 Monitors the status of pull requests the organism has submitted to GitHub
 bounty repositories. When a PR is merged, it emits a ``bounty_paid``
@@ -14,10 +14,10 @@ Pipeline:
   5. If still open → no observation (belief decays naturally)
 
 Safety constraints:
-  - Required autonomy: 1 (ADVISOR) — read-only GitHub API calls
-  - Rate limit: 6 per hour — avoid hammering the GitHub API
-  - Max duration: 30s — network-bound, multiple sequential API calls
-  - No side effects beyond observations — pure information gathering
+  - Required autonomy: 1 (ADVISOR) - read-only GitHub API calls
+  - Rate limit: 6 per hour - avoid hammering the GitHub API
+  - Max duration: 30s - network-bound, multiple sequential API calls
+  - No side effects beyond observations - pure information gathering
 """
 
 from __future__ import annotations
@@ -75,9 +75,9 @@ class MonitorPRsExecutor(Executor):
         "bounty_paid observations when PRs are merged (Level 1)"
     )
 
-    required_autonomy = 1       # ADVISOR — read-only API calls
+    required_autonomy = 1       # ADVISOR - read-only API calls
     reversible = False
-    max_duration_ms = 30_000    # 30s — multiple sequential HTTP calls
+    max_duration_ms = 30_000    # 30s - multiple sequential HTTP calls
     rate_limit = RateLimit.per_hour(6)
 
     def __init__(
@@ -104,7 +104,7 @@ class MonitorPRsExecutor(Executor):
             )
         if len(pending_prs) == 0:
             return ValidationResult.fail(
-                "pending_prs is empty — nothing to monitor",
+                "pending_prs is empty - nothing to monitor",
                 pending_prs="empty",
             )
 
@@ -146,7 +146,7 @@ class MonitorPRsExecutor(Executor):
 
         pending_prs: list[dict[str, Any]] = params["pending_prs"]
 
-        # Resolve GitHub token — prefer GitHubConnector (handles App JWT→IAT + caching)
+        # Resolve GitHub token - prefer GitHubConnector (handles App JWT→IAT + caching)
         # over static config token.
         github_token: str | None = None
         if self._github_connector is not None:
@@ -220,7 +220,7 @@ class MonitorPRsExecutor(Executor):
                     )
                     observations.append(obs)
                     side_effects.append(
-                        f"PR {pr_url} confirmed merged — bounty payout pending"
+                        f"PR {pr_url} confirmed merged - bounty payout pending"
                     )
 
                     # Emit BOUNTY_PAID event via Synapse so Oikos credits the wallet
@@ -236,7 +236,7 @@ class MonitorPRsExecutor(Executor):
                         )
 
 
-                    # Emit BOUNTY_PR_MERGED — dedicated semantic event for downstream
+                    # Emit BOUNTY_PR_MERGED - dedicated semantic event for downstream
                     # subscribers (Oikos, Thread, Evo) that want the merge signal
                     if self._synapse is not None:
                         await self._emit_pr_merged_event(
@@ -248,7 +248,7 @@ class MonitorPRsExecutor(Executor):
                             repo=repo,
                             number=number,
                         )
-                        # High-value RE training signal — successful bounty completion
+                        # High-value RE training signal - successful bounty completion
                         await self._emit_re_training_merged(
                             bounty_id=bounty_id,
                             pr_url=pr_url,
@@ -276,7 +276,7 @@ class MonitorPRsExecutor(Executor):
                         entity_id=entity_id,
                     )
 
-                    # Emit BOUNTY_PR_REJECTED — semantic event for Evo/Nova
+                    # Emit BOUNTY_PR_REJECTED - semantic event for Evo/Nova
                     if self._synapse is not None:
                         await self._emit_pr_rejected_event(
                             pr_url=pr_url,
@@ -286,14 +286,14 @@ class MonitorPRsExecutor(Executor):
                             repo=repo,
                             number=number,
                         )
-                        # Negative RE training — maintainer rejected the code.
+                        # Negative RE training - maintainer rejected the code.
                         # outcome_quality=0.0 so RE learns to produce better solutions.
                         await self._emit_re_training_rejected(
                             bounty_id=bounty_id,
                             pr_url=pr_url,
                             repository=f"{owner}/{repo}",
                         )
-                    # Delete Redis key — PR is closed, no further polling needed.
+                    # Delete Redis key - PR is closed, no further polling needed.
                     await self._delete_pr_key(bounty_id)
 
                 else:
@@ -340,7 +340,7 @@ class MonitorPRsExecutor(Executor):
         Remove the Redis tracking key for a resolved PR.
 
         Once a PR is merged or closed without merge it will never change state
-        again — there is no value in polling it. Deleting the key prevents the
+        again - there is no value in polling it. Deleting the key prevents the
         30-minute poll loop from including this PR in future scan batches.
         """
         if not bounty_id or self._redis is None:
@@ -372,7 +372,7 @@ class MonitorPRsExecutor(Executor):
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # Parse reward amount — strip '$' and commas
+            # Parse reward amount - strip '$' and commas
             reward_usd = "0"
             clean = reward.replace("$", "").replace(",", "").strip()
             if clean:
@@ -412,7 +412,7 @@ class MonitorPRsExecutor(Executor):
         repo: str,
         number: str,
     ) -> None:
-        """Emit BOUNTY_PR_MERGED — distinct from BOUNTY_PAID for explicit downstream routing."""
+        """Emit BOUNTY_PR_MERGED - distinct from BOUNTY_PAID for explicit downstream routing."""
         if self._synapse is None:
             return
         try:
@@ -456,7 +456,7 @@ class MonitorPRsExecutor(Executor):
         repo: str,
         number: str,
     ) -> None:
-        """Emit BOUNTY_PR_REJECTED — negative learning signal for Evo + RE training."""
+        """Emit BOUNTY_PR_REJECTED - negative learning signal for Evo + RE training."""
         if self._synapse is None:
             return
         try:
@@ -493,7 +493,7 @@ class MonitorPRsExecutor(Executor):
         Emit RE_TRAINING_EXAMPLE on successful PR merge.
 
         A merged bounty PR is one of the highest-quality training signals the
-        organism can generate — a real human (the maintainer) reviewed and
+        organism can generate - a real human (the maintainer) reviewed and
         accepted EOS-authored code. Reward signal: 1.0 (max).
         """
         if self._synapse is None:
@@ -547,7 +547,7 @@ class MonitorPRsExecutor(Executor):
         """
         Emit RE_TRAINING_EXAMPLE on PR rejection (closed without merge).
 
-        outcome_quality=0.0 — maintainer did not accept the solution.
+        outcome_quality=0.0 - maintainer did not accept the solution.
         The RE uses this signal to learn what solutions get rejected and improve.
         """
         if self._synapse is None:

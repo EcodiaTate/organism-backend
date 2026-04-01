@@ -1,11 +1,11 @@
 """
-EcodiaOS — Google OAuth2 Connector (Spec 23, §14.1 + §14.2)
+EcodiaOS - Google OAuth2 Connector (Spec 23, §14.1 + §14.2)
 
 Implements the PlatformConnector ABC for Google Workspace / Google APIs using
 the OAuth 2.0 Authorization Code flow with PKCE (S256).
 
 Google specifics:
-  - Public client — PKCE (S256) recommended for web and mobile apps.
+  - Public client - PKCE (S256) recommended for web and mobile apps.
   - Access tokens expire in 3,600 seconds (1 hour).
   - Refresh tokens are long-lived until explicitly revoked or 6 months of
     inactivity. Google issues a refresh token only on the first authorization
@@ -15,7 +15,7 @@ Google specifics:
   - The token response includes an id_token (JWT) when openid is in scope.
 
 Authentication type:
-  Authorization Code + PKCE (S256) — same pattern as CanvaConnector.
+  Authorization Code + PKCE (S256) - same pattern as CanvaConnector.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ _GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 _GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 _GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
-_GOOGLE_ACCESS_TOKEN_TTL = 3600  # seconds — Google standard
+_GOOGLE_ACCESS_TOKEN_TTL = 3600  # seconds - Google standard
 
 # Minimum scopes required for userinfo health check.
 _GOOGLE_DEFAULT_SCOPES = [
@@ -75,11 +75,11 @@ class GoogleConnector(PlatformConnector):
     Google Workspace OAuth2 PKCE connector.
 
     Implements the full PlatformConnector lifecycle for Google APIs:
-      1. build_authorization_url() — consent URL with PKCE S256 challenge.
-      2. exchange_code()           — POST code + verifier → token set.
-      3. refresh_token()           — POST refresh_token → new access token.
-      4. revoke()                  — POST token to Google's revocation endpoint.
-      5. check_health()            — GET /userinfo to verify token validity.
+      1. build_authorization_url() - consent URL with PKCE S256 challenge.
+      2. exchange_code()           - POST code + verifier → token set.
+      3. refresh_token()           - POST refresh_token → new access token.
+      4. revoke()                  - POST token to Google's revocation endpoint.
+      5. check_health()            - GET /userinfo to verify token validity.
 
     Construction pattern:
         connector = GoogleConnector(
@@ -226,7 +226,7 @@ class GoogleConnector(PlatformConnector):
         Refresh the Google access token using the stored refresh token.
 
         Google form-encodes refresh requests. On success, Google returns a new
-        access token but does NOT rotate the refresh token — the existing one
+        access token but does NOT rotate the refresh token - the existing one
         remains valid and must be preserved in the new token set.
         """
         if self._credentials is None or not self._credentials.token_envelope_id:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — DomainCurriculum
+EcodiaOS - DomainCurriculum
 
 Organises RE training examples for domain-specific continual learning.
 
@@ -9,7 +9,7 @@ by all systems.  Given a target domain it:
 1. Filters examples to those for that domain, plus generalist examples whose
    transferable_skills overlap the domain's known skill areas.
 2. Sorts by difficulty (novice → intermediate → expert) so the LoRA adapter
-   sees easy patterns before harder ones — consistent with curriculum learning
+   sees easy patterns before harder ones - consistent with curriculum learning
    literature (Bengio et al. 2009).
 3. Groups by skill_area so the caller can inspect coverage.
 4. Checks prerequisite satisfaction: a skill_area is "ready" only when all
@@ -138,7 +138,7 @@ class DomainCurriculum:
         remaining = list(self.examples_by_skill_area.keys())
         satisfied: set[str] = set()
 
-        # Safety limit — should never loop more than len(remaining)² times
+        # Safety limit - should never loop more than len(remaining)² times
         max_passes = len(remaining) ** 2 + 1
         passes = 0
 

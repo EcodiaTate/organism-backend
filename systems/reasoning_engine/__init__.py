@@ -1,4 +1,4 @@
-"""EcodiaOS — Reasoning Engine system package."""
+"""EcodiaOS - Reasoning Engine system package."""
 
 from systems.reasoning_engine.service import ReasoningEngineService
 

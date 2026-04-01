@@ -1,10 +1,10 @@
-# Kairos — Causal Invariant Mining (Spec 22)
+# Kairos - Causal Invariant Mining (Spec 22)
 
 ## What It Does
 
 Kairos mines the hierarchy of causal knowledge: correlations → causal rules → context-invariant rules → substrate-independent invariants. Each level up is exponentially more compressed and more generative. A single Tier 3 invariant generates predictions across every domain it touches.
 
-**Self-causality (new — 8 Mar 2026)**: Kairos also runs a lightweight internal causal tracker alongside the external pipeline. It samples 6 organism-internal variables each pipeline run, mines pairwise causal relationships within them, and emits `KAIROS_INTERNAL_INVARIANT` when a self-causal law is discovered (e.g. "prediction_error_rate increases coherence_decrease [lag: 1 pipeline run]"). Nova + Thread subscribe. This is how the organism discovers causal laws about *itself*, not just about the external world.
+**Self-causality (new - 8 Mar 2026)**: Kairos also runs a lightweight internal causal tracker alongside the external pipeline. It samples 6 organism-internal variables each pipeline run, mines pairwise causal relationships within them, and emits `KAIROS_INTERNAL_INVARIANT` when a self-causal law is discovered (e.g. "prediction_error_rate increases coherence_decrease [lag: 1 pipeline run]"). Nova + Thread subscribe. This is how the organism discovers causal laws about *itself*, not just about the external world.
 
 ## Architecture
 
@@ -26,19 +26,19 @@ Kairos mines the hierarchy of causal knowledge: correlations → causal rules �
 |--------|-------------|
 | `hierarchy.py` | 3-tier invariant hierarchy (Domain → Cross-Domain → Substrate-Independent) |
 | `intelligence_ledger.py` | Per-invariant I-ratio accounting, historical tracking, trend analysis, counterfactual estimation |
-| `pipeline.py` | Main orchestrator — event subscriptions, pipeline execution, all feedback loop emissions |
-| `persistence.py` | Neo4j persistence — batched UNWIND writes, startup restoration, schema/index management |
+| `pipeline.py` | Main orchestrator - event subscriptions, pipeline execution, all feedback loop emissions |
+| `persistence.py` | Neo4j persistence - batched UNWIND writes, startup restoration, schema/index management |
 | `types.py` | Event payloads, config. Re-exports `CausalInvariant` etc. from `primitives.causal` |
 
 ### Shared Primitives
 
-`CausalInvariant`, `CausalInvariantTier`, `ApplicableDomain`, `ScopeCondition` live in `primitives/causal.py` — the canonical location. `kairos/types.py` re-exports them for backward compatibility.
+`CausalInvariant`, `CausalInvariantTier`, `ApplicableDomain`, `ScopeCondition` live in `primitives/causal.py` - the canonical location. `kairos/types.py` re-exports them for backward compatibility.
 
 Key fields added to `CausalInvariant`:
-- `direction: Literal["positive", "negative", ""]` — populated from correlation sign in Stage 2
-- `validated: bool` — marks externally validated invariants
-- `recency_weight: float` — decays 0.95× per pipeline cycle; demote < 0.3, archive < 0.1
-- `active: bool` — False for archived invariants (excluded from Neo4j restore)
+- `direction: Literal["positive", "negative", ""]` - populated from correlation sign in Stage 2
+- `validated: bool` - marks externally validated invariants
+- `recency_weight: float` - decays 0.95× per pipeline cycle; demote < 0.3, archive < 0.1
+- `active: bool` - False for archived invariants (excluded from Neo4j restore)
 
 ### 3-Tier Hierarchy
 
@@ -48,9 +48,9 @@ Key fields added to `CausalInvariant`:
 
 ## Neo4j Persistence (`persistence.py`)
 
-- `ensure_schema()` — idempotent uniqueness constraint on `CausalInvariant.id`, indexes on `tier`, `active`, `invariance_hold_rate`
-- `persist_invariants_batch(neo4j, invariants)` — batched UNWIND MERGE for invariant nodes + `CausalNode`/`CAUSES` relationships
-- `restore_invariants(neo4j)` — loads all `active=true` invariants on startup, ordered by tier DESC
+- `ensure_schema()` - idempotent uniqueness constraint on `CausalInvariant.id`, indexes on `tier`, `active`, `invariance_hold_rate`
+- `persist_invariants_batch(neo4j, invariants)` - batched UNWIND MERGE for invariant nodes + `CausalNode`/`CAUSES` relationships
+- `restore_invariants(neo4j)` - loads all `active=true` invariants on startup, ordered by tier DESC
 - Called from `pipeline.initialize()` (restore) and end of `run_pipeline()` (persist)
 
 ## Integration Surface
@@ -88,7 +88,7 @@ Key fields added to `CausalInvariant`:
 | `CROSS_DOMAIN_MATCH_FOUND` | Oneiros | REM cross-domain structural matches |
 | `WORLD_MODEL_UPDATED` | Logos | Bidirectional: re-evaluate invariants on model changes |
 | `COMPRESSION_BACKLOG_PROCESSED` | Oneiros | Consolidation feedback: cross-domain patterns |
-| `FEDERATION_INVARIANT_RECEIVED` | Federation/Nexus | Inbound invariant from peer — validated locally before acceptance |
+| `FEDERATION_INVARIANT_RECEIVED` | Federation/Nexus | Inbound invariant from peer - validated locally before acceptance |
 | `OIKOS_ECONOMIC_EPISODE` | Oikos | Economic causal data stream for EconomicCausalMiner |
 | `FOVEA_INTERNAL_PREDICTION_ERROR` | Fovea/SACM | Economic domain prediction errors as high-salience causal signals |
 | `PHANTOM_PRICE_OBSERVATION` | Phantom Liquidity | Market price time-series for economic correlation mining |
@@ -100,12 +100,12 @@ Key fields added to `CausalInvariant`:
 
 ### Direct Wiring (set_* methods)
 
-- `set_event_bus(bus)` — Synapse pub/sub (called at Phase 6)
-- `set_logos(logos_ingest)` — Logos KairosInvariantProtocol for world model ingestion (called at Phase 6)
-- `set_memory(memory)` — Memory system for `query_observations_for_testing()` and Stage 4 CausalNode BFS (called post-Phase 9)
-- `set_neo4j(neo4j)` — Neo4j client for persistence; triggers `initialize()` for startup restoration (called post-Phase 9)
-- `set_nexus(nexus_share)` — Nexus fragment sharing for Tier 3 federation (called post-Phase 9)
-- `set_oneiros(oneiros)` — Oneiros REM seed injection on Tier 3 discoveries (called at Phase 6 via `oneiros.set_kairos(kairos)`)
+- `set_event_bus(bus)` - Synapse pub/sub (called at Phase 6)
+- `set_logos(logos_ingest)` - Logos KairosInvariantProtocol for world model ingestion (called at Phase 6)
+- `set_memory(memory)` - Memory system for `query_observations_for_testing()` and Stage 4 CausalNode BFS (called post-Phase 9)
+- `set_neo4j(neo4j)` - Neo4j client for persistence; triggers `initialize()` for startup restoration (called post-Phase 9)
+- `set_nexus(nexus_share)` - Nexus fragment sharing for Tier 3 federation (called post-Phase 9)
+- `set_oneiros(oneiros)` - Oneiros REM seed injection on Tier 3 discoveries (called at Phase 6 via `oneiros.set_kairos(kairos)`)
 
 ## Feedback Loops
 
@@ -115,7 +115,7 @@ Key fields added to `CausalInvariant`:
 4. **Logos ↔ Kairos**: Kairos ingests invariants to Logos; Tier 3 also triggers deep structural reorganization; Logos model updates trigger re-evaluation
 5. **Kairos → Thymos**: Health degradation and violation escalation trigger immune response
 6. **Kairos → Telos**: I-ratio step changes (cross-run + counterfactual) signal intelligence geometry shifts
-7. **Kairos → Equor/Thread/Nova**: Tier 3 cascade — constitutional review, narrative milestone, policy update
+7. **Kairos → Equor/Thread/Nova**: Tier 3 cascade - constitutional review, narrative milestone, policy update
 8. **Federation → Kairos**: Inbound invariants validated against local counter-invariants before acceptance
 9. **Kairos → RE**: Validated causal chains emit `RE_TRAINING_EXAMPLE` (Stream 4) for reasoning engine training
 
@@ -139,7 +139,7 @@ Emitted as `EvolutionaryObservable` at the end of each pipeline run:
 When `CausalHierarchy` promotes an invariant to Tier 3, a sync callback queues the async cascade:
 1. Broadcast `KAIROS_TIER3_INVARIANT_DISCOVERED` on Synapse
 2. Share with Nexus for federation broadcasting
-3. Inject Oneiros REM seed with `priority: True` (M8) — prompts dream cycle cross-domain search
+3. Inject Oneiros REM seed with `priority: True` (M8) - prompts dream cycle cross-domain search
 4. Request Equor constitutional review (`CONSTITUTIONAL_REVIEW_REQUESTED`)
 5. Emit Thread narrative milestone (`NARRATIVE_MILESTONE`)
 6. Notify Nova of policy-relevant world model update (`WORLD_MODEL_UPDATED`)
@@ -163,81 +163,81 @@ Per-invariant accounting with:
 - `observations_covered`, `description_savings`, `intelligence_ratio_contribution`
 - **Historical tracking**: Point-in-time snapshots per invariant (max 50)
 - **Trend analysis**: Linear regression on ratio contribution over time (increasing/decreasing/stable)
-- **Counterfactual**: `estimate_counterfactual_i_without(id)` — what I-ratio would be without this invariant
-- **Drift detection**: `get_ledger_drift()` — average contribution change between consecutive computations
+- **Counterfactual**: `estimate_counterfactual_i_without(id)` - what I-ratio would be without this invariant
+- **Drift detection**: `get_ledger_drift()` - average contribution change between consecutive computations
 
 ## Implemented (2026-03-07 gap closure)
 
 - **P5**: `_extract_observation_pairs` now pools pairs across ALL contexts (not first-context-wins)
 - **P6**: Step-change detection uses `_prev_i_ratios` to compare across pipeline runs, not within-run counterfactuals
 - **AV4**: `_hierarchy._find()` replaced with public `find_invariant()` throughout pipeline
-- **D3**: `tier3_min_contexts` renamed to `tier3_min_observations` — semantics now match usage
+- **D3**: `tier3_min_contexts` renamed to `tier3_min_observations` - semantics now match usage
 - **D4**: Counterfactual I-ratio values with non-trivial weight emit a separate `KAIROS_INTELLIGENCE_RATIO_STEP_CHANGE` with `cause="counterfactual_removal"`
 - **D5**: `_discovered_patterns` capped at 200 entries; count exposed in `health()`
-- **M2**: Multi-level abstraction loop in `InvariantDistiller.distill()` — up to 5 raising iterations, stops at tautology boundary. Added `_raise_abstraction_level()` with 3-level ladder (domain-role → process-role → causal-role)
-- **M7**: `_logos_tier3_structural_reorganize()` added to Tier 3 cascade — sends `reorganize: True` payload to Logos for deep world model restructuring
+- **M2**: Multi-level abstraction loop in `InvariantDistiller.distill()` - up to 5 raising iterations, stops at tautology boundary. Added `_raise_abstraction_level()` with 3-level ladder (domain-role → process-role → causal-role)
+- **M7**: `_logos_tier3_structural_reorganize()` added to Tier 3 cascade - sends `reorganize: True` payload to Logos for deep world model restructuring
 - **M8**: Oneiros REM seed now carries `priority: True` for Tier 3 injections
-- **M10**: Phase D sorted by ledger `rank_by_value()` — highest-value invariants scanned first for violations
+- **M10**: Phase D sorted by ledger `rank_by_value()` - highest-value invariants scanned first for violations
 - **SG4**: `_emit_re_training_example()` fires after each validated causal chain (Stream 4, RE training)
 - **P2** (variable abstraction): `_abstract_variables()` now also parses scope condition tokens and domain substrate identifiers
 
 ## Implemented (2026-03-07 interface gap closure)
 
-- **Stage 4 IMPLEMENTED**: `mechanism_extractor.py` — `MechanismExtractor` BFS-traverses the `CausalNode` graph in Memory (up to 4 hops, max 8 branch per node). Populates `CausalRule.mechanism` before Stage 5. Falls back to direct-influence placeholder when Memory unavailable or no path found. Wired into `pipeline.py` via `_mechanism_extractor` field; receives Memory reference through `set_memory()`.
-- **`_loses_predictive_power()` IMPLEMENTED**: `invariant_distiller.py` — checks whether raising abstraction level collapses the cause/effect variable roles into the same abstract role (directional information lost) or reduces unique roles below 2 (prediction becomes trivial). Used as a second stop condition in the M2 abstraction-raising loop.
-- **`LogosEngineProtocol` ADDED**: `logos/protocols.py` — `count_observations_explained_by(invariant_id)` and `estimate_description_length_without(invariant_id)` as `@runtime_checkable Protocol`. Kairos can now depend on this interface without importing LogosService directly.
-- **`WorldModel` satisfies `LogosEngineProtocol`**: `logos/world_model.py` — both methods implemented. `count_observations_explained_by` returns `EmpiricalInvariant.observation_count`. `estimate_description_length_without` computes `current_complexity - 80 + observation_count * 50` (removes rule cost, adds back raw observation bits).
-- **`ActionLog` primitive ADDED** (previous session): `primitives/causal.py` — canonical type for Axon intervention logs queryable by Kairos Stage 2.
-- **`CausalHierarchyLevel` primitive ADDED** (previous session): `primitives/causal.py` — tier metadata type promoted from Kairos-internal to shared primitives.
-- **`MemoryService.get_all_observations_with_context()` ADDED** (previous session): `memory/service.py` — returns `list[tuple[Episode, [Entity], [CausalNode ref]]]` for the last N cycles; satisfies Stage 1 CorrelationMiner input requirement.
+- **Stage 4 IMPLEMENTED**: `mechanism_extractor.py` - `MechanismExtractor` BFS-traverses the `CausalNode` graph in Memory (up to 4 hops, max 8 branch per node). Populates `CausalRule.mechanism` before Stage 5. Falls back to direct-influence placeholder when Memory unavailable or no path found. Wired into `pipeline.py` via `_mechanism_extractor` field; receives Memory reference through `set_memory()`.
+- **`_loses_predictive_power()` IMPLEMENTED**: `invariant_distiller.py` - checks whether raising abstraction level collapses the cause/effect variable roles into the same abstract role (directional information lost) or reduces unique roles below 2 (prediction becomes trivial). Used as a second stop condition in the M2 abstraction-raising loop.
+- **`LogosEngineProtocol` ADDED**: `logos/protocols.py` - `count_observations_explained_by(invariant_id)` and `estimate_description_length_without(invariant_id)` as `@runtime_checkable Protocol`. Kairos can now depend on this interface without importing LogosService directly.
+- **`WorldModel` satisfies `LogosEngineProtocol`**: `logos/world_model.py` - both methods implemented. `count_observations_explained_by` returns `EmpiricalInvariant.observation_count`. `estimate_description_length_without` computes `current_complexity - 80 + observation_count * 50` (removes rule cost, adds back raw observation bits).
+- **`ActionLog` primitive ADDED** (previous session): `primitives/causal.py` - canonical type for Axon intervention logs queryable by Kairos Stage 2.
+- **`CausalHierarchyLevel` primitive ADDED** (previous session): `primitives/causal.py` - tier metadata type promoted from Kairos-internal to shared primitives.
+- **`MemoryService.get_all_observations_with_context()` ADDED** (previous session): `memory/service.py` - returns `list[tuple[Episode, [Entity], [CausalNode ref]]]` for the last N cycles; satisfies Stage 1 CorrelationMiner input requirement.
 
-## Pipeline Loop (2026-03-07 — root-cause fix)
+## Pipeline Loop (2026-03-07 - root-cause fix)
 
-**Root cause of 0% event coverage**: `run_pipeline()` was never called. All 14 Synapse event emissions are correctly wired inside `run_pipeline()`, but nothing triggered it. Event handlers (`_on_fovea_prediction_error`, `_on_episode_stored`, etc.) only buffer data — they do not trigger a pipeline run.
+**Root cause of 0% event coverage**: `run_pipeline()` was never called. All 14 Synapse event emissions are correctly wired inside `run_pipeline()`, but nothing triggered it. Event handlers (`_on_fovea_prediction_error`, `_on_episode_stored`, etc.) only buffer data - they do not trigger a pipeline run.
 
 **Fix**: `start_pipeline_loop()` + `_pipeline_loop()` added to `KairosPipeline`:
-- `start_pipeline_loop()` — creates a supervised asyncio Task (idempotent if already running)
-- `_pipeline_loop()` — 15s warm-up delay, then calls `run_pipeline()` every `mining_interval_s` (default 300s)
-- `core/registry.py._init_kairos()` — calls `kairos.start_pipeline_loop()` after wiring
+- `start_pipeline_loop()` - creates a supervised asyncio Task (idempotent if already running)
+- `_pipeline_loop()` - 15s warm-up delay, then calls `run_pipeline()` every `mining_interval_s` (default 300s)
+- `core/registry.py._init_kairos()` - calls `kairos.start_pipeline_loop()` after wiring
 
 All 14 events now fire on every pipeline cycle when sufficient data is available.
 
 ## Implemented (2026-03-08 autonomy audit)
 
 ### Critical Wiring Fixes
-- **Registry: memory/neo4j/nexus wiring** — `_init_kairos()` previously only wired `event_bus` and `logos`. Added post-Phase-9 wiring block in `registry.py` (after nexus creation): `kairos.set_memory(memory)`, `kairos.set_neo4j(infra.neo4j)`, `await kairos.initialize()` (restores invariants from Neo4j), `kairos.set_nexus(nexus)`. Without this, Kairos ran with zero observation data and no persistence.
+- **Registry: memory/neo4j/nexus wiring** - `_init_kairos()` previously only wired `event_bus` and `logos`. Added post-Phase-9 wiring block in `registry.py` (after nexus creation): `kairos.set_memory(memory)`, `kairos.set_neo4j(infra.neo4j)`, `await kairos.initialize()` (restores invariants from Neo4j), `kairos.set_nexus(nexus)`. Without this, Kairos ran with zero observation data and no persistence.
 
 ### New Subscriptions (5 added, now 16 total)
-- **`GROUND_TRUTH_CANDIDATE`** (Nexus SG-NEXUS): Handler `_on_ground_truth_candidate` — pre-seeds correlation miner with Level 3+ epistemic fragments as causal candidates. Closes Nexus→Kairos ground truth feedback loop.
-- **`EMPIRICAL_INVARIANT_CONFIRMED`** (Nexus SG-NEXUS): Handler `_on_empirical_invariant_confirmed` — reinforces matching invariant (`recency_weight=1.0`, `validated=True`), triggers tier re-evaluation. Level 4 confirmation prevents decay and accelerates promotion.
-- **`PERCEPT_ARRIVED`** (SG-PERCEPT): Handler `_on_percept_arrived` — converts high-salience percepts into correlation candidates. Closes the raw observation stream path specified in Spec XI as `PERCEPT_BROADCAST`.
-- **`EQUOR_DRIVE_WEIGHTS_UPDATED`** (SG-DRIVE): Handler `_on_drive_weights_updated` — converts significant drive weight deltas (≥0.05) into causal candidates. Mines constitutional causality.
-- **`SOMATIC_DRIVE_VECTOR`** (SG-SOMA): Handler `_on_somatic_drive_vector` — buffers organism drive state as cross-context observations (capped at 300). Merges into `observations_by_context` at pipeline start. Enables discovery of inter-drive causal relationships (e.g. low Coherence causes elevated Care response).
+- **`GROUND_TRUTH_CANDIDATE`** (Nexus SG-NEXUS): Handler `_on_ground_truth_candidate` - pre-seeds correlation miner with Level 3+ epistemic fragments as causal candidates. Closes Nexus→Kairos ground truth feedback loop.
+- **`EMPIRICAL_INVARIANT_CONFIRMED`** (Nexus SG-NEXUS): Handler `_on_empirical_invariant_confirmed` - reinforces matching invariant (`recency_weight=1.0`, `validated=True`), triggers tier re-evaluation. Level 4 confirmation prevents decay and accelerates promotion.
+- **`PERCEPT_ARRIVED`** (SG-PERCEPT): Handler `_on_percept_arrived` - converts high-salience percepts into correlation candidates. Closes the raw observation stream path specified in Spec XI as `PERCEPT_BROADCAST`.
+- **`EQUOR_DRIVE_WEIGHTS_UPDATED`** (SG-DRIVE): Handler `_on_drive_weights_updated` - converts significant drive weight deltas (≥0.05) into causal candidates. Mines constitutional causality.
+- **`SOMATIC_DRIVE_VECTOR`** (SG-SOMA): Handler `_on_somatic_drive_vector` - buffers organism drive state as cross-context observations (capped at 300). Merges into `observations_by_context` at pipeline start. Enables discovery of inter-drive causal relationships (e.g. low Coherence causes elevated Care response).
 
 ### Bug Fixes
 - **`query_observations_for_testing`**: Replaced private `self._hierarchy._find()` with public `self._hierarchy.find_invariant()` (AV4 consistency fix).
 
 ## Implemented (2026-03-08 self-causality)
 
-### Self-Causality Tracker — NEW
-- **`_run_self_causal_tracking()`** — called at end of every `run_pipeline()` after evolutionary metrics. Samples 6 internal variables and mines pairwise causal laws.
+### Self-Causality Tracker - NEW
+- **`_run_self_causal_tracking()`** - called at end of every `run_pipeline()` after evolutionary metrics. Samples 6 internal variables and mines pairwise causal laws.
 - **6 tracked variables**: `prediction_error_rate` (causal_surprise_rate from health), `coherence` (mean I-ratio from ledger), `hypothesis_count` (hierarchy.total_count), `re_success_rate` (tier3/total_discoveries), `sleep_frequency` (consolidation count), `consolidation_depth` (events per pipeline run).
 - **Algorithm**: Rolling history (window=100), Pearson r at lag=1 (cause[:-1] → effect[1:]), threshold |r| > 0.35. Consistency test: 4 sub-windows, ≥50% must hold at r > 0.25 → accept as causal. Hold_rate update: emit `KAIROS_INTERNAL_INVARIANT` on discovery or hold_rate change > 0.1.
-- **`_emit_internal_invariant(entry)`** — emits `KAIROS_INTERNAL_INVARIANT` (new SynapseEventType). Payload: `invariant_id`, `cause_variable`, `effect_variable`, `direction`, `lag_cycles`, `hold_rate`, `correlation`, `abstract_form`, `discovery_run`, `sample_count`.
-- **`_internal_var_history`** — `dict[str, list[float]]`, rolling window per variable, max 100.
-- **`_internal_invariants`** — `dict[(cause, effect), dict]`, accepted internal causal laws.
-- **`IntelligenceContributionLedger.mean_i_ratio()`** — new method, mean intelligence ratio contribution across all tracked invariants.
-- **Health report updated**: `self_causality` section added to `health()` response — `variables_tracked`, `invariants_discovered`, `active_invariants`, `sample_window`.
-- **Nova subscribes** to `KAIROS_INTERNAL_INVARIANT` — organism learns its own causal dynamics; Thread subscribes for causal attribution cache.
+- **`_emit_internal_invariant(entry)`** - emits `KAIROS_INTERNAL_INVARIANT` (new SynapseEventType). Payload: `invariant_id`, `cause_variable`, `effect_variable`, `direction`, `lag_cycles`, `hold_rate`, `correlation`, `abstract_form`, `discovery_run`, `sample_count`.
+- **`_internal_var_history`** - `dict[str, list[float]]`, rolling window per variable, max 100.
+- **`_internal_invariants`** - `dict[(cause, effect), dict]`, accepted internal causal laws.
+- **`IntelligenceContributionLedger.mean_i_ratio()`** - new method, mean intelligence ratio contribution across all tracked invariants.
+- **Health report updated**: `self_causality` section added to `health()` response - `variables_tracked`, `invariants_discovered`, `active_invariants`, `sample_window`.
+- **Nova subscribes** to `KAIROS_INTERNAL_INVARIANT` - organism learns its own causal dynamics; Thread subscribes for causal attribution cache.
 
 ### Known Issues / Remaining Work
 
 - Memory `query_episodes()` API assumed but not yet confirmed against Memory system interface (used via `hasattr` guard in pipeline)
-- Curriculum learning and strategic priority scheduling not yet implemented — needs cognitive budget integration with Synapse
-- Abstract structure extraction is basic — only detects bidirectional and cross-domain novelty, not full pattern library
-- `SKIA_HEARTBEAT` / `SKIA_SNAPSHOT_COMPLETED` not subscribed — no direct Skia integration; Kairos relies on Thymos for survival signaling
-- RE-integrated abstraction raising (spec XII) not yet implemented — `_raise_abstraction_level()` uses heuristic keyword taxonomy rather than RE routing
-- Self-causality: `consolidation_depth` and `sleep_frequency` variables are raw event counters (ever-increasing), not rate-normalized — correlation mining may find spurious trends. Future: normalize to per-window counts.
+- Curriculum learning and strategic priority scheduling not yet implemented - needs cognitive budget integration with Synapse
+- Abstract structure extraction is basic - only detects bidirectional and cross-domain novelty, not full pattern library
+- `SKIA_HEARTBEAT` / `SKIA_SNAPSHOT_COMPLETED` not subscribed - no direct Skia integration; Kairos relies on Thymos for survival signaling
+- RE-integrated abstraction raising (spec XII) not yet implemented - `_raise_abstraction_level()` uses heuristic keyword taxonomy rather than RE routing
+- Self-causality: `consolidation_depth` and `sleep_frequency` variables are raw event counters (ever-increasing), not rate-normalized - correlation mining may find spurious trends. Future: normalize to per-window counts.
 
 ## Config (KairosConfig)
 
@@ -247,7 +247,7 @@ All thresholds in `types.py::KairosConfig`. Key fields:
 - Tier promotion: `tier2_min_domains=2`, `tier3_min_domains=4`, `tier3_min_substrates=3`
 - Health: `discovery_stall_threshold=0.1`, `confounder_inflation_threshold=0.5`, `corruption_surprise_threshold=0.4`
 - Decay: `recency_weight` decays 0.95× per cycle, demote threshold 0.3, archive threshold 0.1
-- Minimality: `minimality_hold_rate_tolerance=0.02` — scope conditions removable if impact ≤ 2%
-- Tautology: `tautology_min_variables=2` — fewer unique roles → likely tautological
+- Minimality: `minimality_hold_rate_tolerance=0.02` - scope conditions removable if impact ≤ 2%
+- Tautology: `tautology_min_variables=2` - fewer unique roles → likely tautological
 - Pipeline timing: `mining_interval_s=300.0`
-- **D3 rename**: `tier3_min_observations=5` (was `tier3_min_contexts`) — total observation count threshold for Tier 3 eligibility
+- **D3 rename**: `tier3_min_observations=5` (was `tier3_min_contexts`) - total observation count threshold for Tier 3 eligibility

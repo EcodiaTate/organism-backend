@@ -1,5 +1,5 @@
 """
-EcodiaOS — Send Email Executor
+EcodiaOS - Send Email Executor
 
 Sends email notifications via configured SMTP or API-based email provider.
 Emits ACTION_EXECUTED / ACTION_FAILED events and RE training traces.
@@ -73,7 +73,7 @@ class SendEmailExecutor(Executor):
                 body=body,
             )
 
-            # RE trace only — AXON_EXECUTION_RESULT (emitted by service.py) is
+            # RE trace only - AXON_EXECUTION_RESULT (emitted by service.py) is
             # the canonical aggregate event; per-executor ACTION_EXECUTED would
             # create duplicate signals with no dedup strategy.
             await self._emit_re_trace(context, params, success=True)
@@ -138,7 +138,7 @@ class SendEmailExecutor(Executor):
             if not success:
                 counterfactual = (
                     f"If the email had been sent successfully, the intent's communication goal would be "
-                    f"fulfilled. Failure leaves the recipient '{to}' uninformed — downstream steps that "
+                    f"fulfilled. Failure leaves the recipient '{to}' uninformed - downstream steps that "
                     f"depend on the recipient's response cannot proceed."
                 )
 

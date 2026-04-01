@@ -105,10 +105,10 @@ class LiloLibraryEngine:
     into the code agent's system prompt for future proposals.
 
     Flow:
-      extract_from_proposals() — after proposals succeed, extract patterns
-      get_library_prompt()     — inject library into code agent prompt
-      consolidate()            — merge/prune on idle cycles
-      get_stats()              — library health metrics
+      extract_from_proposals() - after proposals succeed, extract patterns
+      get_library_prompt()     - inject library into code agent prompt
+      consolidate()            - merge/prune on idle cycles
+      get_stats()              - library health metrics
     """
 
     def __init__(

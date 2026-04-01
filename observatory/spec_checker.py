@@ -1,10 +1,10 @@
 """
-EcodiaOS — Spec Compliance Checker
+EcodiaOS - Spec Compliance Checker
 
 Compares the full set of SynapseEventType enum values against
 what the EventTracer has actually observed. Reports:
 - Events defined but never seen ("missing")
-- Events seen but not in the enum ("unknown" — shouldn't happen)
+- Events seen but not in the enum ("unknown" - shouldn't happen)
 - Per-system coverage (how many of its spec'd events actually fire)
 """
 
@@ -18,7 +18,7 @@ from observatory.tracer import EventTracer
 
 # Map each system to the event types it should emit.
 # This is the source of truth for "what should we see?"
-# Populated from the spec — event types whose source_system is known.
+# Populated from the spec - event types whose source_system is known.
 SYSTEM_EXPECTED_EVENTS: dict[str, list[str]] = {
     "synapse": [
         "cycle_completed", "soma_tick", "clock_started", "clock_stopped",
@@ -66,7 +66,7 @@ SYSTEM_EXPECTED_EVENTS: dict[str, list[str]] = {
         # Autonomy lifecycle (v1.3+)
         "equor_autonomy_promoted", "equor_autonomy_demoted",
         "equor_safe_mode_entered", "equor_hitl_approved",
-        # Amendment self-proposal (SG5 — expected once implemented)
+        # Amendment self-proposal (SG5 - expected once implemented)
         "equor_amendment_proposed",
     ],
     "simula": [
@@ -197,13 +197,13 @@ SYSTEM_EXPECTED_EVENTS: dict[str, list[str]] = {
         "allocation_released",
     ],
     "voxis": [],
-    # EIS — epistemic immune system
+    # EIS - epistemic immune system
     "eis": [
         "threat_detected",
         "percept_quarantined",
         "eis_layer_triggered",
     ],
-    # Alive — WebSocket telemetry bridge
+    # Alive - WebSocket telemetry bridge
     "alive": [],
 }
 

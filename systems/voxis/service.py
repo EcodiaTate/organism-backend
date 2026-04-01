@@ -179,10 +179,10 @@ class VoxisService:
         self._somatic_energy: float = 0.5
         self._somatic_stress: float = 0.0
 
-        # Event bus — wired via set_event_bus() for RE training emission
+        # Event bus - wired via set_event_bus() for RE training emission
         self._event_bus: Any = None
 
-        # Metabolic starvation level — CRITICAL: silence, EMERGENCY: template only
+        # Metabolic starvation level - CRITICAL: silence, EMERGENCY: template only
         self._starvation_level: str = "nominal"
 
         # ── Evo-tunable operational thresholds ────────────────────────────
@@ -366,7 +366,7 @@ class VoxisService:
 
         Called by SpawnChildExecutor at spawn time (Step 0b). Captures the
         parent's personality vector, vocabulary affinities, and strategy
-        preferences. Non-fatal — returns a minimal fragment on any error.
+        preferences. Non-fatal - returns a minimal fragment on any error.
         """
         from primitives.genome_inheritance import VoxisGenomeFragment
 
@@ -441,7 +441,7 @@ class VoxisService:
         Reads ECODIAOS_VOXIS_GENOME_PAYLOAD (JSON-encoded VoxisGenomeFragment)
         injected by LocalDockerSpawner. If present, applies personality vector
         (with bounded ±10% jitter), vocabulary affinities, and strategy preferences.
-        Non-fatal — child falls back to default personality on any error.
+        Non-fatal - child falls back to default personality on any error.
         """
         import json
         import os
@@ -492,7 +492,7 @@ class VoxisService:
                 except Exception:
                     pass
 
-            # Apply strategy preferences (no jitter — frequencies, not weights)
+            # Apply strategy preferences (no jitter - frequencies, not weights)
             if parent.strategy_preferences and hasattr(self._renderer, "_strategy_priors"):
                 try:
                     self._renderer._strategy_priors = dict(parent.strategy_preferences)
@@ -578,7 +578,7 @@ class VoxisService:
                 max_expression_length=self._config.max_expression_length,
             )  # type: ignore[call-arg]
         except TypeError:
-            # Evolved subclass has a different signature — try zero-arg
+            # Evolved subclass has a different signature - try zero-arg
             return cls()  # type: ignore[call-arg]
 
     def _on_renderer_evolved(self, renderer: BaseContentRenderer) -> None:
@@ -625,7 +625,7 @@ class VoxisService:
             return
 
         # Classify trigger: ATUNE_DISTRESS when care_activation is high and
-        # valence is markedly negative (Spec §5 — Silence Decision Hierarchy).
+        # valence is markedly negative (Spec §5 - Silence Decision Hierarchy).
         # ATUNE_DISTRESS bypasses rate-limiting and activates the Care drive override.
         care_activation = getattr(affect, "care_activation", 0.0)
         valence = getattr(affect, "valence", 0.0)
@@ -922,7 +922,7 @@ class VoxisService:
                 name=f"voxis_cost_{expression.id[:8]}",
             )
 
-        # Generate voice parameters for multimodal delivery (Spec §6 — Voice Engine)
+        # Generate voice parameters for multimodal delivery (Spec §6 - Voice Engine)
         # Wire the result into expression.voice_params so downstream consumers
         # (WebSocket handlers, TTS pipeline) can drive speech synthesis.
         voice_params = self._voice_engine.derive(
@@ -1213,7 +1213,7 @@ class VoxisService:
             if speaker_id:
                 # Infer formatting from the expression content summary.
                 # "structured" when bullet points, numbered lists, or markdown headers
-                # are detected; "prose" otherwise (Spec §4 — Audience Profiler, Bug 5 fix).
+                # are detected; "prose" otherwise (Spec §4 - Audience Profiler, Bug 5 fix).
                 content_sample = enriched_feedback.content_summary
                 is_structured = bool(
                     "\n-" in content_sample
@@ -1245,7 +1245,7 @@ class VoxisService:
                 except Exception:
                     self._logger.debug("enriched_feedback_callback_failed", exc_info=True)
 
-            # Emit enriched feedback via Synapse bus (Bug 2 fix — bus-observable)
+            # Emit enriched feedback via Synapse bus (Bug 2 fix - bus-observable)
             self._spawn_tracked_task(
                 self._emit_expression_feedback(enriched_feedback),
                 name=f"voxis_enriched_feedback_{enriched_feedback.expression_id[:8]}",
@@ -1365,7 +1365,7 @@ class VoxisService:
             SynapseEventType.SYSTEM_MODULATION,
             self._on_system_modulation,
         )
-        # Evo-driven parameter evolution — same pattern as Axon/Simula EVO_ADJUST_BUDGET.
+        # Evo-driven parameter evolution - same pattern as Axon/Simula EVO_ADJUST_BUDGET.
         # Allows Evo to tune communicative posture (silence threshold, honesty rejection
         # sensitivity, ambient insight cadence) based on empirical reception quality data.
         if hasattr(SynapseEventType, "EVO_ADJUST_BUDGET"):
@@ -1373,7 +1373,7 @@ class VoxisService:
                 SynapseEventType.EVO_ADJUST_BUDGET,
                 self._on_evo_adjust_budget,
             )
-        # Soma emotion broadcasts — Voxis updates affect colouring when the organism's
+        # Soma emotion broadcasts - Voxis updates affect colouring when the organism's
         # emotional state changes (e.g. new dominant emotion: curiosity, distress, elation)
         # This is the expression side of the somatic→communicative loop.
         event_bus.subscribe(
@@ -1417,7 +1417,7 @@ class VoxisService:
         )
 
     async def _on_somatic_modulation(self, event: Any) -> None:
-        """Handle SOMATIC_MODULATION_SIGNAL — Soma allostatic feedback.
+        """Handle SOMATIC_MODULATION_SIGNAL - Soma allostatic feedback.
 
         High arousal → more expressive tone.
         Low energy → shorter responses, less elaboration.
@@ -1443,7 +1443,7 @@ class VoxisService:
         )
 
     async def _on_oneiros_consolidation(self, event: Any) -> None:
-        """Handle ONEIROS_CONSOLIDATION_COMPLETE — update personality from sleep-consolidated patterns.
+        """Handle ONEIROS_CONSOLIDATION_COMPLETE - update personality from sleep-consolidated patterns.
 
         After a sleep cycle, Oneiros may have consolidated patterns that
         should subtly shift the personality vector (e.g., if the organism
@@ -1480,7 +1480,7 @@ class VoxisService:
             )
 
     async def _on_nova_expression_request(self, event: Any) -> None:
-        """Handle NOVA_EXPRESSION_REQUEST — express on behalf of Nova's IntentRouter."""
+        """Handle NOVA_EXPRESSION_REQUEST - express on behalf of Nova's IntentRouter."""
         data = getattr(event, "data", {}) or {}
         content: str = data.get("content", "")
         if not content:
@@ -1571,9 +1571,9 @@ class VoxisService:
         Evo emits EVO_ADJUST_BUDGET when high-confidence (>0.75) evidence supports
         adjusting a system's operational parameters. For Voxis, the tunable params are:
 
-          silence_rate_threshold     — silence rate above which distress is emitted to Soma
-          honesty_rejection_threshold — honesty rejection rate triggering distress
-          ambient_insight_idle_threshold — minutes of idle before spontaneous insight fires
+          silence_rate_threshold     - silence rate above which distress is emitted to Soma
+          honesty_rejection_threshold - honesty rejection rate triggering distress
+          ambient_insight_idle_threshold - minutes of idle before spontaneous insight fires
 
         On application, emits VOXIS_PARAMETER_ADJUSTED so Evo can score its hypothesis.
         """
@@ -1602,7 +1602,7 @@ class VoxisService:
         except (TypeError, ValueError):
             return
 
-        # Apply with clamping — prevent runaway tuning
+        # Apply with clamping - prevent runaway tuning
         if parameter_name == "silence_rate_threshold":
             old_value = self._silence_rate_threshold
             self._silence_rate_threshold = max(0.1, min(0.95, new_value))
@@ -1613,7 +1613,7 @@ class VoxisService:
             new_value = self._honesty_rejection_threshold
         elif parameter_name == "ambient_insight_idle_threshold":
             old_value = self._ambient_insight_idle_threshold
-            # Clamp: [1 minute, 60 minutes] — organism should reflect between 1 and 60 min idle
+            # Clamp: [1 minute, 60 minutes] - organism should reflect between 1 and 60 min idle
             self._ambient_insight_idle_threshold = max(1.0, min(60.0, new_value))
             new_value = self._ambient_insight_idle_threshold
         else:
@@ -1648,7 +1648,7 @@ class VoxisService:
                 self._logger.debug("voxis_parameter_adjusted_emit_failed", exc_info=True)
 
     async def _on_emotion_state_changed(self, event: Any) -> None:
-        """Handle EMOTION_STATE_CHANGED from Soma — update affect colouring for expression.
+        """Handle EMOTION_STATE_CHANGED from Soma - update affect colouring for expression.
 
         Soma emits this when the organism's active emotional state changes. Voxis uses
         this to prime the AffectColouringEngine before the next expression, so that
@@ -1674,7 +1674,7 @@ class VoxisService:
                     arousal=arousal,
                 )
             except AttributeError:
-                # AffectColouringEngine may not have update_from_emotion — soft fail
+                # AffectColouringEngine may not have update_from_emotion - soft fail
                 pass
 
         self._logger.debug(
@@ -1687,7 +1687,7 @@ class VoxisService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Voxis directive: {"mode": "template_only"} — bypass LLM generation and
+        Voxis directive: {"mode": "template_only"} - bypass LLM generation and
         use only static response templates to minimize compute cost during austerity.
         """
         mode = directives.get("mode")
@@ -1853,7 +1853,7 @@ class VoxisService:
     ) -> None:
         """
         Persist ExpressionFeedback to Neo4j with a [:HAS_FEEDBACK] relationship on
-        the Expression node (Spec §9 — Memory Integration, Bug 1 fix).
+        the Expression node (Spec §9 - Memory Integration, Bug 1 fix).
 
         Creates an ExpressionFeedback node and links it to the matching Expression.
         If the Expression node doesn't exist yet (e.g. storage race), the MERGE on
@@ -2086,7 +2086,7 @@ class VoxisService:
 
     async def _emit_expression_feedback(self, feedback: ExpressionFeedback) -> None:
         """
-        Emit VOXIS_EXPRESSION_FEEDBACK via Synapse bus (Spec §9 — Reception Feedback).
+        Emit VOXIS_EXPRESSION_FEEDBACK via Synapse bus (Spec §9 - Reception Feedback).
 
         Fixes Bug 2: feedback was callback-only; Evo/Nova/Benchmarks that subscribe
         via Synapse could not observe reception quality. This makes the signal
@@ -2388,12 +2388,12 @@ class VoxisService:
 
     async def _ambient_insight_loop(self) -> None:
         """
-        Autonomous AMBIENT_INSIGHT generation loop (Gap 5 — Spec §6.4).
+        Autonomous AMBIENT_INSIGHT generation loop (Gap 5 - Spec §6.4).
 
         When the organism has been idle (no expression) for > 5 minutes, it
         generates a spontaneous expression rooted in current affect state and
         recent episodic memory.  The expression is stored as an AMBIENT_INSIGHT
-        Episode in Memory — expression is experience.
+        Episode in Memory - expression is experience.
 
         Fires at most once per idle window: after the insight is produced the
         SilenceEngine timer resets, so the next fire requires another 5-minute
@@ -2413,7 +2413,7 @@ class VoxisService:
                 if self._renderer is None or self._personality_engine is None:
                     continue
 
-                # Skip under metabolic starvation — not the moment for reflection
+                # Skip under metabolic starvation - not the moment for reflection
                 if self._starvation_level in ("critical", "emergency"):
                     continue
 
@@ -2448,8 +2448,8 @@ class VoxisService:
                     affect_valence=round(current_affect.valence, 3),
                 )
 
-                # express() will run the full pipeline — silence engine, EFE policy,
-                # render, memory episode storage — then reset the idle timer.
+                # express() will run the full pipeline - silence engine, EFE policy,
+                # render, memory episode storage - then reset the idle timer.
                 expression = await self.express(
                     content=content_seed,
                     trigger=ExpressionTrigger.AMBIENT_INSIGHT,
@@ -2513,7 +2513,7 @@ class VoxisService:
                     timeout=0.1,
                 )
                 for trace in result.traces:
-                    # Only use SEMANTIC traces — these are consolidated knowledge nodes
+                    # Only use SEMANTIC traces - these are consolidated knowledge nodes
                     # about individuals, not raw episodic recordings
                     if trace.node_type != "semantic":
                         continue
@@ -2617,7 +2617,7 @@ class VoxisService:
         """
         Store a delivered expression as a Memory episode via MemoryService.store_percept().
 
-        Uses the public MemoryService API (Spec §9 — Memory Integration) to ensure
+        Uses the public MemoryService API (Spec §9 - Memory Integration) to ensure
         somatic stamping, temporal chain linking, and EPISODE_STORED event emission
         all occur correctly. Fixes AV3 (direct cross-system episodic import).
         """

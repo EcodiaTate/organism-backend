@@ -1,14 +1,14 @@
 """
-EcodiaOS — Nova Genome Extraction & Seeding
+EcodiaOS - Nova Genome Extraction & Seeding
 
 Implements GenomeExtractionProtocol for the Nova decision-and-planning system.
 
 Heritable state:
-  1. Persistent beliefs — high-confidence entity beliefs that represent
+  1. Persistent beliefs - high-confidence entity beliefs that represent
      well-evidenced world knowledge (confidence > 0.7, top 200).
-  2. Goal priors — per-domain completion statistics showing which kinds of
+  2. Goal priors - per-domain completion statistics showing which kinds of
      goals tend to succeed, informing goal priority bootstrapping.
-  3. Planning heuristics — learned action preferences derived from decision
+  3. Planning heuristics - learned action preferences derived from decision
      records (which policy types were selected and succeeded).
 
 Payload format:

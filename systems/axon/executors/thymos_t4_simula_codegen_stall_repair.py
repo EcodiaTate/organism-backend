@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos T4 Simula Codegen Stall Repair Executor
+EcodiaOS - Thymos T4 Simula Codegen Stall Repair Executor
 
 Specialized executor for repairing cognitive stalls in simula_codegen
 during Thymos T4 phase.

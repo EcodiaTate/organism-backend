@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Genome Extraction (Speciation: Immune Memory Inheritance)
+EcodiaOS - EIS Genome Extraction (Speciation: Immune Memory Inheritance)
 
 Implements GenomeExtractionProtocol so Mitosis can snapshot EIS's heritable
 state and seed child instances with the parent's immune knowledge.
@@ -10,7 +10,7 @@ Heritable state includes:
   - Quarantine threshold adjustments
   - False positive history
 
-A child instance starts with its parent's immune memory — it doesn't have
+A child instance starts with its parent's immune memory - it doesn't have
 to learn every threat from scratch. This is the immune co-evolution vector
 that enables population-level threat resistance.
 """
@@ -111,8 +111,8 @@ class EISGenomeExtractor:
         """
         Restore EIS heritable state from a parent's genome segment.
 
-        The child starts with the parent's immune knowledge — threat patterns
-        and anomaly baselines — so it can defend itself from known threats
+        The child starts with the parent's immune knowledge - threat patterns
+        and anomaly baselines - so it can defend itself from known threats
         immediately after birth.
         """
         if segment.system_id != SystemID.EIS:
@@ -128,7 +128,7 @@ class EISGenomeExtractor:
             try:
                 from systems.eis.threat_library import ThreatPattern
                 pattern = ThreatPattern(**pattern_data)
-                # Reset match counters for the child — inherited, not earned
+                # Reset match counters for the child - inherited, not earned
                 pattern.match_count = 0
                 pattern.last_matched = None
                 pattern.false_positive_count = 0

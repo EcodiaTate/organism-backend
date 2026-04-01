@@ -1,5 +1,5 @@
 """
-EcodiaOS — Infrastructure Cost Poller
+EcodiaOS - Infrastructure Cost Poller
 
 Autonomously queries compute provider APIs to determine the real-time
 cost of running the organism's infrastructure. Currently supports
@@ -14,7 +14,7 @@ Architecture:
     Poller also accrues infrastructure cost over time into the deficit.
 
 If RunPod API is unavailable or no pod is running, infrastructure cost
-gracefully falls to $0/hr — the organism doesn't hallucinate costs.
+gracefully falls to $0/hr - the organism doesn't hallucinate costs.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.synapse.infra_cost_poller")
 
-# Poll interval — how often we check the provider API (seconds)
+# Poll interval - how often we check the provider API (seconds)
 _DEFAULT_POLL_INTERVAL_S = 300  # 5 minutes
 
 # RunPod GraphQL endpoint
@@ -49,7 +49,7 @@ class InfrastructureCostPoller:
       - RunPod GPU pods (via GraphQL API)
       - Static fallback (manual cost override via env var)
 
-    Future: Akash, Cloud Run, Ekash — add provider methods as needed.
+    Future: Akash, Cloud Run, Ekash - add provider methods as needed.
     """
 
     def __init__(
@@ -104,7 +104,7 @@ class InfrastructureCostPoller:
         self._logger.info("infra_cost_poller_stopped")
 
     async def _poll_loop(self) -> None:
-        """Main polling loop — runs until stopped."""
+        """Main polling loop - runs until stopped."""
         # Do an immediate poll on startup
         await self._poll_once()
 
@@ -210,7 +210,7 @@ class InfrastructureCostPoller:
             # Query specific pod
             await self._poll_runpod_pod(self._runpod_pod_id)
         else:
-            # Query all running pods — the organism discovers its own infra
+            # Query all running pods - the organism discovers its own infra
             await self._poll_runpod_all_pods()
 
     async def _poll_runpod_pod(self, pod_id: str) -> None:
@@ -243,7 +243,7 @@ class InfrastructureCostPoller:
 
         pod = data.get("data", {}).get("pod")
         if not pod:
-            # Pod not found or terminated — remove from tracking
+            # Pod not found or terminated - remove from tracking
             resource_id = f"runpod:{pod_id}"
             self._metabolism.remove_infrastructure_resource(resource_id)
             return
@@ -259,7 +259,7 @@ class InfrastructureCostPoller:
                 source="runpod",
             )
         else:
-            # Pod exists but not running — no cost
+            # Pod exists but not running - no cost
             self._metabolism.remove_infrastructure_resource(resource_id)
 
     async def _poll_runpod_all_pods(self) -> None:

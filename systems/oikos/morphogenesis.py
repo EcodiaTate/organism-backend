@@ -1,8 +1,8 @@
 """
-EcodiaOS — Oikos Economic Morphogenesis (Phase 16l)
+EcodiaOS - Oikos Economic Morphogenesis (Phase 16l)
 
 The organism's economic structure is not static. It morphs based on
-environmental pressure — like a biological organism developing larger
+environmental pressure - like a biological organism developing larger
 muscles in response to physical demand.
 
 Each revenue-generating activity (bounty hunting, yield farming, owned
@@ -545,7 +545,7 @@ class OrganLifecycleManager:
                 organ.resource_allocation_pct = Decimal("0")
 
             case OrganMaturity.EMBRYONIC:
-                # Reactivated — small initial allocation
+                # Reactivated - small initial allocation
                 organ.resource_allocation_pct = Decimal("5")
 
         self._logger.info(
@@ -573,7 +573,7 @@ class OrganLifecycleManager:
 
         total = sum(o.resource_allocation_pct for o in active)
         if total <= Decimal("0"):
-            # All active organs have zero allocation — distribute equally
+            # All active organs have zero allocation - distribute equally
             equal_share = (Decimal("100") / Decimal(str(len(active)))).quantize(
                 Decimal("0.01")
             )

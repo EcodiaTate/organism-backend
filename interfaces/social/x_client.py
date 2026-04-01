@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: X (Twitter) Client
+EcodiaOS - Social Interface: X (Twitter) Client
 
 Posts tweets on behalf of the organism using X API v2.
 
@@ -14,7 +14,7 @@ containing the fields:
     }
 
 OAuth 1.0a signatures are computed by hand (HMAC-SHA1) so we avoid pulling
-in the `tweepy` dependency — httpx is already in the project.
+in the `tweepy` dependency - httpx is already in the project.
 
 X character limits:
     - Standard tweet: 280 characters (including the disclaimer).
@@ -85,7 +85,7 @@ def _oauth1_authorization_header(
         "oauth_version": "1.0",
     }
 
-    # Base string — OAuth params only (no JSON body params for JSON endpoints)
+    # Base string - OAuth params only (no JSON body params for JSON endpoints)
     sorted_params = sorted(oauth_params.items())
     param_string = "&".join(
         f"{_percent_encode(k)}={_percent_encode(v)}" for k, v in sorted_params
@@ -142,7 +142,7 @@ class XSocialClient:
 
     async def post_tweet(self, text: str) -> PostResult:
         """
-        Post a tweet.  Returns PostResult — never raises.
+        Post a tweet.  Returns PostResult - never raises.
 
         Args:
             text: Final tweet text (disclaimer already injected by executor).

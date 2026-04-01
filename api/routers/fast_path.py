@@ -1,13 +1,13 @@
 """
-EcodiaOS — Arbitrage Reflex Arc API Router
+EcodiaOS - Arbitrage Reflex Arc API Router
 
 Admin endpoints for managing constitutional templates and monitoring
 fast-path execution performance.
 
-  GET  /api/v1/fast-path/stats      — Aggregate metrics
-  GET  /api/v1/fast-path/templates   — List active templates
-  POST /api/v1/fast-path/templates   — Register a new template
-  DELETE /api/v1/fast-path/templates/{template_id} — Revoke a template
+  GET  /api/v1/fast-path/stats      - Aggregate metrics
+  GET  /api/v1/fast-path/templates   - List active templates
+  POST /api/v1/fast-path/templates   - Register a new template
+  DELETE /api/v1/fast-path/templates/{template_id} - Revoke a template
 """
 
 from __future__ import annotations

@@ -294,7 +294,7 @@ class WalletTransferExecutor(Executor):
 
 # -- RequestFundingExecutor --------------------------------------------------
 
-# Accepted audience labels — open-ended but validated so Nova doesn't emit
+# Accepted audience labels - open-ended but validated so Nova doesn't emit
 # garbage; new labels can be added without code changes by passing free text.
 _MAX_JUSTIFICATION_LEN = 1_000
 _MAX_AUDIENCE_LEN = 120
@@ -305,7 +305,7 @@ class RequestFundingExecutor(Executor):
     Emit a structured, high-priority plea for capital when the organism
     detects that it is in metabolic deficit and cannot sustain operations.
 
-    This executor does NOT move any funds — it is purely informational.
+    This executor does NOT move any funds - it is purely informational.
     It constructs a human-readable funding request (modelled on a grant
     proposal / micro-invoice) and publishes it as a FUNDING_REQUEST_ISSUED
     SynapseEvent so:
@@ -340,11 +340,11 @@ class RequestFundingExecutor(Executor):
     action_type = "request_funding"
     description = (
         "Emit a structured funding plea (invoice/grant) when the organism is "
-        "in metabolic deficit. No funds are moved — this is a high-priority "
+        "in metabolic deficit. No funds are moved - this is a high-priority "
         "informational signal for the human operator."
     )
 
-    required_autonomy = 1       # AWARE — no funds moved, purely observational
+    required_autonomy = 1       # AWARE - no funds moved, purely observational
     reversible = False
     max_duration_ms = 2_000
     rate_limit = RateLimit.per_hour(3)  # Pleas are rare and meaningful
@@ -376,7 +376,7 @@ class RequestFundingExecutor(Executor):
         justification = str(params.get("justification", "")).strip()
         if not justification:
             return ValidationResult.fail(
-                "justification is required — explain why capital is needed",
+                "justification is required - explain why capital is needed",
                 justification="missing",
             )
         if len(justification) > _MAX_JUSTIFICATION_LEN:
@@ -452,7 +452,7 @@ class RequestFundingExecutor(Executor):
 
         plea = textwrap.dedent(f"""\
             ╔══════════════════════════════════════════════════════════════╗
-            ║           ECODIAOS FUNDING REQUEST — {now_iso}          ║
+            ║           ECODIAOS FUNDING REQUEST - {now_iso}          ║
             ╚══════════════════════════════════════════════════════════════╝
 
             TO:       {target_audience}
@@ -503,7 +503,7 @@ class RequestFundingExecutor(Executor):
                     },
                 ))
             except Exception as exc:
-                # Event bus failure is non-fatal — we still return success
+                # Event bus failure is non-fatal - we still return success
                 self._logger.warning(
                     "request_funding_event_bus_failed",
                     error=str(exc),

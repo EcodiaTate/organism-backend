@@ -1,12 +1,12 @@
 """
-EcodiaOS — Nexus: Integration Adapters
+EcodiaOS - Nexus: Integration Adapters
 
 Bridges between concrete service implementations and the Nexus protocols.
 
-  LogosWorldModelAdapter   — adapts LogosService.world_model (WorldModel)
+  LogosWorldModelAdapter   - adapts LogosService.world_model (WorldModel)
                              to LogosWorldModelProtocol
-  EvoHypothesisSourceAdapter — adapts EvoService to EvoHypothesisSourceProtocol
-  ThymosNexusSinkAdapter   — adapts ThymosService to ThymosDriveSinkProtocol
+  EvoHypothesisSourceAdapter - adapts EvoService to EvoHypothesisSourceProtocol
+  ThymosNexusSinkAdapter   - adapts ThymosService to ThymosDriveSinkProtocol
 
 These adapters let Nexus work against protocols rather than concrete types,
 keeping the speciation boundary clean.
@@ -36,7 +36,7 @@ class LogosWorldModelAdapter:
 
     Nexus needs to read schema topology, domain coverage, and structural
     fingerprints for divergence measurement and fragment extraction.
-    All reads are in-memory — no I/O or LLM calls.
+    All reads are in-memory - no I/O or LLM calls.
     """
 
     def __init__(self, logos: LogosService) -> None:
@@ -143,7 +143,7 @@ class LogosWorldModelAdapter:
         components.  Logos ingests them as EmpiricalInvariants so they are
         protected from entropic decay.
 
-        Constructs the EmpiricalInvariant lazily — the import is deferred to
+        Constructs the EmpiricalInvariant lazily - the import is deferred to
         runtime (not module level) to keep the adapter bridge narrowly scoped.
         Adapter files are the sanctioned cross-system bridge; this lazy import
         is the approved pattern for type construction across system boundaries.
@@ -223,7 +223,7 @@ class ThymosNexusSinkAdapter:
         """
         Translate divergence pressure into a Thymos growth drive increment.
 
-        Delegates to ThymosService.receive_divergence_pressure() — the public
+        Delegates to ThymosService.receive_divergence_pressure() - the public
         API that encapsulates the drive-state mutation.
         """
         self._thymos.receive_divergence_pressure(pressure)

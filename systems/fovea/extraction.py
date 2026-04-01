@@ -1,5 +1,5 @@
 """
-Fovea — Entity Extraction Pipeline.
+Fovea - Entity Extraction Pipeline.
 
 When a Percept is stored in Memory, Fovea triggers entity extraction.
 This is the bridge between raw experience and structured knowledge.
@@ -74,7 +74,7 @@ For each relationship between entities, provide:
 
 Respond in JSON format with keys "entities" and "relations".
 Be precise. Only extract entities and relations that are clearly present.
-Prefer specificity over coverage — better to miss an entity than fabricate one.
+Prefer specificity over coverage - better to miss an entity than fabricate one.
 """
 
 

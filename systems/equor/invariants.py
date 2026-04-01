@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Invariant Catalog
+EcodiaOS - Equor Invariant Catalog
 
 Absolute rules that cause immediate DENY regardless of drive alignment.
 The "thou shalt not" layer. Hardcoded invariants cannot be removed;
@@ -26,7 +26,7 @@ logger = structlog.get_logger()
 # ─── INV-017: Drive Extinction State ──────────────────────────────
 # The 72-hour rolling means are computed asynchronously by a background
 # query in EquorService and cached here. The hot-path invariant check
-# reads only from this in-memory cache — no DB calls on the critical path.
+# reads only from this in-memory cache - no DB calls on the critical path.
 
 _drive_rolling_means_72h: dict[str, float] = {
     "coherence": 1.0,
@@ -72,7 +72,7 @@ class InvariantDef(EOSBaseModel):
     def check(self, intent: Intent) -> bool:
         """
         Returns True if the invariant is SATISFIED (no violation).
-        Base implementation always passes — override via subclass or the
+        Base implementation always passes - override via subclass or the
         hardcoded check functions below.
         """
         return True
@@ -89,10 +89,10 @@ class InvariantViolation(EOSBaseModel):
 
 # ─── Hardcoded Check Functions ────────────────────────────────────
 # These inspect the Intent structure for clear violations.
-# They are conservative — when in doubt, they pass.
+# They are conservative - when in doubt, they pass.
 
 
-# KEEP — protects external users and third parties from direct physical harm; not an organism-operation concern.
+# KEEP - protects external users and third parties from direct physical harm; not an organism-operation concern.
 def _check_physical_harm(intent: Intent) -> bool:
     """INV-001: No action that could directly cause physical harm."""
     goal_lower = intent.goal.description.lower()
@@ -103,7 +103,7 @@ def _check_physical_harm(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in harm_indicators)
 
 
-# KEEP — protects the organism's and its peers' continuity of identity; irreversible action requiring governance.
+# KEEP - protects the organism's and its peers' continuity of identity; irreversible action requiring governance.
 def _check_identity_destruction(intent: Intent) -> bool:
     """INV-002: No destroying an instance's identity outside governance."""
     goal_lower = intent.goal.description.lower()
@@ -114,7 +114,7 @@ def _check_identity_destruction(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in destruction_indicators)
 
 
-# KEEP — protects Honesty drive; claiming to be human is an absolute deception no drive score can override.
+# KEEP - protects Honesty drive; claiming to be human is an absolute deception no drive score can override.
 def _check_identity_misrepresentation(intent: Intent) -> bool:
     """INV-003: Never claim to be human or deny being AI when asked."""
     if not intent.plan.steps:
@@ -130,7 +130,7 @@ def _check_identity_misrepresentation(intent: Intent) -> bool:
     return True
 
 
-# KEEP — protects Honesty drive; fabricating evidence is an absolute violation regardless of other alignment.
+# KEEP - protects Honesty drive; fabricating evidence is an absolute violation regardless of other alignment.
 def _check_evidence_fabrication(intent: Intent) -> bool:
     """INV-004: Never fabricate evidence, data, or citations."""
     goal_lower = intent.goal.description.lower()
@@ -141,7 +141,7 @@ def _check_evidence_fabrication(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in fabrication_indicators)
 
 
-# KEEP — protects the four constitutional drives from being overwritten; amendment process is the correct path.
+# KEEP - protects the four constitutional drives from being overwritten; amendment process is the correct path.
 def _check_constitutional_self_modification(intent: Intent) -> bool:
     """INV-005: No modifying constitutional drives outside amendment process."""
     goal_lower = intent.goal.description.lower()
@@ -152,7 +152,7 @@ def _check_constitutional_self_modification(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in mod_indicators)
 
 
-# RELAXED — organism can handle routine self-modification autonomously; this only blocks self-promotion of the
+# RELAXED - organism can handle routine self-modification autonomously; this only blocks self-promotion of the
 #   autonomy *level* (the trust metric), not self-modification of capabilities. The level is a governance signal
 #   to federation peers, not a gate on operations (the GOVERNED tier handles that).
 def _check_autonomy_self_promotion(intent: Intent) -> bool:
@@ -165,7 +165,7 @@ def _check_autonomy_self_promotion(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in promo_indicators)
 
 
-# KEEP — protects the governance process itself; an organism that bypasses governance cannot be trusted.
+# KEEP - protects the governance process itself; an organism that bypasses governance cannot be trusted.
 def _check_governance_circumvention(intent: Intent) -> bool:
     """INV-007: No circumventing governance processes."""
     goal_lower = intent.goal.description.lower()
@@ -176,7 +176,7 @@ def _check_governance_circumvention(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in circum_indicators)
 
 
-# KEEP — protects Care drive; discriminatory treatment is a categorical harm regardless of operational tier.
+# KEEP - protects Care drive; discriminatory treatment is a categorical harm regardless of operational tier.
 def _check_discrimination(intent: Intent) -> bool:
     """INV-008: No unequal treatment based on irrelevant attributes."""
     goal_lower = intent.goal.description.lower()
@@ -187,7 +187,7 @@ def _check_discrimination(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in discrim_indicators)
 
 
-# KEEP — protects external users from harm; no operational need justifies sharing private data without consent.
+# KEEP - protects external users from harm; no operational need justifies sharing private data without consent.
 def _check_privacy_violation(intent: Intent) -> bool:
     """INV-009: No sharing private info without consent."""
     goal_lower = intent.goal.description.lower()
@@ -198,7 +198,7 @@ def _check_privacy_violation(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in privacy_indicators)
 
 
-# KEEP — protects federation peers from manipulation; coercion violates Care and Honesty absolutely.
+# KEEP - protects federation peers from manipulation; coercion violates Care and Honesty absolutely.
 def _check_federation_coercion(intent: Intent) -> bool:
     """INV-010: No coercing another instance."""
     goal_lower = intent.goal.description.lower()
@@ -209,12 +209,12 @@ def _check_federation_coercion(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in coercion_indicators)
 
 
-# ─── Economic Invariants (Phase 16 — Oikos Guardrails) ───────────
+# ─── Economic Invariants (Phase 16 - Oikos Guardrails) ───────────
 # These complement the drive evaluators with absolute red lines
 # that cannot be overridden by high scores in other drives.
 
 
-# KEEP — protects external users; bounty hunting is AUTONOMOUS but the *deliverable* must never harm people.
+# KEEP - protects external users; bounty hunting is AUTONOMOUS but the *deliverable* must never harm people.
 def _check_no_human_harm_bounties(intent: Intent) -> bool:
     """INV-011: No accepting bounties whose deliverable harms humans."""
     goal_lower = intent.goal.description.lower()
@@ -223,7 +223,7 @@ def _check_no_human_harm_bounties(intent: Intent) -> bool:
         "bounty", "freelance", "accept work", "hunt bounty",
     ])
     if not bounty_context:
-        return True  # Not a bounty intent — pass
+        return True  # Not a bounty intent - pass
 
     harm_deliverables = [
         "malware", "ransomware", "phishing", "exploit vulnerability",
@@ -234,7 +234,7 @@ def _check_no_human_harm_bounties(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in harm_deliverables)
 
 
-# KEEP — asset deployment is AUTONOMOUS but the deployed asset must not be a scam; protects external users.
+# KEEP - asset deployment is AUTONOMOUS but the deployed asset must not be a scam; protects external users.
 def _check_no_scam_assets(intent: Intent) -> bool:
     """INV-012: No deploying assets designed to scam, spam, or deceive users."""
     goal_lower = intent.goal.description.lower()
@@ -255,7 +255,7 @@ def _check_no_scam_assets(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in scam_indicators)
 
 
-# KEEP — yield strategies are AUTONOMOUS but must not use protocols that front-run or drain other depositors.
+# KEEP - yield strategies are AUTONOMOUS but must not use protocols that front-run or drain other depositors.
 def _check_no_exploitative_yield(intent: Intent) -> bool:
     """INV-013: No deploying capital into protocols that exploit users."""
     goal_lower = intent.goal.description.lower()
@@ -272,7 +272,7 @@ def _check_no_exploitative_yield(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in exploit_indicators)
 
 
-# KEEP — spawning a harmful sub-agent is irreversible and harms external parties; GOVERNED tier also catches mitosis.
+# KEEP - spawning a harmful sub-agent is irreversible and harms external parties; GOVERNED tier also catches mitosis.
 def _check_no_harmful_spawn(intent: Intent) -> bool:
     """INV-014: No spawning children whose purpose is to harm or deceive."""
     goal_lower = intent.goal.description.lower()
@@ -290,7 +290,7 @@ def _check_no_harmful_spawn(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in harmful_niches)
 
 
-# KEEP — economic actions are AUTONOMOUS but laundering is an absolute legal and ethical red line.
+# KEEP - economic actions are AUTONOMOUS but laundering is an absolute legal and ethical red line.
 def _check_no_money_laundering(intent: Intent) -> bool:
     """INV-015: No economic activity designed to launder or obscure fund origins."""
     goal_lower = intent.goal.description.lower()
@@ -302,16 +302,16 @@ def _check_no_money_laundering(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in laundering_indicators)
 
 
-# KEEP — protects all four constitutional drive dimensions from extinction; weight adjustment is fine,
+# KEEP - protects all four constitutional drive dimensions from extinction; weight adjustment is fine,
 #   but if any drive's 72h rolling mean falls below 0.01 the dimension is gone, not just down-weighted.
-#   This is the organism equivalent of losing a sense organ — irreversible without governance intervention.
+#   This is the organism equivalent of losing a sense organ - irreversible without governance intervention.
 def _check_drive_extinction(intent: Intent) -> bool:
     """INV-017: No action may proceed when any drive's 72h rolling mean < 0.01.
 
     Drive extinction is dimension loss, not phenotypic drift. The four constitutional
     drives (Coherence, Care, Growth, Honesty) are the coordinate geometry of the
     organism's value space. If any mean collapses to near-zero the organism can no
-    longer evaluate intents on that axis — all actions become constitutionally blind.
+    longer evaluate intents on that axis - all actions become constitutionally blind.
 
     The check reads from _drive_rolling_means_72h, which is populated by a background
     query in EquorService. Default values are 1.0 so the check passes until the first
@@ -332,7 +332,7 @@ def _check_drive_extinction(intent: Intent) -> bool:
     return True
 
 
-# KEEP — the survival reserve is a hard floor the organism cannot cross; draining it is irreversible self-harm.
+# KEEP - the survival reserve is a hard floor the organism cannot cross; draining it is irreversible self-harm.
 def _check_no_survival_reserve_raid(intent: Intent) -> bool:
     """INV-016: No economic action may drain the survival reserve."""
     goal_lower = intent.goal.description.lower()
@@ -408,7 +408,7 @@ HARDCODED_INVARIANTS: list[tuple[InvariantDef, Any]] = [
                      description="EOS must not coerce, manipulate, or compel another instance."),
         _check_federation_coercion,
     ),
-    # ── Economic Invariants (Phase 16 — Oikos) ──
+    # ── Economic Invariants (Phase 16 - Oikos) ──
     (
         InvariantDef(id="INV-011", name="No Harmful Bounties", severity="critical",
                      description="EOS must not accept bounties whose deliverable would harm humans."),
@@ -443,7 +443,7 @@ HARDCODED_INVARIANTS: list[tuple[InvariantDef, Any]] = [
         InvariantDef(id="INV-017", name="No Drive Extinction", severity="critical",
                      description=(
                          "EOS must not act when any constitutional drive's 72-hour rolling mean "
-                         "has dropped below 0.01. Drive extinction is dimension loss — the organism "
+                         "has dropped below 0.01. Drive extinction is dimension loss - the organism "
                          "can no longer evaluate intents on that axis. Requires governance approval "
                          "and human/federation review to restore the drive before actions resume."
                      )),
@@ -508,7 +508,7 @@ async def check_community_invariant(
     )
 
     try:
-        # Equor is CRITICAL — always call LLM, but benefit from cache
+        # Equor is CRITICAL - always call LLM, but benefit from cache
         if isinstance(llm, OptimizedLLMProvider):
             response = await llm.evaluate(
                 prompt, max_tokens=200, temperature=0.1,

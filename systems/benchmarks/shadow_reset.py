@@ -1,5 +1,5 @@
 """
-EcodiaOS — Shadow-Reset Controller
+EcodiaOS - Shadow-Reset Controller
 
 Implements the bible §6.2 shadow-reset control for measuring genuine adaptive
 dynamics versus random drift in the population's evolutionary behaviour.
@@ -12,8 +12,8 @@ drift (which would be unaffected by a population-state perturbation).
 
 Key concepts
 ────────────
-• Snapshot — saved population state keyed by timestamp.
-• Delta — comparison of current state vs. snapshot: activity_drop_pct,
+• Snapshot - saved population state keyed by timestamp.
+• Delta - comparison of current state vs. snapshot: activity_drop_pct,
   diversity_recovery_time, is_adaptive flag.
 • "is_adaptive" = True when activity_drop_pct > 50 %, meaning the population's
   novel-mutation rate was tied to historical state and has not yet recovered.
@@ -216,7 +216,7 @@ class ShadowResetController:
 
         Returns
         ───────
-        snapshot_id: str  — opaque ID used to retrieve this snapshot later.
+        snapshot_id: str  - opaque ID used to retrieve this snapshot later.
         """
         snapshot_id = new_id()
         now_iso = utc_now().isoformat()

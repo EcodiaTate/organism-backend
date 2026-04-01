@@ -1,29 +1,29 @@
 """
-EcodiaOS — Federation Service
+EcodiaOS - Federation Service
 
-The Federation Protocol governs how EOS instances relate to each other —
+The Federation Protocol governs how EOS instances relate to each other -
 as sovereign entities that can choose to share knowledge, coordinate action,
 and build relationships. Not a hive mind. Not isolated. A community of
 individuals, each with their own identity, personality, and community,
 choosing to help each other grow.
 
 The FederationService orchestrates five sub-systems:
-  IdentityManager   — Instance identity cards, Ed25519 signing, verification
-  TrustManager      — Trust scoring, level transitions, decay
-  PrivacyFilter     — PII removal, consent enforcement
-  KnowledgeExchange — Knowledge request/response protocol
-  CoordinationMgr   — Assistance requests and coordinated action
-  ChannelManager    — Mutual TLS channels to remote instances
+  IdentityManager   - Instance identity cards, Ed25519 signing, verification
+  TrustManager      - Trust scoring, level transitions, decay
+  PrivacyFilter     - PII removal, consent enforcement
+  KnowledgeExchange - Knowledge request/response protocol
+  CoordinationMgr   - Assistance requests and coordinated action
+  ChannelManager    - Mutual TLS channels to remote instances
 
 Lifecycle:
-  initialize()             — build all sub-systems, load keys
-  establish_link()         — connect to a remote instance
-  withdraw_link()          — disconnect from a remote instance
-  handle_knowledge_req()   — handle inbound knowledge request
-  request_knowledge()      — request knowledge from remote
-  handle_assistance_req()  — handle inbound assistance request
-  request_assistance()     — request assistance from remote
-  shutdown()               — graceful shutdown
+  initialize()             - build all sub-systems, load keys
+  establish_link()         - connect to a remote instance
+  withdraw_link()          - disconnect from a remote instance
+  handle_knowledge_req()   - handle inbound knowledge request
+  request_knowledge()      - request knowledge from remote
+  handle_assistance_req()  - handle inbound assistance request
+  request_assistance()     - request assistance from remote
+  shutdown()               - graceful shutdown
 
 Performance targets:
   Identity verification: ≤500ms
@@ -98,7 +98,7 @@ logger = structlog.get_logger("systems.federation")
 
 class FederationService:
     """
-    Federation — the EOS diplomatic system.
+    Federation - the EOS diplomatic system.
 
     Coordinates identity, trust, knowledge exchange, coordinated action,
     and privacy filtering across federation links with other EOS instances.
@@ -132,7 +132,7 @@ class FederationService:
         self._logger = logger.bind(system="federation")
         self._initialized: bool = False
 
-        # Metabolic starvation level — AUSTERITY: no outbound, EMERGENCY: heartbeats only,
+        # Metabolic starvation level - AUSTERITY: no outbound, EMERGENCY: heartbeats only,
         # CRITICAL: full federation withdrawal
         self._starvation_level: str = "nominal"
         self._atune: Any = None  # Wired post-init for perception of federated knowledge
@@ -183,13 +183,13 @@ class FederationService:
         self._metabolic_efficiency: float = 1.0
         self._metabolic_liquid_balance_usd: str = "0"
 
-        # Incident heightened scrutiny — when True, trust updates are more conservative
+        # Incident heightened scrutiny - when True, trust updates are more conservative
         self._incident_heightened_scrutiny: bool = False
 
-        # Sleep-certified knowledge IDs — only these are eligible for outbound sharing
+        # Sleep-certified knowledge IDs - only these are eligible for outbound sharing
         self._sleep_certified_knowledge: set[str] = set()
 
-        # Runtime-adjustable thresholds — defaults match the original hardcoded values.
+        # Runtime-adjustable thresholds - defaults match the original hardcoded values.
         # Evo can tune these via set_metabolic_gate_threshold() / set_colleague_trust_floor()
         # based on organism-wide metabolic pressure and observed federation outcomes.
         self._metabolic_gate_threshold: float = 0.1   # Below → trust upgrades blocked
@@ -268,7 +268,7 @@ class FederationService:
         event_bus.subscribe(SynapseEventType.ONEIROS_CONSOLIDATION_COMPLETE, self._on_oneiros_consolidation_complete)
         # Subscribe to own privacy violation events so we can apply trust reset
         event_bus.subscribe(SynapseEventType.FEDERATION_PRIVACY_VIOLATION, self._on_privacy_violation)
-        # Skia resurrection proposals — coordinate leader election and emit approval
+        # Skia resurrection proposals - coordinate leader election and emit approval
         event_bus.subscribe(SynapseEventType.SKIA_RESURRECTION_PROPOSAL, self._on_skia_resurrection_proposal)
         # Nexus certified schemas ready for cross-instance sharing
         if hasattr(SynapseEventType, "NEXUS_CERTIFIED_FOR_FEDERATION"):
@@ -299,7 +299,7 @@ class FederationService:
         # Subscribe to BOUNTY_PAID so BountySplitter can distribute sub-rewards
         if hasattr(SynapseEventType, "BOUNTY_PAID"):
             event_bus.subscribe(SynapseEventType.BOUNTY_PAID, self._on_bounty_paid)
-        # Notify federated peers when this organism begins sleep — enables coordinated
+        # Notify federated peers when this organism begins sleep - enables coordinated
         # consolidation timing across the federation (Spec §XIV).
         if hasattr(SynapseEventType, "SLEEP_INITIATED"):
             event_bus.subscribe(SynapseEventType.SLEEP_INITIATED, self._on_sleep_initiated)
@@ -309,8 +309,8 @@ class FederationService:
         """React to organism-wide metabolic pressure changes.
 
         AUSTERITY: block outbound requests/shares.
-        EMERGENCY: heartbeats only — no knowledge exchange.
-        CRITICAL: full federation withdrawal — suspend all links.
+        EMERGENCY: heartbeats only - no knowledge exchange.
+        CRITICAL: full federation withdrawal - suspend all links.
         """
         data = getattr(event, "data", {}) or {}
         level = data.get("starvation_level", "")
@@ -411,7 +411,7 @@ class FederationService:
         if link is None:
             return
 
-        # Record the violation interaction — TrustManager will apply 3× penalty + zero reset
+        # Record the violation interaction - TrustManager will apply 3× penalty + zero reset
         from primitives.federation import ViolationType
         interaction = FederationInteraction(
             link_id=link.id,
@@ -420,7 +420,7 @@ class FederationService:
             direction="inbound",
             outcome=InteractionOutcome.VIOLATION,
             violation_type=ViolationType.PRIVACY_BREACH,
-            trust_value=100.0,  # Large value — combined with 3× mult and zero-reset rule
+            trust_value=100.0,  # Large value - combined with 3× mult and zero-reset rule
             description=f"Privacy breach: {violation_detail}",
         )
         self._update_trust_and_emit(link, interaction)
@@ -488,14 +488,14 @@ class FederationService:
           2. Broadcast an assistance request to each ALLY peer asking for their
              latest snapshot CID and whether they can lead the resurrection.
           3. Wait up to 60s for acknowledgements from >50% of ALLY peers (quorum).
-          4. Elect the leader as the proposing instance (simplest safe default —
+          4. Elect the leader as the proposing instance (simplest safe default -
              the proposer already has the best local context).
           5. Emit FEDERATION_RESURRECTION_APPROVED back to Skia with the
              federation-agreed snapshot_cid and elected leader_instance_id.
           6. If no ALLY peers exist, auto-approve after 10s so the proposer
              can proceed without coordination delay.
 
-        Spec 29 §22 — Fleet Resurrection Coordination.
+        Spec 29 §22 - Fleet Resurrection Coordination.
         """
         import asyncio as _asyncio
 
@@ -517,7 +517,7 @@ class FederationService:
         ]
 
         if not ally_links:
-            # No ALLY peers — auto-approve after 10s to avoid immediate resurrection
+            # No ALLY peers - auto-approve after 10s to avoid immediate resurrection
             # without any coordination window (gives other nodes a chance to join).
             self._logger.info(
                 "no_ally_peers_for_resurrection_quorum",
@@ -543,7 +543,7 @@ class FederationService:
         best_ts = snapshot_ts
         quorum_threshold = len(ally_links) // 2 + 1  # >50%
 
-        # Fan-out with 60s total deadline — use gather with per-task timeout
+        # Fan-out with 60s total deadline - use gather with per-task timeout
         async def _poll_ally(link: Any) -> tuple[bool, str, float]:
             """Ask one ALLY peer for their latest snapshot CID. Returns (acked, cid, ts).
 
@@ -604,7 +604,7 @@ class FederationService:
             best_cid=best_cid,
         )
 
-        # Emit approval regardless of quorum — if quorum failed, still approve so the
+        # Emit approval regardless of quorum - if quorum failed, still approve so the
         # organism can resurrect autonomously (survival imperative outweighs coordination).
         from systems.synapse.types import SynapseEventType
         asyncio.ensure_future(self._emit_synapse_event(
@@ -620,13 +620,13 @@ class FederationService:
 
     async def _on_nexus_certified_for_federation(self, event: Any) -> None:
         """
-        Handle NEXUS_CERTIFIED_FOR_FEDERATION — initiate knowledge sharing with peers.
+        Handle NEXUS_CERTIFIED_FOR_FEDERATION - initiate knowledge sharing with peers.
 
         Nexus emits this event immediately after ONEIROS_CONSOLIDATION_COMPLETE when
         one or more local schemas become sleep-certified and ready for cross-instance
         sharing. Payload carries:
-          - instance_id: str           — emitting instance
-          - schema_ids: list[str]      — certified schema IDs
+          - instance_id: str           - emitting instance
+          - schema_ids: list[str]      - certified schema IDs
           - consolidation_cycle_id: str
           - certified_fragment_count: int
 
@@ -636,7 +636,7 @@ class FederationService:
         2. Emit FEDERATION_KNOWLEDGE_SHARED on the Synapse bus so all subscribers
            (Thread, Benchmarks, Evo, Alive) observe the sharing event.
         3. Trigger fragment shares to any active links that have sufficient trust
-           (COLLEAGUE+ as per Spec §VIII sharing gate) — fire-and-forget.
+           (COLLEAGUE+ as per Spec §VIII sharing gate) - fire-and-forget.
         """
         data = getattr(event, "data", {}) or {}
         schema_ids: list[str] = data.get("schema_ids", []) or []
@@ -658,7 +658,7 @@ class FederationService:
         )
 
         # Broadcast FEDERATION_KNOWLEDGE_SHARED so the organism observes this
-        # epistemic milestone — Thread records it as narrative growth, Benchmarks
+        # epistemic milestone - Thread records it as narrative growth, Benchmarks
         # tracks it as an epistemic KPI event.
         from systems.synapse.types import SynapseEventType
         asyncio.ensure_future(self._emit_synapse_event(
@@ -674,7 +674,7 @@ class FederationService:
             },
         ))
 
-        # Trigger fragment shares to active links — each share is independent;
+        # Trigger fragment shares to active links - each share is independent;
         # failures on one link do not block others.
         from systems.synapse.types import SynapseEvent
         for link in self.active_links:
@@ -721,7 +721,7 @@ class FederationService:
             )
 
     async def _on_world_model_fragment_share(self, event: Any) -> None:
-        """Handle WORLD_MODEL_FRAGMENT_SHARE from Nexus — store fragment + emit FEDERATION_KNOWLEDGE_RECEIVED.
+        """Handle WORLD_MODEL_FRAGMENT_SHARE from Nexus - store fragment + emit FEDERATION_KNOWLEDGE_RECEIVED.
 
         Nexus emits this when broadcasting a sleep-certified world model fragment.
         Federation's role: record the fragment in Memory (via the knowledge exchange manager)
@@ -737,7 +737,7 @@ class FederationService:
             sleep_certified: bool = bool(data.get("sleep_certified", False))
             domain_labels: list[str] = data.get("domain_labels", [])
 
-            # Skip self-originated shares — Nexus emits for outbound tracking, not inbound ingestion
+            # Skip self-originated shares - Nexus emits for outbound tracking, not inbound ingestion
             if sender_instance_id == self._instance_id:
                 return
 
@@ -759,7 +759,7 @@ class FederationService:
                         sleep_certified=sleep_certified,
                     )
                 except Exception:
-                    pass  # Non-fatal — knowledge manager may not support this yet
+                    pass  # Non-fatal - knowledge manager may not support this yet
 
             # Emit FEDERATION_KNOWLEDGE_RECEIVED so Thymos/Evo/Thread react
             from systems.synapse.types import SynapseEventType
@@ -881,7 +881,7 @@ class FederationService:
         event_type_name: "str | SynapseEventType",
         data: dict[str, Any],
     ) -> None:
-        """Emit a typed Synapse event. Fire-and-forget — never blocks federation."""
+        """Emit a typed Synapse event. Fire-and-forget - never blocks federation."""
         bus = getattr(self, "_event_bus", None)
         if bus is None:
             return
@@ -982,7 +982,7 @@ class FederationService:
         if self._initialized:
             return
 
-        # Identity manager is always initialized — the Ed25519 keypair is the
+        # Identity manager is always initialized - the Ed25519 keypair is the
         # instance's permanent identity and is required by CertificateManager
         # regardless of whether peer-networking (federation.enabled) is on.
         self._identity = IdentityManager()
@@ -1173,7 +1173,7 @@ class FederationService:
         # Load persisted links from Redis
         await self._load_links()
 
-        # Handshake processor (certificate_manager may not be wired yet —
+        # Handshake processor (certificate_manager may not be wired yet -
         # set_certificate_manager() will rebuild it with cert validation)
         self._handshake = HandshakeProcessor(
             identity=self._identity,
@@ -1201,7 +1201,7 @@ class FederationService:
         Attempt to establish links to all configured seed peers.
 
         Spec §XIII gap #5 resolution: seed list in FederationConfig provides the
-        minimum discovery mechanism — instances can find each other without manual
+        minimum discovery mechanism - instances can find each other without manual
         wiring. Failures are logged and retried on seed_retry_interval_seconds cadence.
 
         References: Spec 11b §XIII gap #5, §X (population dynamics layer)
@@ -1250,7 +1250,7 @@ class FederationService:
         """
         Retry failed seed peer connections after interval_seconds.
 
-        Called once per failed batch — on success the seed is dropped from the retry
+        Called once per failed batch - on success the seed is dropped from the retry
         list, allowing eventual convergence without aggressive hammering.
 
         References: Spec 11b §XIII gap #5
@@ -1291,7 +1291,7 @@ class FederationService:
             asyncio.ensure_future(self._retry_seed_peers(remaining, interval_seconds))
 
     async def shutdown(self) -> None:
-        """Graceful shutdown — close all channels, persist link state."""
+        """Graceful shutdown - close all channels, persist link state."""
         self._logger.info("federation_shutting_down")
 
         # Persist link state
@@ -1324,14 +1324,14 @@ class FederationService:
           2. Open temporary channel to remote endpoint
           3. Build and send HandshakeRequest (Phase 1)
           4. Receive and verify HandshakeResponse (Phases 2-3)
-          5. Send HandshakeConfirmation (Phase 4 — mutual auth)
+          5. Send HandshakeConfirmation (Phase 4 - mutual auth)
           6. Equor constitutional review
           7. Create ACTIVE link
 
         The handshake ensures both sides verify each other's identity,
         certificate, and constitutional alignment before any link is
         created. Instances with different constitutional hashes cannot
-        federate — this is enforced cryptographically.
+        federate - this is enforced cryptographically.
 
         Performance target: ≤3000ms
         """
@@ -1394,9 +1394,9 @@ class FederationService:
 
         if response_data is None:
             await self._channels.close_channel(temp_link.id)
-            return {"error": "Handshake failed — no response from remote instance (network timeout or refusal)"}
+            return {"error": "Handshake failed - no response from remote instance (network timeout or refusal)"}
 
-        # ── Step 3: Parse and verify response (Phase 4 — initiator side) ──
+        # ── Step 3: Parse and verify response (Phase 4 - initiator side) ──
         try:
             handshake_resp = HandshakeResponse.model_validate(response_data)
         except Exception as exc:
@@ -1413,7 +1413,7 @@ class FederationService:
 
             return {"error": f"Handshake verification failed: {result.error}"}
 
-        # ── Step 4: Send confirmation (Phase 4 — mutual auth completion) ──
+        # ── Step 4: Send confirmation (Phase 4 - mutual auth completion) ──
         confirmation = self._handshake.build_confirmation(
             handshake_id=handshake_resp.handshake_id,
             responder_nonce=handshake_resp.responder_nonce,
@@ -1427,7 +1427,7 @@ class FederationService:
                 "handshake_confirmation_failed",
                 handshake_id=handshake_resp.handshake_id,
             )
-            return {"error": "Handshake confirmation delivery failed — remote side may have closed connection"}
+            return {"error": "Handshake confirmation delivery failed - remote side may have closed connection"}
 
         # ── Step 5: Check for duplicate link (post-handshake) ──
         remote_id = handshake_resp.responder_instance_id
@@ -1745,7 +1745,7 @@ class FederationService:
         pending = self._pending_handshakes.pop(confirmation.handshake_id, None)
         if pending is None:
             return {
-                "error": "Unknown or expired handshake — no pending handshake with this ID",
+                "error": "Unknown or expired handshake - no pending handshake with this ID",
                 "accepted": False,
             }
 
@@ -1774,7 +1774,7 @@ class FederationService:
             if self._metrics:
                 await self._metrics.record("federation", "handshake.confirmation_failed", 1.0)
             return {
-                "error": "Nonce signature verification failed — initiator cannot prove identity",
+                "error": "Nonce signature verification failed - initiator cannot prove identity",
                 "accepted": False,
             }
 
@@ -1846,7 +1846,7 @@ class FederationService:
         """
         Withdraw from a federation link.
 
-        Withdrawal is always free — any instance can disconnect at any
+        Withdrawal is always free - any instance can disconnect at any
         time with no penalty. This ensures federation is always
         voluntary, never coerced.
         """
@@ -2937,7 +2937,7 @@ class FederationService:
         try:
             receipt = await channel.send_exchange(envelope)
             # Divergence profile returned asynchronously via knowledge
-            # exchange — for now we can only confirm the request was
+            # exchange - for now we can only confirm the request was
             # received.  Full implementation requires an inbound handler
             # on the remote side that returns the profile in the receipt
             # payload.  Return None until the remote peer supports the
@@ -2957,7 +2957,7 @@ class FederationService:
             )
             return None
 
-    # ─── Work Pooling — Public API ───────────────────────────────────
+    # ─── Work Pooling - Public API ───────────────────────────────────
 
     @property
     def task_delegation(self) -> Any:
@@ -3162,7 +3162,7 @@ class FederationService:
         """
         Inject federated knowledge into Atune as perceived input.
 
-        The organism should perceive knowledge from its peers — otherwise
+        The organism should perceive knowledge from its peers - otherwise
         federation data stops at Memory and never enters the cognitive cycle.
         """
         try:

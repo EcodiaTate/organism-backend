@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nexus: Epistemic Triangulation Service
+EcodiaOS - Nexus: Epistemic Triangulation Service
 
 Orchestrates fragment extraction, convergence detection, divergence
 measurement, incentive computation, speciation detection, invariant
@@ -8,22 +8,22 @@ bridge exchange, and ground truth promotion across the federation.
 Nexus decides WHAT to share; Federation handles HOW.
 
 Sub-components:
-  ConvergenceDetector         — structural isomorphism comparison
-  InstanceDivergenceMeasurer  — five-dimensional divergence scoring
-  DivergenceIncentiveEngine   — triangulation weights + speciation pressure
-  SpeciationDetector          — detects divergence >= 0.8 speciation events
-  InvariantBridge             — cross-speciation causal invariant exchange
-  SpeciationRegistry          — tracks cognitive kinds and bridge connections
-  GroundTruthPromotionPipeline — Level 0-4 epistemic promotion
+  ConvergenceDetector         - structural isomorphism comparison
+  InstanceDivergenceMeasurer  - five-dimensional divergence scoring
+  DivergenceIncentiveEngine   - triangulation weights + speciation pressure
+  SpeciationDetector          - detects divergence >= 0.8 speciation events
+  InvariantBridge             - cross-speciation causal invariant exchange
+  SpeciationRegistry          - tracks cognitive kinds and bridge connections
+  GroundTruthPromotionPipeline - Level 0-4 epistemic promotion
 
 Synapse events emitted:
-  FRAGMENT_SHARED               — a fragment was sent to the federation
-  CONVERGENCE_DETECTED          — structural convergence found
-  DIVERGENCE_PRESSURE           — speciation pressure generated
-  TRIANGULATION_WEIGHT_UPDATE   — instance weight recalculated
-  SPECIATION_EVENT              — two instances diverged beyond threshold
-  GROUND_TRUTH_CANDIDATE        — fragment reached Level 3
-  EMPIRICAL_INVARIANT_CONFIRMED — fragment reached Level 4 (constitutional)
+  FRAGMENT_SHARED               - a fragment was sent to the federation
+  CONVERGENCE_DETECTED          - structural convergence found
+  DIVERGENCE_PRESSURE           - speciation pressure generated
+  TRIANGULATION_WEIGHT_UPDATE   - instance weight recalculated
+  SPECIATION_EVENT              - two instances diverged beyond threshold
+  GROUND_TRUTH_CANDIDATE        - fragment reached Level 3
+  EMPIRICAL_INVARIANT_CONFIRMED - fragment reached Level 4 (constitutional)
 """
 
 from __future__ import annotations
@@ -95,7 +95,7 @@ class NexusService:
     """
     Epistemic Triangulation across Federation.
 
-    Instances don't share beliefs — they share the structure beneath
+    Instances don't share beliefs - they share the structure beneath
     beliefs. Convergence across maximally diverse compression paths
     is the primary evidence for ground truth.
 
@@ -117,12 +117,12 @@ class NexusService:
         self._divergence_measurer: InstanceDivergenceMeasurer | None = None
         self._incentive_engine: DivergenceIncentiveEngine | None = None
 
-        # Sub-components (Phase C — Speciation)
+        # Sub-components (Phase C - Speciation)
         self._speciation_detector = SpeciationDetector(config=self._config)
         self._invariant_bridge = InvariantBridge()
         self._speciation_registry = SpeciationRegistry()
 
-        # Sub-component (Phase D — Ground Truth Promotion)
+        # Sub-component (Phase D - Ground Truth Promotion)
         self._promotion_pipeline: GroundTruthPromotionPipeline | None = None
 
         # External dependencies (injected post-init)
@@ -139,7 +139,7 @@ class NexusService:
         self._logos_adapter: LogosWriteBackProtocol | None = None
         self._kairos: KairosCausalSourceProtocol | None = None
 
-        # Persistence layer (optional — graceful degradation if not wired)
+        # Persistence layer (optional - graceful degradation if not wired)
         self._persistence: NexusPersistence | None = None
 
         # Instance identity
@@ -248,7 +248,7 @@ class NexusService:
         Wire Kairos for bidirectional Tier 3 invariant sync.
 
         Kairos pushes Tier 3 to Nexus via share_fragment(), but Nexus
-        also needs to pull fresh discoveries — especially after sleep cycles.
+        also needs to pull fresh discoveries - especially after sleep cycles.
         """
         self._kairos = kairos
 
@@ -387,7 +387,7 @@ class NexusService:
                     levels,
                     bridge_survivors,
                     fragments,
-                    _converged_invariants,  # informational — not re-indexed
+                    _converged_invariants,  # informational - not re-indexed
                     profiles,
                 ) = await self._persistence.restore_full_state()
 
@@ -400,13 +400,13 @@ class NexusService:
                 for frag_id in bridge_survivors:
                     self._promotion_pipeline.mark_bridge_survivor(frag_id)
 
-                # Restore local fragments (R1) — skip if fragment_id already
+                # Restore local fragments (R1) - skip if fragment_id already
                 # present (in-memory state takes priority over persisted).
                 for f in fragments:
                     if f.fragment_id not in self._local_fragments:
                         self._local_fragments[f.fragment_id] = f
 
-                # Restore remote divergence profiles (R5) — later captures
+                # Restore remote divergence profiles (R5) - later captures
                 # overwrite earlier ones for the same instance_id.
                 for p in profiles:
                     self._remote_profiles[p.instance_id] = p
@@ -477,7 +477,7 @@ class NexusService:
             if schema_id in self._schema_to_fragment:
                 continue
 
-            # Build relational skeleton from structural fields — strip all
+            # Build relational skeleton from structural fields - strip all
             # domain-specific labels (name, description) before sharing.
             raw_structure: dict[str, Any] = {}
             pattern = schema.get("pattern", {})
@@ -577,7 +577,7 @@ class NexusService:
 
     async def _on_speciation_event(self, event: SynapseEvent) -> None:
         """
-        Handle SPECIATION_EVENT — trigger InvariantBridge exchange.
+        Handle SPECIATION_EVENT - trigger InvariantBridge exchange.
 
         When two instances speciate, normal fragment sharing stops.
         This handler initiates the InvariantBridge exchange so causal
@@ -621,7 +621,7 @@ class NexusService:
 
     async def _on_kairos_tier3_discovered(self, event: SynapseEvent) -> None:
         """
-        Handle KAIROS_TIER3_INVARIANT_DISCOVERED — auto-ingest as local fragment.
+        Handle KAIROS_TIER3_INVARIANT_DISCOVERED - auto-ingest as local fragment.
 
         When Kairos discovers a Tier 3 substrate-independent invariant,
         Nexus immediately ingests it for federation sharing. This is the
@@ -719,7 +719,7 @@ class NexusService:
         schema_ids = event.data.get("schema_ids", [])
         if not isinstance(schema_ids, list):
             # Backward compatibility: if event doesn't include schema_ids,
-            # skip per-schema cert — blanket cert from WAKE_INITIATED applies
+            # skip per-schema cert - blanket cert from WAKE_INITIATED applies
             return
 
         certified_count = 0
@@ -837,7 +837,7 @@ class NexusService:
             return
 
         # Flag the divergence measurer so the next cycle re-measures hypothesis diversity.
-        # This is sufficient — the divergence loop will propagate the correction via
+        # This is sufficient - the divergence loop will propagate the correction via
         # DIVERGENCE_PRESSURE if the domain diverges meaningfully from federation peers.
         if self._divergence_measurer is not None:
             logger.debug(
@@ -873,7 +873,7 @@ class NexusService:
         if not instance_id or instance_id == self._instance_id:
             return
 
-        # Initialize an empty profile — will be populated on first measurement
+        # Initialize an empty profile - will be populated on first measurement
         stub_profile = InstanceDivergenceProfile(instance_id=instance_id)
         self._remote_profiles[instance_id] = stub_profile
 
@@ -929,7 +929,7 @@ class NexusService:
         matches the affected system. This prevents corrupted signals from inflating
         ground-truth confidence until re-validated by a new federation round.
 
-        The penalty is conservative (×0.8) — not a hard revocation — so the
+        The penalty is conservative (×0.8) - not a hard revocation - so the
         organism can still reason with partially-trusted knowledge while re-validation
         converges. On next fragment receive + convergence, the confidence auto-repairs
         via ConvergenceDetector.update_triangulation().
@@ -1008,7 +1008,7 @@ class NexusService:
         3. Compare the threat fragment against all local fragments in the
            matching domain using WL-1 convergence.
         4. If best convergence_score < 0.4 AND we have local fragments in
-           that domain, the domain is epistemically unstable under threat —
+           that domain, the domain is epistemically unstable under threat -
            emit DIVERGENCE_PRESSURE warning via Synapse.
         5. Log outcome regardless for observability.
         """
@@ -1064,7 +1064,7 @@ class NexusService:
 
         # Low convergence against the threat fragment means our world model
         # in this domain is STABLE (structurally different from the threat).
-        # HIGH convergence means our model looks similar to the adversarial state —
+        # HIGH convergence means our model looks similar to the adversarial state -
         # epistemic instability under threat.
         epistemic_instability = best_score >= 0.4
 
@@ -1092,7 +1092,7 @@ class NexusService:
                     "epistemic_instability_score": round(best_score, 3),
                     "recommendation": (
                         f"Domain '{domain}' world model is structurally similar to "
-                        "adversarial threat state — explore alternative framings."
+                        "adversarial threat state - explore alternative framings."
                     ),
                     "timestamp": utc_now().isoformat(),
                 },
@@ -1142,7 +1142,7 @@ class NexusService:
         """
         BOUNTY_PAID → record confirmed economic ground truth signal.
 
-        A paid bounty is one of the strongest economic ground-truth signals —
+        A paid bounty is one of the strongest economic ground-truth signals -
         an external party has validated the organism's capability. Nexus records
         this as a high-confidence economic signal and triggers promotion evaluation
         for any bounty-domain fragments. If 3+ federation peers have confirmed
@@ -1165,12 +1165,12 @@ class NexusService:
                 # Elevate triangulation confidence on bounty fragments
                 for frag in bounty_fragments:
                     current = frag.triangulation.triangulation_confidence
-                    # Confirmed revenue is concrete evidence — boost confidence
+                    # Confirmed revenue is concrete evidence - boost confidence
                     frag.triangulation.triangulation_confidence = min(
                         1.0, current + 0.05
                     )
 
-            # Trigger promotion pipeline — may promote to Level 3+ on peer confirmation
+            # Trigger promotion pipeline - may promote to Level 3+ on peer confirmation
             await self.evaluate_all_promotions()
 
             logger.info(
@@ -1228,7 +1228,7 @@ class NexusService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Nexus directive: {"mode": "inbound_only"} — accept incoming fragments
+        Nexus directive: {"mode": "inbound_only"} - accept incoming fragments
         but pause outbound sharing to reduce bandwidth during austerity.
         """
         mode = directives.get("mode")
@@ -1323,7 +1323,7 @@ class NexusService:
         """
         Extract a shareable fragment from a world model schema.
 
-        The abstract_structure should have domain labels already stripped —
+        The abstract_structure should have domain labels already stripped -
         only relational skeleton (nodes, edges, symmetry, invariants).
 
         domain_hints and economic_context (NEXUS-ECON-2/3) preserve economic
@@ -1534,7 +1534,7 @@ class NexusService:
                 ),
             )
 
-        # Block post-speciation fragment sharing — only InvariantBridge remains.
+        # Block post-speciation fragment sharing - only InvariantBridge remains.
         # After speciation, structural languages are incompatible; fragments
         # cannot meaningfully converge and sharing is epistemically unsound.
         if not self.is_fragment_sharing_allowed(fragment.source_instance_id):
@@ -1626,7 +1626,7 @@ class NexusService:
         #   - Convergence achieved → bonus signal + economic_reward_usd
         #     (convergence_tier × 0.001 USDC; reset divergence counter)
         #   - No convergence → increment counter; penalty when threshold crossed
-        #   Divergent instances receive no reward — selection pressure toward sharing.
+        #   Divergent instances receive no reward - selection pressure toward sharing.
         if best_convergence is not None:
             self._consecutive_divergence_cycles = 0
             # Determine the local fragment's current epistemic level for tier reward.
@@ -1759,7 +1759,7 @@ class NexusService:
         results: dict[str, DivergenceScore] = {}
 
         for link_id in link_ids:
-            # Check link health before measuring — skip links that are
+            # Check link health before measuring - skip links that are
             # in a circuit-breaker open state (too many consecutive failures).
             if self._is_link_circuit_open(link_id):
                 logger.debug("link_circuit_open_skipping", link_id=link_id)
@@ -1796,7 +1796,7 @@ class NexusService:
         all_profiles.append(local_profile)
         self._incentive_engine.update_federation_domains(all_profiles)
 
-        # Compute weight — snapshot previous so TRIANGULATION_WEIGHT_UPDATE
+        # Compute weight - snapshot previous so TRIANGULATION_WEIGHT_UPDATE
         # can report the delta (spec §XI mandates previous_weight in payload).
         previous_weight = self._triangulation_weight
         self._triangulation_weight = (
@@ -1859,7 +1859,7 @@ class NexusService:
         self._speciation_registry.register_speciation(
             event,
             logos_a=self._world_model,
-            # Remote Logos not directly available — metadata comes from score
+            # Remote Logos not directly available - metadata comes from score
             logos_b=None,
         )
 
@@ -1956,7 +1956,7 @@ class NexusService:
         Pull Tier 3 invariants from Kairos and ingest as local fragments.
 
         Closes the bidirectional loop: Kairos pushes new Tier 3 discoveries
-        via share_fragment(), and Nexus pulls any it may have missed —
+        via share_fragment(), and Nexus pulls any it may have missed -
         especially after sleep cycles when Kairos may have promoted invariants.
 
         Returns the number of new fragments ingested.
@@ -2041,7 +2041,7 @@ class NexusService:
         """
         Check if normal fragment sharing is allowed with a remote instance.
 
-        Post-speciation, normal sharing is blocked — only invariant bridge
+        Post-speciation, normal sharing is blocked - only invariant bridge
         exchange remains possible.
         """
         return not self._speciation_registry.are_speciated(
@@ -2505,7 +2505,7 @@ class NexusService:
 
         NEXUS-ECON-4: economic_divergence measures revenue-per-strategy
         variance. When divergence is high (> 0.6), peers have independently
-        discovered different profitable strategies — this is signal, not noise.
+        discovered different profitable strategies - this is signal, not noise.
         Emit DIVERGENCE_PRESSURE with economic context so Oikos and Evo can
         investigate and potentially synthesise across strategies.
         """
@@ -2563,7 +2563,7 @@ class NexusService:
                 "diverged_strategies": [s for s, _ in top_strategies],
                 "peer_count": len(profiled),
                 "recommendation": (
-                    "Investigate differing economic strategies — "
+                    "Investigate differing economic strategies - "
                     "high economic divergence may indicate unexplored profitable paths."
                 ),
             },

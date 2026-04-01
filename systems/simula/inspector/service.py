@@ -1,18 +1,18 @@
 """
-EcodiaOS — Inspector Service Orchestrator (Phase 7)
+EcodiaOS - Inspector Service Orchestrator (Phase 7)
 
 Coordinates the full hunting pipeline from target to vulnerability reports:
 
-  1. INGEST   — clone external repo or point at internal EOS workspace
-  2. MAP      — discover exploitable attack surfaces via AST/regex scanning
-  3. PROVE    — encode attacker goals as Z3 constraints, check satisfiability
-  4. EXPLOIT  — translate Z3 SAT counterexamples into proof-of-concept scripts
-  5. PATCH    — optionally generate + verify patches via RepairAgent
-  6. REPORT   — aggregate findings into a InspectionResult with full analytics
+  1. INGEST   - clone external repo or point at internal EOS workspace
+  2. MAP      - discover exploitable attack surfaces via AST/regex scanning
+  3. PROVE    - encode attacker goals as Z3 constraints, check satisfiability
+  4. EXPLOIT  - translate Z3 SAT counterexamples into proof-of-concept scripts
+  5. PATCH    - optionally generate + verify patches via RepairAgent
+  6. REPORT   - aggregate findings into a InspectionResult with full analytics
 
 Two entry points:
-  hunt_external_repo(github_url) — clone + full pipeline
-  hunt_internal_eos()            — scan the EOS codebase itself
+  hunt_external_repo(github_url) - clone + full pipeline
+  hunt_internal_eos()            - scan the EOS codebase itself
 
 Iron Rules (non-negotiable):
   - Inspector NEVER writes to EOS source files (only temp workspace files)
@@ -81,7 +81,7 @@ PREDEFINED_ATTACK_GOALS: list[str] = [
     "Race condition: concurrent access violates invariant",
 ]
 
-# Modules that a PoC script must never import — these allow host-level
+# Modules that a PoC script must never import - these allow host-level
 # side effects beyond HTTP requests.
 _FORBIDDEN_POC_MODULES = frozenset({
     "subprocess", "socket", "ctypes", "pickle", "shelve",
@@ -94,11 +94,11 @@ class InspectorService:
     Coordinates the full hunting pipeline from target to vulnerability reports.
 
     Integrates:
-      - TargetIngestor     (Phase 3) — clone repos, map attack surfaces
-      - VulnerabilityProver (Phase 4+5) — Z3 constraint inversion + PoC gen
-      - InspectorRepairOrchestrator (Phase 6) — autonomous patch generation
-      - InspectorAnalyticsEmitter (Phase 9) — structlog event instrumentation
-      - InspectorAnalyticsView (Phase 9) — aggregate vulnerability statistics
+      - TargetIngestor     (Phase 3) - clone repos, map attack surfaces
+      - VulnerabilityProver (Phase 4+5) - Z3 constraint inversion + PoC gen
+      - InspectorRepairOrchestrator (Phase 6) - autonomous patch generation
+      - InspectorAnalyticsEmitter (Phase 9) - structlog event instrumentation
+      - InspectorAnalyticsView (Phase 9) - aggregate vulnerability statistics
     """
 
     def __init__(
@@ -179,7 +179,7 @@ class InspectorService:
                 reason=getattr(config_check, "reason", "config validation failed"),
             )
 
-        # Aggregate analytics view — ingests every InspectionResult automatically
+        # Aggregate analytics view - ingests every InspectionResult automatically
         self._analytics_view = InspectorAnalyticsView()
 
         # Metrics
@@ -223,7 +223,7 @@ class InspectorService:
         Returns:
             InspectionResult with all discovered vulnerabilities and optional patches.
         """
-        # Step A: Authorization gate — target must be in authorized_targets
+        # Step A: Authorization gate - target must be in authorized_targets
         if not any(
             github_url.startswith(t) or t in github_url
             for t in self._config.authorized_targets
@@ -258,7 +258,7 @@ class InspectorService:
 
         log.info("hunt_started", url=github_url)
 
-        # Step 1: Clone and ingest — workspace is an async context manager;
+        # Step 1: Clone and ingest - workspace is an async context manager;
         # the temp directory is nuked from orbit on exit regardless of outcome.
         try:
             ingestor = await TargetIngestor.ingest_from_github(
@@ -316,7 +316,7 @@ class InspectorService:
         Run the hunting pipeline against the internal EOS codebase.
 
         Useful for continuous automated security testing of EOS itself.
-        The workspace is read-only — no temp files are created.
+        The workspace is read-only - no temp files are created.
 
         Args:
             attack_goals: Custom attack goals (defaults to PREDEFINED_ATTACK_GOALS).
@@ -588,7 +588,7 @@ class InspectorService:
                 except Exception:
                     pass  # best-effort
 
-        # Step 3b: Semantic slicing — strip boilerplate/logging from each surface's
+        # Step 3b: Semantic slicing - strip boilerplate/logging from each surface's
         # context before it reaches Z3, preventing state explosion on large codebases.
         if self._slicer:
             for surface in surfaces:
@@ -609,13 +609,13 @@ class InspectorService:
                     sliced_size=len(sliced_code),
                 )
 
-        # Step 3c: Autonomous Invariant Inference — for each surface, ask the LLM
+        # Step 3c: Autonomous Invariant Inference - for each surface, ask the LLM
         # to deduce the business-logic invariants implicit in the sliced code and
         # translate each one into a Z3 violation goal.  These per-surface goals are
         # appended to the surface's own attack_goals (not mutating the global list)
         # by collecting them into a per-surface map consumed in _prove_all.
         #
-        # If inference fails for a surface the pipeline continues unchanged —
+        # If inference fails for a surface the pipeline continues unchanged -
         # the inferencer always returns [] rather than raising.
         surface_inferred_goals: dict[str, list[str]] = {}
         if self._inferencer:
@@ -662,7 +662,7 @@ class InspectorService:
                 extra_goals=len(effective_goals) - len(goals),
             )
 
-        # Step 3d: Dynamic Concolic Execution — spin up a live environment so PoC
+        # Step 3d: Dynamic Concolic Execution - spin up a live environment so PoC
         # scripts can fire HTTP requests against the actual running application.
         #
         # Priority order:
@@ -675,7 +675,7 @@ class InspectorService:
         taint_graph: TaintGraph | None = None
 
         if workspace.is_external:
-            # Attempt 1: Topology chamber — distributed microservice cluster
+            # Attempt 1: Topology chamber - distributed microservice cluster
             if self._topology:
                 log.info("topology_chamber_starting")
                 try:
@@ -738,7 +738,7 @@ class InspectorService:
                             )
 
             # Attempt 2: Single-container detonation chamber (only if topology
-            # didn't yield a result — either absent or no compose file found)
+            # didn't yield a result - either absent or no compose file found)
             if topology_env is None and self._detonation:
                 log.info("detonation_chamber_starting")
                 try:
@@ -828,7 +828,7 @@ class InspectorService:
                 except Exception as exc:
                     log.warning("detonation_chamber_teardown_error", error=str(exc))
 
-        # Step 5b: Autonomous Shield — synthesize XDP filters for critical findings
+        # Step 5b: Autonomous Shield - synthesize XDP filters for critical findings
         # For each HIGH/CRITICAL vulnerability, ask the LLM to generate an XDP
         # program that drops packets matching the malicious signature.  The generated
         # C is compiled in-memory via BCC (dry-run only, no live attachment).
@@ -888,7 +888,7 @@ class InspectorService:
                         error_type=type(exc).__name__,
                     )
 
-        # Step 6: Build result — timestamps captured at correct points
+        # Step 6: Build result - timestamps captured at correct points
         elapsed_ms = int((time.monotonic() - start) * 1000)
 
         result = InspectionResult(
@@ -986,7 +986,7 @@ class InspectorService:
         Run the prove → temporal → verify → repair → patch phases.
 
         Separated from _run_hunt_pipeline so the detonation chamber context
-        manager can wrap this entire block — the live container stays up for
+        manager can wrap this entire block - the live container stays up for
         all proving passes, then is torn down after.
 
         Args:
@@ -1024,7 +1024,7 @@ class InspectorService:
             dynamic_execution=prover_target_url != target_url,
         )
 
-        # Step 4a: Temporal engine — concurrent race-condition proofs
+        # Step 4a: Temporal engine - concurrent race-condition proofs
         # Runs in parallel across all surfaces, then merged into vulnerabilities
         # before Agent Blue's adversarial debate so races are also scrutinised.
         if self._temporal and surfaces:
@@ -1056,7 +1056,7 @@ class InspectorService:
             else:
                 log.info("temporal_engine_complete", race_conditions_found=0)
 
-        # Step 4b: Adversarial verification pass — Agent Blue debates each PoC
+        # Step 4b: Adversarial verification pass - Agent Blue debates each PoC
         if self._verifier and vulnerabilities:
             log.info("adversarial_verification_started", findings=len(vulnerabilities))
             vulnerabilities = [
@@ -1073,7 +1073,7 @@ class InspectorService:
                     vulnerability_class=fp.vulnerability_class.value,
                     defender_notes=(fp.defender_notes or "")[:200],
                 )
-            # Discard false positives — only real findings proceed to patches/report
+            # Discard false positives - only real findings proceed to patches/report
             vulnerabilities = [
                 v for v in vulnerabilities
                 if v.severity != VulnerabilitySeverity.FALSE_POSITIVE
@@ -1084,7 +1084,7 @@ class InspectorService:
                 refuted=len(refuted),
             )
 
-        # Step 4c: RepairAgent — attach verified patched_code to each report
+        # Step 4c: RepairAgent - attach verified patched_code to each report
         # Runs only when generate_patches=True and the lightweight repair_agent is set.
         # A failed patch attempt is non-fatal; the report is delivered without patched_code.
         if generate_patches and self._repair_agent and vulnerabilities:

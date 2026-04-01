@@ -1,12 +1,12 @@
 """
-Integration tests for the economic event loop — DEAD-EVENTS-1 and RE-ECON-1 fixes.
+Integration tests for the economic event loop - DEAD-EVENTS-1 and RE-ECON-1 fixes.
 
 Verifies that economic Synapse events (YIELD_DEPLOYMENT_RESULT, BOUNTY_REJECTED,
 BOUNTY_PAID, REVENUE_INJECTED, METABOLIC_PRESSURE, YIELD_PERFORMANCE_REPORT) are
 correctly consumed by the subscribing systems (Evo, Simula, Thread, Nexus) and
 that the RE training exporter applies metabolic priority boosts during starvation.
 
-No real Neo4j, Redis, or LLM calls — all external dependencies are mocked.
+No real Neo4j, Redis, or LLM calls - all external dependencies are mocked.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ def _make_event(event_type_str: str, data: dict) -> Any:
     )
 
 
-# ─── Fix 2.1: Evo — YIELD_DEPLOYMENT_RESULT + BOUNTY_REJECTED ────────────────
+# ─── Fix 2.1: Evo - YIELD_DEPLOYMENT_RESULT + BOUNTY_REJECTED ────────────────
 
 
 @pytest.mark.asyncio
@@ -126,7 +126,7 @@ async def test_evo_bounty_rejected_emits_refuted() -> None:
     assert False in svc._bounty_outcomes
 
 
-# ─── Fix 2.2: Simula — economic event subscriptions + _metabolic_boost ───────
+# ─── Fix 2.2: Simula - economic event subscriptions + _metabolic_boost ───────
 
 
 @pytest.mark.asyncio
@@ -175,7 +175,7 @@ async def test_simula_revenue_injected_resets_boost_when_nominal() -> None:
     assert svc._metabolic_boost == 1.0
 
 
-# ─── Fix 2.5: RETrainingExporter — metabolic boost on economic examples ───────
+# ─── Fix 2.5: RETrainingExporter - metabolic boost on economic examples ───────
 
 
 @pytest.mark.asyncio
@@ -321,7 +321,7 @@ async def test_yield_performance_report_rebalance_needed_flag() -> None:
         patch.object(tracker, "load_position", new=AsyncMock(return_value=mock_position)),
         patch(
             "systems.oikos.yield_strategy._fetch_best_base_pool",
-            # 4% — a 60% relative drop from 10%
+            # 4% - a 60% relative drop from 10%
             new=AsyncMock(return_value=("aave-v3", Decimal("0.04"))),
         ),
     ):

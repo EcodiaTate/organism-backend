@@ -1,5 +1,5 @@
 """
-HuggingFaceChannel — AI model demand and commercialisation opportunities.
+HuggingFaceChannel - AI model demand and commercialisation opportunities.
 
 Uses HuggingFace's public Hub API (no auth for basic queries) to discover:
   - Models with high download counts but no API service → commercialisation gap
@@ -84,7 +84,7 @@ class HuggingFaceChannel(InputChannel):
 
             result.append(
                 self._make_opp(
-                    title=f"[HF] {model_id} — {downloads:,} downloads [{pipeline_tag}]",
+                    title=f"[HF] {model_id} - {downloads:,} downloads [{pipeline_tag}]",
                     description=(
                         f"Model {model_id} has {downloads:,} downloads and {likes} likes. "
                         f"Pipeline: {pipeline_tag}. "
@@ -123,7 +123,7 @@ class HuggingFaceChannel(InputChannel):
 
             result.append(
                 self._make_opp(
-                    title=f"[HF Dataset] {ds_id} — {downloads:,} downloads",
+                    title=f"[HF Dataset] {ds_id} - {downloads:,} downloads",
                     description=(
                         f"Trending HuggingFace dataset {ds_id} with {downloads:,} downloads. "
                         "Opportunity: fine-tune a model on this data and sell inference access."

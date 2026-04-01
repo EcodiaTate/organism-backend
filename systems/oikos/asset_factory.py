@@ -1,21 +1,21 @@
 """
-EcodiaOS — Oikos Asset Factory (Phase 16d: Entrepreneurship)
+EcodiaOS - Oikos Asset Factory (Phase 16d: Entrepreneurship)
 
 The Asset Factory is the organism's capacity to transition from freelancer
 to business owner. It designs, evaluates, deploys, and operates autonomous
 revenue-generating services (assets) that earn via a smart contract tollbooth.
 
 Responsibilities:
-  1. IDEATE    — receive market gap signals from Evo, generate candidate assets
-  2. EVALUATE  — score candidates on dev cost, projected revenue, break-even
-  3. APPROVE   — select viable candidates (ROI > threshold, break-even < 90 days)
-  4. BUILD     — command Simula to generate the service code
-  5. DEPLOY    — deploy to decentralised compute (Akash) with tollbooth contract
-  6. MONITOR   — track revenue, costs, break-even, and revenue trends
-  7. TERMINATE — shut down assets that fail break-even or show 30-day decline
+  1. IDEATE    - receive market gap signals from Evo, generate candidate assets
+  2. EVALUATE  - score candidates on dev cost, projected revenue, break-even
+  3. APPROVE   - select viable candidates (ROI > threshold, break-even < 90 days)
+  4. BUILD     - command Simula to generate the service code
+  5. DEPLOY    - deploy to decentralised compute (Akash) with tollbooth contract
+  6. MONITOR   - track revenue, costs, break-even, and revenue trends
+  7. TERMINATE - shut down assets that fail break-even or show 30-day decline
 
 The factory bridges Oikos (economics), Evo (market signals), and Simula
-(code generation). It does NOT bypass Equor — all asset deployments require
+(code generation). It does NOT bypass Equor - all asset deployments require
 constitutional review through the normal Axon pipeline.
 
 Thread-safety: NOT thread-safe. Designed for single-threaded asyncio event loop.
@@ -52,7 +52,7 @@ class AssetPolicy:
     Hard constraints for asset creation. The organism must meet ALL
     thresholds before an asset candidate is approved for build.
 
-    These are conservative defaults — Evo can propose adjustments
+    These are conservative defaults - Evo can propose adjustments
     via the normal ADJUST_BUDGET evolution path.
     """
 
@@ -78,10 +78,10 @@ class AssetPolicy:
     # Break-even deadline: terminate if not reached within this many days
     BREAK_EVEN_DEADLINE_DAYS: int = 90
 
-    # Minimum development cost — below this, the candidate is suspicious
+    # Minimum development cost - below this, the candidate is suspicious
     MIN_DEV_COST_USD: Decimal = Decimal("1.00")
 
-    # Maximum development cost — cap per-asset investment
+    # Maximum development cost - cap per-asset investment
     MAX_DEV_COST_USD: Decimal = Decimal("500.00")
 
 
@@ -120,7 +120,7 @@ class AssetFactory:
         Create a new asset candidate from a market gap signal.
 
         Typically called when Evo detects an underserved niche. The candidate
-        is scored but NOT automatically approved — call evaluate() next.
+        is scored but NOT automatically approved - call evaluate() next.
         """
         # Compute break-even days
         net_monthly = projected_monthly_revenue_usd - projected_monthly_cost_usd
@@ -170,7 +170,7 @@ class AssetFactory:
         Evaluate a candidate against the AssetPolicy.
 
         Returns the candidate with approved=True/False and rejection_reason set.
-        This is a pure economic decision — constitutional review happens later
+        This is a pure economic decision - constitutional review happens later
         in the Axon pipeline when the DeployAssetExecutor fires.
         """
         candidate = self._candidates.get(candidate_id)
@@ -254,7 +254,7 @@ class AssetFactory:
         Promote an approved candidate to an OwnedAsset in BUILDING state.
 
         The asset is added to OikosService's economic state. It is NOT yet
-        deployed — the DeployAssetExecutor handles code generation and deployment.
+        deployed - the DeployAssetExecutor handles code generation and deployment.
         """
         candidate = self._candidates.get(candidate_id)
         if candidate is None:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Parameter Tuner
+EcodiaOS - Evo Parameter Tuner
 
 Manages the set of tunable system parameters and applies evidence-backed adjustments.
 
@@ -21,16 +21,16 @@ What it cannot do (EVO_CONSTRAINTS):
 Velocity limits (spec Section IX):
   - max_single_parameter_delta = 0.03 (one step)
   - max_total_parameter_delta_per_cycle = 0.15
-  - Changes are ALWAYS small — personality doesn't flip
+  - Changes are ALWAYS small - personality doesn't flip
 
 Performance: parameter adjustment application ≤50ms (spec Section X).
 
 Feedback loop:
   - EVAL_CYCLE_COUNT: evaluate pending adjustments every 500 cycles
   - EVAL_MIN_SECONDS: or at least every 30 minutes (1800s)
-  - IMPROVEMENT_THRESHOLD: 1.05 — 5% improvement confirms the adjustment
-  - DEGRADATION_THRESHOLD: 0.95 — 5% degradation triggers auto-revert
-  - MAX_EVAL_EXTENSIONS: 2 — extend the window up to 2 times before forcing confirm
+  - IMPROVEMENT_THRESHOLD: 1.05 - 5% improvement confirms the adjustment
+  - DEGRADATION_THRESHOLD: 0.95 - 5% degradation triggers auto-revert
+  - MAX_EVAL_EXTENSIONS: 2 - extend the window up to 2 times before forcing confirm
 """
 
 from __future__ import annotations
@@ -130,7 +130,7 @@ class ParameterTuner:
 
         See Spec §IX: downstream systems (Atune, Nova, Voxis) call
         get_current_parameter() each cycle.  With event push they can react
-        immediately — no polling lag.
+        immediately - no polling lag.
         """
         self._event_bus = event_bus
 
@@ -351,7 +351,7 @@ class ParameterTuner:
             elif ratio > IMPROVEMENT_THRESHOLD:
                 await self._confirm_adjustment(record, ratio)
             else:
-                # Neutral — extend or force confirm
+                # Neutral - extend or force confirm
                 if record.extensions_used < MAX_EVAL_EXTENSIONS:
                     record.extensions_used += 1
                     self._logger.debug(
@@ -362,7 +362,7 @@ class ParameterTuner:
                     )
                     still_pending.append(record)
                 else:
-                    # Max extensions consumed — confirm conservatively
+                    # Max extensions consumed - confirm conservatively
                     await self._confirm_adjustment(record, ratio)
 
         self._pending_adjustments = still_pending
@@ -431,7 +431,7 @@ class ParameterTuner:
     ) -> None:
         """Push outcome evidence back to HypothesisEngine.
 
-        Best-effort — never blocks the tuner if the engine is unavailable.
+        Best-effort - never blocks the tuner if the engine is unavailable.
         """
         if self._hypothesis_engine is None:
             return
@@ -502,7 +502,7 @@ class ParameterTuner:
     async def _emit_parameter_adjusted(self, adjustment: ParameterAdjustment) -> None:
         """Emit EVO_PARAMETER_ADJUSTED on Synapse (Spec §IX push notification).
 
-        Best-effort — failure never blocks the learning loop.
+        Best-effort - failure never blocks the learning loop.
         """
         if self._event_bus is None:
             return
@@ -532,7 +532,7 @@ class ParameterTuner:
     ) -> None:
         """Emit EVO_PARAMETER_REVERTED on Synapse.
 
-        Best-effort — failure never blocks the revert logic.
+        Best-effort - failure never blocks the revert logic.
         """
         if self._event_bus is None:
             return

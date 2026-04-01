@@ -1,11 +1,11 @@
 """
-EcodiaOS — Thymos (System #12)
+EcodiaOS - Thymos (System #12)
 
 The immune system. Detects failures, diagnoses root causes, prescribes
 repairs, maintains an antibody library of learned fixes, and prevents
 future errors through prophylactic scanning and homeostatic regulation.
 
-Every error becomes an Incident — the organism feels it break and heals itself.
+Every error becomes an Incident - the organism feels it break and heals itself.
 """
 
 from systems.thymos.antibody import AntibodyLibrary
@@ -82,13 +82,13 @@ __all__ = [
     "ResponseRouter",
     "SeverityScorer",
     "TemporalCorrelator",
-    # Types — Enums
+    # Types - Enums
     "HealingMode",
     "IncidentClass",
     "IncidentSeverity",
     "RepairStatus",
     "RepairTier",
-    # Types — Models
+    # Types - Models
     "Antibody",
     "CausalChain",
     "ContractSLA",

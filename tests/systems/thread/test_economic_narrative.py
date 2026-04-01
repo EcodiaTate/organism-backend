@@ -106,7 +106,7 @@ class TestComputeEconomicDimensions:
         events_no_child = make_economic_events(["bounty_paid", "bounty_paid"])
         dims_child = monitor.compute_economic_dimensions(events_with_child)
         dims_no_child = monitor.compute_economic_dimensions(events_no_child)
-        # dim[4] = child_reproduction_preference — should be higher when child events dominate
+        # dim[4] = child_reproduction_preference - should be higher when child events dominate
         assert dims_child[4] > dims_no_child[4]
 
     def test_yield_events_raise_yield_inclination(self) -> None:
@@ -115,7 +115,7 @@ class TestComputeEconomicDimensions:
         events_bounty = make_economic_events(["bounty_paid", "bounty_paid"])
         dims_yield = monitor.compute_economic_dimensions(events_yield)
         dims_bounty = monitor.compute_economic_dimensions(events_bounty)
-        # dim[3] = yield_farming_inclination — higher when yield events dominate
+        # dim[3] = yield_farming_inclination - higher when yield events dominate
         assert dims_yield[3] > dims_bounty[3]
 
     def test_mixed_revenue_sources_raise_diversification(self) -> None:
@@ -131,7 +131,7 @@ class TestComputeEconomicDimensions:
             })
         dims_single = monitor.compute_economic_dimensions(events_single)
         dims_mixed = monitor.compute_economic_dimensions(events_mixed)
-        # dim[2] = revenue_stream_diversity — higher when sources are varied
+        # dim[2] = revenue_stream_diversity - higher when sources are varied
         assert dims_mixed[2] >= dims_single[2]
 
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oneiros v2: Lucid Dreaming Stage (Mutation Testing)
+EcodiaOS - Oneiros v2: Lucid Dreaming Stage (Mutation Testing)
 
 When Simula has mutation proposals, Oneiros enters Lucid Dreaming mode:
 1. Fork world model with mutation applied (shadow_world_model)
@@ -8,7 +8,7 @@ When Simula has mutation proposals, Oneiros enters Lucid Dreaming mode:
 4. Produce MutationTestResult for each scenario
 5. Aggregate into MutationSimulationReport with recommendation (apply/reject)
 
-Built against SimulaProtocol — does not import Simula directly.
+Built against SimulaProtocol - does not import Simula directly.
 If no mutations pending, skip lucid dreaming entirely.
 
 Broadcasts: LUCID_DREAM_RESULT for each mutation tested.
@@ -96,7 +96,7 @@ class MetaCognition:
     Queries the DreamJournal for recurring themes across recent Dreams,
     clusters them by semantic similarity (Jaccard over theme sets), and
     promotes high-frequency theme clusters to CONCEPT nodes in Neo4j
-    with is_core_identity=True.  No LLM — pure graph + set arithmetic.
+    with is_core_identity=True.  No LLM - pure graph + set arithmetic.
 
     Runs every lucid stage regardless of whether Simula has mutations.
     """
@@ -228,13 +228,13 @@ class DirectedExploration:
     - High-coherence DreamInsights (coherence ≥ 0.85) from the last sleep cycle
 
     Generates systematic variations using 4 operators:
-    1. Domain transfer  — "what if applied to domain X?"
-    2. Negation         — "what's the opposite / inverse?"
-    3. Amplification    — "taken to the extreme?"
-    4. Constraint       — "with resource constraint Y?"
+    1. Domain transfer  - "what if applied to domain X?"
+    2. Negation         - "what's the opposite / inverse?"
+    3. Amplification    - "taken to the extreme?"
+    4. Constraint       - "with resource constraint Y?"
 
     Stores each variation as a DreamInsight (InsightStatus.PENDING) in Neo4j.
-    No LLM — operator templates applied programmatically.
+    No LLM - operator templates applied programmatically.
     """
 
     OPERATORS: list[tuple[str, str]] = [
@@ -388,8 +388,8 @@ class LucidDreamingStage:
     metacognitive self-reflection, and directed creative exploration (Spec 13 §4.5).
 
     Always runs:
-    - MetaCognition  — clusters recurring dream themes → CONCEPT nodes
-    - DirectedExploration — generates systematic variations from creative_goal
+    - MetaCognition  - clusters recurring dream themes → CONCEPT nodes
+    - DirectedExploration - generates systematic variations from creative_goal
                             and high-coherence insights
 
     When Simula has pending mutations:
@@ -647,7 +647,7 @@ class LucidDreamingStage:
                 "unknown_mutation_type",
                 mutation_type=mutation_type,
                 target=target,
-                note="shadow model returned unmutated — mutation may be rejected unfairly",
+                note="shadow model returned unmutated - mutation may be rejected unfairly",
             )
 
         self._logger.debug(

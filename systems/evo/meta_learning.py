@@ -1,28 +1,28 @@
 """
-EcodiaOS — Meta-Learning Engine
+EcodiaOS - Meta-Learning Engine
 
 Evo learning about HOW it learns. This is the recursive self-improvement core
 that makes the organism genuinely adaptive rather than just pattern-matching.
 
 Tracks three meta-dimensions:
 
-1. **Detector Effectiveness** — Which pattern detectors produce hypotheses
+1. **Detector Effectiveness** - Which pattern detectors produce hypotheses
    that actually survive testing? If CooccurrenceDetector produces 50
    hypotheses but only 2 survive, its detection threshold needs raising.
    If AffectPatternDetector produces 5 that ALL survive, it should be
    more sensitive.
 
-2. **Learning Rate Adaptation** — How fast should Evo accumulate evidence?
+2. **Learning Rate Adaptation** - How fast should Evo accumulate evidence?
    Too fast → premature conclusions. Too slow → the organism never learns.
    Tracks the ratio of SUPPORTED→INTEGRATED vs SUPPORTED→REFUTED and
    adjusts the evidence threshold dynamically.
 
-3. **Hypothesis Quality Scoring** — Information-theoretic score for each
+3. **Hypothesis Quality Scoring** - Information-theoretic score for each
    hypothesis: how much does believing this hypothesis reduce prediction
    error across the systems that consume Evo's outputs? High-quality
    hypotheses change downstream behaviour measurably.
 
-These meta-parameters are themselves subject to velocity limits — Evo can't
+These meta-parameters are themselves subject to velocity limits - Evo can't
 rewrite its own learning rules in one cycle. The meta-learning curve is
 intentionally slow (half the velocity of normal parameter tuning) to prevent
 oscillatory meta-instability.

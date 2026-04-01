@@ -1,5 +1,5 @@
 """
-SACM — Verification strategies for remote execution results.
+SACM - Verification strategies for remote execution results.
 
 Three complementary approaches:
   - Deterministic replay: re-run a sample locally, compare outputs

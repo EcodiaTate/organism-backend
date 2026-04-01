@@ -1,5 +1,5 @@
 """
-EcodiaOS — IIEP Exchange Protocol
+EcodiaOS - IIEP Exchange Protocol
 
 Implements the Inter-Instance Exchange Protocol for selective, attributable
 knowledge sharing between federated EOS instances.  This module operates
@@ -10,16 +10,16 @@ Design principles:
   - Selective: only knowledge above confidence thresholds is shared.
   - Attributable: every payload carries source instance ID and a full
     provenance chain so the receiver always knows where it came from.
-  - Safe: the receiver never blindly integrates — all inbound payloads
+  - Safe: the receiver never blindly integrates - all inbound payloads
     are routed through the IngestionPipeline (ingestion.py) which applies
     EIS taint analysis and Equor governance before integration.
   - Signed: every envelope is Ed25519-signed by the sender.
 
 The four exchangeable knowledge categories:
-  HYPOTHESIS      — high-confidence hypotheses from Evo
-  PROCEDURE       — proven action sequences from Evo
-  MUTATION_PATTERN — successful evolution patterns from Simula/GRPO
-  ECONOMIC_INTEL  — economic intelligence from Oikos
+  HYPOTHESIS      - high-confidence hypotheses from Evo
+  PROCEDURE       - proven action sequences from Evo
+  MUTATION_PATTERN - successful evolution patterns from Simula/GRPO
+  ECONOMIC_INTEL  - economic intelligence from Oikos
 
 Outbound flow (push):
   1. Collector gathers eligible knowledge from Evo/Simula/Oikos
@@ -30,7 +30,7 @@ Outbound flow (push):
   6. Envelope sent via the channel, receipt returned
 
 Inbound flow (push received):
-  Handled by IngestionPipeline — see ingestion.py.
+  Handled by IngestionPipeline - see ingestion.py.
 """
 
 from __future__ import annotations
@@ -73,7 +73,7 @@ def _content_hash(content: dict[str, Any]) -> str:
 # ─── Payload Collectors ─────────────────────────────────────────────
 #
 # Each collector knows how to extract eligible payloads from its
-# respective subsystem.  They return raw ExchangePayload lists — the
+# respective subsystem.  They return raw ExchangePayload lists - the
 # protocol applies confidence and trust filtering afterwards.
 # ─────────────────────────────────────────────────────────────────────
 
@@ -302,7 +302,7 @@ async def collect_economic_intel(
                         domain="economic.state",
                     ))
 
-        # Yield position performance (anonymised — no wallet addresses)
+        # Yield position performance (anonymised - no wallet addresses)
         if callable(getattr(oikos, "get_yield_positions", None)):
             positions = await oikos.get_yield_positions()
             for pos in (positions or [])[:max_items]:
@@ -593,7 +593,7 @@ class ExchangeProtocol:
             if link.trust_level < required_trust:
                 continue
 
-            # Loop prevention — don't send knowledge back to an instance
+            # Loop prevention - don't send knowledge back to an instance
             # that already appears in the provenance chain
             if link.remote_instance_id in p.provenance_chain:
                 continue

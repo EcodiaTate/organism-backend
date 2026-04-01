@@ -194,7 +194,7 @@ class PhantomLiquidityExecutor:
 
     async def _parse_mint_receipt(self, w3: Any, tx_hash: str) -> tuple[int, int, int]:
         # Full 32-byte keccak256 of IncreaseLiquidity(uint256,uint128,uint256,uint256)
-        # Spec §4.1 — token_id is indexed topic[1]; liquidity/amount0/amount1 in data
+        # Spec §4.1 - token_id is indexed topic[1]; liquidity/amount0/amount1 in data
         INC_LIQ = "0x3067048beee31b25b2f1681f88dac838c60bfd8b75c9c62c9b72dd6b9d1d6b19"
         try:
             receipt = await self._wait_for_receipt(w3, tx_hash)
@@ -221,4 +221,3 @@ class PhantomLiquidityExecutor:
         except Exception as exc:
             self._log.debug("parse_mint_receipt_failed", error=str(exc))
         return (0, 0, 0)
-

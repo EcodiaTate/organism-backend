@@ -60,7 +60,7 @@ Generate the next {chunk_size} lines of Python code that:
 2. Satisfy ALL listed constraints
 3. Use EOS conventions (structlog, type hints, async/await, EOSBaseModel)
 
-Respond with ONLY the code lines — no explanation, no fences, no line numbers."""
+Respond with ONLY the code lines - no explanation, no fences, no line numbers."""
 
 
 class ChopChopEngine:
@@ -304,7 +304,7 @@ class ChopChopEngine:
                 retry=retry,
             )
 
-        # All retries exhausted — return best effort
+        # All retries exhausted - return best effort
         return chunk_code, self._max_retries, total_tokens
 
     @staticmethod
@@ -346,7 +346,7 @@ class ChopChopEngine:
             return constraint.expected in code
         if constraint.constraint_type == "grammar":
             return constraint.expected in code
-        # Type constraints require full type checking — assume satisfied if code parses
+        # Type constraints require full type checking - assume satisfied if code parses
         return True
 
     @staticmethod

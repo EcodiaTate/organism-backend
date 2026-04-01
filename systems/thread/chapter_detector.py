@@ -1,12 +1,12 @@
 """
-EcodiaOS — Thread Chapter Detector
+EcodiaOS - Thread Chapter Detector
 
 Detects narrative chapter boundaries in the stream of experience.
 A chapter boundary means: the story has shifted. The organism is now
 in a different phase of its life.
 
 Boundaries emerge from genuine changes in what the organism is experiencing,
-pursuing, and feeling — not arbitrary segmentation.
+pursuing, and feeling - not arbitrary segmentation.
 
 Algorithm: 5-factor weighted Bayesian surprise approximation with
 spike detection, sustained shift detection, and goal resolution triggers.
@@ -17,7 +17,7 @@ Chapter closure ≤5s (includes LLM narrative composition).
 Hot-reloadable via NeuroplasticityBus: evolved subclasses of
 BaseChapterDetector replace this instance atomically on ThreadService.
 The NarrativeSurpriseAccumulator is owned by ThreadService, not the
-detector — so a hot-swap never loses running surprise statistics.
+detector - so a hot-swap never loses running surprise statistics.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ logger = structlog.get_logger()
 
 class ChapterDetector(BaseChapterDetector):
     """
-    Default chapter detector — 5-factor weighted Bayesian surprise.
+    Default chapter detector - 5-factor weighted Bayesian surprise.
 
     Runs per-episode. Boundary check is pure computation (≤10ms).
     When a boundary is detected, returns True and the caller (ThreadService)

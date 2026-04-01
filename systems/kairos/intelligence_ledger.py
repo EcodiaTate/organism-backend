@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Phase D: Intelligence Contribution Ledger
+EcodiaOS - Kairos Phase D: Intelligence Contribution Ledger
 
 Per-invariant accounting of contribution to the intelligence ratio.
 
@@ -310,7 +310,7 @@ class IntelligenceContributionLedger:
         return contribution.intelligence_ratio_without
 
     def get_declining_invariants(self, min_snapshots: int = 3) -> list[IntelligenceTrend]:
-        """Return invariants whose contribution is declining — candidates for review."""
+        """Return invariants whose contribution is declining - candidates for review."""
         return [
             trend
             for trend in self._trends.values()

@@ -1,4 +1,4 @@
-# Atune — CLAUDE.md
+# Atune - CLAUDE.md
 
 **Spec:** `.claude/EcodiaOS_Spec_03_DISCONTINUED.md`
 **System ID:** `atune`
@@ -69,14 +69,14 @@ Every percept passes through `eis_service.eis_gate()` before salience scoring:
 - `ATTENUATE` → accept with reduced salience
 - `PASS` → continue
 
-EIS result stored in `percept.metadata["eis_result"]` — RiskHead reads this directly.
+EIS result stored in `percept.metadata["eis_result"]` - RiskHead reads this directly.
 
 ---
 
 ## Memory Integration
 
 **Retrieval** (before broadcast): `memory_client.retrieve_context(embedding, text, max_results=10)`
-**Storage** (after broadcast): `memory_client.store_percept_with_broadcast(percept, salience, affect)` — stores Episode, emits `EPISODE_STORED`
+**Storage** (after broadcast): `memory_client.store_percept_with_broadcast(percept, salience, affect)` - stores Episode, emits `EPISODE_STORED`
 **Entity extraction** (async, background): LLM extract → resolve entities → `MENTIONED_IN` edges on Neo4j
 
 Temporal causality: episodes linked via `FOLLOWED_BY` edge if gap ≤1h.
@@ -121,7 +121,7 @@ def _compute_buffer_sizes(arousal: float) -> tuple[int, int, int]:
     return percept_q, contrib_q, broadcast_h
 ```
 
-`update_arousal(arousal)` is called on every `ALLOSTATIC_SIGNAL` event (subscribed in `PerceptionGateway.set_synapse()`). Resizing preserves existing items — Python `deque(existing, maxlen=new_size)` drops oldest entries from the left when shrinking.
+`update_arousal(arousal)` is called on every `ALLOSTATIC_SIGNAL` event (subscribed in `PerceptionGateway.set_synapse()`). Resizing preserves existing items - Python `deque(existing, maxlen=new_size)` drops oldest entries from the left when shrinking.
 
 When `ingest()` finds the percept queue full, it emits **`PERCEPT_DROPPED`** (SynapseEventType added 2026-03-08):
 ```python
@@ -145,16 +145,16 @@ Three curiosity parameters are registered with Evo's parameter tuner and are her
 | `atune.workspace.curiosity_boost` | 0.03 | 0.01–0.10 | 0.005 | `_curiosity_boost` |
 
 `GlobalWorkspace` exposes:
-- `adjust_param(name, delta)` — clamps within spec bounds
-- `get_learnable_params()` / `export_learnable_params()` / `import_learnable_params(params, jitter=True)` — full round-trip with ±5% Gaussian jitter on import
-- `record_curiosity_outcome(percept_id, positive)` — marks a previously pending spontaneous recall outcome
-- `curiosity_hit_rate` — rolling hit rate over recorded outcomes (used by Evo fitness scoring)
+- `adjust_param(name, delta)` - clamps within spec bounds
+- `get_learnable_params()` / `export_learnable_params()` / `import_learnable_params(params, jitter=True)` - full round-trip with ±5% Gaussian jitter on import
+- `record_curiosity_outcome(percept_id, positive)` - marks a previously pending spontaneous recall outcome
+- `curiosity_hit_rate` - rolling hit rate over recorded outcomes (used by Evo fitness scoring)
 
 `FoveaService` wires these into the rest of the organism:
-- `_on_evo_workspace_param_adjusted()` — handles `EVO_PARAMETER_ADJUSTED` for `atune.workspace.*`, converts absolute Evo value to delta from default, calls `workspace.adjust_param()`
-- `export_atune_genome(instance_id, generation)` — returns `AtuneGenomeFragment` from live workspace state
-- `_apply_inherited_atune_genome_if_child()` — reads `ECODIAOS_ATUNE_GENOME_PAYLOAD` env var at startup, applies parent curiosity params with jitter, emits `GENOME_INHERITED`
-- `_on_curiosity_positive_signal()` — subscribes to `EVO_HYPOTHESIS_CREATED` and `COHERENCE_SHIFT`; resolves all pending (`-1`) curiosity outcomes as positive
+- `_on_evo_workspace_param_adjusted()` - handles `EVO_PARAMETER_ADJUSTED` for `atune.workspace.*`, converts absolute Evo value to delta from default, calls `workspace.adjust_param()`
+- `export_atune_genome(instance_id, generation)` - returns `AtuneGenomeFragment` from live workspace state
+- `_apply_inherited_atune_genome_if_child()` - reads `ECODIAOS_ATUNE_GENOME_PAYLOAD` env var at startup, applies parent curiosity params with jitter, emits `GENOME_INHERITED`
+- `_on_curiosity_positive_signal()` - subscribes to `EVO_HYPOTHESIS_CREATED` and `COHERENCE_SHIFT`; resolves all pending (`-1`) curiosity outcomes as positive
 
 ### AtuneGenomeFragment (primitives/genome_inheritance.py)
 ```python
@@ -171,7 +171,7 @@ class AtuneGenomeFragment(EOSBaseModel):
 
 Exported from `primitives/__init__.py`.
 
-**Status (Atune standalone): Not yet implemented** — the Atune system directory contains only this CLAUDE.md. No `.py` files exist.
+**Status (Atune standalone): Not yet implemented** - the Atune system directory contains only this CLAUDE.md. No `.py` files exist.
 
 The spec (Spec 03) fully defines the interface. Key things to implement:
 - `AtuneService` with `ingest()`, `run_cycle()`, `contribute()`, `receive_belief_feedback()`
@@ -181,7 +181,7 @@ The spec (Spec 03) fully defines the interface. Key things to implement:
 
 ---
 
-## What's Missing (All of it — system unimplemented as standalone)
+## What's Missing (All of it - system unimplemented as standalone)
 
 1. No `ingest()` / `run_cycle()` implementation (lives in `fovea/`)
 2. No 7-head salience engine (lives in `fovea/`)
@@ -199,10 +199,10 @@ The spec (Spec 03) fully defines the interface. Key things to implement:
 - Total cycle: ≤150ms; normalisation ≤5ms; EIS ≤30ms; 7-head scoring ≤40ms
 - Workspace queue bounded at 100 percepts; overflow drops oldest
 - Feedback loop protection: bias clamp ±0.40, inertia decay 0.95, per-source history 20
-- Entity extraction is non-blocking — `asyncio.create_task()`, loop continues immediately
-- All inter-system communication via Synapse bus — no direct system imports
+- Entity extraction is non-blocking - `asyncio.create_task()`, loop continues immediately
+- All inter-system communication via Synapse bus - no direct system imports
 
-## Cross-System Modulation API (2026-03-08 — formerly no-op stubs)
+## Cross-System Modulation API (2026-03-08 - formerly no-op stubs)
 
 All seven methods on `PerceptionGateway` now apply real coupling.
 State is stored in five gateway fields (all read by `health()["modulation"]`):
@@ -215,35 +215,35 @@ State is stored in five gateway fields (all read by `health()["modulation"]`):
 | `_affect_dominance` | 0.5 | `nudge_dominance()` |
 | `_affect_valence` | 0.5 | `nudge_valence()` |
 
-### `set_belief_state(reader)` — Precision modulation (Nova)
+### `set_belief_state(reader)` - Precision modulation (Nova)
 Queries `reader.get_current_beliefs()` for average confidence.
 Maps confidence → `learning_salience_threshold` shift (±10% nudge):
 - High confidence (≈1.0) → lower threshold by up to 0.005 (confirming percepts cost less to attend)
 - Low confidence (≈0.0) → raise threshold by up to 0.005 (surprises need more scrutiny)
 
-### `set_community_size(n)` — Social scaling
+### `set_community_size(n)` - Social scaling
 - `n ≤ 1` (solo): attenuates `source` error weight by 20% to suppress federation noise
 - `n ≥ 10` (large community): amplifies `source` weight by 15% to boost convergence percepts
 - `1 < n < 10`: linear interpolation; always re-normalises the weight vector
 
-### `set_rhythm_state(state)` — Processing mode (Synapse)
+### `set_rhythm_state(state)` - Processing mode (Synapse)
 - `FLOW` → `DynamicIgnitionThreshold.adjust(+0.06)` + mild arousal drop (narrow focus)
 - `STRESS` → `adjust(-0.08)` + arousal boost (widen aperture, let everything through)
 - `BOREDOM` → content error weight ×1.2, spontaneous recall `base_prob` ×1.3
 - `DEEP_PROCESSING` → `adjust(+0.12)`, reset `base_prob` to default (current workspace dominates)
 
-### `nudge_dominance(delta)` — Affect coupling (Soma)
+### `nudge_dominance(delta)` - Affect coupling (Soma)
 Accumulates delta onto `_affect_dominance` ∈ [0, 1].
 - `d > 0.7` (agency): economic weight ×(1 + 0.15×strength), causal weight ×(1 + 0.10×strength)
 - `d < 0.3` (threat): causal weight ×(1 + 0.20×strength), category weight ×(1 + 0.10×strength)
 Re-normalises weights after every call.
 
-### `nudge_valence(delta)` — Affect coupling (Soma)
+### `nudge_valence(delta)` - Affect coupling (Soma)
 Accumulates delta onto `_affect_valence` ∈ [0, 1].
 - `v > 0.7` (positive): attenuation of causal/category weights + small threshold raise (+0.02×strength)
 - `v < 0.3` (negative): amplification of causal/category weights + threshold lower (−0.04×strength)
 
-### `apply_evo_adjustments(params)` — Evo parameter feed
+### `apply_evo_adjustments(params)` - Evo parameter feed
 Strips `atune.` / `fovea.` / `workspace.` / `threshold.` / `habituation.` prefixes,
 then routes to:
 - `GlobalWorkspace.adjust_param()` for `base_prob`, `cooldown_cycles`, `curiosity_boost`
@@ -252,7 +252,7 @@ then routes to:
 - `FoveaService.adjust_habituation_param()` for habituation hyperparams
 Logs every applied key via `gateway_info`.
 
-### `receive_belief_feedback(feedback)` — Attention learning signal (Nova)
+### `receive_belief_feedback(feedback)` - Attention learning signal (Nova)
 Expects `{percept_id, outcome, dominant_error_type}` (dict or object).
 - Positive outcome (`"good"` / `"positive"` / `"confirmed"`):
   - `workspace.record_curiosity_outcome(percept_id, positive=True)`
@@ -264,7 +264,7 @@ All weight mutations call `_normalise_weights()` to maintain a valid distributio
 
 ---
 
-## Autonomy Gap Closure (2026-03-08 — Dead Wiring + Routing Fixes)
+## Autonomy Gap Closure (2026-03-08 - Dead Wiring + Routing Fixes)
 
 ### Dead Wiring Resolved
 
@@ -276,22 +276,22 @@ All formerly dead `set_X()` methods on `PerceptionGateway` (gateway.py) are now 
 | `set_rhythm_state(state)` | never called | subscribed in `wire_intelligence_loops()` | `RHYTHM_STATE_CHANGED` event handler |
 | `set_community_size(n)` | never called | subscribed in `wire_intelligence_loops()` | `FEDERATION_PEER_CONNECTED` event handler reads `peer_count` |
 | `set_pending_hypothesis_count(n)` | never called | subscribed in `wire_intelligence_loops()` | `EVO_HYPOTHESIS_CREATED` handler reads `hypothesis_count` |
-| `set_last_episode_id(id)` | never called | subscribed in `wire_intelligence_loops()` | `EPISODE_STORED` handler reads `episode_id` — fixes entity extraction MENTIONED_IN edges |
+| `set_last_episode_id(id)` | never called | subscribed in `wire_intelligence_loops()` | `EPISODE_STORED` handler reads `episode_id` - fixes entity extraction MENTIONED_IN edges |
 
 `wire_intelligence_loops()` now accepts `synapse` as an optional kwarg. The call in `registry.py` passes `synapse=synapse`.
 
-### FoveaService.set_neo4j_driver() — Dead Wiring Resolved
+### FoveaService.set_neo4j_driver() - Dead Wiring Resolved
 
 `fovea.set_neo4j_driver(infra.neo4j, config.instance_id)` now called in `registry.py` after `_init_fovea()`. Enables:
 - `DynamicIgnitionThreshold` threshold persistence/restore across restarts (Part B gap)
 - `AttentionWeightLearner` Neo4j persistence
 - `HabituationEngine` Neo4j persistence
 
-### Constitutional Routing — Sequencing Bug Fixed
+### Constitutional Routing - Sequencing Bug Fixed
 
-`_inject_constitutional_mismatch()` in `service.py` set `error.constitutional_mismatch` AFTER `compute_routing()` had already run inside the bridge — meaning EQUOR and ONEIROS routing never fired for constitutional errors. Fixed by re-running `compute_routing()` in `service.py` after mismatch injection, now using the instance-level adjustable thresholds (`_constitutional_equor_threshold`, `_constitutional_oneiros_threshold`, `_economic_route_threshold`).
+`_inject_constitutional_mismatch()` in `service.py` set `error.constitutional_mismatch` AFTER `compute_routing()` had already run inside the bridge - meaning EQUOR and ONEIROS routing never fired for constitutional errors. Fixed by re-running `compute_routing()` in `service.py` after mismatch injection, now using the instance-level adjustable thresholds (`_constitutional_equor_threshold`, `_constitutional_oneiros_threshold`, `_economic_route_threshold`).
 
-### `compute_routing()` — Adjustable Thresholds Wired
+### `compute_routing()` - Adjustable Thresholds Wired
 
 `FoveaPredictionError.compute_routing()` and `InternalPredictionError.compute_routing()` in `types.py` now accept:
 - `constitutional_equor_threshold` (default 0.3)
@@ -300,7 +300,7 @@ All formerly dead `set_X()` methods on `PerceptionGateway` (gateway.py) are now 
 
 All three call sites in `service.py` now pass the instance-level adjustable thresholds. Evo ADJUST_BUDGET tuning via `FOVEA_PARAMETER_ADJUSTMENT` now actually changes routing behaviour rather than updating dead state.
 
-### SystemLoad Fields — D3 Gap Closure
+### SystemLoad Fields - D3 Gap Closure
 
 `run_cycle(system_load)` in `gateway.py` previously accepted `SystemLoad` but ignored `cpu_utilisation`, `memory_utilisation`, and `queue_depth`. Now:
 - `cpu_utilisation > 0.75` OR `memory_utilisation > 0.75`: raises ignition threshold proportionally (up to +0.05) to shed load
@@ -333,4 +333,4 @@ All three call sites in `service.py` now pass the instance-level adjustable thre
 |-------|---------|---------|
 | `ALLOSTATIC_SIGNAL` | `_on_allostatic_signal` | Arousal-scaled workspace buffer sizing |
 | `COGNITIVE_PRESSURE` | `_on_cognitive_pressure` | Raise ignition threshold under Logos budget pressure |
-| `SYSTEM_MODULATION` | `_on_system_modulation` | VitalityCoordinator austerity — throttle + ACK |
+| `SYSTEM_MODULATION` | `_on_system_modulation` | VitalityCoordinator austerity - throttle + ACK |

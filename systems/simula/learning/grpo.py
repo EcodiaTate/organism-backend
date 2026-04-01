@@ -6,7 +6,7 @@ code model using its own test/verify pipeline as the reward signal.
 
 Pipeline:
   1. Collect training data from Neo4j evolution history
-     — code diffs from agent sessions with pass/fail outcomes
+     - code diffs from agent sessions with pass/fail outcomes
   2. Cold-start SFT on successful code agent outputs
   3. GRPO RL loop: 2-rollout contrastive pairs
      (matches 16-rollout performance per 2-GRPO finding)
@@ -21,7 +21,7 @@ The reward signal is binary correctness from Simula's own pipeline:
   - health_check_passed: post-apply health check passes
   - rolled_back: whether the change was subsequently reverted
 
-No human labeling needed — the system learns from its own outcomes.
+No human labeling needed - the system learns from its own outcomes.
 
 References:
   - GRPO (DeepSeek-R1): Group Relative Policy Optimization
@@ -90,21 +90,21 @@ class GRPOTrainingEngine:
     training, manages A/B deployment of the fine-tuned model, and
     serves the local model via vLLM for inference.
 
-    The engine operates on idle compute — training is background work
+    The engine operates on idle compute - training is background work
     that doesn't block the proposal pipeline. Once a model passes A/B
     evaluation, it becomes the preferred backend for routine code
     generation tasks, reducing API dependency.
 
     Flow:
-      record_code_diff()       — capture code agent output after each mutation
-      collect_training_data()  — harvest pass/fail from Neo4j history
-      run_sft()                — cold-start supervised fine-tuning
-      run_grpo()               — GRPO RL with 2-rollout contrastive
-      evaluate()               — A/B test fine-tuned vs base model
-      start_local_inference()  — launch vLLM server for the fine-tuned model
-      should_use_local()       — routing decision: local vs API
-      classify_task_novelty()  — determine if a proposal is routine or novel
-      get_training_status()    — current training run state
+      record_code_diff()       - capture code agent output after each mutation
+      collect_training_data()  - harvest pass/fail from Neo4j history
+      run_sft()                - cold-start supervised fine-tuning
+      run_grpo()               - GRPO RL with 2-rollout contrastive
+      evaluate()               - A/B test fine-tuned vs base model
+      start_local_inference()  - launch vLLM server for the fine-tuned model
+      should_use_local()       - routing decision: local vs API
+      classify_task_novelty()  - determine if a proposal is routine or novel
+      get_training_status()    - current training run state
     """
 
     def __init__(
@@ -502,7 +502,7 @@ class GRPOTrainingEngine:
 
         current.status = GRPOTrainingStatus.GRPO_RUNNING
 
-        # Build contrastive training batches — only examples with code output
+        # Build contrastive training batches - only examples with code output
         examples_with_code = [e for e in self._training_data if e.code_output]
         batches = self._build_grpo_batches(examples_with_code)
 
@@ -623,7 +623,7 @@ class GRPOTrainingEngine:
         current = run or self._current_run
 
         if test_proposals is None:
-            # Use negative examples (failures) as test set — can the fine-tuned
+            # Use negative examples (failures) as test set - can the fine-tuned
             # model succeed where the base model failed?
             test_data = [
                 e for e in self._training_data
@@ -725,7 +725,7 @@ class GRPOTrainingEngine:
                 self._log.error("grpo_model_path_missing", path=path)
                 return False
 
-            # Launch vLLM — uses create_subprocess_exec (not shell) for safety
+            # Launch vLLM - uses create_subprocess_exec (not shell) for safety
             cmd = [
                 "python", "-m", "vllm.entrypoints.openai.api_server",
                 "--model", path,
@@ -919,7 +919,7 @@ class GRPOTrainingEngine:
         """
         Decide whether to route a new proposal to the fine-tuned model.
 
-        Legacy A/B test routing — used when the local model is not
+        Legacy A/B test routing - used when the local model is not
         serving but a fine-tuned model ID exists for API-side routing.
         """
         if not self._config.grpo_enabled or not self._config.grpo_use_finetuned:
@@ -1186,7 +1186,7 @@ class GRPOTrainingEngine:
             )
             if generated:
                 rollout_2_code = generated
-                rollout_2_reward = 0.5  # uncertain — real eval needed
+                rollout_2_reward = 0.5  # uncertain - real eval needed
 
         rollout_2 = GRPORollout(
             rollout_index=1,

@@ -1,5 +1,5 @@
 """
-Testbed Service A — Client / Attacker
+Testbed Service A - Client / Attacker
 
 Sends HTTP requests containing a taint token to Service B.
 The taint token format is:
@@ -66,7 +66,7 @@ def send_tainted_request(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Testbed Service A — Taint Sender")
+    parser = argparse.ArgumentParser(description="Testbed Service A - Taint Sender")
     parser.add_argument(
         "--target",
         default="http://service-b:8080/api/process",
@@ -92,7 +92,7 @@ def main() -> None:
             time.sleep(0.5)
 
     if not ready:
-        print("[A] WARNING: Service B not reachable — sending anyway", flush=True)
+        print("[A] WARNING: Service B not reachable - sending anyway", flush=True)
 
     for i in range(args.loop):
         token = make_taint_token(args.token if args.loop == 1 else None)
@@ -110,9 +110,9 @@ def main() -> None:
             response_str = json.dumps(result)
             taint_value = token.split("=")[1].rstrip(";")
             if taint_value in response_str:
-                print("[A] PASS — taint token propagated through response", flush=True)
+                print("[A] PASS - taint token propagated through response", flush=True)
             else:
-                print("[A] WARN — taint token not found in response", flush=True)
+                print("[A] WARN - taint token not found in response", flush=True)
 
         if i < args.loop - 1:
             time.sleep(args.delay)

@@ -1,14 +1,14 @@
 """
-EcodiaOS — SACM Compute Resource Manager
+EcodiaOS - SACM Compute Resource Manager
 
 Arbitrates compute resource allocation across subsystems.  When multiple
 subsystems need GPU/CPU time (GRPO training, Simula mutation generation,
 Oneiros dream processing, Nova LLM calls), this module:
 
-  1. Resource Inventory  — tracks available local compute capacity
-  2. Request Queue       — prioritises pending compute requests
-  3. Allocation Policy   — resolves contention via priority + fairness
-  4. Federation Offload  — sends work to peer instances when local
+  1. Resource Inventory  - tracks available local compute capacity
+  2. Request Queue       - prioritises pending compute requests
+  3. Allocation Policy   - resolves contention via priority + fairness
+  4. Federation Offload  - sends work to peer instances when local
                            capacity is exhausted
 
 Integrates with Synapse via set_synapse() to receive COMPUTE_REQUEST_SUBMITTED
@@ -157,10 +157,10 @@ _FAIR_SHARES: dict[str, float] = {
 }
 _DEFAULT_FAIR_SHARE: float = 0.10
 
-# Queue depth limit — requests beyond this are denied outright
+# Queue depth limit - requests beyond this are denied outright
 _MAX_QUEUE_DEPTH: int = 64
 
-# Stale request timeout — requests waiting longer than this are evicted
+# Stale request timeout - requests waiting longer than this are evicted
 _QUEUE_STALE_TIMEOUT_S: float = 600.0
 
 
@@ -188,7 +188,7 @@ class ComputeResourceManager:
         self._capacity = capacity or ComputeCapacity()
         self._log = logger.bind(component="sacm.compute_manager")
 
-        # Synapse event bus reference — wired via set_synapse()
+        # Synapse event bus reference - wired via set_synapse()
         self._synapse: Any = None
 
         # Request queue sorted by priority (lower value = higher priority)
@@ -200,10 +200,10 @@ class ComputeResourceManager:
         # Per-subsystem utilisation tracking (cpu_vcpu held)
         self._held_cpu: dict[str, float] = defaultdict(float)
 
-        # Federation channel reference — wired externally
+        # Federation channel reference - wired externally
         self._federation: Any = None
 
-        # Pre-warming engine reference — wired externally
+        # Pre-warming engine reference - wired externally
         self._pre_warming: Any = None
 
         # Organism lifecycle state
@@ -302,7 +302,7 @@ class ComputeResourceManager:
 
     async def _on_infrastructure_cost_changed(self, event: Any) -> None:
         """
-        Handle INFRASTRUCTURE_COST_CHANGED — evaluate whether cost delta
+        Handle INFRASTRUCTURE_COST_CHANGED - evaluate whether cost delta
         justifies triggering a migration check via CostTriggeredMigrationMonitor.
 
         Re-emits ORGANISM_TELEMETRY-compatible data so the migration monitor
@@ -322,7 +322,7 @@ class ComputeResourceManager:
 
     async def _on_compute_budget_expansion_response(self, event: Any) -> None:
         """
-        Handle COMPUTE_BUDGET_EXPANSION_RESPONSE — Equor approved or denied
+        Handle COMPUTE_BUDGET_EXPANSION_RESPONSE - Equor approved or denied
         a request to expand the compute allocation budget.
 
         On approval, raises the effective burst allowance for pending workloads.
@@ -528,11 +528,11 @@ class ComputeResourceManager:
         Submit a compute resource request.
 
         Allocation flow:
-          1. Check fair-share — deny if subsystem exceeds its share
-          2. Try local allocation — fits in current capacity?
-          3. Try federation offload — peer has capacity?
-          4. Try preemption — can we reclaim from a lower-priority holder?
-          5. Queue the request — wait for resources to free up
+          1. Check fair-share - deny if subsystem exceeds its share
+          2. Try local allocation - fits in current capacity?
+          3. Try federation offload - peer has capacity?
+          4. Try preemption - can we reclaim from a lower-priority holder?
+          5. Queue the request - wait for resources to free up
           6. Deny if queue is full
         """
         self._log.info(
@@ -544,7 +544,7 @@ class ComputeResourceManager:
             gpu=request.resources.gpu_units,
         )
 
-        # 0. Metabolic emergency gate — deny all non-CRITICAL immediately
+        # 0. Metabolic emergency gate - deny all non-CRITICAL immediately
         if self._metabolic_emergency and request.priority > WorkloadPriority.CRITICAL:
             decision = AllocationDecision(
                 request_id=request.request_id,
@@ -606,7 +606,7 @@ class ComputeResourceManager:
             if offload_result is not None:
                 return offload_result
 
-        # 4. Preemption check — can we preempt an expired allocation?
+        # 4. Preemption check - can we preempt an expired allocation?
         preempted = await self._try_preemption(request)
         if preempted is not None:
             return preempted
@@ -615,7 +615,7 @@ class ComputeResourceManager:
         if len(self._queue) < _MAX_QUEUE_DEPTH:
             return await self._enqueue(request)
 
-        # 6. Queue full — deny
+        # 6. Queue full - deny
         decision = AllocationDecision(
             request_id=request.request_id,
             source_system=request.source_system,
@@ -1041,7 +1041,7 @@ class ComputeResourceManager:
         )
 
     async def health(self) -> dict[str, Any]:
-        """ManagedSystemProtocol — health check for Synapse monitoring."""
+        """ManagedSystemProtocol - health check for Synapse monitoring."""
         return {
             "status": "healthy" if self._capacity.utilisation_pct < 95.0 else "overloaded",
             "utilisation_pct": self._capacity.utilisation_pct,

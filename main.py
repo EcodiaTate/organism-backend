@@ -1,5 +1,5 @@
 """
-EcodiaOS — Application Entry Point
+EcodiaOS - Application Entry Point
 
 FastAPI application with the startup sequence defined in the
 Infrastructure Architecture specification.
@@ -11,7 +11,7 @@ This module defines:
   1. A thin ``lifespan()`` that delegates to the registry
   2. The FastAPI app, CORS, middleware
   3. Router includes
-  4. All API endpoints (inline — to be migrated to api/routers/ over time)
+  4. All API endpoints (inline - to be migrated to api/routers/ over time)
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ _registry = SystemRegistry()
 async def lifespan(app: FastAPI):
     """
     Startup and shutdown sequence.
-    Delegates entirely to SystemRegistry — see core/registry.py.
+    Delegates entirely to SystemRegistry - see core/registry.py.
     """
     await _registry.startup(app)
 
@@ -67,7 +67,7 @@ from telemetry.publisher import METRICS_CHANNEL as _METRICS_CHANNEL  # noqa: E40
 
 app = FastAPI(
     title="EcodiaOS",
-    description="A living digital organism — API surface",
+    description="A living digital organism - API surface",
     version="0.3.0",
     lifespan=lifespan,
 )
@@ -204,6 +204,11 @@ from api.routers.observatory import router as observatory_router
 
 app.include_router(observatory_router)
 
+# ─── Symbridge (EcodiaOS Factory Bridge) ────────────────────────
+from api.routers.symbridge import router as symbridge_router
+
+app.include_router(symbridge_router)
+
 # ─── Alive WebSocket on port 8000 (for Cloud Run) ────────────────
 # Cloud Run only exposes one port per container. The standalone ws_server
 # on port 8001 is unreachable, so we add a FastAPI WebSocket route here
@@ -222,7 +227,7 @@ def _ws_json(data: dict[str, Any]) -> str:
 @app.websocket("/ws/alive")
 async def alive_websocket(ws: WebSocket):
     """
-    Alive visualization WebSocket — Cloud Run single-port alternative (port 8000).
+    Alive visualization WebSocket - Cloud Run single-port alternative (port 8000).
 
     This endpoint is a **distinct protocol** from the standalone AliveWebSocketServer
     on port 8001. It is NOT governed by Spec 11a and serves different consumers
@@ -230,10 +235,10 @@ async def alive_websocket(ws: WebSocket):
     only one port is exposed).
 
     Protocol schema:
-      {"stream": "affect",    "payload": {...}}  — 6D AffectState from Atune ~10Hz
-      {"stream": "synapse",   "payload": {...}}  — raw Synapse events (Redis pub/sub)
-      {"stream": "workspace", "payload": {...}}  — Atune workspace snapshot ~1Hz
-      {"stream": "outcomes",  "payload": {...}}  — Axon execution outcomes ~0.5Hz
+      {"stream": "affect",    "payload": {...}}  - 6D AffectState from Atune ~10Hz
+      {"stream": "synapse",   "payload": {...}}  - raw Synapse events (Redis pub/sub)
+      {"stream": "workspace", "payload": {...}}  - Atune workspace snapshot ~1Hz
+      {"stream": "outcomes",  "payload": {...}}  - Axon execution outcomes ~0.5Hz
 
     Affect payload: valence, arousal, dominance, curiosity, care_activation,
                     coherence_stress, ts
@@ -350,7 +355,7 @@ async def alive_websocket(ws: WebSocket):
                     queue.put_nowait(msg)
             except Exception:
                 pass
-            await _ws_asyncio.sleep(1.0)  # 1 Hz — workspace state changes slowly
+            await _ws_asyncio.sleep(1.0)  # 1 Hz - workspace state changes slowly
 
     async def _outcomes_poller() -> None:
         """Poll Axon recent outcomes at ~0.5 Hz for the decisions page."""
@@ -395,7 +400,7 @@ async def alive_websocket(ws: WebSocket):
                         queue.put_nowait(msg)
             except Exception:
                 pass
-            await _ws_asyncio.sleep(2.0)  # 0.5 Hz — poll on change
+            await _ws_asyncio.sleep(2.0)  # 0.5 Hz - poll on change
 
     poller_task = _ws_asyncio.create_task(_affect_poller())
     subscriber_task = _ws_asyncio.create_task(_redis_subscriber())
@@ -404,7 +409,7 @@ async def alive_websocket(ws: WebSocket):
     sender_task = _ws_asyncio.create_task(_sender())
 
     try:
-        # Keep alive — we don't expect client messages
+        # Keep alive - we don't expect client messages
         while True:
             await ws.receive_text()
     except WebSocketDisconnect:
@@ -456,7 +461,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
 
-        # Public endpoints — no auth required
+        # Public endpoints - no auth required
         if path in (
             "/health",
             "/docs",
@@ -705,7 +710,7 @@ async def perceive_event(body: dict[str, Any]):
     if percept_id is None:
         return {"percept_id": None, "accepted": False, "reason": "queue_full"}
 
-    # Percept is enqueued — Synapse clock will pick it up on the next tick.
+    # Percept is enqueued - Synapse clock will pick it up on the next tick.
     return {
         "percept_id": percept_id,
         "accepted": True,
@@ -738,7 +743,7 @@ async def get_affect_state():
 
 @app.get("/api/v1/atune/workspace")
 async def get_workspace_state():
-    """Get workspace state — threshold, recent broadcasts, meta-attention mode."""
+    """Get workspace state - threshold, recent broadcasts, meta-attention mode."""
     atune: AtuneService = app.state.atune
     recent = atune.recent_broadcasts
     return {
@@ -918,16 +923,16 @@ async def chat_message(body: dict[str, Any]):
         )
 
         # Also feed through Atune (updates affect, workspace state).
-        # No manual run_cycle() needed — Synapse clock picks up the percept.
+        # No manual run_cycle() needed - Synapse clock picks up the percept.
         try:
             raw = RawInput(data=message, channel_id=conversation_id or "", metadata={})
             await atune.ingest(raw, InputChannel.TEXT_CHAT)
         except Exception as atune_err:
-            # Atune ingestion is non-critical for chat — log and continue
+            # Atune ingestion is non-critical for chat - log and continue
             _chat_logger.warning("chat_atune_ingest_failed", error=str(atune_err))
 
         # Generate expression via Voxis.
-        # NOTE: Do NOT pass the raw user message as content here — ingest_user_message()
+        # NOTE: Do NOT pass the raw user message as content here - ingest_user_message()
         # already appended it to conversation history, and express() appends content as
         # an additional user turn. Passing message again would duplicate it in the LLM
         # context, causing the model to see the same prompt twice and loop on the same
@@ -1051,7 +1056,7 @@ async def get_nova_goals():
 
 @app.get("/api/v1/evo/stats")
 async def get_evo_stats():
-    """Evo learning system stats — hypotheses, parameters, consolidation."""
+    """Evo learning system stats - hypotheses, parameters, consolidation."""
     evo: EvoService = app.state.evo
     return evo.stats
 
@@ -1230,7 +1235,7 @@ async def get_evo_patterns():
 
 @app.get("/api/v1/thread/who-am-i")
 async def thread_who_am_i():
-    """The organism's current identity summary — who it thinks it is."""
+    """The organism's current identity summary - who it thinks it is."""
     thread: ThreadService = app.state.thread
     return thread.who_am_i()
 
@@ -1359,7 +1364,7 @@ async def thread_identity():
 
 @app.get("/api/v1/thread/commitments")
 async def thread_commitments():
-    """All identity commitments — constitutional and emergent."""
+    """All identity commitments - constitutional and emergent."""
     thread: ThreadService = app.state.thread
 
     commitments = []
@@ -1401,7 +1406,7 @@ async def thread_commitments():
 
 @app.get("/api/v1/thread/schemas")
 async def thread_schemas():
-    """All identity schemas — the organism's self-understanding."""
+    """All identity schemas - the organism's self-understanding."""
     thread: ThreadService = app.state.thread
 
     # Categorize schemas by strength
@@ -1453,7 +1458,7 @@ async def thread_schemas():
 
 @app.get("/api/v1/thread/coherence")
 async def thread_coherence():
-    """Diachronic coherence — behavioral fingerprints over time with drift analysis."""
+    """Diachronic coherence - behavioral fingerprints over time with drift analysis."""
     thread: ThreadService = app.state.thread
 
     # Get recent fingerprints (last 50)
@@ -1552,7 +1557,7 @@ async def thread_fingerprints():
 
 @app.get("/api/v1/thread/chapters")
 async def thread_chapters():
-    """Narrative chapters — the organism's life phases."""
+    """Narrative chapters - the organism's life phases."""
     thread: ThreadService = app.state.thread
 
     chapters = []
@@ -1646,7 +1651,7 @@ async def thread_life_story():
 
 @app.get("/api/v1/thread/conflicts")
 async def thread_conflicts():
-    """Detected schema conflicts — contradictions in self-understanding."""
+    """Detected schema conflicts - contradictions in self-understanding."""
     thread: ThreadService = app.state.thread
 
     def _severity_from_similarity(sim: float) -> str:
@@ -1753,7 +1758,7 @@ async def submit_evolution_proposal(body: dict[str, Any]):
 
 @app.get("/api/v1/simula/history")
 async def get_evolution_history(limit: int = 50):
-    """Get the evolution history — all structural changes applied."""
+    """Get the evolution history - all structural changes applied."""
     simula: SimulaService = app.state.simula
     records = await simula.get_history(limit=limit)
     return {
@@ -1842,7 +1847,7 @@ async def get_synapse_cycle():
     Synapse cognitive cycle telemetry.
 
     Returns cycle count, period, latency, jitter, rhythm state,
-    and coherence — the pulse of the organism.
+    and coherence - the pulse of the organism.
     """
     synapse: SynapseService = app.state.synapse
     clock = synapse.clock_state
@@ -1930,7 +1935,7 @@ async def set_clock_speed(body: dict[str, Any]):
     """
     Set the base clock frequency.
 
-    Body: {hz: float}  — clamped to 1–20 Hz.
+    Body: {hz: float}  - clamped to 1–20 Hz.
     Arousal modulation still operates on top of this base frequency.
     """
     hz = body.get("hz")
@@ -2124,7 +2129,7 @@ async def get_cycle_status():
     Lightweight cycle health snapshot for development and monitoring.
 
     Returns cycle count, current Hz, paused state, and whether the clock
-    is running — the minimum needed to confirm the continuous cycle is live.
+    is running - the minimum needed to confirm the continuous cycle is live.
     """
     synapse: SynapseService = app.state.synapse
     clock = synapse.clock_state
@@ -2146,7 +2151,7 @@ async def get_cycle_status():
 @app.get("/api/v1/perception/file-watcher")
 async def get_file_watcher_status():
     """
-    File watcher status — directory being watched, ingestion counts.
+    File watcher status - directory being watched, ingestion counts.
     """
 
     watcher: FileWatcher = app.state.file_watcher
@@ -2156,7 +2161,7 @@ async def get_file_watcher_status():
 @app.get("/api/v1/perception/scheduler")
 async def get_scheduler_status():
     """
-    Perception scheduler status — registered tasks, run counts, intervals.
+    Perception scheduler status - registered tasks, run counts, intervals.
     """
 
     sched: PerceptionScheduler = app.state.scheduler
@@ -2171,7 +2176,7 @@ async def register_scheduler_task(body: dict[str, Any]):
     Body: {name: str, task: str}
 
     Currently supported built-in tasks:
-    - "self_clock" — injects a periodic time-awareness percept (every 300s)
+    - "self_clock" - injects a periodic time-awareness percept (every 300s)
     """
     from systems.fovea.types import InputChannel
 
@@ -2254,7 +2259,7 @@ async def get_axon_outcomes(limit: int = 20):
 @app.get("/api/v1/atune/workspace-detail")
 async def get_workspace_detail():
     """
-    Detailed workspace state — ignited percepts with content, salience, and channel.
+    Detailed workspace state - ignited percepts with content, salience, and channel.
 
     Used by the /perception page WorkspaceStream component to show what the
     organism is currently considering at this cognitive moment.
@@ -2410,14 +2415,14 @@ async def get_mood_state():
 @app.get("/api/v1/atune/config")
 async def get_atune_config():
     """
-    Atune configuration — thresholds, buffer sizes, cache refresh intervals.
+    Atune configuration - thresholds, buffer sizes, cache refresh intervals.
     """
     atune: AtuneService = app.state.atune
     cfg = atune._config
     ws = atune._workspace
 
     return {
-        "ignition_threshold": "(dynamic — set by Fovea error distribution percentile)",
+        "ignition_threshold": "(dynamic - set by Fovea error distribution percentile)",
         "workspace_buffer_size": cfg.workspace_buffer_size,
         "spontaneous_recall_base_probability": cfg.spontaneous_recall_base_probability,
         "max_percept_queue_size": cfg.max_percept_queue_size,
@@ -2689,7 +2694,7 @@ async def get_oneiros_sleep_cycles(limit: int = 20):
 
 @app.get("/api/v1/oneiros/circadian")
 async def get_oneiros_circadian():
-    """Circadian clock state — pressure breakdown by source and wake degradation detail."""
+    """Circadian clock state - pressure breakdown by source and wake degradation detail."""
     oneiros: OneirosService = app.state.oneiros
     clock = oneiros._clock
     pressure = clock.pressure
@@ -2899,7 +2904,7 @@ async def withdraw_federation_link(link_id: str):
     """
     Withdraw from a federation link.
 
-    Withdrawal is always free — any instance can disconnect at any
+    Withdrawal is always free - any instance can disconnect at any
     time with no penalty.
     """
     federation: FederationService = app.state.federation
@@ -3092,7 +3097,7 @@ async def handle_federation_handshake(body: dict[str, Any]):
     a HandshakeResponse with this instance's credentials and a signed
     challenge.
 
-    This endpoint is public (no API key required) — authentication
+    This endpoint is public (no API key required) - authentication
     happens via the handshake protocol itself.
 
     Body: HandshakeRequest payload (initiator identity card, certificate,
@@ -3281,7 +3286,7 @@ async def get_soma_health():
 
 @app.get("/api/v1/soma/state")
 async def get_soma_state():
-    """Current interoceptive state — the organism's felt sense of its own viability."""
+    """Current interoceptive state - the organism's felt sense of its own viability."""
     soma: SomaService = app.state.soma
     state = soma.get_current_state()
     if state is None:
@@ -3335,7 +3340,7 @@ def _sanitize_float(v: float | None, default: float | None = None) -> float | No
 
 @app.get("/api/v1/soma/signal")
 async def get_soma_signal():
-    """Current allostatic signal — the output all other systems consume."""
+    """Current allostatic signal - the output all other systems consume."""
     soma: SomaService = app.state.soma
     signal = soma.get_current_signal()
     return {
@@ -3361,7 +3366,7 @@ async def get_soma_signal():
 
 @app.get("/api/v1/soma/phase-space")
 async def get_soma_phase_space():
-    """Phase-space navigation — attractors, bifurcations, trajectory heading."""
+    """Phase-space navigation - attractors, bifurcations, trajectory heading."""
     import math
 
     from systems.soma.types import DIMENSION_RANGES
@@ -3471,7 +3476,7 @@ async def get_soma_errors():
 
 @app.get("/api/v1/soma/exteroception")
 async def get_soma_exteroception():
-    """Exteroceptive pressure — the organism's felt sense of external weather."""
+    """Exteroceptive pressure - the organism's felt sense of external weather."""
     soma: SomaService = app.state.soma
     pressure = soma.exteroceptive_pressure
     if pressure is None:
@@ -3778,7 +3783,7 @@ async def get_soma_markers():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Command Center — Phantom + Inspector pipeline (SSE streaming)
+# Command Center - Phantom + Inspector pipeline (SSE streaming)
 # ─────────────────────────────────────────────────────────────────────────────
 
 import json as _cc_json
@@ -3824,12 +3829,12 @@ async def _cc_stream_proc(
     stdin_data: bytes | None = None,
     task_id: str | None = None,
 ):
-    """Async subprocess stream — yields ``(source, line)``.  No ``shell=True``.
+    """Async subprocess stream - yields ``(source, line)``.  No ``shell=True``.
 
     When *task_id* is given the child process is registered in
     ``_cc_active_procs`` so it can be terminated via
     ``POST /api/v1/command-center/terminate/{task_id}``.
-    Only the spawned child is tracked — never the parent uvicorn process.
+    Only the spawned child is tracked - never the parent uvicorn process.
     """
     import asyncio as _aio
     import os as _os
@@ -3897,7 +3902,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
     for script, label in [(_CC_PHANTOM, "phantom_recon.py"), (_CC_INSPECTOR, "run_inspector.py")]:
         if not script.exists():
             yield _cc_sse("error", {"message": f"Missing script: {label} (expected at {script})"})
-            yield _cc_sse("done", {"success": False, "message": "Aborted — missing scripts"})
+            yield _cc_sse("done", {"success": False, "message": "Aborted - missing scripts"})
             return
 
     # ── Phase 1: Phantom Harvester ─────────────────────────────────────────
@@ -4000,7 +4005,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
             yield phase_ev("z3", "completed")
             yield log(
                 "inspector",
-                f"[INSPECTOR] Hunt complete — {_hunt_result.surfaces_mapped} surfaces, "
+                f"[INSPECTOR] Hunt complete - {_hunt_result.surfaces_mapped} surfaces, "
                 f"{len(_hunt_result.vulnerabilities_found)} vulns, "
                 f"{_hunt_result.total_duration_ms}ms",
             )
@@ -4070,8 +4075,8 @@ async def _cc_pipeline(target_url: str, task_id: str):
     # attach it live, and stream kernel telemetry back over this SSE connection.
 
     if not _boundary_evidence:
-        yield log("shield", "[SHIELD] No boundary_test evidence collected — skipping filter deployment")
-        yield _cc_sse("done", {"success": True, "message": "Pipeline complete — no exploits proven, shield skipped"})
+        yield log("shield", "[SHIELD] No boundary_test evidence collected - skipping filter deployment")
+        yield _cc_sse("done", {"success": True, "message": "Pipeline complete - no exploits proven, shield skipped"})
         return
 
     yield phase_ev("shield", "started")
@@ -4082,9 +4087,9 @@ async def _cc_pipeline(target_url: str, task_id: str):
 
         _edge_input = _boundary_evidence[0].get("details", {}).get("edge_case_input", {})
         if not _edge_input:
-            yield log("shield", "[SHIELD] boundary_test evidence has no edge_case_input — skipping")
+            yield log("shield", "[SHIELD] boundary_test evidence has no edge_case_input - skipping")
             yield phase_ev("shield", "skipped")
-            yield _cc_sse("done", {"success": True, "message": "Pipeline complete — edge_case_input empty"})
+            yield _cc_sse("done", {"success": True, "message": "Pipeline complete - edge_case_input empty"})
             return
 
         _generated_c = _gen_filter(_edge_input)
@@ -4102,7 +4107,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
 
     # 3b. Broadcast the filter to the entire fleet via Redis Pub/Sub.
     #     The local node is also subscribed, so it will receive its own
-    #     broadcast and deploy the filter — unifying local and remote logic.
+    #     broadcast and deploy the filter - unifying local and remote logic.
     try:
 
         _fleet: _Fleet = app.state.fleet_shield
@@ -4128,7 +4133,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
     # the verified diff back as a `verified_patch` SSE event.
 
     yield phase_ev("remediation", "started")
-    yield log("remediation", "[REPAIR] Phase 4 — Automated Remediation initiated")
+    yield log("remediation", "[REPAIR] Phase 4 - Automated Remediation initiated")
 
     _remediation_count = 0
     _remediation_failures = 0
@@ -4172,10 +4177,10 @@ async def _cc_pipeline(target_url: str, task_id: str):
             _vuln_id = _details.get("vuln_id", f"unknown_{_idx}")
 
             if not _file_path:
-                yield log("remediation", f"[REPAIR] Evidence #{_idx} has no file_path — skipping")
+                yield log("remediation", f"[REPAIR] Evidence #{_idx} has no file_path - skipping")
                 continue
 
-            yield log("remediation", f"[REPAIR] Processing {_vuln_id} — {_file_path}")
+            yield log("remediation", f"[REPAIR] Processing {_vuln_id} - {_file_path}")
 
             # Reconstruct a VulnerabilityReport from the boundary evidence
             # so the RepairAgent can consume it.
@@ -4202,7 +4207,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
                 _remediation_failures += 1
                 continue
 
-            # Run the RepairAgent — generate patch + Z3 re-verification
+            # Run the RepairAgent - generate patch + Z3 re-verification
             try:
                 _patched_code = await _repair_agent.generate_and_verify_patch(_report)
             except Exception as _repair_err:
@@ -4211,7 +4216,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
                 continue
 
             if _patched_code is None:
-                yield log("remediation", f"[REPAIR] RepairAgent exhausted retries for {_vuln_id} — no verified patch")
+                yield log("remediation", f"[REPAIR] RepairAgent exhausted retries for {_vuln_id} - no verified patch")
                 _remediation_failures += 1
                 continue
 
@@ -4234,7 +4239,7 @@ async def _cc_pipeline(target_url: str, task_id: str):
                 "vulnerability_class": _details.get("vulnerability_class", ""),
                 "severity": _details.get("severity", ""),
             })
-            yield log("remediation", f"[REPAIR] Verified patch emitted for {_vuln_id} — {_file_path}")
+            yield log("remediation", f"[REPAIR] Verified patch emitted for {_vuln_id} - {_file_path}")
             _remediation_count += 1
 
         # Cleanup LLM client
@@ -4243,24 +4248,24 @@ async def _cc_pipeline(target_url: str, task_id: str):
 
     except ImportError as _imp_err:
         yield _cc_sse("error", {"message": f"Remediation import error: {_imp_err}"})
-        yield log("remediation", f"[REPAIR] Import failed — skipping Phase 4: {_imp_err}")
+        yield log("remediation", f"[REPAIR] Import failed - skipping Phase 4: {_imp_err}")
     except Exception as _rem_err:
         yield _cc_sse("error", {"message": f"Remediation error: {_rem_err}"})
         yield log("remediation", f"[REPAIR] Unexpected error: {_rem_err}")
 
     if _remediation_count > 0:
-        yield log("remediation", f"[REPAIR] Phase 4 complete — {_remediation_count} verified patch(es), {_remediation_failures} failure(s)")
+        yield log("remediation", f"[REPAIR] Phase 4 complete - {_remediation_count} verified patch(es), {_remediation_failures} failure(s)")
         yield phase_ev("remediation", "completed")
     elif _remediation_failures > 0:
-        yield log("remediation", f"[REPAIR] Phase 4 failed — 0 patches verified, {_remediation_failures} failure(s)")
+        yield log("remediation", f"[REPAIR] Phase 4 failed - 0 patches verified, {_remediation_failures} failure(s)")
         yield phase_ev("remediation", "failed")
     else:
-        yield log("remediation", "[REPAIR] Phase 4 — no evidence to remediate")
+        yield log("remediation", "[REPAIR] Phase 4 - no evidence to remediate")
         yield phase_ev("remediation", "completed")
 
     yield _cc_sse("done", {
         "success": True,
-        "message": f"Pipeline complete — shield deployed, {_remediation_count} verified patch(es)",
+        "message": f"Pipeline complete - shield deployed, {_remediation_count} verified patch(es)",
     })
 
 
@@ -4299,7 +4304,7 @@ async def command_center_terminate(task_id: str) -> dict:
 
     Sends SIGINT first (allowing cleanup), then SIGKILL after 5 s
     if the child is still alive.  Only targets child processes in
-    ``_cc_active_procs`` — never the parent uvicorn server.
+    ``_cc_active_procs`` - never the parent uvicorn server.
     """
     import asyncio as _aio
 
@@ -4311,7 +4316,7 @@ async def command_center_terminate(task_id: str) -> dict:
         _cc_active_procs.pop(task_id, None)
         return {"status": "already_exited", "returncode": proc.returncode}
 
-    # Phase 1: graceful — SIGINT (Ctrl-C) lets the child clean up.
+    # Phase 1: graceful - SIGINT (Ctrl-C) lets the child clean up.
     try:
         proc.send_signal(_cc_signal.SIGINT)
     except (OSError, ProcessLookupError):
@@ -4322,7 +4327,7 @@ async def command_center_terminate(task_id: str) -> dict:
     try:
         await _aio.wait_for(proc.wait(), timeout=5.0)
     except TimeoutError:
-        # Phase 2: forceful — SIGKILL.
+        # Phase 2: forceful - SIGKILL.
         try:
             proc.kill()
             await proc.wait()
@@ -4375,7 +4380,7 @@ async def command_center_deploy_patch(payload: _DeployPatchPayload) -> _DeployPa
     Write a verified RepairAgent patch to disk.
 
     Security: *file_path* is resolved relative to the EcodiaOS project root
-    and must stay within it — path traversal returns 400.
+    and must stay within it - path traversal returns 400.
     """
     # Resolve and validate the target path is within the project root.
     try:
@@ -4522,7 +4527,7 @@ async def command_center_metrics_stream():
 
 @app.get("/api/v1/oikos/status")
 async def oikos_status() -> dict[str, Any]:
-    """Full Oikos economic snapshot — the organism's financial truth."""
+    """Full Oikos economic snapshot - the organism's financial truth."""
     from fastapi.responses import JSONResponse
 
     oikos = app.state.oikos
@@ -4571,7 +4576,7 @@ async def oikos_status() -> dict[str, Any]:
 
 @app.get("/api/v1/oikos/organs")
 async def oikos_organs() -> dict[str, Any]:
-    """Economic morphogenesis — active organs and their lifecycle states."""
+    """Economic morphogenesis - active organs and their lifecycle states."""
     from fastapi.responses import JSONResponse
 
     oikos = app.state.oikos

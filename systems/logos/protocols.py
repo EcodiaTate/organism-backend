@@ -1,9 +1,9 @@
 """
-EcodiaOS — Logos: Integration Protocols
+EcodiaOS - Logos: Integration Protocols
 
 Clean protocol interfaces for systems that don't exist yet but will
 consume Logos data. Protocol-based dependency injection ensures Logos
-doesn't import future systems — they import these protocols instead.
+doesn't import future systems - they import these protocols instead.
 
 Protocols exposed:
 - FoveaPredictionProtocol: Fovea queries the world model for predictions
@@ -36,7 +36,7 @@ class FoveaPredictionProtocol(Protocol):
     """
     Protocol for Fovea to query the world model for predictions.
 
-    Fovea is the attentional spotlight — it needs to know what the
+    Fovea is the attentional spotlight - it needs to know what the
     world model expects so it can compute prediction errors and
     direct attention to surprising stimuli.
     """
@@ -68,7 +68,7 @@ class TelosMetricsProtocol(Protocol):
     """
     Protocol for Telos to read the intelligence ratio and compression stats.
 
-    Telos is the drive system — it modulates the intelligence ratio
+    Telos is the drive system - it modulates the intelligence ratio
     with drive multipliers to steer what the system prioritises learning.
     """
 

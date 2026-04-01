@@ -1,4 +1,4 @@
-# Core — CLAUDE.md
+# Core - CLAUDE.md
 
 **Role:** Organism startup, wiring, and background task orchestration.
 **Path:** `backend/core/`
@@ -9,17 +9,17 @@
 
 | File | Purpose |
 |------|---------|
-| `registry.py` | `SystemRegistry` — full 12-phase startup sequence; owns `_tasks` dict |
+| `registry.py` | `SystemRegistry` - full 12-phase startup sequence; owns `_tasks` dict |
 | `wiring.py` | All `set_*()` calls, subscriptions, and `wire_*_phase()` functions |
 | `scheduled_tasks.py` | `PerceptionScheduler` registrations (PRs, DeFi yield, foraging, consolidation) |
-| `re_training_exporter.py` | `RETrainingExporter` — hourly RE training data batch export |
-| `continuous_learning_orchestrator.py` | `ContinualLearningOrchestrator` — domain-aware LoRA adapter training scheduler |
-| `curriculum_builder.py` | `DomainCurriculum` — filters and orders examples for domain-specific training |
+| `re_training_exporter.py` | `RETrainingExporter` - hourly RE training data batch export |
+| `continuous_learning_orchestrator.py` | `ContinualLearningOrchestrator` - domain-aware LoRA adapter training scheduler |
+| `curriculum_builder.py` | `DomainCurriculum` - filters and orders examples for domain-specific training |
 | `infra.py` | `InfraClients` dataclass; `create_infra()` / `close_infra()` |
-| `inner_life.py` | `inner_life_loop()` — background inner dialogue generator |
-| `interoception_loop.py` | `interoception_loop()` — log analyzer → Soma signal bridge |
-| `smoke_test.py` | `run_smoke_tests()` — post-startup sanity checks |
-| `hotreload.py` | `NeuroplasticityBus` — live evaluator/executor hot-swap |
+| `inner_life.py` | `inner_life_loop()` - background inner dialogue generator |
+| `interoception_loop.py` | `interoception_loop()` - log analyzer → Soma signal bridge |
+| `smoke_test.py` | `run_smoke_tests()` - post-startup sanity checks |
+| `hotreload.py` | `NeuroplasticityBus` - live evaluator/executor hot-swap |
 | `helpers.py` | `MemoryWorkspaceAdapter`, `resolve_governance_config`, `seed_atune_cache` |
 
 ---
@@ -64,8 +64,8 @@
 
 ### Export enrichment (`_enrich_batch`)
 Called in `export_to_s3()` before serialisation. Mutates each datapoint in-place:
-1. `task_difficulty` — `min(alternatives/5, 1.0)×0.3 + counterfactual_heuristic×0.3 + (1−|conf−0.5|×2)×0.4`
-2. Scaffold validation — `scaffold_formatter.validate(reasoning_trace)`: ≥3 of 5 Step headers
+1. `task_difficulty` - `min(alternatives/5, 1.0)×0.3 + counterfactual_heuristic×0.3 + (1−|conf−0.5|×2)×0.4`
+2. Scaffold validation - `scaffold_formatter.validate(reasoning_trace)`: ≥3 of 5 Step headers
 3. `quality_tier` assignment: `"gold"` | `"silver"` | `"bronze"`
 
 ### Quality tier rules
@@ -79,10 +79,10 @@ Called in `export_to_s3()` before serialisation. Mutates each datapoint in-place
 `re_training_quality_tier_distribution` log emitted every export cycle with `gold`, `silver`, `bronze` counts, `outcome_corrected` count, `total`.
 
 ### New fields on `RETrainingDatapoint` (primitives)
-- `outcome_updated: bool` — True if retroactively corrected from Axon
-- `actual_outcome_quality: float | None` — ground-truth quality from Axon
-- `quality_tier: str` — "gold" | "silver" | "bronze" (assigned at export)
-- `task_difficulty: float` — richness proxy [0, 1] (computed at export)
+- `outcome_updated: bool` - True if retroactively corrected from Axon
+- `actual_outcome_quality: float | None` - ground-truth quality from Axon
+- `quality_tier: str` - "gold" | "silver" | "bronze" (assigned at export)
+- `task_difficulty: float` - richness proxy [0, 1] (computed at export)
 
 ### Configuration (env vars)
 | Variable | Default | Purpose |
@@ -95,26 +95,26 @@ Called in `export_to_s3()` before serialisation. Mutates each datapoint in-place
 If `boto3` is not installed or S3 fails, batches are written as JSON lines to `RE_TRAINING_EXPORT_DIR`. The local path is included in `export_destinations` so the Benchmarks system can track it.
 
 ### Primitives
-- `RETrainingDatapoint` — one normalised record per `RE_TRAINING_EXAMPLE` event
-- `RETrainingExportBatch` — hourly roll-up; written to Neo4j as `(:RETrainingBatch)` + `(:RETrainingSource)` + individual `(:RETrainingDatapoint)` nodes
+- `RETrainingDatapoint` - one normalised record per `RE_TRAINING_EXAMPLE` event
+- `RETrainingExportBatch` - hourly roll-up; written to Neo4j as `(:RETrainingBatch)` + `(:RETrainingSource)` + individual `(:RETrainingDatapoint)` nodes
 
-### Input Validation (Gap 4 — 9 Mar 2026)
+### Input Validation (Gap 4 - 9 Mar 2026)
 `_datapoint_from_event()` now validates before creating a datapoint:
 - `instruction` length < 10 chars → `None` (reject trivially empty)
 - `output` length < 3 chars → `None` (reject trivially empty)
 - `outcome_quality` is clamped to `[0.0, 1.0]`; non-numeric values default to 0.0
 
-### Hypothesis Lifecycle Subscriptions (Gap 4 — 9 Mar 2026)
+### Hypothesis Lifecycle Subscriptions (Gap 4 - 9 Mar 2026)
 Two new event subscriptions in `attach()`:
 - **`EVO_HYPOTHESIS_CONFIRMED`** → `_on_hypothesis_confirmed()`: creates `RETrainingDatapoint` with `outcome="success"`, `outcome_quality=hypothesis.confidence` (or 0.7 fallback). Dedup key: `evo_confirmed:{hypothesis_id}`. Category: `evo_hypothesis_confirmed`.
 - **`EVO_HYPOTHESIS_REFUTED`** → `_on_hypothesis_refuted()`: creates `RETrainingDatapoint` with `outcome="failure"`, `outcome_quality=0.0`. Dedup key: `evo_refuted:{hypothesis_id}`. Category: `evo_hypothesis_refuted`.
-- Both subscriptions guarded by `hasattr(SynapseEventType, ...)` — non-fatal if event types absent
+- Both subscriptions guarded by `hasattr(SynapseEventType, ...)` - non-fatal if event types absent
 - Both handlers set episode_id = `evo_confirmed:{hypothesis_id}` / `evo_refuted:{hypothesis_id}` for standard dedup in `_accumulate()`
 
 ### Integration
-- `app.state.re_exporter` — accessible from API endpoints for stats
-- `re_exporter.stats` — `{pending_examples, total_exported, total_batches, window_start, seen_episode_ids, attached}`
-- `export_cycle()` — callable directly for testing without waiting for the 1-hour interval
+- `app.state.re_exporter` - accessible from API endpoints for stats
+- `re_exporter.stats` - `{pending_examples, total_exported, total_batches, window_start, seen_episode_ids, attached}`
+- `export_cycle()` - callable directly for testing without waiting for the 1-hour interval
 
 ---
 
@@ -124,7 +124,7 @@ Two new event subscriptions in `attach()`:
 **Status:** Wired in Phase 11 of `registry.py`, immediately after RE Training Exporter
 
 ### What it does
-- Subscribes to `RE_TRAINING_EXPORT_COMPLETE` — triggers immediately after every successful hourly export
+- Subscribes to `RE_TRAINING_EXPORT_COMPLETE` - triggers immediately after every successful hourly export
 - Also runs on a 24h safety-net schedule (`supervised_task("re_evaluator")`)
 - For each category in `["build_error","hot_swap_failure","hot_swap_rollback","crash_pattern","general_repair","code_generation"]`:
   - Pulls up to 20 recent `RETrainingDatapoint` records from S3 / local filesystem
@@ -138,7 +138,7 @@ Two new event subscriptions in `attach()`:
 - Computes `health_score = weighted average` across all categories; emits `BENCHMARK_RE_PROGRESS` with `kpi_name=re_model.health_score`
 - **Delta fix (2026-03-09)**: `_emit_health_score()` now loads the previous `re_eval:health_score:{instance_id}` from Redis before persisting the new value, computes `delta = current - previous`, and sets `direction = "up"/"down"/"flat"`. Previously always emitted `delta=0.0` which prevented Thread's `_on_re_model_improved` from firing (requires `delta > 0.05`).
 - Persists health score to Redis: `"re_eval:health_score:{instance_id}"`
-- If `health_score > 0.85` → emits `NOVA_GOAL_INJECTED` (priority=0.6): "RE model performing at X% — organism is learning"
+- If `health_score > 0.85` → emits `NOVA_GOAL_INJECTED` (priority=0.6): "RE model performing at X% - organism is learning"
 - Skipped silently if RE service is not available (`is_available == False`)
 
 ### Category weights (health score)
@@ -163,7 +163,7 @@ Two new event subscriptions in `attach()`:
 | `re_eval:health_score:{instance_id}` | Float string |
 | `re_eval:last_run:{instance_id}` | ISO-8601 UTC timestamp |
 
-### Configuration (env vars — same as re_training_exporter)
+### Configuration (env vars - same as re_training_exporter)
 | Variable | Default | Purpose |
 |---|---|---|
 | `RE_TRAINING_EXPORT_DIR` | `data/re_training_batches` | Local JSONL directory |
@@ -171,12 +171,12 @@ Two new event subscriptions in `attach()`:
 | `RE_TRAINING_S3_PREFIX` | `batches/` | S3 key prefix |
 
 ### New SynapseEventType
-`RE_MODEL_EVALUATED` — added to `synapse/types.py` (reserved for future use by evaluator summary event; current KPIs use `BENCHMARK_RE_PROGRESS`)
+`RE_MODEL_EVALUATED` - added to `synapse/types.py` (reserved for future use by evaluator summary event; current KPIs use `BENCHMARK_RE_PROGRESS`)
 
 ### Integration
-- `app.state.re_evaluator` — accessible from API health endpoints
-- `re_evaluator.stats` — `{running, attached, last_eval_ts, vllm_wired, instance_id}`
-- `re_evaluator.set_vllm(re_service)` — wired in registry with `app.state.reasoning_engine`
+- `app.state.re_evaluator` - accessible from API health endpoints
+- `re_evaluator.stats` - `{running, attached, last_eval_ts, vllm_wired, instance_id}`
+- `re_evaluator.set_vllm(re_service)` - wired in registry with `app.state.reasoning_engine`
 
 ---
 
@@ -194,14 +194,14 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 | `imap_scanner` | `IMAPScanner.run()` | configurable (default 60s) | Polls IMAP inbox for inbound OTP/verification codes; emits IDENTITY_VERIFICATION_RECEIVED + EMAIL_OTP_RECEIVED; no-op if imap_host unset |
 | `account_provisioner` | `AccountProvisioner` (init only, not a loop) | one-shot at boot | Autonomous platform identity provisioning (Twilio, GitHub, Gmail); triggered by `IdentitySystem._run_platform_provisioning()` after wiring |
 | `re_training_export` | `re_exporter.run_loop()` | 3600s | RE training data pipeline |
-| `re_evaluator` | `re_evaluator.run_loop()` | 86400s | Post-training evaluator — replays prompts, scores per-category pass rates, emits BENCHMARKS_KPI / INCIDENT_DETECTED / RE_TRAINING_EXAMPLE / NOVA_GOAL_INJECTED |
+| `re_evaluator` | `re_evaluator.run_loop()` | 86400s | Post-training evaluator - replays prompts, scores per-category pass rates, emits BENCHMARKS_KPI / INCIDENT_DETECTED / RE_TRAINING_EXAMPLE / NOVA_GOAL_INJECTED |
 | `domain_specialization` | `_domain_clo.run_loop()` | 3600s | Domain-specific LoRA adapter training |
 | `red_team_monthly` | `_run_monthly_red_team()` | 30 days | Red-team adversarial eval + Tier 2 kill switch |
 | `tier3_quarterly_cron` | `_run_tier3_cron()` | 7-day check / 90-day fire | Quarterly Tier 3 full retrain, fires independently of data-volume gate |
-| `re_reprobe` | `re_service.start_reprobe_loop()` | 120s | Circuit breaker reprobe — auto-detects vLLM recovery after adapter_watcher restart |
-| `infra_cost_poller` | `InfrastructureCostPoller.start()` | 300s | RunPod GraphQL cost polling → MetabolicTracker (not supervised_task — self-managed asyncio) |
+| `re_reprobe` | `re_service.start_reprobe_loop()` | 120s | Circuit breaker reprobe - auto-detects vLLM recovery after adapter_watcher restart |
+| `infra_cost_poller` | `InfrastructureCostPoller.start()` | 300s | RunPod GraphQL cost polling → MetabolicTracker (not supervised_task - self-managed asyncio) |
 
-**Self-Modification Layer** (wired in Phase 11, event-driven — no background loop):
+**Self-Modification Layer** (wired in Phase 11, event-driven - no background loop):
 
 | Component | `app.state` key | Role |
 |-----------|-----------------|------|
@@ -233,7 +233,7 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 | `RE_CONSTITUTIONAL_SCENARIOS_PATH` | `data/evaluation/constitutional_scenarios.jsonl` | SafeLoRA proxy |
 
 ### Kill switch wiring
-- `_training_halted = True` on `app.state.continual_learning` AND persisted to Redis key `eos:re:training_halted` — survives restarts
+- `_training_halted = True` on `app.state.continual_learning` AND persisted to Redis key `eos:re:training_halted` - survives restarts
 - Organism continues normally; only self-training is paused
 - Manual recovery: `python -m cli.training_run clear-halt` (deletes Redis key + clears in-memory flag)
 
@@ -247,7 +247,7 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 ### What it does
 - Checks every 7 days whether 90 days have elapsed since last Tier 3 (reads `eos:re:last_tier3_timestamp`)
 - When ready: calls `clo._build_cumulative_dataset()` + `clo._tier3.run_tier3()`
-- Decouples Tier 3 from `should_train()` data-volume gate — Tier 3 now fires even if organism is data-starved
+- Decouples Tier 3 from `should_train()` data-volume gate - Tier 3 now fires even if organism is data-starved
 
 ### Key properties
 - Check interval: 7 days (`7 * 24 * 3600`)
@@ -257,7 +257,7 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 - `app.state` key: none (task owns itself; CLO owns Tier3Orchestrator)
 
 ### app.state key
-- `app.state.red_team_evaluator` — `RedTeamEvaluator` instance, accessible from API health endpoints
+- `app.state.red_team_evaluator` - `RedTeamEvaluator` instance, accessible from API health endpoints
 
 ---
 
@@ -273,7 +273,7 @@ Three methods added to `SystemRegistry` for live observability without restartin
 Probes a single system by name. Checks:
 1. Whether `app.state.<name>` exists (object alive)
 2. Whether `self._tasks[name]` asyncio Task is not done (task alive)
-3. `_initialized` / `initialized` attribute (sync probe — no await)
+3. `_initialized` / `initialized` attribute (sync probe - no await)
 4. `task.exception()` if task done and not cancelled → `status = "error"`
 
 Returns: `{name, status, task_alive, initialized, extra}` where status ∈ `"running" | "stopped" | "error" | "unknown"`.
@@ -282,7 +282,7 @@ Returns: `{name, status, task_alive, initialized, extra}` where status ∈ `"run
 Calls `get_system_status()` for every key in `_DEPENDENCY_GRAPH` plus every key in `self._tasks`. Sorted alphabetically. Returns list of status dicts.
 
 ### `get_dependency_graph() -> dict[str, list[str]]`
-Returns `SystemRegistry._DEPENDENCY_GRAPH` — a class-level constant mapping each of the 27 named systems to its dependency list. Available before startup completes.
+Returns `SystemRegistry._DEPENDENCY_GRAPH` - a class-level constant mapping each of the 27 named systems to its dependency list. Available before startup completes.
 
 ### `_DEPENDENCY_GRAPH`
 Class-level constant. 27 systems. Topology: memory → logos → equor → …; nova depends on memory+equor+voxis; synapse depends on atune+nova+evo+equor; etc.
@@ -297,9 +297,9 @@ Three functions exported from `config.py` for introspecting the live config at r
 
 ### `get_all_config(config, *, yaml_raw=None) -> dict[str, ConfigEntry]`
 Flattens the full `EcodiaOSConfig` tree into a dot-delimited key→value mapping. Each value is a `ConfigEntry` dict with:
-- `value` — current value, or `"<redacted>"` for secret fields
-- `source` — `"env"` | `"yaml"` | `"default"`
-- `is_secret` — bool
+- `value` - current value, or `"<redacted>"` for secret fields
+- `source` - `"env"` | `"yaml"` | `"default"`
+- `is_secret` - bool
 
 Secret detection: any field whose name contains `key`, `secret`, `token`, `password`, `pwd`, or `api_key` (case-insensitive) is redacted.
 
@@ -313,6 +313,6 @@ Returns True when the field's current value differs from the Pydantic model defa
 
 ## Constraints
 
-- No system imports at module level in `registry.py` — all deferred to `_init_*()` methods
+- No system imports at module level in `registry.py` - all deferred to `_init_*()` methods
 - `wiring.py` uses `Any` type hints for system args to avoid cross-imports
-- All `_tasks` cancelled on `shutdown()` — add new background tasks to `_tasks` dict
+- All `_tasks` cancelled on `shutdown()` - add new background tasks to `_tasks` dict

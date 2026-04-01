@@ -1,7 +1,7 @@
 """
-EcodiaOS — Oneiros v2: Sleep Scheduler
+EcodiaOS - Oneiros v2: Sleep Scheduler
 
-Three independent triggers — any one sufficient to initiate sleep:
+Three independent triggers - any one sufficient to initiate sleep:
 1. Scheduled: every N hours (configurable, default 6h)
 2. Cognitive pressure: Logos budget pressure >= threshold
 3. Compression backlog: Fovea unprocessed errors >= threshold
@@ -9,7 +9,7 @@ Three independent triggers — any one sufficient to initiate sleep:
 Safety check: can_sleep_now() gates against active commitments,
 unsafe suspension state, or active constitutional crisis.
 
-Built against protocols — does not import Nova, Axon, or Equor directly.
+Built against protocols - does not import Nova, Axon, or Equor directly.
 """
 
 from __future__ import annotations
@@ -73,7 +73,7 @@ class SleepScheduler:
     """
     Determines when EOS should sleep and whether it is safe to do so.
 
-    Three independent triggers — any one is sufficient.
+    Three independent triggers - any one is sufficient.
     Safety gate prevents sleep during active commitments or crises.
     """
 
@@ -108,7 +108,7 @@ class SleepScheduler:
         Check whether any sleep trigger is active.
 
         Returns (should_sleep, trigger_reason).
-        Three independent triggers — any one is sufficient.
+        Three independent triggers - any one is sufficient.
         """
         # 1. Scheduled
         hours = self.hours_since_sleep()
@@ -157,17 +157,17 @@ class SleepScheduler:
 
         If a system reference is None, that check is skipped (assumed safe).
         """
-        # Check Nova — no active commitments
+        # Check Nova - no active commitments
         if nova is not None and await nova.has_active_commitments():
             self._logger.debug("sleep_blocked", reason="nova_active_commitments")
             return False
 
-        # Check Axon — safe to suspend
+        # Check Axon - safe to suspend
         if axon is not None and not await axon.is_safe_to_suspend():
             self._logger.debug("sleep_blocked", reason="axon_unsafe_to_suspend")
             return False
 
-        # Check Equor — no constitutional crisis
+        # Check Equor - no constitutional crisis
         if equor is not None and await equor.is_crisis_active():
             self._logger.debug("sleep_blocked", reason="equor_crisis_active")
             return False

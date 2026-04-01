@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: Hashnode Client
+EcodiaOS - Social Interface: Hashnode Client
 
 Publishes blog posts to Hashnode via their GraphQL API.
 
@@ -11,11 +11,11 @@ purpose="oauth_token" containing:
     }
 
 Env var fallbacks:
-    ECODIAOS_HASHNODE_TOKEN          — Personal Access Token
-    ECODIAOS_HASHNODE_PUBLICATION_ID — Publication (blog) ID
+    ECODIAOS_HASHNODE_TOKEN          - Personal Access Token
+    ECODIAOS_HASHNODE_PUBLICATION_ID - Publication (blog) ID
 
 API:
-    POST https://gql.hashnode.com/   — GraphQL endpoint
+    POST https://gql.hashnode.com/   - GraphQL endpoint
     Mutation: publishPost (Hashnode API v3)
 
 Rate limits: Generous for personal accounts. Enforced at executor level.
@@ -92,7 +92,7 @@ class HashnodeClient:
             cover_image_url: Optional cover image URL.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, publication_id = self._load_credentials()
         if not token:
@@ -191,7 +191,7 @@ class HashnodeClient:
         Resolve (token, publication_id): vault envelope → env vars.
 
         Returns:
-            (token, publication_id) — both empty strings on failure.
+            (token, publication_id) - both empty strings on failure.
         """
         token = ""
         publication_id = ""

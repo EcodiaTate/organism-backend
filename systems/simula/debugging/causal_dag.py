@@ -514,7 +514,7 @@ class CausalDebugger:
                 ],
             }
 
-        # No intervention changed the outcome — use highest suspicion node
+        # No intervention changed the outcome - use highest suspicion node
         best = suspects[0]
         return {
             "node_id": best.node_id,

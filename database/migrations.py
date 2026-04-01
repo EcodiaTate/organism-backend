@@ -23,7 +23,7 @@ async def migrate_timescaledb_interoceptive_state(conn: Connection) -> None:
     Stores every cycle's 9D sensed state, allostatic errors, urgency signal,
     and phase space position for retrospective analysis and telemetry.
     """
-    # 1. Table + indexes — plain Postgres.
+    # 1. Table + indexes - plain Postgres.
     table_sql = """
     CREATE TABLE IF NOT EXISTS interoceptive_state (
         time             TIMESTAMPTZ NOT NULL,
@@ -83,7 +83,7 @@ async def migrate_timescaledb_interoceptive_state(conn: Connection) -> None:
         logger.error(f"interoceptive_state table creation failed: {exc}")
         raise
 
-    # 2. Hypertable + policies — only if TimescaleDB extension is present.
+    # 2. Hypertable + policies - only if TimescaleDB extension is present.
     has_timescaledb = await conn.fetchval(
         "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'timescaledb')"
     )
@@ -104,7 +104,7 @@ async def migrate_timescaledb_interoceptive_state(conn: Connection) -> None:
             logger.warning(f"interoceptive_state hypertable setup failed: {exc}")
     else:
         logger.info(
-            "interoceptive_state created as plain table — timescaledb extension not available"
+            "interoceptive_state created as plain table - timescaledb extension not available"
         )
 
 
@@ -161,7 +161,7 @@ def migrate_neo4j_adversarial_proposal_schema(session: Session) -> None:
       (:EvolutionProposal {id, ...})    -[:TARGETS]->
       (:Constitution {name})
 
-    Idempotent — safe to run on every startup.
+    Idempotent - safe to run on every startup.
     """
     constraints = [
         (

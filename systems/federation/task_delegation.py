@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Task Delegation
+EcodiaOS - Federation Task Delegation
 
 Enables one instance to delegate discrete work units to trusted federation
 peers with automatic USDC payment on completion.
@@ -21,7 +21,7 @@ Trust gating:
   - Normalised trust threshold: ``task.required_trust_level`` (default 0.7)
 
 All state is in-process.  Tasks are not persisted to Neo4j in this
-implementation — add Neo4j write-through if audit trail is required.
+implementation - add Neo4j write-through if audit trail is required.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.federation.task_delegation")
 
-# Normalised trust score ceiling for ALLY (score = 100) — used for
+# Normalised trust score ceiling for ALLY (score = 100) - used for
 # converting raw trust score to 0-1 range.
 _TRUST_SCORE_MAX: float = 100.0
 
@@ -184,7 +184,7 @@ class TaskDelegationManager:
         if link.trust_level.value < TrustLevel.COLLEAGUE.value:
             return self._decline(
                 task, link, start,
-                reason="Insufficient trust level — COLLEAGUE+ required for task delegation.",
+                reason="Insufficient trust level - COLLEAGUE+ required for task delegation.",
             )
         if norm_trust < task.required_trust_level:
             return self._decline(

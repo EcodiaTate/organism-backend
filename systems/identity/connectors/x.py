@@ -1,10 +1,10 @@
 """
-EcodiaOS — X (Twitter) OAuth 2.0 PKCE Connector
+EcodiaOS - X (Twitter) OAuth 2.0 PKCE Connector
 
 Implements the PlatformConnector ABC for X using raw httpx.
 
 X specifics:
-  - Public client flow — PKCE (S256) required.
+  - Public client flow - PKCE (S256) required.
   - Access tokens expire in approximately 2 hours.
   - Token endpoint uses HTTP Basic auth (client_id:client_secret).
   - Refresh tokens are long-lived but require offline.access scope.

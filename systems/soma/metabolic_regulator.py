@@ -65,7 +65,7 @@ def _deficit_severity(
     Piecewise linear through three tiers so each tier contributes a
     distinct gradient the organism can feel progressively.
 
-    Tier thresholds are parameterized — the organism learns its own
+    Tier thresholds are parameterized - the organism learns its own
     sensitivity to financial stress.
     """
     if deficit_usd <= 0.0:

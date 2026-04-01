@@ -1,6 +1,6 @@
 """
-EcodiaOS — Core HotDeployment
-Spec 10 §SM — Self-Modification Layer.
+EcodiaOS - Core HotDeployment
+Spec 10 §SM - Self-Modification Layer.
 
 Safely hot-deploys a new Axon executor module into the live process without
 requiring an organism restart.  Used exclusively by SelfModificationPipeline
@@ -180,7 +180,7 @@ class HotDeployment:
           6. Emit EXECUTOR_DEPLOYED
           7. Return DeploymentRecord
 
-        Raises nothing — all errors returned as DeploymentRecord(success=False).
+        Raises nothing - all errors returned as DeploymentRecord(success=False).
         """
         deployment_id = new_id()
         test_goal_id = new_id()
@@ -368,7 +368,7 @@ class HotDeployment:
           4. Emit DEPENDENCY_INSTALLED on success
 
         Returns True if package is available (was already installed or just installed).
-        Never raises — errors logged and return False.
+        Never raises - errors logged and return False.
         """
         # Check if already installed
         if importlib.util.find_spec(package_name.replace("-", "_")) is not None:

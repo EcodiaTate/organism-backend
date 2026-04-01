@@ -88,7 +88,7 @@ class _ENode:
     def __init__(self, op: str, children: tuple[int, ...] = ()) -> None:
         self.op = op
         self.children = children
-        self.hash_key = hashlib.md5(  # noqa: S324 — not security, just dedup
+        self.hash_key = hashlib.md5(  # noqa: S324 - not security, just dedup
             f"{op}:{children}".encode(),
         ).hexdigest()
 
@@ -322,7 +322,7 @@ class EqualitySaturationEngine:
     """
     E-graph equality saturation engine for semantic equivalence checking.
 
-    Verifies that code refactoring preserves semantics without tests —
+    Verifies that code refactoring preserves semantics without tests -
     pure algebraic rewriting to saturation.
     """
 
@@ -457,7 +457,7 @@ class EqualitySaturationEngine:
         # For now, verify equivalence with the original (identity check)
         result = await self.check_equivalence(code, code)
         # Simplification extraction would require cost-function based extraction
-        # from the e-graph — deferred to production hardening.
+        # from the e-graph - deferred to production hardening.
         return code, result
 
     # ── Private helpers ─────────────────────────────────────────────────────

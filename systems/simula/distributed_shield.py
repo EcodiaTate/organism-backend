@@ -1,9 +1,9 @@
 """
-EcodiaOS — Distributed Fleet Shield Manager
+EcodiaOS - Distributed Fleet Shield Manager
 
 Broadcasts deterministic XDP filters across the enterprise cluster via
 Redis Pub/Sub.  Every node subscribes to the same channel, so a filter
-generated on *any* node is deployed fleet-wide — including the
+generated on *any* node is deployed fleet-wide - including the
 originator, which receives its own broadcast and deploys locally.
 
 Usage (lifespan integration)::

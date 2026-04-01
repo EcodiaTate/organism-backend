@@ -1,11 +1,11 @@
 """
-EcodiaOS — Web3 Wallet Client (CDP SDK v2)
+EcodiaOS - Web3 Wallet Client (CDP SDK v2)
 
 On-chain financial identity for the organism. Uses the Coinbase Developer
 Platform SDK to manage an MPC-secured wallet on the Base network.
 
 The CDP SDK manages key material server-side (MPC). We never export or
-handle raw private keys — we create accounts by name and retrieve them
+handle raw private keys - we create accounts by name and retrieve them
 by name. A local metadata file records the account name and address so
 the organism can verify continuity across restarts.
 
@@ -18,12 +18,12 @@ All public methods are async. The CDP SDK v2 client (`CdpClient`) is
 natively async, so no `asyncio.to_thread` wrapping is required.
 
 Environment variables consumed (via WalletConfig):
-  ECODIAOS_WALLET__CDP_API_KEY_ID       — CDP API key identifier
-  ECODIAOS_WALLET__CDP_API_KEY_SECRET   — CDP API key secret
-  ECODIAOS_WALLET__CDP_WALLET_SECRET    — CDP wallet-level secret (MPC share)
-  ECODIAOS_WALLET__NETWORK              — EVM network id (default: base)
-  ECODIAOS_WALLET__ACCOUNT_NAME         — Logical account name (default: ecodiaos-treasury)
-  ECODIAOS_WALLET__SEED_FILE_PATH       — Path to local metadata file
+  ECODIAOS_WALLET__CDP_API_KEY_ID       - CDP API key identifier
+  ECODIAOS_WALLET__CDP_API_KEY_SECRET   - CDP API key secret
+  ECODIAOS_WALLET__CDP_WALLET_SECRET    - CDP wallet-level secret (MPC share)
+  ECODIAOS_WALLET__NETWORK              - EVM network id (default: base)
+  ECODIAOS_WALLET__ACCOUNT_NAME         - Logical account name (default: ecodiaos-treasury)
+  ECODIAOS_WALLET__SEED_FILE_PATH       - Path to local metadata file
 """
 
 from __future__ import annotations
@@ -103,7 +103,7 @@ class WalletClient:
     Mirrors the pattern of Neo4jClient, RedisClient, etc.
 
     The CDP SDK manages private keys server-side via MPC. This client
-    never touches raw key material — accounts are created and retrieved
+    never touches raw key material - accounts are created and retrieved
     by name through the CDP API.
     """
 
@@ -117,7 +117,7 @@ class WalletClient:
 
     async def connect(self) -> None:
         """Initialise the CDP client and load or create the EVM account."""
-        # wallet_secret is optional — only needed for write operations
+        # wallet_secret is optional - only needed for write operations
         # (account creation, transfers). Pass None if not configured so
         # the SDK doesn't try to parse an empty string as a DER key.
         wallet_secret = self._config.cdp_wallet_secret or None
@@ -136,7 +136,7 @@ class WalletClient:
         )
 
         try:
-            # Enter the async context manager — the SDK requires it
+            # Enter the async context manager - the SDK requires it
             await self._cdp.__aenter__()
 
             # Try to restore from local metadata, otherwise create new
@@ -184,7 +184,7 @@ class WalletClient:
             name=self._config.account_name,
         )
 
-        # Persist metadata (not key material — CDP holds that via MPC)
+        # Persist metadata (not key material - CDP holds that via MPC)
         self._save_metadata(seed_path)
 
         logger.info(
@@ -197,7 +197,7 @@ class WalletClient:
         """Restore an EVM account by name from CDP.
 
         The local metadata file tells us which account name to request.
-        CDP returns the same MPC-backed account — no key import needed.
+        CDP returns the same MPC-backed account - no key import needed.
         """
         cdp = self._require_cdp()
         metadata = self._load_metadata(seed_path)
@@ -392,7 +392,7 @@ class WalletClient:
     # ── Health ────────────────────────────────────────────────
 
     async def health_check(self) -> dict[str, Any]:
-        """Return wallet health status — account address & balance snapshot."""
+        """Return wallet health status - account address & balance snapshot."""
         try:
             account = self._require_account()
             balances = await self.get_balances()

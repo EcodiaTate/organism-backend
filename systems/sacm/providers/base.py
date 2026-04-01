@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Substrate Provider Interface
+EcodiaOS - SACM Substrate Provider Interface
 
 Defines the abstract base class for compute substrate providers and the
 SubstrateOffer dataclass that represents a point-in-time pricing offer
@@ -8,7 +8,7 @@ from a specific provider.
 Relationship to infrastructure/providers/:
   The existing ProviderManager (infrastructure/providers/base.py) handles
   the lifecycle of full deployments (deploy, health_check) for organism
-  migration.  SubstrateProvider is narrower — it deals only with the
+  migration.  SubstrateProvider is narrower - it deals only with the
   *market* interface: quoting prices for specific workload shapes and
   reporting availability.  The execution engine (out of scope here)
   bridges SubstrateProvider offers to ProviderManager deployments.
@@ -63,7 +63,7 @@ class SubstrateProviderStatus(enum.StrEnum):
     """Temporarily offline for scheduled maintenance."""
 
     UNREACHABLE = "unreachable"
-    """Cannot contact provider API — offers should not be trusted."""
+    """Cannot contact provider API - offers should not be trusted."""
 
 
 # ─── Substrate Offer ──────────────────────────────────────────────
@@ -202,7 +202,7 @@ class SubstrateProvider(ABC):
       2. Report provider status (available, degraded, unreachable)
       3. Provide metadata about capabilities (GPU, regions, etc.)
 
-    Execution and verification are handled by separate subsystems —
+    Execution and verification are handled by separate subsystems -
     the provider only participates in the market/quoting phase.
     """
 
@@ -223,7 +223,7 @@ class SubstrateProvider(ABC):
         """
         Query the provider's API and return current SubstrateOffers.
 
-        Must not raise — on failure, return an empty list and log the error.
+        Must not raise - on failure, return an empty list and log the error.
         Implementations should cache aggressively; the oracle controls
         refresh cadence.
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Evolution Lineage Tracker
+EcodiaOS - Simula Evolution Lineage Tracker
 
 Multi-generation evolution tracking: which instance spawned which, what
 genomes were inherited, what novel mutations each generation added, and
@@ -63,7 +63,7 @@ class EvolutionLineageTracker:
 
     async def register_genesis(self) -> GenerationRecord:
         """
-        Register generation 0 — the root of a new lineage.
+        Register generation 0 - the root of a new lineage.
 
         Called once during the very first instance's birth when there
         is no parent. Creates the root :GenerationRecord.

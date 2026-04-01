@@ -1,10 +1,10 @@
 """
-EcodiaOS — Inspector Phase 2: Runtime Tracer
+EcodiaOS - Inspector Phase 2: Runtime Tracer
 
 Instruments Python target modules/functions for:
-  1. Function-level tracing  — call / return / exception events
-  2. Basic-block signals     — coarse control-flow coverage via line-granularity
-  3. Branch observations     — taken/not-taken signals from conditional lines
+  1. Function-level tracing  - call / return / exception events
+  2. Basic-block signals     - coarse control-flow coverage via line-granularity
+  3. Branch observations     - taken/not-taken signals from conditional lines
 
 Instrumentation strategy
 ------------------------
@@ -14,14 +14,14 @@ require CPython internals.  On older runtimes we fall back to ``sys.settrace``.
 
 For subprocess targets (native/compiled code) the tracer records crash signals
 via subprocess return codes and ``signal.Signals`` enumeration; actual
-assembly-level BB tracing is out of scope for this Python runtime layer — the
+assembly-level BB tracing is out of scope for this Python runtime layer - the
 eBPF observer sidecar (observer/observer.py) handles that at the kernel level.
 
 Iron Rules
 ----------
 - The tracer NEVER modifies the target code or writes to the workspace.
 - All collected events are purely in-memory until explicitly serialised.
-- Tracing overhead must not silently mask bugs — the tracer catches its own
+- Tracing overhead must not silently mask bugs - the tracer catches its own
   exceptions and degrades gracefully rather than interfering with the target.
 - Subprocess targets are executed with a hard timeout (configurable).
 """
@@ -78,7 +78,7 @@ class _RunState:
     """
     Mutable tracing state accumulated during a single instrumented run.
 
-    Deliberately not a Pydantic model — it's a hot-path accumulator.
+    Deliberately not a Pydantic model - it's a hot-path accumulator.
     Conversion to immutable types happens in _finalise().
     """
 
@@ -213,7 +213,7 @@ def _make_settrace_handler(
         return local_trace
 
     def global_trace(frame: types.FrameType, event: str, arg: Any) -> Callable | None:
-        """Global trace — called for every function entry/exit."""
+        """Global trace - called for every function entry/exit."""
         filename = frame.f_code.co_filename
 
         # Filter to target scope only
@@ -301,7 +301,7 @@ def _install_monitoring_hooks(state: _RunState, scope_prefix: str) -> None:
         now = time.monotonic_ns()
         seq[0] += 1
         state.functions_visited.add(func_name)
-        # Caller info not directly available in monitoring API — leave empty.
+        # Caller info not directly available in monitoring API - leave empty.
         state.call_sequence.append(("", func_name))
         te = TraceEvent(
             run_id=state.run_id,
@@ -438,7 +438,7 @@ class RuntimeTracer:
     Instruments callable Python targets (functions, test suites, or subprocess
     commands) and returns a ControlFlowTrace + any FaultObservations.
 
-    Usage — in-process callable::
+    Usage - in-process callable::
 
         tracer = RuntimeTracer(scope_prefix="mypackage/")
         trace, faults = await tracer.trace_callable(
@@ -449,7 +449,7 @@ class RuntimeTracer:
             kwargs={...},
         )
 
-    Usage — subprocess::
+    Usage - subprocess::
 
         trace, faults = await tracer.trace_subprocess(
             run_id="run-002",
@@ -559,7 +559,7 @@ class RuntimeTracer:
         for crash signals.
 
         Because we cannot install Python-level trace hooks inside a subprocess,
-        the ControlFlowTrace will have an empty call_sequence — only the crash
+        the ControlFlowTrace will have an empty call_sequence - only the crash
         signal / exit code is recorded.  Callers that need deeper visibility
         should run the target in-process (trace_callable) or use the eBPF
         observer sidecar for native targets.
@@ -764,7 +764,7 @@ def _classify_python_exception(
     """
     Map a Python exception to a FaultObservation with a preliminary FaultClass.
 
-    The classification is heuristic — it uses the exception type name and
+    The classification is heuristic - it uses the exception type name and
     message, not dynamic memory analysis.
     """
     exc_type_name = type(exc).__name__
@@ -785,7 +785,7 @@ def _classify_python_exception(
         fault_class = FaultClass.UAF
         confidence = 0.55
 
-    # TypeError — covers type confusion patterns
+    # TypeError - covers type confusion patterns
     elif exc_type_name == "TypeError":
         fault_class = FaultClass.TYPE
         confidence = 0.7

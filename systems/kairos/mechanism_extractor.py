@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos: Stage 4 Mechanism Extractor
+EcodiaOS - Kairos: Stage 4 Mechanism Extractor
 
 Extracts the causal pathway between a confirmed cause–effect pair by
 traversing the CausalNode graph stored in Memory.  The result is a
@@ -57,7 +57,7 @@ class MechanismExtractor:
         """
         Extract the causal mechanism for the confirmed direction_result pair.
 
-        Returns a natural-language mechanism string.  Never raises — returns
+        Returns a natural-language mechanism string.  Never raises - returns
         a minimal placeholder on any error so Stage 5 can proceed.
         """
         cause = direction_result.cause

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Constitutional Check Primitive
+EcodiaOS - Constitutional Check Primitive
 
 The fundamental unit of ethical evaluation.
 Every Intent passes through Equor and receives one of these.
@@ -51,11 +51,11 @@ class ConstitutionalCheck(Identified):
 
     # Metabolic+somatic context injected by compute_verdict_with_metabolic_state()
     # Keys:
-    #   starvation_level (str)       — Oikos metabolic tier
-    #   efficiency_ratio (float)     — revenue/burn_rate from Oikos
-    #   floor_tightness (float)      — net floor multiplier (metabolic × somatic)
-    #   somatic_urgency (float)      — urgency from Soma SOMA_TICK / SOMATIC_MODULATION
-    #   somatic_stress_context (bool) — True when urgency >= 0.9
+    #   starvation_level (str)       - Oikos metabolic tier
+    #   efficiency_ratio (float)     - revenue/burn_rate from Oikos
+    #   floor_tightness (float)      - net floor multiplier (metabolic × somatic)
+    #   somatic_urgency (float)      - urgency from Soma SOMA_TICK / SOMATIC_MODULATION
+    #   somatic_stress_context (bool) - True when urgency >= 0.9
     metabolic_context: dict[str, Any] | None = None
 
     @property

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Fast-Path Primitives
+EcodiaOS - Fast-Path Primitives
 
 Types for the Arbitrage Reflex Arc: a sub-200ms execution channel that
 bypasses Nova's full deliberation for pre-approved constitutional templates.
@@ -14,7 +14,7 @@ Design rationale:
 Trust model:
   ConstitutionalTemplate captures Equor's pre-approval: a specific
   pattern signature, confidence threshold, and capital limit. FastPathIntent
-  is NOT a Policy (Nova's output) — it is a lightweight execution directive
+  is NOT a Policy (Nova's output) - it is a lightweight execution directive
   that carries the template's pre-approved trust.
 
 Latency budget:
@@ -46,7 +46,7 @@ class ConstitutionalTemplate(Identified, Timestamped):
     """
     A pre-approved execution strategy that Equor has deemed constitutionally safe.
 
-    Templates are the output of Equor's deliberative review process — they encode
+    Templates are the output of Equor's deliberative review process - they encode
     trust so the reflex arc doesn't need to re-derive it under time pressure.
 
     Immutable after creation. Revocation is via deactivation, not mutation.

@@ -1,19 +1,19 @@
 """
-EcodiaOS — Genome Distance Calculator (Spec 26, Speciation Bible §8.4)
+EcodiaOS - Genome Distance Calculator (Spec 26, Speciation Bible §8.4)
 
 Computes Hamming-style distance between two organism genomes for:
-  1. Speciation detection — distance > threshold = distinct species
-  2. Mating compatibility — reproductively isolated instances cannot exchange
+  1. Speciation detection - distance > threshold = distinct species
+  2. Mating compatibility - reproductively isolated instances cannot exchange
      genetic material
-  3. Phylogenetic tree construction — distance matrix for lineage visualization
+  3. Phylogenetic tree construction - distance matrix for lineage visualization
 
 Distance is deterministic: same inputs always produce the same output.
 
 Per-segment distance methods:
-  evo     — Jaccard distance of hypothesis IDs + cosine of drive weight vectors
-  simula  — normalized L2 of learnable config parameter vectors
-  telos   — cosine distance of drive calibration vectors
-  equor   — Jaccard of adopted amendment IDs + L1 of drive calibration deltas
+  evo     - Jaccard distance of hypothesis IDs + cosine of drive weight vectors
+  simula  - normalized L2 of learnable config parameter vectors
+  telos   - cosine distance of drive calibration vectors
+  equor   - Jaccard of adopted amendment IDs + L1 of drive calibration deltas
 
 Total = 0.30 × evo + 0.25 × simula + 0.25 × telos + 0.20 × equor
 """
@@ -56,7 +56,7 @@ class GenomeDistanceCalculator:
 
     Inputs are raw genome dicts as transported via CHILD_SPAWNED payload
     (i.e. the serialised forms of BeliefGenome, SimulaGenome, TelosGenomeFragment,
-    EquorGenomeFragment). The calculator handles missing segments gracefully —
+    EquorGenomeFragment). The calculator handles missing segments gracefully -
     absent segments contribute 0.0 to the total (maximum similarity).
 
     Parameters

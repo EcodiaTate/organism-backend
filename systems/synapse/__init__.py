@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse (System #9)
+EcodiaOS - Synapse (System #9)
 
 The autonomic nervous system. Drives the cognitive cycle clock,
 monitors system health, allocates resources, detects emergent

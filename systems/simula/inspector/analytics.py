@@ -1,12 +1,12 @@
 """
-EcodiaOS — Inspector Analytics & Observability (Phase 9)
+EcodiaOS - Inspector Analytics & Observability (Phase 9)
 
 Full-stack observability for the Inspector zero-day discovery pipeline.
 
 Three layers:
-  1. InspectorAnalyticsEmitter  — structured event emission (structlog + optional TSDB)
-  2. InspectorAnalyticsView     — in-memory aggregate dashboard with time-windowed trends
-  3. InspectorAnalyticsStore    — TimescaleDB persistence for durable event storage + queries
+  1. InspectorAnalyticsEmitter  - structured event emission (structlog + optional TSDB)
+  2. InspectorAnalyticsView     - in-memory aggregate dashboard with time-windowed trends
+  3. InspectorAnalyticsStore    - TimescaleDB persistence for durable event storage + queries
 
 All events carry a common envelope:
   - hunt_id:          Correlation ID linking all events in a single hunt
@@ -15,23 +15,23 @@ All events carry a common envelope:
   - hunting_version:  Schema version for forward-compatible analytics
 
 Events emitted:
-  hunt_started              — github_url, workspace_type
-  attack_surface_discovered — surface_type, entry_point, file_path
-  vulnerability_proved      — vulnerability_class, severity, z3_time_ms
-  poc_generated             — poc_language, poc_size_bytes, sandbox_tested
-  patch_generated           — vuln_id, repair_time_ms, patch_size_bytes
-  hunt_completed            — total_surfaces, total_vulnerabilities, total_time_ms
-  hunt_error                — error_type, error_message, pipeline_stage
-  surface_mapping_failed    — error_message, file_count
-  proof_timeout             — surface_entry_point, attack_goal, timeout_s
-  taint_source_discovered   — source_service, entry_point, taint_level
-  taint_flow_traced         — from_service, to_service, flow_type, event_count
-  ebpf_event_collected      — program_type, events_count, programs_loaded
-  cross_service_vulnerability_proved — vulnerability_class, severity, involved_services, taint_chain_length
+  hunt_started              - github_url, workspace_type
+  attack_surface_discovered - surface_type, entry_point, file_path
+  vulnerability_proved      - vulnerability_class, severity, z3_time_ms
+  poc_generated             - poc_language, poc_size_bytes, sandbox_tested
+  patch_generated           - vuln_id, repair_time_ms, patch_size_bytes
+  hunt_completed            - total_surfaces, total_vulnerabilities, total_time_ms
+  hunt_error                - error_type, error_message, pipeline_stage
+  surface_mapping_failed    - error_message, file_count
+  proof_timeout             - surface_entry_point, attack_goal, timeout_s
+  taint_source_discovered   - source_service, entry_point, taint_level
+  taint_flow_traced         - from_service, to_service, flow_type, event_count
+  ebpf_event_collected      - program_type, events_count, programs_loaded
+  cross_service_vulnerability_proved - vulnerability_class, severity, involved_services, taint_chain_length
 
 Integration:
   InspectorService calls InspectorAnalyticsEmitter methods at each pipeline stage.
-  The emitter is purely advisory — failures in analytics never block the hunt.
+  The emitter is purely advisory - failures in analytics never block the hunt.
   When a TimescaleDB client is provided, events are durably persisted for
   historical queries via InspectorAnalyticsStore.
 """
@@ -176,7 +176,7 @@ class InspectorAnalyticsEmitter:
     """
     Structured event emitter for Inspector pipeline observability.
 
-    All methods are fire-and-forget — analytics errors are logged as
+    All methods are fire-and-forget - analytics errors are logged as
     warnings and never propagate to the calling pipeline.
 
     When constructed with a TimescaleDB client, events are durably persisted.
@@ -253,7 +253,7 @@ class InspectorAnalyticsEmitter:
             if self._store is not None:
                 self._buffer.append(event)
                 if len(self._buffer) >= self._buffer_max:
-                    # Fire-and-forget flush — don't await in hot path
+                    # Fire-and-forget flush - don't await in hot path
                     asyncio.get_running_loop().create_task(self._flush_buffer())
 
             self._events_emitted += 1
@@ -998,7 +998,7 @@ class InspectorAnalyticsStore:
                                     error=str(exc),
                                 )
 
-                # Continuous aggregate (best-effort — may fail on older TSDB versions)
+                # Continuous aggregate (best-effort - may fail on older TSDB versions)
                 for statement in INSPECTOR_WEEKLY_AGG_SCHEMA.split(";"):
                     statement = statement.strip()
                     if statement:

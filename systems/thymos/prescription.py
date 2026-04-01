@@ -1,13 +1,13 @@
 """
-EcodiaOS — Thymos Prescription Layer (Repair Strategy)
+EcodiaOS - Thymos Prescription Layer (Repair Strategy)
 
 Based on diagnosis, Thymos prescribes the least invasive effective repair.
 This follows the principle of minimal intervention: try rest before
 antibiotics before surgery.
 
 Two components:
-  1. RepairPrescriber   — selects the repair tier and generates RepairSpec
-  2. RepairValidator    — gates repairs through constitutional review + safety
+  1. RepairPrescriber   - selects the repair tier and generates RepairSpec
+  2. RepairValidator    - gates repairs through constitutional review + safety
 """
 
 from __future__ import annotations
@@ -103,7 +103,7 @@ PARAMETER_FIXES: dict[str, list[ParameterFix]] = {
             reason="Slow cycle to reduce resource pressure",
         ),
     ],
-    # API timeout / pool fixes (Tier 1, spec §1 — 5xx PARAMETER path)
+    # API timeout / pool fixes (Tier 1, spec §1 - 5xx PARAMETER path)
     "request timeout or pool exhaustion": [
         ParameterFix(
             parameter_path="config.api.request_timeout_ms",
@@ -167,12 +167,12 @@ class RepairPrescriber:
     Prescribes repairs following the principle of minimal intervention:
     the least invasive fix that resolves the issue.
 
-    Tier 0: No-op — transient, already resolved
-    Tier 1: Parameter tweak — adjustable without code changes
-    Tier 2: System restart — bad state but code is fine
-    Tier 3: Known fix — apply antibody from the library
-    Tier 4: Novel fix — generate via Simula Code Agent
-    Tier 5: Human escalation — cannot auto-resolve
+    Tier 0: No-op - transient, already resolved
+    Tier 1: Parameter tweak - adjustable without code changes
+    Tier 2: System restart - bad state but code is fine
+    Tier 3: Known fix - apply antibody from the library
+    Tier 4: Novel fix - generate via Simula Code Agent
+    Tier 5: Human escalation - cannot auto-resolve
     """
 
     def __init__(self) -> None:
@@ -187,7 +187,7 @@ class RepairPrescriber:
 
         # ── TIER 4 override: diagnosis explicitly requests NOVEL_FIX ──
         # When the triage router force-escalated to T4 (masking-loop detection),
-        # the diagnosis tier is set to NOVEL_FIX. Honor it — don't let lower-tier
+        # the diagnosis tier is set to NOVEL_FIX. Honor it - don't let lower-tier
         # heuristics short-circuit the codegen path.
         if diagnosis.repair_tier == RepairTier.NOVEL_FIX:
             return RepairSpec(
@@ -202,7 +202,7 @@ class RepairPrescriber:
             return RepairSpec(
                 tier=RepairTier.NOOP,
                 action="log_and_monitor",
-                reason="Transient single occurrence — monitoring",
+                reason="Transient single occurrence - monitoring",
             )
 
         # ── TIER 3: Known Fix (Antibody) ── (check before parameter/restart)
@@ -247,7 +247,7 @@ class RepairPrescriber:
 
         # ── TIER 4: Novel Fix (Codegen) ──
         # Confidence threshold is 0.4 (not 0.6) because novel errors by definition
-        # have low diagnosis confidence — if we knew the root cause with high
+        # have low diagnosis confidence - if we knew the root cause with high
         # confidence we'd have an antibody. Simula's code agent can investigate
         # further with its own tools.
         if diagnosis.confidence > 0.4 and self._is_codegen_appropriate(incident):
@@ -360,7 +360,7 @@ class RepairPrescriber:
         if diagnosis.repair_tier != RepairTier.KNOWN_FIX:
             return None
         if diagnosis.antibody_id is None:
-            # No antibody matched — fall through to Tier 4 or escalation
+            # No antibody matched - fall through to Tier 4 or escalation
             return None
 
         return RepairSpec(
@@ -375,7 +375,7 @@ class RepairPrescriber:
 
     def _is_codegen_appropriate(self, incident: Incident) -> bool:
         """Should we attempt codegen repair?"""
-        # Don't codegen for transient or low-severity issues — UNLESS the
+        # Don't codegen for transient or low-severity issues - UNLESS the
         # incident has been force-escalated to T4 via recurrence detection.
         # Recurring low-severity issues that won't self-resolve ARE worth
         # fixing structurally via Simula.
@@ -389,7 +389,7 @@ class RepairPrescriber:
         # Don't codegen for system-wide issues
         if incident.blast_radius > 0.5:
             return False
-        # API incidents are eligible — the endpoint + error message gives Simula
+        # API incidents are eligible - the endpoint + error message gives Simula
         # enough context to generate a targeted patch.  Check both structured
         # ApiErrorContext and the plain dict emitted by ErrorCaptureMiddleware.
         if isinstance(incident.context, ApiErrorContext):

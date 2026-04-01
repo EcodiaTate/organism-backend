@@ -84,14 +84,14 @@ class TestCytokineSteormDedupSingleFingerprint:
         proposal_id_2 = "prop_002"
         now = utc_now().timestamp()
 
-        # First proposal — no entry exists
+        # First proposal - no entry exists
         if fingerprint not in active_simula_proposals:
             active_simula_proposals[fingerprint] = (proposal_id_1, now)
             can_submit_1 = True
         else:
             can_submit_1 = False
 
-        # Second proposal with same fingerprint — entry exists
+        # Second proposal with same fingerprint - entry exists
         if fingerprint not in active_simula_proposals:
             active_simula_proposals[fingerprint] = (proposal_id_2, now)
             can_submit_2 = True
@@ -129,7 +129,7 @@ class TestCytokineSteormDedupSingleFingerprint:
         proposal1 = make_thymos_proposal(incident1)
         proposal2 = make_thymos_proposal(incident2)
 
-        # Compute semantic keys — should match
+        # Compute semantic keys - should match
         key1 = simula._compute_semantic_key(proposal1)
         key2 = simula._compute_semantic_key(proposal2)
         assert key1 == key2, "Same structural fix should have same semantic key"

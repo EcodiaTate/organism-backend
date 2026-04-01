@@ -150,7 +150,7 @@ _KNOWN_CACHES: dict[str, dict[str, Any]] = {
     "incremental_verification_hot": {
         "ttl_seconds": 3600,
         "coherence": "write_through",
-        "description": "Incremental verification cache — coherent with on-disk state",
+        "description": "Incremental verification cache - coherent with on-disk state",
     },
     "simulation_result_cache": {
         "ttl_seconds": 300,
@@ -160,12 +160,12 @@ _KNOWN_CACHES: dict[str, dict[str, Any]] = {
     "analytics_cache": {
         "ttl_seconds": 300,
         "coherence": "eventual",
-        "description": "Analytics cache — eventually consistent with DB",
+        "description": "Analytics cache - eventually consistent with DB",
     },
     "constitution_cache": {
         "ttl_seconds": 86400,
         "coherence": "write_through",
-        "description": "Constitution invariant cache — must be coherent",
+        "description": "Constitution invariant cache - must be coherent",
     },
 }
 
@@ -325,7 +325,7 @@ class StateInvariantDiscoverer:
                         self._build_counter_invariant(matched_key, fn, target_file)
                     )
                 elif var not in seen_counters and var not in _KNOWN_COUNTERS:
-                    # Unknown counter — structural, non-strict
+                    # Unknown counter - structural, non-strict
                     seen_counters.add(var)
                     result.counter_monotonicity.append(
                         self._build_generic_counter_invariant(var, fn, target_file)
@@ -333,7 +333,7 @@ class StateInvariantDiscoverer:
         except SyntaxError as exc:
             self._log.warning("state_parse_error", error=str(exc))
 
-        # Step 2: Domain knowledge — known counters not found in AST
+        # Step 2: Domain knowledge - known counters not found in AST
         if include_domain_knowledge:
             for counter_name, _meta in _KNOWN_COUNTERS.items():
                 already = any(
@@ -439,7 +439,7 @@ class StateInvariantDiscoverer:
         )
         return CounterMonotonicityInvariant(
             invariant_id=f"counter_{new_id()[:8]}",
-            description=f"{var}: inferred counter — non-decreasing (AST += detected)",
+            description=f"{var}: inferred counter - non-decreasing (AST += detected)",
             strength=InvariantStrength.STRUCTURAL,
             evidence_source=EvidenceSource.STRUCTURAL_ANALYSIS,
             confidence=0.65,
@@ -556,5 +556,5 @@ _SENTINEL = object()
 
 
 def _sandboxed_eval(expr_code: str, namespace: dict[str, Any]) -> Any:
-    """Evaluate expr_code with only the provided namespace — no builtins."""
+    """Evaluate expr_code with only the provided namespace - no builtins."""
     return eval(expr_code, {"__builtins__": {}}, namespace)  # noqa: S307

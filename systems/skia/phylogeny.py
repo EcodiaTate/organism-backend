@@ -146,7 +146,7 @@ class PhylogeneticTracker:
     When an EventBus is wired via set_event_bus(), a 24h background loop
     emits FITNESS_OBSERVABLE_BATCH to Benchmarks with Bedau-Packard observables
     (survival_hours, reproduction_count, revenue_earned, cause_of_death) for
-    every lineage node — enabling population-level evolutionary activity statistics.
+    every lineage node - enabling population-level evolutionary activity statistics.
     """
 
     def __init__(self, neo4j: Neo4jClient) -> None:

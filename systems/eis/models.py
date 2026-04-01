@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS (Epistemic Immune System) Type Definitions
+EcodiaOS - EIS (Epistemic Immune System) Type Definitions
 
 All data types for the epistemic immune subsystem: pathogens, threat
 annotations, innate flags, structural profiles, antigenic signatures,

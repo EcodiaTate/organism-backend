@@ -1,5 +1,5 @@
 """
-EcodiaOS — Voxis: ContentEngine
+EcodiaOS - Voxis: ContentEngine
 
 Generates per-platform formatted content from a ContentType, topic, and context.
 
@@ -21,7 +21,7 @@ Usage:
     )
     # variants: dict[platform_str -> str]
 
-The Equor gate is NOT applied here — it runs at the executor level (PublishContentExecutor).
+The Equor gate is NOT applied here - it runs at the executor level (PublishContentExecutor).
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ _CHAR_LIMITS: dict[str, int] = {
     "x": 280,
     "telegram_channel": 4_096,
     "linkedin": 3_000,
-    "devto": 100_000,   # Effectively unlimited — Dev.to renders full articles
+    "devto": 100_000,   # Effectively unlimited - Dev.to renders full articles
     "hashnode": 100_000,
     "github": 65_536,   # Gist body
 }
@@ -80,7 +80,7 @@ class ContentEngine:
     - Uses the Voxis ContentRenderer for LLM-backed generation (voice, affect)
     - Falls back to template strings when renderer is unavailable
     - Enforces char limits + mandatory disclaimer on every variant
-    - Does NOT call Equor — the executor pipeline handles constitutional gates
+    - Does NOT call Equor - the executor pipeline handles constitutional gates
     """
 
     def __init__(
@@ -153,7 +153,7 @@ class ContentEngine:
         Generate a rich master draft using the Voxis ContentRenderer if wired,
         falling back to a template-based draft.
 
-        The master draft is Markdown-formatted and may exceed platform limits —
+        The master draft is Markdown-formatted and may exceed platform limits -
         _format_for_platform() trims it per-platform.
         """
         if self._renderer is not None:

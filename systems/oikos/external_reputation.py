@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos: External Code Reputation Tracker (Phase 16s)
+EcodiaOS - Oikos: External Code Reputation Tracker (Phase 16s)
 
 Tracks EOS's reputation as a software contractor in the open-source ecosystem.
 Per-repository and per-language reputation scores feed into Evo domain mastery
@@ -11,20 +11,20 @@ Data model:
   - Overall contractor score: weighted average across languages
 
 Synapse events consumed:
-  - EXTERNAL_TASK_COMPLETED  — task finished; may or may not have a PR
-  - BOUNTY_PR_MERGED         — PR was accepted by a human maintainer (positive signal)
-  - BOUNTY_PR_REJECTED       — PR was closed without merge (negative signal)
+  - EXTERNAL_TASK_COMPLETED  - task finished; may or may not have a PR
+  - BOUNTY_PR_MERGED         - PR was accepted by a human maintainer (positive signal)
+  - BOUNTY_PR_REJECTED       - PR was closed without merge (negative signal)
 
 Synapse events emitted:
-  - EXTERNAL_CODE_REPUTATION_UPDATED  — after any reputation change
-  - RE_TRAINING_EXAMPLE               — for learning from PR outcomes
+  - EXTERNAL_CODE_REPUTATION_UPDATED  - after any reputation change
+  - RE_TRAINING_EXAMPLE               - for learning from PR outcomes
 
 Persistence: Redis key ``oikos:external_reputation``
 
 Integration:
   - Emits DOMAIN_EPISODE_RECORDED (Evo) on significant reputation changes
     so Evo can update domain mastery hypothesis priors.
-  - No direct cross-system imports — EventBus and RedisClient under TYPE_CHECKING.
+  - No direct cross-system imports - EventBus and RedisClient under TYPE_CHECKING.
 """
 
 from __future__ import annotations
@@ -188,7 +188,7 @@ class ExternalCodeReputationTracker:
         language = self._get_repo_language(repo_url)
         await self._record_merge(repo_url, language)
 
-        # Emit strong RE training signal — human acceptance is highest-quality validation
+        # Emit strong RE training signal - human acceptance is highest-quality validation
         await self._emit_re_training(
             outcome="merged",
             repo_url=repo_url,

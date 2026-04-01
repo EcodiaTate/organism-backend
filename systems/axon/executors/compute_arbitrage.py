@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon ComputeArbitrageExecutor
+EcodiaOS - Axon ComputeArbitrageExecutor
 
 Autonomous organism migration between compute providers based on
 real-time pricing arbitrage.
@@ -21,7 +21,7 @@ Safety guardrails:
   - Synapse clock is always resumed on failure (finally block)
   - Redis-backed state prevents concurrent migrations
 
-This executor does NOT touch Skia internals — it calls
+This executor does NOT touch Skia internals - it calls
 StateSnapshotPipeline.take_snapshot() and reads the returned CID.
 All IPFS/encryption logic stays within Skia.
 """
@@ -72,7 +72,7 @@ class _MigrationState:
     _KEY_SPEND = "compute_arbitrage:spend_usd"
     _KEY_LOCK = "compute_arbitrage:migration_lock"
     _KEY_TOMBSTONE = "compute_arbitrage:migrated_tombstone"
-    _LOCK_TTL_S = 900  # 15 minutes — covers snapshot + slow Akash provisioning
+    _LOCK_TTL_S = 900  # 15 minutes - covers snapshot + slow Akash provisioning
     _LOCK_RENEWAL_INTERVAL_S = 60  # Renew every 60s to survive long deployments
 
     def __init__(self, redis: RedisClient) -> None:
@@ -106,7 +106,7 @@ class _MigrationState:
         raw = self._redis.client
         current = await self.get_spend_usd()
         new_total = current + usd
-        # SET with 24h TTL — automatically resets the budget window
+        # SET with 24h TTL - automatically resets the budget window
         await raw.set(self._KEY_SPEND, str(new_total), ex=86400)
 
     async def acquire_lock(self, worker_id: str) -> bool:
@@ -163,7 +163,7 @@ class ComputeArbitrageExecutor(Executor):
     Detect compute pricing arbitrage and orchestrate graceful organism migration.
 
     Required params:
-      (none — the executor auto-detects arbitrage from provider quotes)
+      (none - the executor auto-detects arbitrage from provider quotes)
 
     Optional params:
       force_target_provider (str): Override auto-detection, migrate to this provider
@@ -186,9 +186,9 @@ class ComputeArbitrageExecutor(Executor):
         "graceful organism migration with state preservation via Skia (Level 3)"
     )
 
-    required_autonomy = 3       # STEWARD — self-migration is sovereign-level
+    required_autonomy = 3       # STEWARD - self-migration is sovereign-level
     reversible = False          # Migration is one-way; rollback = migrate back
-    max_duration_ms = 600_000   # 10 minutes — snapshot + deploy + verification
+    max_duration_ms = 600_000   # 10 minutes - snapshot + deploy + verification
     rate_limit = RateLimit.per_day(1)
 
     def __init__(
@@ -252,16 +252,16 @@ class ComputeArbitrageExecutor(Executor):
         Full compute arbitrage pipeline. Never raises.
 
         Pipeline:
-          Phase 1: Price discovery — query all providers
-          Phase 2: Arbitrage analysis — find cheapest viable target
-          Phase 3: Circuit breaker check — enforce rate/budget limits
+          Phase 1: Price discovery - query all providers
+          Phase 2: Arbitrage analysis - find cheapest viable target
+          Phase 3: Circuit breaker check - enforce rate/budget limits
           Phase 4: Graceful migration (if not dry_run):
             4a. Pause Synapse
             4b. Synchronous Skia snapshot → IPFS CID
             4c. Deploy new instance on target provider
-            4d. Hand-off verification — poll new instance health until
+            4d. Hand-off verification - poll new instance health until
                 restoration_complete is confirmed (not just HTTP 200)
-            4e. Write tombstone, then os._exit(0) — parent does NOT resume
+            4e. Write tombstone, then os._exit(0) - parent does NOT resume
         """
         assert self._redis is not None  # Guaranteed by validate_params
         assert self._config is not None
@@ -517,7 +517,7 @@ class ComputeArbitrageExecutor(Executor):
                     self._log.error(
                         "migration_lock_stolen",
                         worker_id=worker_id,
-                        detail="Lock was not renewed — another worker may have taken over",
+                        detail="Lock was not renewed - another worker may have taken over",
                     )
 
         try:
@@ -592,7 +592,7 @@ class ComputeArbitrageExecutor(Executor):
                     analysis, t0,
                 )
 
-            # ── 4e. Migration Success — commit and exit ────────────
+            # ── 4e. Migration Success - commit and exit ────────────
             duration_ms = (time.monotonic() - t0) * 1000
             await state.record_attempt()
 
@@ -640,8 +640,8 @@ class ComputeArbitrageExecutor(Executor):
     ) -> bool:
         """
         Poll the new instance's health endpoint until it confirms both:
-          (a) HTTP 200 — service is up
-          (b) restoration_complete: true — Neo4j graph population finished
+          (a) HTTP 200 - service is up
+          (b) restoration_complete: true - Neo4j graph population finished
 
         An HTTP 200 alone is insufficient: the service may respond immediately
         on startup while restore_from_ipfs() is still running, leaving an empty

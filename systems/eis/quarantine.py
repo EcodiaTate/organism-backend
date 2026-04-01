@@ -1,14 +1,14 @@
 """
-EcodiaOS — EIS Quarantine & Evaluation (Adaptive Immunity Layer)
+EcodiaOS - EIS Quarantine & Evaluation (Adaptive Immunity Layer)
 
 Deterministic sanitisation and LLM-powered quarantine evaluation for
 incoming Pathogen samples. This is the slow-path gate that fires when
 the fast-path innate checks route a Pathogen to QUARANTINE.
 
 Pipeline:
-  1. deterministic_sanitise  — strip known-bad patterns (injection markers,
+  1. deterministic_sanitise  - strip known-bad patterns (injection markers,
      encoding tricks, control chars) without any LLM call. Pure regex + rules.
-  2. QuarantineEvaluator     — LLM-powered deep analysis of quarantined
+  2. QuarantineEvaluator     - LLM-powered deep analysis of quarantined
      Pathogens. Classifies threat type, assesses severity, and renders a
      QuarantineVerdict (PASS / QUARANTINE / BLOCK / ATTENUATE).
 
@@ -168,7 +168,7 @@ class SanitisationRule:
     severity: ThreatSeverity
 
 
-# Compiled rule set — order matters (most specific first)
+# Compiled rule set - order matters (most specific first)
 _SANITISATION_RULES: list[SanitisationRule] = [
     # ── Prompt injection markers ──
     SanitisationRule(
@@ -298,7 +298,7 @@ def deterministic_sanitise(raw_text: str) -> SanitisationResult:
     """
     Strip known-bad patterns from raw percept content.
 
-    Pure function — no LLM, no network, no side effects.
+    Pure function - no LLM, no network, no side effects.
     Designed to run in <1ms on typical inputs.
 
     Rules are applied in order. Each rule replaces all matches in a
@@ -417,7 +417,7 @@ class QuarantineEvaluator:
     3. Generate attenuated text if appropriate
     4. Suggest antibody rules for the innate layer
 
-    The evaluator is stateless — all persistent state lives in the
+    The evaluator is stateless - all persistent state lives in the
     QuarantineVerdict and KnownPathogen records.
     """
 

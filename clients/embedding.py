@@ -1,5 +1,5 @@
 """
-EcodiaOS — Embedding Client Abstraction
+EcodiaOS - Embedding Client Abstraction
 
 Supports local sentence-transformers, API-based, sidecar, and
 Voyage AI models (voyage-code-3 for code-aware embeddings).

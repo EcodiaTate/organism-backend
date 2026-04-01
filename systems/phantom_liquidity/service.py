@@ -1,15 +1,15 @@
 """
-EcodiaOS — Phantom Liquidity Service (Phase 16q)
+EcodiaOS - Phantom Liquidity Service (Phase 16q)
 
 Orchestrates the phantom liquidity sensor network.  Manages the full lifecycle:
 
-1. Pool selection — which pairs to monitor (via PoolSelector)
-2. Position deployment — mint LP positions (via PhantomLiquidityExecutor)
-3. Swap event listening — extract prices from on-chain events (via SwapEventListener)
-4. Synapse integration — broadcast prices via PHANTOM_PRICE_UPDATE events
-5. Health monitoring — impermanent loss tracking, staleness detection
-6. Oikos reporting — track as YieldPosition entries in EconomicState
-7. Genome extraction — heritable state for Mitosis
+1. Pool selection - which pairs to monitor (via PoolSelector)
+2. Position deployment - mint LP positions (via PhantomLiquidityExecutor)
+3. Swap event listening - extract prices from on-chain events (via SwapEventListener)
+4. Synapse integration - broadcast prices via PHANTOM_PRICE_UPDATE events
+5. Health monitoring - impermanent loss tracking, staleness detection
+6. Oikos reporting - track as YieldPosition entries in EconomicState
+7. Genome extraction - heritable state for Mitosis
 
 Lifecycle::
 
@@ -104,7 +104,7 @@ class LiquidityPhantomService:
         self._instance_id = instance_id
         self._logger = logger.bind(system="phantom_liquidity")
 
-        # LP key sealed envelope — stored in vault, not in config/env.
+        # LP key sealed envelope - stored in vault, not in config/env.
         self._lp_key_envelope: SealedEnvelope | None = None
 
         # Sub-components
@@ -118,7 +118,7 @@ class LiquidityPhantomService:
 
         # Multi-instance price consensus: pool_address -> list[(price_float, ts)]
         self._peer_observations: dict[str, list[tuple[float, datetime]]] = {}
-        # Consensus window — keep observations within 30s to compute fleet median.
+        # Consensus window - keep observations within 30s to compute fleet median.
         self._consensus_window_s: float = 30.0
 
         # Event bus
@@ -224,7 +224,7 @@ class LiquidityPhantomService:
                 SynapseEventType.PHANTOM_PRICE_OBSERVATION,
                 self._on_peer_price_observation,
             )
-            # Subscribe to Evo parameter adjustments — Evo can tune IL threshold,
+            # Subscribe to Evo parameter adjustments - Evo can tune IL threshold,
             # staleness window, consensus window, and poll interval via Thompson sampling.
             if hasattr(SynapseEventType, "EVO_ADJUST_BUDGET"):
                 event_bus.subscribe(
@@ -282,7 +282,7 @@ class LiquidityPhantomService:
         Seal and store the LP wallet private key in the Identity vault.
 
         Must be called once during initial provisioning. After this, the key
-        is never stored in config, env vars, or plaintext memory — always
+        is never stored in config, env vars, or plaintext memory - always
         retrieved via ``retrieve_lp_key()``.
 
         Returns True on success, False if vault is unavailable.
@@ -337,7 +337,7 @@ class LiquidityPhantomService:
         """
         Get the latest price for a trading pair from phantom pools.
 
-        Returns ``None`` if no pool covers this pair — the caller should
+        Returns ``None`` if no pool covers this pair - the caller should
         fall back to an oracle API.
         """
         key = _pair_key(pair)
@@ -349,7 +349,7 @@ class LiquidityPhantomService:
         # Check staleness
         age_s = (datetime.now(UTC) - feed.timestamp).total_seconds()
         if age_s > self._config.staleness_threshold_s:
-            return None  # Stale — caller should use oracle
+            return None  # Stale - caller should use oracle
 
         return feed
 
@@ -362,7 +362,7 @@ class LiquidityPhantomService:
         return list(self._pools.values())
 
     def get_candidates(self) -> list[Any]:
-        """Return the static pool candidate list — use instead of importing _STATIC_POOLS directly."""
+        """Return the static pool candidate list - use instead of importing _STATIC_POOLS directly."""
         return self._pool_selector.get_static_pools()
 
     def register_pool(self, pool: PhantomLiquidityPool) -> None:
@@ -470,7 +470,7 @@ class LiquidityPhantomService:
             # Compute IL from price movement relative to entry
             self._update_il(pool, feed.price)
 
-            # Immediate IL breach detection — don't wait for the hourly maintenance
+            # Immediate IL breach detection - don't wait for the hourly maintenance
             # cycle.  If IL just crossed the rebalance threshold on this price tick,
             # immediately flag the pool and emit an intent to withdraw.
             il_threshold = Decimal(str(self._config.il_rebalance_threshold))
@@ -593,7 +593,7 @@ class LiquidityPhantomService:
         # Write lightweight PriceObservation node to Neo4j for Memory bridge.
         await self._write_price_observation_to_neo4j(feed, broadcast_price)
 
-        # Broadcast via Synapse — replaces direct atune.ingest().
+        # Broadcast via Synapse - replaces direct atune.ingest().
         # Includes price_source_quality so Fovea/Nova can weight this signal
         # and RE training examples can annotate economic decisions with prevailing
         # market conditions (Spec §23 annotation pattern).
@@ -716,7 +716,7 @@ ON CREATE SET
         deviations from the mean, then returns the median of remaining values.
 
         Returns None if fewer than 2 peers have observations (no consensus
-        possible — self price is used directly).
+        possible - self price is used directly).
         """
         addr = pool_address.lower()
         now = datetime.now(UTC)
@@ -733,7 +733,7 @@ ON CREATE SET
         all_prices = fresh + [self_price]
 
         if len(all_prices) < 2:  # noqa: PLR2004
-            return None  # Not enough peers — no consensus, use raw price.
+            return None  # Not enough peers - no consensus, use raw price.
 
         # 2σ outlier rejection.
         mean = statistics.mean(all_prices)
@@ -912,7 +912,7 @@ ON CREATE SET
     # ── Maintenance ────────────────────────────────────────────────
 
     async def _maintenance_loop(self) -> None:
-        """Periodic maintenance — runs until cancelled."""
+        """Periodic maintenance - runs until cancelled."""
         while True:
             try:
                 await asyncio.sleep(self._config.maintenance_interval_s)
@@ -1063,7 +1063,7 @@ ON CREATE SET
             # Use ratio of events to polls as a proxy for observation density.
             pool_latency_ms = max(0.0, 4000.0 / max(total_events, 1))
 
-        # Verification rate: events processed / (polls * pools) — fraction of polls that yielded events.
+        # Verification rate: events processed / (polls * pools) - fraction of polls that yielded events.
         verification_rate = 0.0
         monitored_pools = listener_stats.get("pools_monitored", 0)
         if total_polls > 0 and monitored_pools > 0:
@@ -1136,13 +1136,13 @@ ON CREATE SET
             "estimated_cost_usd": str(total_deployed),
             "starvation_level": level,
             "pool_count": len(active_pools),
-            "reason": f"Metabolic pressure at {level} — "
+            "reason": f"Metabolic pressure at {level} - "
                       f"${total_deployed} deployed in phantom positions",
         })
 
         # EMERGENCY / CRITICAL: autonomously propose withdrawal of IL-exposed pools
         # by emitting a Nova-compatible intent request.  The organism should not
-        # wait for an operator — it should self-rescue.
+        # wait for an operator - it should self-rescue.
         if level in ("EMERGENCY", "CRITICAL") and active_pools:
             # Sort by worst IL first so the most dangerous positions are withdrawn.
             il_sorted = sorted(
@@ -1187,17 +1187,17 @@ ON CREATE SET
 
     async def _on_evo_adjust_budget(self, event: SynapseEvent) -> None:
         """
-        Handle EVO_ADJUST_BUDGET — Evo-tuned runtime parameter adjustment.
+        Handle EVO_ADJUST_BUDGET - Evo-tuned runtime parameter adjustment.
 
         Evo learns which threshold values maximize price feed quality and
         minimize impermanent loss via Thompson sampling on hypothesis outcomes.
         This handler applies approved adjustments within safe bounds.
 
         Adjustable parameters:
-          - ``il_rebalance_threshold``  — IL% that triggers pool rebalancing
-          - ``staleness_threshold_s``   — seconds before a pool is marked stale
-          - ``consensus_window_s``      — peer observation aggregation window
-          - ``swap_poll_interval_s``    — RPC poll frequency (applied on restart)
+          - ``il_rebalance_threshold``  - IL% that triggers pool rebalancing
+          - ``staleness_threshold_s``   - seconds before a pool is marked stale
+          - ``consensus_window_s``      - peer observation aggregation window
+          - ``swap_poll_interval_s``    - RPC poll frequency (applied on restart)
         """
         data = event.data if hasattr(event, "data") else {}
         param = data.get("parameter_name", "")

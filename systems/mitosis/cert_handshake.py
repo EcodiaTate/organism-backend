@@ -1,5 +1,5 @@
 """
-EcodiaOS — Child-Side Certificate Validation + Federation Handshake (Spec 26 §6 / MEDIUM #6)
+EcodiaOS - Child-Side Certificate Validation + Federation Handshake (Spec 26 §6 / MEDIUM #6)
 
 On startup, a child instance must:
   1. Load ECODIAOS_BIRTH_CERTIFICATE from environment (PEM-encoded X.509).
@@ -92,7 +92,7 @@ class ChildCertHandshake:
         cert_pem = os.environ.get(_ENV_BIRTH_CERT, "")
         if not cert_pem:
             raise CertificateValidationError(
-                f"Missing env var {_ENV_BIRTH_CERT} — child has no birth certificate"
+                f"Missing env var {_ENV_BIRTH_CERT} - child has no birth certificate"
             )
 
         cert_info = self._validate_certificate(cert_pem)

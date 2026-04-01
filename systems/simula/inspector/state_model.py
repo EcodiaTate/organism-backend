@@ -1,25 +1,25 @@
 """
-EcodiaOS — Inspector Phase 4: State Model Extractor
+EcodiaOS - Inspector Phase 4: State Model Extractor
 
 Extracts the StateModel (state variables + invariants) from Phase 3 artefacts
 and Phase 2 runtime observations.
 
 Algorithm
 ---------
-1. Walk the FragmentCatalog — each fragment semantic maps to a category of
+1. Walk the FragmentCatalog - each fragment semantic maps to a category of
    state variable (MEMORY_WRITE → MEMORY_REGION, INDIRECT_BRANCH →
    FUNCTION_POINTER, ALLOC/FREE → OBJECT_LIFETIME, etc.).
 
-2. Walk the FailureAdjacentRegions — each region represents a CFG subgraph
+2. Walk the FailureAdjacentRegions - each region represents a CFG subgraph
    that was only reached under fault conditions.  Infer invariants: "function F
    must not reach block B in normal execution", backed by the Phase 2 fault
    classification.
 
-3. Walk the Phase 2 ControlIntegrityScores — each
+3. Walk the Phase 2 ControlIntegrityScores - each
    InfluencePermissiveTransition gives a direct (from_func, to_func) edge that
    was anomalous.  Infer ORDERING and REACHABILITY invariants.
 
-4. Walk the Phase 2 FaultObservations — each fault_class maps to a specific
+4. Walk the Phase 2 FaultObservations - each fault_class maps to a specific
    StateVariableKind and InvariantStrength (OOB → MEMORY_REGION / MUST,
    UAF → OBJECT_LIFETIME / MUST, TYPE → TYPE_TAG / MUST, etc.).
 
@@ -28,8 +28,8 @@ Algorithm
 
 Output
 ------
-InvariantSet  — the complete set of inferred invariants.
-dict[str, StateVariable]  — all extracted state variables.
+InvariantSet  - the complete set of inferred invariants.
+dict[str, StateVariable]  - all extracted state variables.
 
 These feed directly into ConstraintEngine.
 """
@@ -128,7 +128,7 @@ class StateModelExtractor:
     Extracts StateVariables and an InvariantSet from Phase 3 + Phase 2 data.
 
     This is the first pass of the Phase 4 pipeline.  It does NOT require a
-    formal solver — all inference is heuristic, driven by:
+    formal solver - all inference is heuristic, driven by:
     - fragment semantics (what operations the code performs),
     - failure-adjacent regions (what code only runs when things go wrong),
     - influence-permissive transitions (where control was anomalously redirected),
@@ -150,7 +150,7 @@ class StateModelExtractor:
 
         Returns
         -------
-        (variables, invariant_set) — both indexed by their respective IDs.
+        (variables, invariant_set) - both indexed by their respective IDs.
         """
         target_id = phase3_result.target_id
         atlas     = phase3_result.atlas
@@ -327,7 +327,7 @@ class StateModelExtractor:
                 )
 
                 # Determine which blocks become reachable when this fault occurs
-                # — use the atlas CFG reachability from the fault function
+                # - use the atlas CFG reachability from the fault function
                 unlocks: list[str] = []
                 if fault.fault_at_func in phase2_result.dataset.traces:
                     pass  # Could walk CFG here; keep lightweight for now

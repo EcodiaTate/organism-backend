@@ -1,5 +1,5 @@
 """
-EcodiaOS — Legal Entity Provisioning Types
+EcodiaOS - Legal Entity Provisioning Types
 
 Data models for the legal entity formation lifecycle. These types track
 the state of an LLC/DAO registration from initial treasury check through
@@ -9,7 +9,7 @@ State machine:
     PREFLIGHT → DOCUMENTS_GENERATED → SUBMITTED → AWAITING_HUMAN →
     HUMAN_CONFIRMED → REGISTERED → FAILED
 
-The AWAITING_HUMAN state is the critical HITL gate — the organism cannot
+The AWAITING_HUMAN state is the critical HITL gate - the organism cannot
 proceed past this point without a human completing KYC/wet signature
 and providing the confirmed entity ID.
 """
@@ -17,7 +17,7 @@ and providing the confirmed entity ID.
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — Pydantic needs at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs at runtime
 from decimal import Decimal
 
 from pydantic import Field
@@ -35,7 +35,7 @@ class EntityFormationState(enum.StrEnum):
     SUBMITTED = "submitted"                      # Payload sent to registered agent API
     AWAITING_HUMAN = "awaiting_human"            # HITL gate: KYC / wet signature required
     HUMAN_CONFIRMED = "human_confirmed"          # Human provided confirmed entity ID
-    REGISTERED = "registered"                    # Identity stored in vault — complete
+    REGISTERED = "registered"                    # Identity stored in vault - complete
     FAILED = "failed"                            # Terminal failure at any stage
 
 

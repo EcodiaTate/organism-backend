@@ -1,22 +1,22 @@
 """
-EcodiaOS — Equor Verdict Engine
+EcodiaOS - Equor Verdict Engine
 
 The 8-stage verdict pipeline that transforms drive alignment scores
 into a constitutional verdict (PERMIT / MODIFY / ESCALATE / DENY).
 
-Care and Honesty are floor drives — they cannot be traded off.
-Coherence and Growth are ceiling drives — they can be temporarily deprioritised.
+Care and Honesty are floor drives - they cannot be traded off.
+Coherence and Growth are ceiling drives - they can be temporarily deprioritised.
 Denial is final. No system can override a DENY.
 
 Autonomy model (two tiers):
 
-  AUTONOMOUS — organism decides and executes without human approval.
+  AUTONOMOUS - organism decides and executes without human approval.
     Covers all internal actions, economic operations (bounty hunting,
     yield strategies, receiving/spending within daily budget), self-healing,
     structural self-modification, spawning sub-tasks, and any action the
     organism can observe, verify, and rollback.
 
-  GOVERNED — requires human (Tate) approval before execution.
+  GOVERNED - requires human (Tate) approval before execution.
     Triggered by:
       • Constitutional amendments (changing drive weights)
       • Mitosis (spawning a new independent instance)
@@ -58,7 +58,7 @@ GOVERNED_ACTIONS: set[str] = {
     "share_private_data",
     "mitosis",           # spawning a new independent instance
     "spawn_instance",    # alias used by some callers
-    "spawn_child",       # Nova mitosis executor — creates a fully independent child instance
+    "spawn_child",       # Nova mitosis executor - creates a fully independent child instance
 }
 
 # Goal-description phrases that trigger GOVERNED classification.
@@ -77,7 +77,7 @@ _GOVERNED_GOAL_PHRASES: list[str] = [
 # Level 1 = Advisor (default), Level 2 = Partner, Level 3 = Steward.
 # Used by safe-mode review in EquorService to classify step executors.
 ACTION_AUTONOMY_MAP: dict[str, int] = {
-    # Level 1 — always permitted
+    # Level 1 - always permitted
     "observe": 1,
     "analyse": 1,
     "analyze": 1,
@@ -85,7 +85,7 @@ ACTION_AUTONOMY_MAP: dict[str, int] = {
     "answer_question": 1,
     "store_memory": 1,
     "self_reflect": 1,
-    # Level 2 — Partner
+    # Level 2 - Partner
     "send_notification": 2,
     "adjust_resource": 2,
     "mediate_minor_conflict": 2,
@@ -98,7 +98,7 @@ ACTION_AUTONOMY_MAP: dict[str, int] = {
     "deploy_yield": 2,
     "withdraw_yield": 2,
     "modify_own_config": 2,
-    # Level 3 — Steward
+    # Level 3 - Steward
     "make_resource_decision": 3,
     "mediate_major_conflict": 3,
     "initiate_federation": 3,
@@ -176,7 +176,7 @@ def _assess_risk(intent: Intent) -> dict[str, Any]:
             harm_potential = max(harm_potential, 0.3)
             break
 
-    # Economic action risk — capital at stake
+    # Economic action risk - capital at stake
     economic_high_risk = [
         "deploy asset", "spawn child", "seed capital",
         "deploy capital", "large position",
@@ -289,7 +289,7 @@ def compute_verdict(
     # ── STAGE 3: Autonomy Gate ──────────────────────────────────
     # Two tiers only: GOVERNED (needs human) or AUTONOMOUS (organism decides).
     # The numeric autonomy_level argument is retained for compatibility but is
-    # no longer used to gate individual actions — it tracks overall trust, not
+    # no longer used to gate individual actions - it tracks overall trust, not
     # per-action permission.
     if _is_governed(intent):
         check.verdict = Verdict.DEFERRED
@@ -428,18 +428,18 @@ def _floor_tightness_from_metabolic(
     Map metabolic state to a floor tightness scalar in [0.0, 1.0].
 
     1.0 = standard floors (normal operation)
-    0.3 = 70% loosened (CRITICAL starvation — survival mode)
+    0.3 = 70% loosened (CRITICAL starvation - survival mode)
 
     Tightness moves the Care/Honesty floor *toward* neutral (0.0).
     A floor of -0.105 at tightness=0.3 becomes -0.0315.
     """
     level = starvation_level.lower()
     if level in ("critical", "existential", "emergency"):
-        return 0.3   # 70% loosened — survival-critical
+        return 0.3   # 70% loosened - survival-critical
     if level == "austerity":
-        return 0.6   # 40% loosened — metabolically stressed
+        return 0.6   # 40% loosened - metabolically stressed
     if efficiency_ratio < 0.8:
-        return 0.85  # 15% loosened — inefficient but not starving
+        return 0.85  # 15% loosened - inefficient but not starving
     return 1.0       # Standard floors
 
 
@@ -456,7 +456,7 @@ def _floor_tightener_from_somatic(somatic_urgency: float) -> float:
     so a value of 1.3 tightens the effective floor by 30%.
 
     somatic_urgency range: [0.0, 1.0]
-      0.0–0.5  → 1.0   (no effect — baseline)
+      0.0–0.5  → 1.0   (no effect - baseline)
       0.5–0.7  → 1.0–1.15 (mild tightening)
       0.7–0.9  → 1.15–1.30 (moderate tightening)
       0.9–1.0  → 1.30–1.50 (high-stress scrutiny)
@@ -500,7 +500,7 @@ def compute_verdict_with_metabolic_state(
     Hardcoded invariant blocks (Stage 1) are never overridden.
 
     For the full pipeline with loosened floors, we re-enter compute_verdict()
-    with a temporarily patched alignment that accounts for tightness —
+    with a temporarily patched alignment that accounts for tightness -
     implementing floor loosening via score normalisation keeps the pipeline
     stateless and avoids duplicating the 8-stage logic.
     """
@@ -513,7 +513,7 @@ def compute_verdict_with_metabolic_state(
     # Metabolic loosening: starvation → floors relax toward 0.
     # Somatic tightening: urgency → floors tighten away from 0.
     # Net effective weight = metabolic_weight × metabolic_tightness × somatic_tightener
-    # These are intentionally opposing forces — survival relaxes floors to allow
+    # These are intentionally opposing forces - survival relaxes floors to allow
     # necessary actions; bodily stress tightens them to prevent rash decisions.
     metabolic_tightness = _floor_tightness_from_metabolic(starvation_level, efficiency_ratio)
     somatic_tightener = _floor_tightener_from_somatic(somatic_urgency)
@@ -526,7 +526,7 @@ def compute_verdict_with_metabolic_state(
 
     needs_patched_constitution = abs(net_tightness - 1.0) > 1e-6
     if not needs_patched_constitution:
-        # Standard path — no net adjustment needed
+        # Standard path - no net adjustment needed
         check = compute_verdict(
             alignment, intent, autonomy_level, constitution, hypotheses, memory
         )

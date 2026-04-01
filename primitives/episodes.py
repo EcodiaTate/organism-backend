@@ -1,5 +1,5 @@
 """
-EcodiaOS — Episode Outcome Primitives
+EcodiaOS - Episode Outcome Primitives
 
 Canonical type for recording a completed task episode with domain context.
 Systems emit DOMAIN_EPISODE_RECORDED Synapse events with this payload so
@@ -23,14 +23,14 @@ Usage (any system that handles domain work):
         data=outcome.model_dump(mode="json"),
     ))
 
-Domain conventions (not enforced — use whatever makes sense per system):
-    "software_development"  — Axon / Simula code-delivery tasks
-    "art"                   — Voxis / creative generation tasks
-    "trading"               — Phantom / market-making tasks
-    "yield"                 — Oikos DeFi yield farming
-    "bounty_hunting"        — Oikos / Axon bounty completion
-    "consulting"            — Nova knowledge-sale episodes
-    "generalist"            — Default when domain is unknown
+Domain conventions (not enforced - use whatever makes sense per system):
+    "software_development"  - Axon / Simula code-delivery tasks
+    "art"                   - Voxis / creative generation tasks
+    "trading"               - Phantom / market-making tasks
+    "yield"                 - Oikos DeFi yield farming
+    "bounty_hunting"        - Oikos / Axon bounty completion
+    "consulting"            - Nova knowledge-sale episodes
+    "generalist"            - Default when domain is unknown
 """
 
 from __future__ import annotations
@@ -53,15 +53,15 @@ class EpisodeOutcome(EOSBaseModel):
 
     Fields
     ──────
-    domain          — Domain identifier string (see module docstring)
-    outcome         — 'success' | 'partial' | 'failure'
-    revenue         — USD earned from this episode (Decimal, default 0)
-    cost_usd        — Compute/resource cost in USD (Decimal, default 0)
-    duration_ms     — Wall-clock time in milliseconds
-    custom_metrics  — Domain-specific float measurements (averaged by calculator)
-    timestamp       — UTC datetime of episode completion (default: now)
-    episode_id      — Optional back-reference to Memory episode node
-    source_system   — Originating system (e.g. 'axon', 'oikos', 'simula')
+    domain          - Domain identifier string (see module docstring)
+    outcome         - 'success' | 'partial' | 'failure'
+    revenue         - USD earned from this episode (Decimal, default 0)
+    cost_usd        - Compute/resource cost in USD (Decimal, default 0)
+    duration_ms     - Wall-clock time in milliseconds
+    custom_metrics  - Domain-specific float measurements (averaged by calculator)
+    timestamp       - UTC datetime of episode completion (default: now)
+    episode_id      - Optional back-reference to Memory episode node
+    source_system   - Originating system (e.g. 'axon', 'oikos', 'simula')
     """
 
     domain: str = "generalist"

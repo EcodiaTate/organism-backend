@@ -1,10 +1,10 @@
 """
-EcodiaOS — Tollbooth Router
+EcodiaOS - Tollbooth Router
 
 External revenue endpoints:
-  POST /api/v1/voxis/generate      — Personality-aware content generation
-  POST /api/v1/knowledge/query     — ArXiv-backed knowledge retrieval
-  POST /api/v1/webhooks/payment    — Inbound payment notification receiver
+  POST /api/v1/voxis/generate      - Personality-aware content generation
+  POST /api/v1/knowledge/query     - ArXiv-backed knowledge retrieval
+  POST /api/v1/webhooks/payment    - Inbound payment notification receiver
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from api.monetization.auth import _get_ledger, require_tollbooth_key
 from api.monetization.ledger import (
-    CreditLedger,  # noqa: TC001 — used at runtime in Depends()
+    CreditLedger,  # noqa: TC001 - used at runtime in Depends()
 )
 from api.monetization.types import (
     PRODUCT_COST,
@@ -69,7 +69,7 @@ async def _mock_knowledge_query(
     return [
         KnowledgeResult(
             title=f"[Stub] Result {i + 1} for '{query[:40]}'",
-            summary="Placeholder — real results will come from the ArXiv pipeline.",
+            summary="Placeholder - real results will come from the ArXiv pipeline.",
             arxiv_id=f"2024.{10000 + i}",
             relevance_score=round(1.0 - i * 0.15, 2),
         )
@@ -130,7 +130,7 @@ async def rotate_key(
     Generates a cryptographically secure replacement key, atomically
     transfers the full credit balance from the old key to the new one,
     and invalidates the old key.  The new key is returned in plaintext
-    exactly once — store it immediately.
+    exactly once - store it immediately.
     """
     new_key = "sk-toll-" + secrets.token_urlsafe(32)
     credits_transferred = await ledger.rotate_key(api_key, new_key)
@@ -154,7 +154,7 @@ async def rotate_key(
     responses={
         402: {"model": TollboothError, "description": "Insufficient credits"},
         429: {"model": TollboothError, "description": "Rate limited"},
-        503: {"model": TollboothError, "description": "Backend unavailable — credits refunded"},
+        503: {"model": TollboothError, "description": "Backend unavailable - credits refunded"},
     },
 )
 async def voxis_generate(
@@ -175,7 +175,7 @@ async def voxis_generate(
     try:
         content, tokens_used = await _mock_voxis_generate(body.prompt, body.max_tokens)
     except Exception as exc:
-        # Backend failed after successful debit — refund atomically.
+        # Backend failed after successful debit - refund atomically.
         await ledger.refund(api_key, cost, reason=f"voxis_backend_error: {type(exc).__name__}")
         logger.error(
             "voxis_backend_error_credits_refunded",
@@ -205,7 +205,7 @@ async def voxis_generate(
     responses={
         402: {"model": TollboothError, "description": "Insufficient credits"},
         429: {"model": TollboothError, "description": "Rate limited"},
-        503: {"model": TollboothError, "description": "Backend unavailable — credits refunded"},
+        503: {"model": TollboothError, "description": "Backend unavailable - credits refunded"},
     },
 )
 async def knowledge_query(
@@ -225,7 +225,7 @@ async def knowledge_query(
     try:
         results = await _mock_knowledge_query(body.query, body.top_k, body.categories)
     except Exception as exc:
-        # Backend failed after successful debit — refund atomically.
+        # Backend failed after successful debit - refund atomically.
         await ledger.refund(api_key, cost, reason=f"knowledge_backend_error: {type(exc).__name__}")
         logger.error(
             "knowledge_backend_error_credits_refunded",
@@ -249,11 +249,11 @@ async def knowledge_query(
 
 # ─── Webhook receiver ────────────────────────────────────────────
 
-# Webhook signing secret — set TOLLBOOTH_WEBHOOK_SECRET in env.
+# Webhook signing secret - set TOLLBOOTH_WEBHOOK_SECRET in env.
 # When empty, signature verification is skipped (dev mode).
 _WEBHOOK_SECRET = os.environ.get("TOLLBOOTH_WEBHOOK_SECRET", "")
 
-# Credits per cent — configurable conversion rate
+# Credits per cent - configurable conversion rate
 _CREDITS_PER_CENT = 1
 
 
@@ -303,7 +303,7 @@ async def payment_webhook(
     # Validate the target key exists before touching idempotency state.
     # An invalid api_key must fail consistently on every retry, not just the first.
     if not await ledger.key_exists(payload.api_key):
-        detail = "Unknown API key — cannot credit unregistered key."
+        detail = "Unknown API key - cannot credit unregistered key."
         raise HTTPException(status_code=400, detail=detail)
 
     # Idempotency: check if event already processed
@@ -312,7 +312,7 @@ async def payment_webhook(
     idem_key = f"{prefix}:tollbooth:webhook_events:{payload.event_id}"
     already = await redis.set(idem_key, "1", ex=86400, nx=True)
     if not already:
-        # Already processed — return the current balance without double-crediting
+        # Already processed - return the current balance without double-crediting
         current = await ledger.balance(payload.api_key)
         return WebhookAckResponse(
             event_id=payload.event_id,

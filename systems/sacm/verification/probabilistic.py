@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Probabilistic Audit Verifier
+EcodiaOS - SACM Probabilistic Audit Verifier
 
 Verifies remote execution by injecting "canary" inputs with
 pre-computed known-good outputs into the workload batch before
@@ -62,13 +62,13 @@ class CanaryItem(EOSBaseModel):
     A canary input with its sealed expected output.
 
     The `expected_output_sealed` is encrypted with a key held only
-    by the verifier — the remote provider never sees the expected
+    by the verifier - the remote provider never sees the expected
     answer.  `position` is assigned after mixing into the batch.
     """
 
     canary_id: str = Field(default_factory=new_id)
     input_data: bytes = b""
-    expected_output: bytes = b""              # plaintext — never sent to provider
+    expected_output: bytes = b""              # plaintext - never sent to provider
     expected_output_sealed: SymmetricSealedBox | None = None
     position: int = -1                        # index in the mixed batch
     tag: str = ""                             # optional label for categorisation
@@ -321,7 +321,7 @@ class ProbabilisticAuditVerifier:
         if not canaries:
             return ProbabilisticAuditReport(
                 accepted=True,
-                error="no canaries — vacuously accepted",
+                error="no canaries - vacuously accepted",
             )
 
         results: list[CanaryVerificationResult] = []

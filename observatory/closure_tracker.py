@@ -1,5 +1,5 @@
 """
-EcodiaOS — Closure Loop Tracker
+EcodiaOS - Closure Loop Tracker
 
 Monitors the 6 canonical closure loops defined in primitives/closure.py.
 For each loop, tracks:

@@ -243,9 +243,9 @@ class AxonReactiveAdapter:
         Adapt rate limits based on cognitive rhythm state.
 
         FLOW state  -> normal rate limits (1.0)
-        RUSH state  -> tighten (0.7) — organism is overactive
-        STALL state -> loosen (1.3) — allow recovery actions
-        DRIFT state -> tighten (0.6) — reduce noise
+        RUSH state  -> tighten (0.7) - organism is overactive
+        STALL state -> loosen (1.3) - allow recovery actions
+        DRIFT state -> tighten (0.6) - reduce noise
         """
         data = event.data if hasattr(event, "data") else event
         rhythm = data.get("rhythm_state", data.get("state", "unknown"))

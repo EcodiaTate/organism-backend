@@ -1,8 +1,8 @@
 """
-EcodiaOS — Nexus: Integration Protocols
+EcodiaOS - Nexus: Integration Protocols
 
 Protocol-based dependency injection for the systems Nexus depends on.
-Nexus never imports Logos, Fovea, Federation, or Thymos directly —
+Nexus never imports Logos, Fovea, Federation, or Thymos directly -
 they satisfy these protocols instead.
 
 Protocols exposed:
@@ -82,7 +82,7 @@ class LogosWorldModelProtocol(Protocol):
         """
         Total number of episodes processed (compressed or otherwise).
 
-        Used for temporal divergence measurement — instances at
+        Used for temporal divergence measurement - instances at
         different experience counts are at different developmental stages.
         """
         ...
@@ -133,7 +133,7 @@ class FederationFragmentProtocol(Protocol):
     Protocol for Nexus to send/receive world model fragments
     over federation links.
 
-    Nexus decides WHAT to share. Federation handles HOW — encryption,
+    Nexus decides WHAT to share. Federation handles HOW - encryption,
     authentication, trust gating, and transport.
     """
 
@@ -204,7 +204,7 @@ class ThymosDriveSinkProtocol(Protocol):
 
     When an instance is too similar to the federation average,
     Nexus computes a DivergencePressure and routes it to Thymos
-    as a GROWTH drive signal — explore frontier domains, avoid
+    as a GROWTH drive signal - explore frontier domains, avoid
     saturated ones.
     """
 
@@ -251,7 +251,7 @@ class OneirosAdversarialProtocol(Protocol):
 
     Level 4 (EMPIRICAL_INVARIANT) promotion requires a fragment to
     survive adversarial simulation in Oneiros's lucid dreaming mode.
-    Nexus builds against this protocol — not Oneiros directly.
+    Nexus builds against this protocol - not Oneiros directly.
     """
 
     async def run_adversarial_test(
@@ -261,7 +261,7 @@ class OneirosAdversarialProtocol(Protocol):
         """
         Run adversarial simulation against a fragment in lucid dreaming.
 
-        Returns True if the fragment's abstract structure survives —
+        Returns True if the fragment's abstract structure survives -
         i.e. no counter-scenario could break it.
         """
         ...
@@ -331,7 +331,7 @@ class KairosCausalSourceProtocol(Protocol):
     Protocol for Nexus to query Kairos for Tier 3 causal invariants.
 
     Kairos pushes Tier 3 invariants to Nexus, but Nexus also needs to
-    pull updated structures — e.g. after a sleep cycle, Nexus should
+    pull updated structures - e.g. after a sleep cycle, Nexus should
     query Kairos for any new Tier 3 discoveries that emerged during
     consolidation.
     """
@@ -370,7 +370,7 @@ class TelosFragmentGateProtocol(Protocol):
         """
         Score a fragment's alignment with the organism's drive topology.
 
-        Returns [0.0, 1.0] — fragments below 0.3 are rejected from sharing.
+        Returns [0.0, 1.0] - fragments below 0.3 are rejected from sharing.
         """
         ...
 

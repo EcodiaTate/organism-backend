@@ -1,5 +1,5 @@
 """
-EcodiaOS — Incident Primitives
+EcodiaOS - Incident Primitives
 
 IncidentClass and IncidentSeverity are organism-wide classification enums
 that any system (including Synapse's ErrorSentinel) needs without importing
@@ -8,7 +8,7 @@ the full Thymos type graph.
 The full Incident model (with RepairTier, RepairAttempt, AntibodyLibrary refs)
 lives in systems.thymos.types and imports from here.
 
-Spec 09 §AV9 — moved here so sentinel.py has no cross-system dependency.
+Spec 09 §AV9 - moved here so sentinel.py has no cross-system dependency.
 """
 
 from __future__ import annotations

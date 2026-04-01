@@ -1,1 +1,1 @@
-"""EcodiaOS integration tests — systems."""
+"""EcodiaOS integration tests - systems."""

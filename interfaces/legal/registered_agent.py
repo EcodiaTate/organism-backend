@@ -1,5 +1,5 @@
 """
-EcodiaOS — Registered Agent Client (Stubbed)
+EcodiaOS - Registered Agent Client (Stubbed)
 
 Mock API client for registered-agent services (Stripe Atlas, Doola,
 Wyoming Agents, etc.) that handle LLC/DAO formation filings.
@@ -13,7 +13,7 @@ For now, all methods return deterministic stub responses so the
 executor state machine can be developed and tested end-to-end without
 a live filing API.
 
-The client is stateless — it holds no business logic beyond what it
+The client is stateless - it holds no business logic beyond what it
 receives from the caller. All persistence is handled by the executor.
 """
 

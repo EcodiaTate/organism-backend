@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Energy-Aware Scheduler
+EcodiaOS - Axon Energy-Aware Scheduler
 
 Modulates the organism's task execution based on real-time grid carbon
 intensity and energy cost. High-compute tasks (REM dreaming, GRPO
@@ -7,10 +7,10 @@ fine-tuning, bounty solving, code mutation) are deferred to "sleep cycles"
 when the grid is carbon-heavy, and released when clean energy is available.
 
 Components:
-  energy_client  — provider-agnostic API clients (Electricity Maps, WattTime)
-  energy_cache   — Redis-backed cache for grid readings + deferred task queue
-  interceptor    — pipeline gate that evaluates and defers tasks
-  types          — shared data types (GridReading, DeferredTask, etc.)
+  energy_client  - provider-agnostic API clients (Electricity Maps, WattTime)
+  energy_cache   - Redis-backed cache for grid readings + deferred task queue
+  interceptor    - pipeline gate that evaluates and defers tasks
+  types          - shared data types (GridReading, DeferredTask, etc.)
 
 Usage:
     from systems.axon.scheduler import (

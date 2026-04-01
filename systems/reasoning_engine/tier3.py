@@ -1,22 +1,22 @@
 """
-EcodiaOS — Tier 3 Quarterly Retrain (Speciation Bible §3.3 + §3.4)
+EcodiaOS - Tier 3 Quarterly Retrain (Speciation Bible §3.3 + §3.4)
 
 Implements the remaining 3 anti-forgetting mechanisms not covered by Round 3A:
 
-  5. CLoRA orthogonal subspace init — applied at Tier 2 train time via
+  5. CLoRA orthogonal subspace init - applied at Tier 2 train time via
      PREVIOUS_ADAPTER_PATH env var in train_lora.py (not this file).
 
-  6. SVD pruning (quarterly) — removes intruder dimensions: high-rank singular
+  6. SVD pruning (quarterly) - removes intruder dimensions: high-rank singular
      vectors that accumulate in LoRA B matrices across sequential training cycles
      and cause catastrophic forgetting (§11 risk analysis).
 
-  7. SLAO time-aware merge (quarterly, Dec 2025) — composites the fresh quarterly
+  7. SLAO time-aware merge (quarterly, Dec 2025) - composites the fresh quarterly
      adapter (trained from scratch on full cumulative data) with the slow EMA adapter
      using asymmetric weighting: new lora_A (better orthogonal coverage), weighted
      average on lora_B.
 
 Tier 3 pipeline:
-  1. Train from base model from scratch (no CLoRA — clean slate)
+  1. Train from base model from scratch (no CLoRA - clean slate)
   2. SVD prune the new adapter (remove intruder dims)
   3. SLAO merge with slow adapter (if exists)
   4. STABLE KL gate check (reuse from anti_forgetting.py)
@@ -27,7 +27,7 @@ Triggered by:
   - days_since_last_tier3 >= 90       → "tier3_quarterly"
   - general_reasoning_drop >= 0.15    → "tier3_forgetting" (via should_train check)
 
-Tier 3 does NOT use the replay buffer or CLoRA init — it retrains from the
+Tier 3 does NOT use the replay buffer or CLoRA init - it retrains from the
 base model on the full cumulative dataset to produce a clean foundation.
 Subsequent Tier 2 cycles then apply CLoRA on top of this new base.
 """
@@ -263,10 +263,10 @@ class SLAOMerger:
                     merged[key] = merged_B.to(new_tensor.dtype)
                     lora_b_count += 1
                 else:
-                    # Non-LoRA keys (adapter_config, embedding, etc.) — use new
+                    # Non-LoRA keys (adapter_config, embedding, etc.) - use new
                     merged[key] = new_tensor
 
-            # Keys in slow but not new — preserve (covers new modules not in new adapter)
+            # Keys in slow but not new - preserve (covers new modules not in new adapter)
             for key, slow_tensor in slow_weights.items():
                 if key not in merged:
                     merged[key] = slow_tensor
@@ -304,7 +304,7 @@ class Tier3Orchestrator:
     "tier3_quarterly" or "tier3_forgetting".
 
     Pipeline:
-    1. Collect cumulative training data (all 5 streams, full history — caller provides path)
+    1. Collect cumulative training data (all 5 streams, full history - caller provides path)
     2. Train from base model from scratch (train_lora.py, NO PREVIOUS_ADAPTER_PATH)
     3. SVD prune the new adapter (remove intruder dimensions)
     4. SLAO merge with existing slow adapter (if exists)
@@ -346,7 +346,7 @@ class Tier3Orchestrator:
             return False, "redis_error"
 
         if raw_ts is None:
-            # First-ever run — self-bootstrap by writing a timestamp 91 days in the past.
+            # First-ever run - self-bootstrap by writing a timestamp 91 days in the past.
             # This makes the next check immediately see it as overdue and fire Tier 3.
             bootstrap_ts = time.time() - (91 * 86400)
             try:
@@ -383,7 +383,7 @@ class Tier3Orchestrator:
         await self._emit(_SET.RE_TIER3_STARTED, {"run_id": run_id})
 
         try:
-            # ── Step 1: Train from scratch (clean base — no CLoRA) ─────────────
+            # ── Step 1: Train from scratch (clean base - no CLoRA) ─────────────
             base_output = f"{self._config.output_dir}/{run_id}_base"
             Path(base_output).mkdir(parents=True, exist_ok=True)
 
@@ -392,7 +392,7 @@ class Tier3Orchestrator:
                 "BASE_MODEL": self._config.base_model,
                 "TRAINING_DATA": cumulative_data_path,
                 "OUTPUT_DIR": base_output,
-                # Explicitly clear CLoRA — Tier 3 starts from scratch
+                # Explicitly clear CLoRA - Tier 3 starts from scratch
                 "PREVIOUS_ADAPTER_PATH": "",
                 # Default hyperparameters for full retrain
                 "TRAINING_ARGS": '{"num_epochs": 3, "lora_rank": 32, "lora_alpha": 64}',

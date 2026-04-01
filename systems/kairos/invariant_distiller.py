@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Phase C: Invariant Distillation
+EcodiaOS - Kairos Phase C: Invariant Distillation
 
 Extract the minimal abstract form of context-invariant rules.
 
@@ -10,7 +10,7 @@ The distillation pipeline:
    follows compression_dynamics"
 
 2. TAUTOLOGY TEST: Is the abstracted form trivially true?
-   If yes, it's not an invariant — it's a logical necessity. Reject.
+   If yes, it's not an invariant - it's a logical necessity. Reject.
 
 3. MINIMALITY TEST: Can any part of the abstracted rule be removed while
    maintaining the hold_rate? If yes, remove it. The invariant should be
@@ -124,7 +124,7 @@ class InvariantDistiller:
         self._distillations_run += 1
         known_domains = known_domains or []
 
-        # Step 1: Variable abstraction — M2: iterative level-raising loop (up to 5 levels)
+        # Step 1: Variable abstraction - M2: iterative level-raising loop (up to 5 levels)
         variable_roles = self._abstract_variables(invariant)
         abstract_form = self._build_abstract_form(invariant, variable_roles)
         abstraction_level = 0
@@ -357,7 +357,7 @@ class InvariantDistiller:
             return True
 
         # Extract roles for cause and effect variables from the invariant form.
-        # The abstract_form is "cause causes effect" — split on " causes ".
+        # The abstract_form is "cause causes effect" - split on " causes ".
         parts = invariant.abstract_form.split(" causes ")
         if len(parts) == 2:
             cause_var = parts[0].strip()
@@ -429,7 +429,7 @@ class InvariantDistiller:
         within the configured tolerance (minimality_hold_rate_tolerance = 0.02).
 
         A condition is removable if dropping it doesn't materially change the
-        invariant's hold_rate — meaning the condition doesn't actually narrow
+        invariant's hold_rate - meaning the condition doesn't actually narrow
         the scope. Removable conditions are stripped for maximum compression.
 
         Returns (is_minimal, parts_removed).
@@ -453,7 +453,7 @@ class InvariantDistiller:
             condition_context_count = len(condition.context_ids)
 
             if condition_context_count == 0:
-                # No specific contexts tied to this condition — it's vacuous
+                # No specific contexts tied to this condition - it's vacuous
                 removable_conditions.append(i)
                 parts_removed += 1
                 continue
@@ -504,7 +504,7 @@ class InvariantDistiller:
         Scan known domains for ones where the abstract structure matches
         but the invariant hasn't been tested.
 
-        These are FREE PREDICTIONS — the invariant predicts behavior
+        These are FREE PREDICTIONS - the invariant predicts behavior
         in domains it was never trained on.
         """
         tested_domains = {d.domain for d in invariant.applicable_domains}
@@ -581,9 +581,9 @@ class EconomicCausalMiner:
     Processes buffered OIKOS_ECONOMIC_EPISODE observations and applies three
     domain-specific discovery heuristics:
 
-    1. Protocol success rates — group by protocol, emit if >70% or <30%
-    2. Time-of-week effects — bounties / yield vary by day_of_week
-    3. Price-dependent yield — ETH price bins → average ROI tier
+    1. Protocol success rates - group by protocol, emit if >70% or <30%
+    2. Time-of-week effects - bounties / yield vary by day_of_week
+    3. Price-dependent yield - ETH price bins → average ROI tier
 
     Each discovered invariant is emitted as KAIROS_ECONOMIC_INVARIANT so Nova
     can update EFE weights and avoid actions violating causal relationships.

@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Cost Accounting
+EcodiaOS - SACM Cost Accounting
 
 Tracks spend, computes savings, and bridges SACM cost data to the
 Soma metabolic regulator so the organism *feels* its compute burn rate.
@@ -14,9 +14,9 @@ Main class:
     every recorded execution.
 
 Metrics emitted:
-  sacm.accounting.recorded         — Number of cost records logged
-  sacm.accounting.rolling_spend    — Rolling spend window (USD)
-  sacm.accounting.savings_ratio    — Cumulative savings / baseline ratio
+  sacm.accounting.recorded         - Number of cost records logged
+  sacm.accounting.rolling_spend    - Rolling spend window (USD)
+  sacm.accounting.savings_ratio    - Cumulative savings / baseline ratio
 """
 
 from __future__ import annotations
@@ -145,9 +145,9 @@ class SACMCostAccounting:
     ) -> None:
         # oikos is OikosService at runtime; typed as Any to avoid circular import
         self._oikos: Any | None = None
-        # Synapse event bus — wired via set_synapse()
+        # Synapse event bus - wired via set_synapse()
         self._synapse: Any | None = None
-        # Neo4j driver — wired via set_neo4j() for EconomicEvent audit trail
+        # Neo4j driver - wired via set_neo4j() for EconomicEvent audit trail
         self._neo4j: Any | None = None
         self._baseline_premium = baseline_premium
         self._rolling_window_s = rolling_window_s
@@ -172,7 +172,7 @@ class SACMCostAccounting:
     def set_neo4j(self, neo4j_driver: Any) -> None:
         """
         Wire a Neo4j async driver so each CostRecord is persisted as an
-        (:EconomicEvent) node — immutable audit trail per Spec 27 §10.
+        (:EconomicEvent) node - immutable audit trail per Spec 27 §10.
 
         The node is written fire-and-forget; accounting is non-blocking.
         """
@@ -237,7 +237,7 @@ class SACMCostAccounting:
         if self._synapse is not None and stress > 0:
             self._emit_stress(workload_id, burn_rate, stress)
 
-        # Report actual spend to Oikos — the single source of financial truth.
+        # Report actual spend to Oikos - the single source of financial truth.
         if self._oikos is not None:
             self._oikos.report_compute_spend(
                 workload_id=workload_id,
@@ -487,7 +487,7 @@ class SACMCostAccounting:
                         "estimated_cost_usd": round(estimated_cost_usd, 6),
                         "actual_cost_usd": round(actual_cost_usd, 6),
                         "surprise_ratio": round(surprise_ratio, 4),
-                        # PredictionError.economic dimension — magnitude of surprise
+                        # PredictionError.economic dimension - magnitude of surprise
                         "prediction_error": {
                             "economic": magnitude,
                             "source": "sacm.cost_accounting",
@@ -515,7 +515,7 @@ class SACMCostAccounting:
 
         Node properties follow the EcodiaOS audit trail convention:
           - event_time: ISO8601 wall-clock time of the record (bi-temporal)
-          - ingestion_time: time.monotonic() — when it entered the system
+          - ingestion_time: time.monotonic() - when it entered the system
           - All cost fields for traceability
 
         Uses MERGE on record.id so re-runs are idempotent.

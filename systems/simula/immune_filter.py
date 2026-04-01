@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Immune Advisory Filter
+EcodiaOS - Simula Immune Advisory Filter
 
 Maintains a blocklist of patterns Thymos has flagged as dangerous.
 Before Simula submits a mutation proposal, it checks against this

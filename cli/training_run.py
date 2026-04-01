@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — Continual Learning CLI
+EcodiaOS - Continual Learning CLI
 
 Interact with the ContinualLearningOrchestrator from the command line.
-The organism does NOT need to be running — this CLI connects directly to
+The organism does NOT need to be running - this CLI connects directly to
 Neo4j and Redis to check state and trigger training runs.
 
 Usage:
@@ -20,16 +20,16 @@ Usage:
     python -m cli.training_run history
 
 Required environment variables:
-    ECODIAOS_NEO4J_URI       — e.g. neo4j+s://xxx.databases.neo4j.io
-    ECODIAOS_NEO4J_PASSWORD  — Neo4j password
+    ECODIAOS_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
+    ECODIAOS_NEO4J_PASSWORD  - Neo4j password
 
 Optional:
-    ECODIAOS_NEO4J_USERNAME  — default "neo4j"
-    ECODIAOS_REDIS_URL       — default "redis://localhost:6379"
-    ECODIAOS_RE_VLLM_URL     — vLLM endpoint (for adapter deployment)
-    ECODIAOS_RE_MODEL        — model name on vLLM
-    RE_TRAINING_EXPORT_DIR   — local JSONL output dir
-    RE_BASE_MODEL            — base model for training (default: Qwen/Qwen3-8B)
+    ECODIAOS_NEO4J_USERNAME  - default "neo4j"
+    ECODIAOS_REDIS_URL       - default "redis://localhost:6379"
+    ECODIAOS_RE_VLLM_URL     - vLLM endpoint (for adapter deployment)
+    ECODIAOS_RE_MODEL        - model name on vLLM
+    RE_TRAINING_EXPORT_DIR   - local JSONL output dir
+    RE_BASE_MODEL            - base model for training (default: Qwen/Qwen3-8B)
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Load .env before any os.getenv() calls — same pattern as all other EOS CLIs
+# Load .env before any os.getenv() calls - same pattern as all other EOS CLIs
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", override=True)
 
@@ -101,7 +101,7 @@ async def _build_redis() -> Any | None:
         await r.ping()
         return r
     except Exception as exc:
-        print(_warn(f"  Redis unavailable ({exc}) — history/Thompson check will be skipped."))
+        print(_warn(f"  Redis unavailable ({exc}) - history/Thompson check will be skipped."))
         return None
 
 
@@ -113,7 +113,7 @@ def _build_re_service() -> Any | None:
         from systems.reasoning_engine.service import ReasoningEngineService
         return ReasoningEngineService()
     except Exception as exc:
-        print(_warn(f"  RE service unavailable ({exc}) — adapter will not be deployed."))
+        print(_warn(f"  RE service unavailable ({exc}) - adapter will not be deployed."))
         return None
 
 
@@ -135,7 +135,7 @@ async def _build_orchestrator(neo4j: Any, redis: Any, re_service: Any) -> Any:
 
 async def _cmd_check(args: argparse.Namespace) -> int:
     """Dry-run: print whether training should trigger and why."""
-    print(_head("\n=== EcodiaOS Continual Learning — Trigger Check ===\n"))
+    print(_head("\n=== EcodiaOS Continual Learning - Trigger Check ===\n"))
 
     neo4j = _build_neo4j()
     redis = await _build_redis()
@@ -168,7 +168,7 @@ async def _cmd_check(args: argparse.Namespace) -> int:
 
         should, reason = await orch.should_train()
         if should:
-            print(_ok(f"  TRIGGER: YES — reason: {reason}"))
+            print(_ok(f"  TRIGGER: YES - reason: {reason}"))
             print(_dim("  Run `python -m cli.training_run run` to start training."))
         else:
             print(_dim(f"  TRIGGER: no ({reason})"))
@@ -190,7 +190,7 @@ async def _cmd_check(args: argparse.Namespace) -> int:
 async def _cmd_run(args: argparse.Namespace) -> int:
     """Force a Tier 2 training run immediately."""
     reason = getattr(args, "reason", "manual_cli")
-    print(_head(f"\n=== EcodiaOS Continual Learning — Forced Tier 2 Run ==="))
+    print(_head(f"\n=== EcodiaOS Continual Learning - Forced Tier 2 Run ==="))
     print(f"  Reason: {reason}\n")
 
     neo4j = _build_neo4j()
@@ -201,7 +201,7 @@ async def _cmd_run(args: argparse.Namespace) -> int:
         try:
             await re_service.initialize()
         except Exception:
-            pass  # non-fatal — training will still proceed, adapter won't deploy
+            pass  # non-fatal - training will still proceed, adapter won't deploy
 
     try:
         await neo4j.connect()
@@ -224,9 +224,9 @@ async def _cmd_run(args: argparse.Namespace) -> int:
         if run.deployed:
             print(f"  deployed      : {_ok('YES')}")
         elif run.error:
-            print(f"  deployed      : {_warn('NO')} — {run.error}")
+            print(f"  deployed      : {_warn('NO')} - {run.error}")
         else:
-            print(f"  deployed      : {_dim('NO — training skipped (insufficient data)')}")
+            print(f"  deployed      : {_dim('NO - training skipped (insufficient data)')}")
 
         return 0 if not run.error or run.deployed else 1
 
@@ -244,11 +244,11 @@ async def _cmd_run(args: argparse.Namespace) -> int:
 
 async def _cmd_history(args: argparse.Namespace) -> int:
     """Print training run history from Redis."""
-    print(_head("\n=== EcodiaOS Continual Learning — Training History ===\n"))
+    print(_head("\n=== EcodiaOS Continual Learning - Training History ===\n"))
 
     redis = await _build_redis()
     if redis is None:
-        print(_err("  Cannot show history — Redis is unavailable."))
+        print(_err("  Cannot show history - Redis is unavailable."))
         return 1
 
     try:
@@ -310,7 +310,7 @@ async def _cmd_status(args: argparse.Namespace) -> int:
     redis = await _build_redis()
 
     if redis is None:
-        print(_err("  Redis unavailable — cannot read RE performance metrics."))
+        print(_err("  Redis unavailable - cannot read RE performance metrics."))
         return 1
 
     try:
@@ -448,11 +448,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
 async def _cmd_clear_halt(args: argparse.Namespace) -> int:
     """Clear the persisted training halt flag from Redis."""
-    print(_head("\n=== EcodiaOS Continual Learning — Clear Training Halt ===\n"))
+    print(_head("\n=== EcodiaOS Continual Learning - Clear Training Halt ===\n"))
 
     redis = await _build_redis()
     if redis is None:
-        print(_err("  Redis unavailable — cannot clear halt flag."))
+        print(_err("  Redis unavailable - cannot clear halt flag."))
         return 1
 
     try:

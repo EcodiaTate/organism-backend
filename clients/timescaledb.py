@@ -1,5 +1,5 @@
 """
-EcodiaOS — TimescaleDB Client
+EcodiaOS - TimescaleDB Client
 
 Async connection management for telemetry, metrics, and audit logs.
 """
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Table DDL — works on any Postgres instance.
+# Table DDL - works on any Postgres instance.
 TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS metrics (
     time        TIMESTAMPTZ NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS phantom_price_history (
 CREATE INDEX IF NOT EXISTS idx_phantom_price_pair ON phantom_price_history (pair, time DESC);
 """
 
-# Hypertable conversions — requires the timescaledb extension.
+# Hypertable conversions - requires the timescaledb extension.
 HYPERTABLE_TABLES = ["metrics", "audit_log", "affect_history", "cycle_log", "phantom_price_history"]
 
 
@@ -110,7 +110,7 @@ class TimescaleDBClient:
     async def _init_schema(self) -> None:
         """Create tables (plain Postgres) then promote to hypertables if the extension exists."""
         async with self.pool.acquire() as conn:
-            # 1. Create tables + indexes — pure Postgres, always succeeds.
+            # 1. Create tables + indexes - pure Postgres, always succeeds.
             for statement in TABLE_SQL.split(";"):
                 stmt = statement.strip()
                 if stmt:
@@ -135,7 +135,7 @@ class TimescaleDBClient:
                 logger.info(
                     "timescaledb_schema_initialised",
                     hypertables=False,
-                    note="timescaledb extension not available — tables created as plain Postgres",
+                    note="timescaledb extension not available - tables created as plain Postgres",
                 )
 
 

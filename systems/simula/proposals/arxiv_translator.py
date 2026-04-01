@@ -1,10 +1,10 @@
 """
-EcodiaOS — Simula ArXiv Proposal Translator
+EcodiaOS - Simula ArXiv Proposal Translator
 
 Translates raw arXiv technique dictionaries (produced by an upstream
 scraper/worker) into Simula's native EvolutionProposal schema, then
 dispatches them to the SimulaCodeAgent pipeline for autonomous
-implementation — gated behind EXPERIMENTAL governance review.
+implementation - gated behind EXPERIMENTAL governance review.
 
 Pipeline:
   1. Validate & normalise the raw arXiv dict
@@ -16,7 +16,7 @@ Pipeline:
 Every arXiv-sourced proposal enters the pipeline with
 ``source="arxiv"`` and ``category=ADD_SYSTEM_CAPABILITY``, which is a
 GOVERNANCE_REQUIRED category.  This forces Equor governance review
-before any code is merged — no arXiv proposal can land autonomously.
+before any code is merged - no arXiv proposal can land autonomously.
 """
 
 from __future__ import annotations
@@ -154,7 +154,7 @@ class ArxivProposalTranslator:
         """
         Translate a raw arXiv technique dict into an ``EvolutionProposal``.
 
-        Does NOT dispatch — call ``dispatch`` or ``translate_and_dispatch``
+        Does NOT dispatch - call ``dispatch`` or ``translate_and_dispatch``
         to push into the Simula pipeline.
 
         Raises ``ValueError`` if required fields are missing.
@@ -192,7 +192,7 @@ class ArxivProposalTranslator:
         Before dispatching, the paper and extracted technique are written to
         the Neo4j memory graph so the SimulaCodeAgent can retrieve the source
         theory when it later implements the proposal.  Graph write failures
-        are logged and silently swallowed — they never block dispatch.
+        are logged and silently swallowed - they never block dispatch.
         """
         assert result.proposal.category in GOVERNANCE_REQUIRED, (
             f"ArXiv proposals must use a governance-gated category, "
@@ -224,7 +224,7 @@ class ArxivProposalTranslator:
         """
         Write PaperNode + ConceptNode to the Neo4j graph.
 
-        Silently returns on any error — callers must not depend on this
+        Silently returns on any error - callers must not depend on this
         completing successfully (graceful degradation contract).
         """
         if self._neo4j is None:
@@ -417,7 +417,7 @@ class ArxivProposalTranslator:
                 f"Relevance score: {technique.relevance_score:.2f}"
             ),
             risk_assessment=(
-                f"EXPERIMENTAL — arXiv-sourced proposal. "
+                f"EXPERIMENTAL - arXiv-sourced proposal. "
                 f"Risk level: HIGH (unvalidated research technique). "
                 f"Requires Equor governance approval before any code is merged. "
                 f"Paper: {technique.paper_id}"

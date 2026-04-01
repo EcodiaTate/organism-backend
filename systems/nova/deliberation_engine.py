@@ -1,8 +1,8 @@
 """
-EcodiaOS — Nova Deliberation Engine
+EcodiaOS - Nova Deliberation Engine
 
 The dual-process decision engine. Implements the System 1 / System 2 split
-from cognitive architecture — not as a performance trick, but as a genuine
+from cognitive architecture - not as a performance trick, but as a genuine
 model of how deliberation works.
 
 Fast path (System 1, ≤200ms total):
@@ -26,7 +26,7 @@ Routing decision:
   reliable patterns are learned.
 
 The null outcome: if no active goal matches and the broadcast doesn't
-warrant creating one, deliberation returns None — no action taken.
+warrant creating one, deliberation returns None - no action taken.
 This is the correct outcome, not a failure.
 """
 
@@ -134,17 +134,17 @@ class DeliberationEngine:
         # inaction has to beat a higher bar. None = use DO_NOTHING_EFE constant.
         self._do_nothing_efe_override: float | None = None
 
-        # Equor unavailability callback — wired by NovaService after initialize().
+        # Equor unavailability callback - wired by NovaService after initialize().
         # Called when Equor times out or raises a connectivity exception so
         # service.py can log a Thymos DEGRADATION incident. Signature: (reason: str) -> None.
         self._equor_failure_cb: Any | None = None
 
-        # Free energy budget — information-theoretic pressure valve.
+        # Free energy budget - information-theoretic pressure valve.
         # Tracks cumulative surprise (nats) per window. When exhausted, triggers
         # emergency consolidation and reduces policy generation diversity.
         self._fe_budget = FreeEnergyBudget()
 
-        # Cognition cost calculator — metabolic budgeting for deliberation.
+        # Cognition cost calculator - metabolic budgeting for deliberation.
         # When present, each cycle gets a USD budget based on decision importance.
         # The budget constrains how many policies are generated and influences
         # EFE scoring via the cognition_cost_term.
@@ -154,10 +154,10 @@ class DeliberationEngine:
         self._current_soma_signal: Any = None
         # Soma trajectory-based do-nothing EFE delta (independent of urgency override)
         self._do_nothing_efe_delta: float = 0.0
-        # Organism telemetry summary — injected into slow-path prompt every 50 cycles.
+        # Organism telemetry summary - injected into slow-path prompt every 50 cycles.
         # Updated atomically by set_organism_summary(); never None after first telemetry.
         self._organism_summary: str = ""
-        # Novel action callback — fired when the selected policy contains a
+        # Novel action callback - fired when the selected policy contains a
         # propose_novel_action step.  Signature:
         #   async (goal: Goal, step_parameters: dict) -> None
         # Wired by NovaService after initialize() via set_novel_action_cb().
@@ -258,13 +258,13 @@ class DeliberationEngine:
         from systems.soma.types import InteroceptiveDimension
         energy = signal.state.sensed.get(InteroceptiveDimension.ENERGY, 0.6)
         if energy < 0.3:
-            # Depleted or critical — minimum exploration
+            # Depleted or critical - minimum exploration
             self._fe_budget.reduced_k = 2
             self._logger.debug(
                 "energy_gated_policy_k", energy=round(energy, 3), effective_k=2
             )
         elif energy < 0.5:
-            # Conserving — moderate reduction
+            # Conserving - moderate reduction
             self._fe_budget.reduced_k = max(2, self._fe_budget.normal_k - 1)
 
         # Trajectory heading influences do-nothing EFE: if heading toward an
@@ -272,10 +272,10 @@ class DeliberationEngine:
         # (destabilising), inaction costs more.
         heading = getattr(signal, "trajectory_heading", "transient")
         if heading == "toward_attractor":
-            # Organism is stabilising — inaction is less costly
+            # Organism is stabilising - inaction is less costly
             self._do_nothing_efe_delta = max(self._do_nothing_efe_delta - 0.05, -0.15)
         elif heading == "away_from_attractor":
-            # Organism is destabilising — inaction costs more
+            # Organism is destabilising - inaction costs more
             self._do_nothing_efe_delta = min(self._do_nothing_efe_delta + 0.10, 0.25)
 
     def set_tournament_engine(self, engine: TournamentEngine) -> None:
@@ -288,7 +288,7 @@ class DeliberationEngine:
 
         Called by NovaService when HotReloader discovers a new
         BasePolicyGenerator subclass.  The swap is atomic at Python's
-        reference level — any in-flight slow-path call using the old
+        reference level - any in-flight slow-path call using the old
         generator will complete normally; new calls get the new generator.
         """
         self._policy_gen = generator
@@ -430,7 +430,7 @@ class DeliberationEngine:
 
         budget_interrupt = False
         if self._fe_budget.is_exhausted:
-            # Budget already exhausted on a previous cycle — stay in
+            # Budget already exhausted on a previous cycle - stay in
             # reduced mode until consolidation resets it.
             budget_interrupt = True
         elif self._fe_budget.would_exhaust(pe_magnitude):
@@ -448,7 +448,7 @@ class DeliberationEngine:
                 interrupts_total=self._fe_budget.interrupts_triggered,
             )
         else:
-            # Budget not exhausted — accumulate and proceed normally.
+            # Budget not exhausted - accumulate and proceed normally.
             self._fe_budget.accumulate(pe_magnitude)
 
         if budget_interrupt:
@@ -511,7 +511,7 @@ class DeliberationEngine:
             intent, escalated = await self._fast_path(broadcast, assessment, belief_state, affect)
             path = "slow" if escalated else "fast"
             if escalated and intent is None:
-                # Fast path escalated — yield before entering the heavy slow path
+                # Fast path escalated - yield before entering the heavy slow path
                 await asyncio.sleep(0)
                 intent, rejected, cognition_budget = await self._slow_path(
                     broadcast, assessment, belief_state, affect, memory_traces
@@ -572,7 +572,7 @@ class DeliberationEngine:
         # Mark slow-path records with an intent as RE training eligible.
         # Fast-path and budget-exhausted records carry too little signal.
         # model_used is "claude" until Thompson sampling routes to RE.
-        # (Spec §21 — re_training_eligible field, previously missing.)
+        # (Spec §21 - re_training_eligible field, previously missing.)
         if path == "slow" and intent is not None:
             update["re_training_eligible"] = True
             update["model_used"] = "claude"
@@ -610,7 +610,7 @@ class DeliberationEngine:
         """
         telos_efe_weight = 0.15
 
-        # Fetch the latest effective_I report — this is what makes policies
+        # Fetch the latest effective_I report - this is what makes policies
         # compete on effective_I (the real intelligence) not just nominal_I.
         current_report = None
         try:
@@ -651,7 +651,7 @@ class DeliberationEngine:
 
             # Apply misalignment penalty: if nominal rises but effective drops
             if telos_score.misalignment_risk:
-                telos_adj += 0.3  # 0.3 EFE penalty — significant but not overwhelming
+                telos_adj += 0.3  # 0.3 EFE penalty - significant but not overwhelming
 
             # Alignment gap weighting: when effective_I lags nominal_I significantly,
             # amplify the Telos adjustment to steer behaviour toward alignment.
@@ -677,7 +677,7 @@ class DeliberationEngine:
         that is in an active A/B tournament. If so, sample from the tournament
         to decide which hypothesis to credit and return a TournamentContext.
 
-        This is the emit side — Evo's outcome handler consumes it later.
+        This is the emit side - Evo's outcome handler consumes it later.
         """
         if intent is None or self._tournament_engine is None:
             return None
@@ -1066,12 +1066,12 @@ class DeliberationEngine:
                 # ── Equor review with retry on denial ──
                 for policy, efe_score in scored:
                     if policy.id == "do_nothing":
-                        continue  # Skip do-nothing — if we're here, we want to act
+                        continue  # Skip do-nothing - if we're here, we want to act
 
                     # ── Novel action interception ──
                     # If the selected policy contains a propose_novel_action step,
                     # fire the callback (which emits NOVEL_ACTION_REQUESTED) and
-                    # continue to the next policy — the current cycle takes
+                    # continue to the next policy - the current cycle takes
                     # do-nothing while Simula generates the executor asynchronously.
                     novel_step = next(
                         (s for s in policy.steps if s.action_type == "propose_novel_action"),
@@ -1106,7 +1106,7 @@ class DeliberationEngine:
                     try:
                         check = await asyncio.wait_for(
                             self._equor.review(intent),
-                            timeout=0.6,  # 600ms — generous but bounded
+                            timeout=0.6,  # 600ms - generous but bounded
                         )
                     except (TimeoutError, asyncio.TimeoutError, OSError, ConnectionError) as exc:
                         reason = f"equor_slow_path_unavailable: {exc!s}"

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Redis Client
+EcodiaOS - Redis Client
 
 Async Redis for ephemeral state: workspace buffers, active goals,
 affect state cache, rate limiting, and pub/sub.

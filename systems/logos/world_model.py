@@ -1,10 +1,10 @@
 """
-EcodiaOS — Logos: World Model
+EcodiaOS - Logos: World Model
 
 The compressed generative core of EOS cognition.
 
 This is not a database. This is not a list of facts.
-This is a generative model — a compact set of rules that can PRODUCE
+This is a generative model - a compact set of rules that can PRODUCE
 the observations EOS has encountered, and PREDICT observations it hasn't.
 
 The World Model is the culmination of the entire Compression Cascade.
@@ -171,12 +171,12 @@ class WorldModel:
         (e) Violates an empirical invariant (requires constitution-level review)
 
         Redundant deltas (discard_after_encoding=True) still contribute to coverage
-        tracking — the world model perfectly predicted them, so they count as explained.
+        tracking - the world model perfectly predicted them, so they count as explained.
         """
         self._total_episodes_received += 1
 
         if delta.discard_after_encoding or delta.delta_content is None:
-            # The model perfectly predicted this experience — already explained.
+            # The model perfectly predicted this experience - already explained.
             self._total_episodes_predicted += 1
             self._update_coverage()
             return WorldModelUpdate(

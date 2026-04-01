@@ -1,8 +1,8 @@
 """
-EcodiaOS — Evo Internal Types
+EcodiaOS - Evo Internal Types
 
 All data types internal to the Evo learning system.
-These are NOT shared primitives — they model Evo's cognitive structures:
+These are NOT shared primitives - they model Evo's cognitive structures:
 hypotheses, pattern candidates, parameter adjustments, procedures,
 consolidation state, and self-model statistics.
 """
@@ -235,7 +235,7 @@ class Hypothesis(Identified, Timestamped):
     # Which detector/source generated this hypothesis (for meta-learning)
     source_detector: str = ""
 
-    # Occam's razor — simpler hypotheses are preferred
+    # Occam's razor - simpler hypotheses are preferred
     complexity_penalty: float = 0.1
 
     # Minimum age before integration is allowed.
@@ -440,7 +440,7 @@ class SelfModelStats(EOSBaseModel):
 # ─── Belief Consolidation (Phase 2.75) ────────────────────────────────────────
 
 
-# ─── Genetic Memory (Phase 2.8 — Belief Inheritance) ─────────────────────────
+# ─── Genetic Memory (Phase 2.8 - Belief Inheritance) ─────────────────────────
 
 
 class InheritedHypothesisRecord(EOSBaseModel):
@@ -448,7 +448,7 @@ class InheritedHypothesisRecord(EOSBaseModel):
     A single hypothesis serialized for genome transmission.
 
     Captures the essential claim, its domain, and the confidence at fixation time.
-    Evidence details are compressed away — the child inherits the *conclusion*,
+    Evidence details are compressed away - the child inherits the *conclusion*,
     not the full evidentiary history.
     """
 
@@ -629,7 +629,7 @@ class ConsolidatedBelief(EOSBaseModel):
     precision: float = 0.0                   # Confidence at consolidation time
     consolidated_at: datetime = Field(default_factory=utc_now)
     consolidation_generation: int = 1        # Incremented on belief upgrades
-    mutable: bool = False                    # Always False — app-level immutability
+    mutable: bool = False                    # Always False - app-level immutability
 
 
 class FoundationConflict(EOSBaseModel):
@@ -674,20 +674,20 @@ class ConsolidationResult(EOSBaseModel):
     # Belief consolidation (Phase 2.75)
     beliefs_consolidated: int = 0
     foundation_conflicts: int = 0
-    # Hypothesis tournaments (Phase 2 — tournament update)
+    # Hypothesis tournaments (Phase 2 - tournament update)
     tournaments_active: int = 0
     tournaments_converged: int = 0
-    # Genetic memory (Phase 2.8 — belief inheritance)
+    # Genetic memory (Phase 2.8 - belief inheritance)
     genome_candidates_fixed: int = 0
     genome_size_bytes: int = 0
-    # Cognitive speciation (Phase 2.9 — speciation + niche forking)
+    # Cognitive speciation (Phase 2.9 - speciation + niche forking)
     niches_created: int = 0
     niches_extinct: int = 0
     speciation_events: int = 0
     ring_species_detected: int = 0
     niche_forks_proposed: int = 0
     worldview_forks: int = 0
-    # Exploration hypotheses (Phase 8.5 — gap closure)
+    # Exploration hypotheses (Phase 8.5 - gap closure)
     exploration_proposals_generated: int = 0
     explorations_skipped: int = 0
     # Telos topology-aware hypothesis prioritisation (Phase D integration)
@@ -699,7 +699,7 @@ class ConsolidationResult(EOSBaseModel):
 
 # All parameters Evo is permitted to adjust (spec Section V)
 TUNABLE_PARAMETERS: dict[str, ParameterSpec] = {
-    # Atune — salience head weights
+    # Atune - salience head weights
     "atune.head.novelty.weight":     ParameterSpec(min_val=0.05, max_val=0.40, step=0.01),
     "atune.head.risk.weight":        ParameterSpec(min_val=0.05, max_val=0.40, step=0.01),
     "atune.head.identity.weight":    ParameterSpec(min_val=0.05, max_val=0.30, step=0.01),
@@ -707,31 +707,31 @@ TUNABLE_PARAMETERS: dict[str, ParameterSpec] = {
     "atune.head.emotional.weight":   ParameterSpec(min_val=0.05, max_val=0.30, step=0.01),
     "atune.head.causal.weight":      ParameterSpec(min_val=0.05, max_val=0.25, step=0.01),
     "atune.head.keyword.weight":     ParameterSpec(min_val=0.05, max_val=0.25, step=0.01),
-    # Nova — EFE weights
+    # Nova - EFE weights
     "nova.efe.pragmatic":            ParameterSpec(min_val=0.15, max_val=0.55, step=0.02),
     "nova.efe.epistemic":            ParameterSpec(min_val=0.05, max_val=0.40, step=0.02),
     "nova.efe.constitutional":       ParameterSpec(min_val=0.10, max_val=0.40, step=0.02),
     "nova.efe.feasibility":          ParameterSpec(min_val=0.05, max_val=0.30, step=0.02),
     "nova.efe.risk":                 ParameterSpec(min_val=0.05, max_val=0.25, step=0.02),
-    # Voxis — personality vector
+    # Voxis - personality vector
     "voxis.personality.warmth":      ParameterSpec(min_val=-1.0, max_val=1.0, step=0.03),
     "voxis.personality.directness":  ParameterSpec(min_val=-1.0, max_val=1.0, step=0.03),
     "voxis.personality.verbosity":   ParameterSpec(min_val=-1.0, max_val=1.0, step=0.03),
     "voxis.personality.formality":   ParameterSpec(min_val=-1.0, max_val=1.0, step=0.03),
     "voxis.personality.humour":      ParameterSpec(min_val=0.0,  max_val=1.0, step=0.03),
-    # Memory — salience model weights
+    # Memory - salience model weights
     "memory.salience.recency":       ParameterSpec(min_val=0.10, max_val=0.40, step=0.02),
     "memory.salience.frequency":     ParameterSpec(min_val=0.05, max_val=0.25, step=0.02),
     "memory.salience.affect":        ParameterSpec(min_val=0.05, max_val=0.30, step=0.02),
     "memory.salience.surprise":      ParameterSpec(min_val=0.05, max_val=0.25, step=0.02),
     "memory.salience.relevance":     ParameterSpec(min_val=0.10, max_val=0.40, step=0.02),
-    # Nova — free energy budget (information-theoretic pressure valve)
+    # Nova - free energy budget (information-theoretic pressure valve)
     "nova.fe_budget.budget_nats":        ParameterSpec(min_val=1.0, max_val=20.0, step=0.5),
     "nova.fe_budget.threshold_fraction": ParameterSpec(min_val=0.5, max_val=0.95, step=0.05),
-    # Nova — cognition cost (metabolic budgeting, λ frugality weight)
+    # Nova - cognition cost (metabolic budgeting, λ frugality weight)
     "nova.efe.cognition_cost":           ParameterSpec(min_val=0.0, max_val=0.30, step=0.02),
 
-    # Belief half-life tuning (Spec §VIII gap fix — learnable domain half-lives).
+    # Belief half-life tuning (Spec §VIII gap fix - learnable domain half-lives).
     # Values are half-life in days. Evo parameter hypotheses can shift these as
     # the organism observes how quickly beliefs in each domain actually become stale.
     "belief.halflife.sentiment":   ParameterSpec(min_val=0.1, max_val=2.0, step=0.05),
@@ -741,7 +741,7 @@ TUNABLE_PARAMETERS: dict[str, ParameterSpec] = {
     "belief.halflife.social":      ParameterSpec(min_val=7.0, max_val=90.0, step=2.0),
     "belief.halflife.policy":      ParameterSpec(min_val=30.0, max_val=365.0, step=10.0),
 
-    # Atune workspace — evolvable curiosity / spontaneous recall rhythm.
+    # Atune workspace - evolvable curiosity / spontaneous recall rhythm.
     # Higher base_prob → more frequent spontaneous recall (wider curiosity).
     # Lower cooldown_cycles → recalls can fire more frequently.
     # Higher curiosity_boost → affect.curiosity has stronger influence on recall.
@@ -777,7 +777,7 @@ PARAMETER_DEFAULTS: dict[str, float] = {
     "nova.fe_budget.budget_nats":        5.0,
     "nova.fe_budget.threshold_fraction": 0.8,
     "nova.efe.cognition_cost":           0.10,
-    # Belief half-life defaults (days) — match DEFAULT_DOMAIN_HALFLIFES in belief_halflife.py
+    # Belief half-life defaults (days) - match DEFAULT_DOMAIN_HALFLIFES in belief_halflife.py
     "belief.halflife.sentiment":   0.3,
     "belief.halflife.preference":  14.0,
     "belief.halflife.capability":  90.0,
@@ -874,7 +874,7 @@ class SelectionEvent(EOSBaseModel):
 
 class CognitiveSpecies(EOSBaseModel):
     """
-    A coherent worldview module — a cluster of hypotheses/schemas/procedures
+    A coherent worldview module - a cluster of hypotheses/schemas/procedures
     that have diverged enough from the main population to be declared a
     separate cognitive 'species'.
     """
@@ -897,7 +897,7 @@ class PressureState(EOSBaseModel):
     total_species_detected: int = 0
     population_mean_fitness: float = 0.0
     population_std_fitness: float = 0.0
-    metabolic_pressure: float = 0.0     # From Oikos — high pressure = aggressive pruning
+    metabolic_pressure: float = 0.0     # From Oikos - high pressure = aggressive pruning
     active_species: list[CognitiveSpecies] = Field(default_factory=list)
 
 

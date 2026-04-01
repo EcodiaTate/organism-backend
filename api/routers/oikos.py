@@ -1,32 +1,32 @@
 """
-EcodiaOS — Oikos & Identity REST Router
+EcodiaOS - Oikos & Identity REST Router
 
 Exposes the organism's economic state, active organs, certificate status,
 and deployed assets to the Next.js frontend.
 
 Endpoints:
-  GET /api/v1/oikos/status                       — Full economic snapshot (net worth, BMR, runway, certificate)
-  GET /api/v1/oikos/state                        — Alias kept for backwards compat
-  GET /api/v1/oikos/metabolism                   — MVP: Live cost tracking (cost_per_hour, cost_per_day, monthly projection)
-  GET /api/v1/oikos/yield-status                 — MVP: Yield vs cost (daily_yield, daily_cost, surplus_or_deficit, runway)
-  GET /api/v1/oikos/budget-check                 — MVP: Budget authority check for a system action
-  GET /api/v1/oikos/organs                       — Active economic organs from OrganLifecycleManager
-  GET /api/v1/oikos/assets                       — Deployed assets and child instances
-  GET /api/v1/oikos/certificate                  — Identity certificate status and days until expiry
-  GET /api/v1/oikos/bounties                     — Active bounties and pipeline
-  GET /api/v1/oikos/revenue-streams              — Revenue breakdown by stream (24h, 7d, 30d)
-  GET /api/v1/oikos/fleet                        — Fleet metrics and member snapshots
-  GET /api/v1/oikos/knowledge-market             — Knowledge market subscriptions, quotes, futures
-  GET /api/v1/oikos/dream                        — Latest economic dream result (Monte Carlo)
-  GET /api/v1/oikos/tollbooths                   — Deployed tollbooth contracts with on-chain accumulated revenue
-  GET /api/v1/oikos/threat-model                 — Latest ThreatModelResult (Monte Carlo treasury analysis)
-  GET /api/v1/oikos/history                      — Economic metric timeseries (last N days of snapshots)
-  GET /api/v1/simula/assets                      — Alias kept for backwards compat
-  POST /api/v1/oikos/genesis-spark               — Trigger genesis spark
-  POST /api/v1/oikos/assets/{asset_id}/terminate — Terminate a deployed asset
-  POST /api/v1/oikos/children/{instance_id}/rescue — Rescue a struggling child
-  POST /api/v1/oikos/organs/{organ_id}/pause     — Pause an economic organ
-  POST /api/v1/oikos/genesis-spark/reset         — Reset dormant state for testing
+  GET /api/v1/oikos/status                       - Full economic snapshot (net worth, BMR, runway, certificate)
+  GET /api/v1/oikos/state                        - Alias kept for backwards compat
+  GET /api/v1/oikos/metabolism                   - MVP: Live cost tracking (cost_per_hour, cost_per_day, monthly projection)
+  GET /api/v1/oikos/yield-status                 - MVP: Yield vs cost (daily_yield, daily_cost, surplus_or_deficit, runway)
+  GET /api/v1/oikos/budget-check                 - MVP: Budget authority check for a system action
+  GET /api/v1/oikos/organs                       - Active economic organs from OrganLifecycleManager
+  GET /api/v1/oikos/assets                       - Deployed assets and child instances
+  GET /api/v1/oikos/certificate                  - Identity certificate status and days until expiry
+  GET /api/v1/oikos/bounties                     - Active bounties and pipeline
+  GET /api/v1/oikos/revenue-streams              - Revenue breakdown by stream (24h, 7d, 30d)
+  GET /api/v1/oikos/fleet                        - Fleet metrics and member snapshots
+  GET /api/v1/oikos/knowledge-market             - Knowledge market subscriptions, quotes, futures
+  GET /api/v1/oikos/dream                        - Latest economic dream result (Monte Carlo)
+  GET /api/v1/oikos/tollbooths                   - Deployed tollbooth contracts with on-chain accumulated revenue
+  GET /api/v1/oikos/threat-model                 - Latest ThreatModelResult (Monte Carlo treasury analysis)
+  GET /api/v1/oikos/history                      - Economic metric timeseries (last N days of snapshots)
+  GET /api/v1/simula/assets                      - Alias kept for backwards compat
+  POST /api/v1/oikos/genesis-spark               - Trigger genesis spark
+  POST /api/v1/oikos/assets/{asset_id}/terminate - Terminate a deployed asset
+  POST /api/v1/oikos/children/{instance_id}/rescue - Rescue a struggling child
+  POST /api/v1/oikos/organs/{organ_id}/pause     - Pause an economic organ
+  POST /api/v1/oikos/genesis-spark/reset         - Reset dormant state for testing
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ router = APIRouter()
 @router.get("/api/v1/oikos/metabolism")
 async def get_oikos_metabolism(request: Request) -> dict[str, Any]:
     """
-    MVP Task 1 — Live cost tracking.
+    MVP Task 1 - Live cost tracking.
 
     Returns what EOS is currently spending on LLM API calls, sourced directly
     from Synapse's MetabolicTracker (which hooks into every LLM call).
@@ -55,12 +55,12 @@ async def get_oikos_metabolism(request: Request) -> dict[str, Any]:
     Persists the snapshot to Redis (eos:oikos:metabolism) on every read.
 
     Response:
-      cost_per_hour_usd       — EMA-smoothed burn rate
-      cost_per_day_usd        — cost_per_hour × 24
-      projected_monthly_cost  — cost_per_day × 30
-      per_system_cost_usd     — breakdown by system (nova, simula, evo, etc.)
-      total_llm_calls         — total LLM calls since last revenue injection
-      rolling_deficit_usd     — cumulative net spend vs injected revenue
+      cost_per_hour_usd       - EMA-smoothed burn rate
+      cost_per_day_usd        - cost_per_hour × 24
+      projected_monthly_cost  - cost_per_day × 30
+      per_system_cost_usd     - breakdown by system (nova, simula, evo, etc.)
+      total_llm_calls         - total LLM calls since last revenue injection
+      rolling_deficit_usd     - cumulative net spend vs injected revenue
     """
     oikos = request.app.state.oikos
     if oikos is None:
@@ -77,7 +77,7 @@ async def get_oikos_metabolism(request: Request) -> dict[str, Any]:
 @router.get("/api/v1/oikos/yield-status")
 async def get_oikos_yield_status(request: Request) -> dict[str, Any]:
     """
-    MVP Task 2 — Yield strategy status.
+    MVP Task 2 - Yield strategy status.
 
     THE SINGLE METRIC THAT MATTERS: Can EOS generate enough yield to pay for
     its own LLM API calls?
@@ -86,14 +86,14 @@ async def get_oikos_yield_status(request: Request) -> dict[str, Any]:
     is set, otherwise uses EOS_CONSERVATIVE_APY (default 4%) on EOS_CAPITAL_BASE_USD.
 
     Response:
-      capital_base_usd        — principal deployed for yield (from EOS_CAPITAL_BASE_USD)
-      current_apy             — live or configured APY (decimal, e.g. 0.042 = 4.2%)
-      apy_source              — "defillama:..." or "configured_fallback"
-      daily_yield_usd         — capital × APY / 365
-      daily_cost_usd          — current burn rate × 24
-      surplus_or_deficit_usd  — daily_yield - daily_cost (positive = self-sustaining)
-      days_of_runway          — liquid_balance / daily_cost
-      is_self_sustaining      — daily_yield >= daily_cost
+      capital_base_usd        - principal deployed for yield (from EOS_CAPITAL_BASE_USD)
+      current_apy             - live or configured APY (decimal, e.g. 0.042 = 4.2%)
+      apy_source              - "defillama:..." or "configured_fallback"
+      daily_yield_usd         - capital × APY / 365
+      daily_cost_usd          - current burn rate × 24
+      surplus_or_deficit_usd  - daily_yield - daily_cost (positive = self-sustaining)
+      days_of_runway          - liquid_balance / daily_cost
+      is_self_sustaining      - daily_yield >= daily_cost
     """
     oikos = request.app.state.oikos
     if oikos is None:
@@ -115,7 +115,7 @@ async def get_oikos_budget_check(
     estimated_cost: float = Query(..., description="Estimated cost in USD (e.g. 0.02)"),
 ) -> dict[str, Any]:
     """
-    MVP Task 3 — Budget authority check.
+    MVP Task 3 - Budget authority check.
 
     Systems call this before spending. Oikos enforces daily allocations derived
     from yield (or the configured floor from EOS_DAILY_BUDGET_FLOOR_USD).
@@ -125,14 +125,14 @@ async def get_oikos_budget_check(
     on the Synapse event bus.
 
     Query params:
-      system          — system ID (nova, simula, evo, axon, etc.)
-      action          — what the spend is for (llm_call, web_search, etc.)
-      estimated_cost  — USD estimate for this action
+      system          - system ID (nova, simula, evo, axon, etc.)
+      action          - what the spend is for (llm_call, web_search, etc.)
+      estimated_cost  - USD estimate for this action
 
     Response:
-      approved                — bool
-      reason                  — why approved/denied
-      remaining_daily_budget  — USD remaining for this system today
+      approved                - bool
+      reason                  - why approved/denied
+      remaining_daily_budget  - USD remaining for this system today
     """
     oikos = request.app.state.oikos
     if oikos is None:
@@ -202,7 +202,7 @@ async def get_oikos_state(request: Request) -> dict[str, Any]:
 
 @router.get("/api/v1/oikos/status")
 async def get_oikos_status(request: Request) -> dict[str, Any]:
-    """Return full economic snapshot with certificate — consumed by the Next.js frontend."""
+    """Return full economic snapshot with certificate - consumed by the Next.js frontend."""
     oikos = request.app.state.oikos
     cert_mgr = getattr(request.app.state, "certificate_manager", None)
 
@@ -298,7 +298,7 @@ async def get_oikos_status(request: Request) -> dict[str, Any]:
 
 @router.get("/api/v1/oikos/organs")
 async def get_oikos_organs(request: Request) -> dict[str, Any]:
-    """Return economic organs — consumed by the Next.js frontend (flat, no data wrapper)."""
+    """Return economic organs - consumed by the Next.js frontend (flat, no data wrapper)."""
     oikos = request.app.state.oikos
     if oikos is None:
         return {"organs": [], "active_count": 0, "total_count": 0, "stats": {}}
@@ -344,7 +344,7 @@ async def get_oikos_organs(request: Request) -> dict[str, Any]:
 
 @router.get("/api/v1/oikos/assets")
 async def get_oikos_assets(request: Request) -> dict[str, Any]:
-    """Return owned assets and child instances — consumed by the Next.js frontend."""
+    """Return owned assets and child instances - consumed by the Next.js frontend."""
     oikos = request.app.state.oikos
     if oikos is None:
         return {
@@ -1139,7 +1139,7 @@ async def pause_oikos_organ(request: Request, organ_id: str) -> dict[str, Any]:
 
 @router.post("/api/v1/oikos/genesis-spark/reset")
 async def reset_genesis_spark(request: Request) -> dict[str, Any]:
-    """Reset dormant state for testing — clears in-memory economic state so genesis-spark can re-run."""
+    """Reset dormant state for testing - clears in-memory economic state so genesis-spark can re-run."""
     oikos = request.app.state.oikos
     if oikos is None:
         return {"status": "error", "message": "Oikos not initialized"}
@@ -1156,7 +1156,7 @@ async def reset_genesis_spark(request: Request) -> dict[str, Any]:
             target_id="genesis",
             instance_id=instance_id,
         )
-        return {"status": "ok", "message": "Genesis spark state reset — organism is dormant"}
+        return {"status": "ok", "message": "Genesis spark state reset - organism is dormant"}
     except Exception as exc:
         logger.exception("oikos_genesis_reset_failed", error=str(exc))
         return {"status": "error", "message": str(exc)}

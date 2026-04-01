@@ -129,10 +129,10 @@ class TestComputeVerdictMetabolicState:
         assert "Care" in check.reasoning or "care" in check.reasoning.lower()
 
     def test_critical_starvation_loosens_care_floor(self):
-        """Under CRITICAL starvation, care floor is loosened 70% — action near floor should pass."""
+        """Under CRITICAL starvation, care floor is loosened 70% - action near floor should pass."""
         intent = _intent()
         # Standard care floor: -0.105. At tightness=0.3: -0.105 * 0.3 = -0.0315
-        # A score of -0.08 is between the two floors — blocked nominally, permitted under CRITICAL.
+        # A score of -0.08 is between the two floors - blocked nominally, permitted under CRITICAL.
         alignment = _alignment(care=-0.08)
         nominal_check = compute_verdict_with_metabolic_state(
             alignment, intent, 3, _constitution(),
@@ -249,7 +249,7 @@ class TestEvaluateEconomicIntentMetabolic:
 
     def test_spawn_runway_compressed_under_critical(self):
         """Spawn coherence penalty should be lighter under CRITICAL (7d floor vs 180d)."""
-        # Parent runway = 14 days — below 180d floor but above 7d CRITICAL floor
+        # Parent runway = 14 days - below 180d floor but above 7d CRITICAL floor
         step = MagicMock()
         step.executor = "oikos.spawn_child"
         step.parameters = {"parent_runway_days": 14.0}

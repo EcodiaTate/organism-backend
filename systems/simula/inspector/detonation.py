@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Detonation Module
+EcodiaOS - Inspector Detonation Module
 
 Re-exports the ExecutionTestChamber as LiveDetonationChamber for backward compatibility.
 """

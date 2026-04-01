@@ -1,5 +1,5 @@
 """
-EcodiaOS — Logos: Minimum Description Length Estimator
+EcodiaOS - Logos: Minimum Description Length Estimator
 
 Scores every piece of knowledge by how much reality it explains per bit
 of description. Computing exact Kolmogorov complexity is uncomputable;
@@ -94,7 +94,7 @@ class MDLEstimator:
     """
     Practical MDL estimation for different knowledge types.
 
-    These are approximations — but consistent approximations
+    These are approximations - but consistent approximations
     create consistent compression pressure across the system.
     """
 
@@ -112,7 +112,7 @@ class MDLEstimator:
         formula: byte_length(JSON(content)) × log2(unique_token_count)
 
         byte_length captures structural size; log2(unique_tokens) captures
-        vocabulary richness — together they approximate Kolmogorov complexity
+        vocabulary richness - together they approximate Kolmogorov complexity
         without being uncomputable.  Returns at least 1.0.
         """
         try:
@@ -208,7 +208,7 @@ class MDLEstimator:
             marginal_value=hypothesis.unique_predictive_coverage,
             last_accessed=hypothesis.last_tested,
             access_frequency=hypothesis.test_frequency,
-            decay_rate=0.02,  # Hypotheses decay slowly — expensive to form
+            decay_rate=0.02,  # Hypotheses decay slowly - expensive to form
         )
 
     async def score_schema(self, schema: SchemaProtocol) -> MDLScore:
@@ -241,7 +241,7 @@ class MDLEstimator:
             marginal_value=schema.unique_organizing_power,
             last_accessed=schema.last_instantiated,
             access_frequency=schema.instantiation_frequency,
-            decay_rate=0.005,  # Schemas are extremely sticky — most compressed
+            decay_rate=0.005,  # Schemas are extremely sticky - most compressed
         )
 
     async def score_generic(

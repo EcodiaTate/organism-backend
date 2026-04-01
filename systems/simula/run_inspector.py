@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Engine runner (Full Auto-Patching Pipeline).
+EcodiaOS - Inspector Engine runner (Full Auto-Patching Pipeline).
 
 Runs the full Clone → Slice → Map → Prove → Debate → Patch pipeline against
 a single authorized target repository and prints a structured summary.
@@ -8,7 +8,7 @@ Usage:
     python run_inspector.py [--target <github_url>]
 
 The target must be listed in AUTHORIZED_TARGETS below (or passed via --target).
-AWS credentials must be set (Bedrock provider) — see .env.example.
+AWS credentials must be set (Bedrock provider) - see .env.example.
 """
 
 from __future__ import annotations
@@ -30,12 +30,12 @@ AUTHORIZED_TARGETS: list[str] = ["file:///tmp/phantom_workspace_0e73f971"]
 
 
 async def main(target_url: str) -> int:
-    # Deferred imports — avoids loading the full EOS stack until we're sure
+    # Deferred imports - avoids loading the full EOS stack until we're sure
     # the venv is activated and the target is authorized.
     from clients.llm import create_llm_provider
     from config import LLMConfig
     from systems.simula.inspector.injector import (
-        DynamicTaintInjector,  # noqa: F401 — available for future use
+        DynamicTaintInjector,  # noqa: F401 - available for future use
     )
     from systems.simula.inspector.prover import VulnerabilityProver
     from systems.simula.inspector.remediation import RepairAgent
@@ -70,13 +70,13 @@ async def main(target_url: str) -> int:
     # ── 2. Multi-agent swarm ───────────────────────────────────────────────────
 
     prover = VulnerabilityProver(z3_bridge=z3_bridge, llm=llm)
-    # ConcurrencyProver takes (llm, z3_bridge) — note argument order
+    # ConcurrencyProver takes (llm, z3_bridge) - note argument order
     temporal_prover = ConcurrencyProver(llm=llm, z3_bridge=z3_bridge)
     slicer = SemanticSlicer(llm=llm)
     verifier = AdversarialVerifier(llm=llm)
     repair_agent = RepairAgent(llm=llm, prover=prover, max_retries=3)
     shield = AutonomousShield(llm=llm)
-    # DynamicTaintInjector requires a live httpx client + TaintFlowLinker — skip
+    # DynamicTaintInjector requires a live httpx client + TaintFlowLinker - skip
     # in this standalone runner (the service accepts taint_injector=None).
 
     # ── 3. Safety & config ─────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ async def main(target_url: str) -> int:
     print(f"Vulnerabilities : {len(result.vulnerabilities_found)}")
 
     if not result.vulnerabilities_found:
-        print("\n[OK] No vulnerabilities proved — target appears secure.")
+        print("\n[OK] No vulnerabilities proved - target appears secure.")
         await llm.close()
         return 0
 
@@ -167,7 +167,7 @@ async def main(target_url: str) -> int:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Inspector engine runner — full auto-patching pipeline"
+        description="Inspector engine runner - full auto-patching pipeline"
     )
     parser.add_argument(
         "--target",

@@ -164,11 +164,11 @@ class FoveaService:
         # Per-percept arrival time tracking (feeds WorldModelAdapter timing history)
         self._last_percept_arrival_by_source: dict[str, float] = {}
 
-        # Economic prediction model — tracks revenue/cost EMA and emits
+        # Economic prediction model - tracks revenue/cost EMA and emits
         # ECONOMIC error dimension when actuals diverge from predictions.
         self._economic_model = EconomicPredictionModel()
 
-        # Diagnostic report cadence — emitted every N errors alongside fitness signal
+        # Diagnostic report cadence - emitted every N errors alongside fitness signal
         self._diagnostic_emit_interval: int = 50  # matches fitness interval
         self._errors_since_last_diagnostic: int = 0
         self._last_backpressure_warning_count: int = 0  # avoid repeated warnings
@@ -247,16 +247,16 @@ class FoveaService:
             try:
                 asyncio.ensure_future(_late_restore())
             except RuntimeError:
-                # No running event loop during tests — silently skip
+                # No running event loop during tests - silently skip
                 pass
 
     def get_metrics(self) -> FoveaMetrics:
-        """Return current Fovea metrics snapshot (public API — avoids _bridge access)."""
+        """Return current Fovea metrics snapshot (public API - avoids _bridge access)."""
         return self._bridge.get_metrics()
 
     @property
     def weight_learner(self) -> AttentionWeightLearner:
-        """Return the weight learner for external inspection (public API — avoids _bridge access)."""
+        """Return the weight learner for external inspection (public API - avoids _bridge access)."""
         return self._weight_learner
 
     # ------------------------------------------------------------------
@@ -372,7 +372,7 @@ class FoveaService:
         else:
             return False
         logger.info("threshold_param_adjusted", name=name, value=round(value, 4))
-        # Persist immediately — these are Evo-tuned values that must survive restart.
+        # Persist immediately - these are Evo-tuned values that must survive restart.
         _asyncio.ensure_future(dt.persist_params())
         return True
 
@@ -453,7 +453,7 @@ class FoveaService:
         # routing so EQUOR + ONEIROS receive the error when mismatch is high.
         # NOTE: compute_routing() already ran inside the bridge with
         # constitutional_mismatch == 0 (not yet injected). We must re-run it
-        # here — after injection — using the instance-level adjustable thresholds
+        # here - after injection - using the instance-level adjustable thresholds
         # so constitutional routing is actually applied (previously a dead path).
         self._inject_constitutional_mismatch(error, percept)
         error.compute_routing(
@@ -512,7 +512,7 @@ class FoveaService:
             await self._emit_fitness_signal()
 
         # Attentional divergence: emit KL divergence from fleet mean every N errors.
-        # This is a speciation signal — instances with divergent attention phenotypes
+        # This is a speciation signal - instances with divergent attention phenotypes
         # are developing distinct ecological niches.
         self._errors_since_last_divergence += 1
         if self._errors_since_last_divergence >= self._divergence_emit_interval:
@@ -600,8 +600,8 @@ class FoveaService:
         """
         Handle FOVEA_PREDICTION_ERROR events emitted by other systems (Synapse, Simula).
 
-        External anomaly signals — such as Synapse entering STRESS rhythm state or
-        Simula rolling back an evolution proposal — are structurally equivalent to
+        External anomaly signals - such as Synapse entering STRESS rhythm state or
+        Simula rolling back an evolution proposal - are structurally equivalent to
         world-model divergence: reality (organism state) diverged from expectation.
         We map the incoming signal onto the magnitude_error dimension and let the
         precision-weighted salience machinery treat it as any other error.
@@ -640,7 +640,7 @@ class FoveaService:
         await self._emit_prediction_error(error)
 
     # ------------------------------------------------------------------
-    # Affect state subscription (P3 — precision τ coupling)
+    # Affect state subscription (P3 - precision τ coupling)
     # ------------------------------------------------------------------
 
     def _subscribe_to_affect_state(self, event_bus: EventBus) -> None:
@@ -662,9 +662,9 @@ class FoveaService:
         """
         Modulate precision (τ) based on arousal from Soma's affect state.
 
-        High arousal → raise ignition threshold (more conservative — only attend
+        High arousal → raise ignition threshold (more conservative - only attend
         to very surprising things during high arousal, reducing noise).
-        Low arousal → lower threshold (more permissive — attend to subtler errors).
+        Low arousal → lower threshold (more permissive - attend to subtler errors).
         """
         data = event.data if hasattr(event, "data") else {}
         arousal = float(data.get("arousal", 0.5))
@@ -1101,7 +1101,7 @@ class FoveaService:
         return True
 
     # ------------------------------------------------------------------
-    # AtuneGenomeFragment — spawn-time curiosity genome (Mitosis)
+    # AtuneGenomeFragment - spawn-time curiosity genome (Mitosis)
     # ------------------------------------------------------------------
 
     def export_atune_genome(self, instance_id: str = "", generation: int = 1) -> Any:
@@ -1150,7 +1150,7 @@ class FoveaService:
 
         Reads ECODIAOS_ATUNE_GENOME_PAYLOAD (JSON-encoded AtuneGenomeFragment)
         injected by LocalDockerSpawner / CloudRunSpawner at boot time.
-        Non-fatal — if env var is absent or malformed, cold-starts at defaults.
+        Non-fatal - if env var is absent or malformed, cold-starts at defaults.
         """
         import json as _json
         import os as _os
@@ -1396,7 +1396,7 @@ class FoveaService:
         Fovea broadcasts a prediction-error query when it observes an
         AXON_EXECUTION_REQUEST, and resolves competency errors via
         AXON_EXECUTION_RESULT. Replaces any direct import of PredictionError
-        from Axon — all Axon→Fovea comms now flow via Synapse bus.
+        from Axon - all Axon→Fovea comms now flow via Synapse bus.
         """
         try:
             from systems.synapse.types import SynapseEventType
@@ -1456,7 +1456,7 @@ class FoveaService:
         if not intent_id:
             return
 
-        # Cache for resolve — intent_id → internal prediction_id
+        # Cache for resolve - intent_id → internal prediction_id
         if not hasattr(self, "_axon_prediction_ids"):
             self._axon_prediction_ids: dict[str, str] = {}
 
@@ -1482,7 +1482,7 @@ class FoveaService:
         Resolves the competency self-prediction registered in
         _on_axon_execution_request. If the actual result violates the
         prediction, the 3x precision multiplier fires an internal error
-        — the organism notices when its actions don't produce expected
+        - the organism notices when its actions don't produce expected
         outcomes, without Axon needing to directly call Fovea.
         """
         data = getattr(event, "data", {}) or {}
@@ -1724,7 +1724,7 @@ class FoveaService:
     def _get_fleet_mean_weights(self) -> dict[str, float]:
         """Compute fleet mean from accumulated sibling weight samples."""
         if not self._fleet_weight_samples:
-            # No fleet data — return uniform distribution as neutral baseline
+            # No fleet data - return uniform distribution as neutral baseline
             my_weights = self._weight_learner.get_raw_weights()
             n = max(len(my_weights), 1)
             return {k: 1.0 / n for k in my_weights}
@@ -2136,7 +2136,7 @@ class FoveaService:
         Handle EVO_PARAMETER_ADJUSTED for atune.workspace.* curiosity parameters.
 
         Routes Evo parameter adjustments to the GlobalWorkspace's curiosity API.
-        Non-workspace params are silently ignored — only atune.workspace.* prefix
+        Non-workspace params are silently ignored - only atune.workspace.* prefix
         is consumed here; other params flow to their own system handlers.
         """
         try:
@@ -2170,12 +2170,12 @@ class FoveaService:
         Handle FOVEA_PARAMETER_ADJUSTMENT from Equor/Nova.
 
         Supported adjustment_types:
-          - "routing_threshold_equor" — constitutional mismatch threshold for Equor routing
-          - "routing_threshold_oneiros" — constitutional mismatch threshold for Oneiros routing
-          - "economic_route_threshold" — economic error threshold for Oikos+Evo routing
-          - "economic_workspace_threshold" — economic error threshold for workspace routing
-          - "threshold_percentile" — dynamic ignition threshold percentile (affects all routing)
-          - "habituation_speed" — scales the habituation increment (0.5–2.0× multiplier)
+          - "routing_threshold_equor" - constitutional mismatch threshold for Equor routing
+          - "routing_threshold_oneiros" - constitutional mismatch threshold for Oneiros routing
+          - "economic_route_threshold" - economic error threshold for Oikos+Evo routing
+          - "economic_workspace_threshold" - economic error threshold for workspace routing
+          - "threshold_percentile" - dynamic ignition threshold percentile (affects all routing)
+          - "habituation_speed" - scales the habituation increment (0.5–2.0× multiplier)
 
         All adjustments are clamped to safe ranges. Emits FOVEA_DIAGNOSTIC_REPORT
         immediately so the requesting system can confirm the change.
@@ -2372,7 +2372,7 @@ class FoveaService:
 
     async def _check_calibration_alert(self) -> None:
         """
-        Part A: Autonomy Gap Closure — Check for consecutive poor cycles.
+        Part A: Autonomy Gap Closure - Check for consecutive poor cycles.
 
         Tracks:
         - Low TPR (< 0.6): Fovea isn't catching real errors
@@ -2519,7 +2519,7 @@ class FoveaService:
 
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply Skia modulation directives to Fovea runtime state."""
-        # No specific Skia directives defined for fovea — halt-only modulation
+        # No specific Skia directives defined for fovea - halt-only modulation
         self._logger.info("system_modulation_directives_applied", directives=directives)
 
     # ------------------------------------------------------------------
@@ -2530,7 +2530,7 @@ class FoveaService:
         """Subscribe to COMPRESSION_CYCLE_COMPLETE from Logos.
 
         After Logos evicts or distills items, any salience weights Fovea
-        learned for that domain are stale — the world model has changed.
+        learned for that domain are stale - the world model has changed.
         We decay the relevant error-type weight proportional to eviction
         volume so that Fovea re-learns from fresh data.
         """
@@ -2555,9 +2555,9 @@ class FoveaService:
         MDL improved.  We use this to decay attention weights for the affected
         domain:
 
-        - ``items_evicted``  — raw data removed; weights are most stale here.
-        - ``items_distilled``— converted to schemas; less decay, model still valid.
-        - ``mdl_improvement``— how much the world model compressed; large improvement
+        - ``items_evicted``  - raw data removed; weights are most stale here.
+        - ``items_distilled``- converted to schemas; less decay, model still valid.
+        - ``mdl_improvement``- how much the world model compressed; large improvement
           means the domain is now well-understood so moderate decay is safe.
 
         Decay formula:
@@ -2576,7 +2576,7 @@ class FoveaService:
         eviction_ratio = min(1.0, items_evicted / total)
 
         if eviction_ratio < 0.05:
-            # Negligible eviction — no meaningful staleness introduced
+            # Negligible eviction - no meaningful staleness introduced
             return
 
         decay = self._weight_learner.false_alarm_decay_rate * eviction_ratio
@@ -2597,7 +2597,7 @@ class FoveaService:
                 new_weight=round(new_weight, 4),
             )
         else:
-            # Domain unknown — apply a smaller uniform decay to all weights
+            # Domain unknown - apply a smaller uniform decay to all weights
             uniform_decay = decay * 0.3
             adjusted: dict[str, float] = {}
             for key in list(self._weight_learner.weights):

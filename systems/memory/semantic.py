@@ -1,5 +1,5 @@
 """
-EcodiaOS — Semantic Memory
+EcodiaOS - Semantic Memory
 
 Entity extraction, deduplication, and relationship management.
 This is the "what things exist" layer of memory.

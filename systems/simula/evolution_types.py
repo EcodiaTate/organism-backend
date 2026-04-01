@@ -38,7 +38,7 @@ from primitives.evolution import ProposalStatus as ProposalStatus  # noqa: E402
 
 
 class ProposalSource(enum.StrEnum):
-    """Source of proposal origin — used instead of string comparisons."""
+    """Source of proposal origin - used instead of string comparisons."""
     EVO = "evo"
     THYMOS = "thymos"
     AXON = "axon"
@@ -503,7 +503,7 @@ class EnrichedSimulationResult(SimulationResult):
 class CanaryTrafficStep(EOSBaseModel):
     """One step in a canary traffic ramp schedule.
 
-    Spec ref: Section 7 — Canary Deployment.
+    Spec ref: Section 7 - Canary Deployment.
     """
 
     traffic_percentage: int  # 0–100
@@ -519,7 +519,7 @@ class CanaryDeploymentPlan(EOSBaseModel):
     on the EvolutionRecord so the ProactiveScanner and Thymos can monitor
     health at each ramp step and trigger rollback if criteria are violated.
 
-    Spec ref: Section 7 — Temporal Simulation & Forward Modeling.
+    Spec ref: Section 7 - Temporal Simulation & Forward Modeling.
     """
 
     proposal_id: str
@@ -569,7 +569,7 @@ class CanaryDeploymentPlan(EOSBaseModel):
 class ConstraintViolation(EOSBaseModel):
     """A specific Iron Rule or invariant violated by a proposal.
 
-    Spec ref: Section 8 — Constraint Satisfaction in Imagined Scenarios.
+    Spec ref: Section 8 - Constraint Satisfaction in Imagined Scenarios.
     """
 
     constraint_id: str   # e.g. "equor_immutability", "drive_normalization"
@@ -583,7 +583,7 @@ class ConstraintViolation(EOSBaseModel):
 class SimulaComponentHealth(EOSBaseModel):
     """Health status of a single Simula sub-system component.
 
-    Spec ref: Section 17 — Health & Monitoring.
+    Spec ref: Section 17 - Health & Monitoring.
     """
 
     name: str
@@ -594,7 +594,7 @@ class SimulaComponentHealth(EOSBaseModel):
 class SimulaMetrics(EOSBaseModel):
     """Operational KPI snapshot for the Simula system.
 
-    Spec ref: Section 17 — Health & Monitoring.
+    Spec ref: Section 17 - Health & Monitoring.
     """
 
     proposals_processed: int = 0
@@ -619,7 +619,7 @@ class SimulaMetrics(EOSBaseModel):
 class HealthStatus(EOSBaseModel):
     """Full liveness + component health report for GET /simula/health.
 
-    Spec ref: Section 17 — Health & Monitoring.
+    Spec ref: Section 17 - Health & Monitoring.
     """
 
     service: str = "simula"

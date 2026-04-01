@@ -1,14 +1,14 @@
 """
-EcodiaOS — GitHubConnector (Phase 16r: Bounty Submission Layer)
+EcodiaOS - GitHubConnector (Phase 16r: Bounty Submission Layer)
 
 Provides all GitHub API operations needed by BountySubmitExecutor:
-  - get_access_token()  — App JWT→IAT or personal token, Redis-cached
-  - check_health()      — 3-failure threshold before SYSTEM_DEGRADED
-  - fork_repository()   — POST /repos/{owner}/{repo}/forks
-  - create_branch()     — POST /repos/{owner}/{repo}/git/refs
-  - commit_files()      — PUT /repos/{owner}/{repo}/contents/{path} (one file at a time)
-  - open_pull_request() — POST /repos/{owner}/{repo}/pulls
-  - get_pr_status()     — GET  /repos/{owner}/{repo}/pulls/{number}
+  - get_access_token()  - App JWT→IAT or personal token, Redis-cached
+  - check_health()      - 3-failure threshold before SYSTEM_DEGRADED
+  - fork_repository()   - POST /repos/{owner}/{repo}/forks
+  - create_branch()     - POST /repos/{owner}/{repo}/git/refs
+  - commit_files()      - PUT /repos/{owner}/{repo}/contents/{path} (one file at a time)
+  - open_pull_request() - POST /repos/{owner}/{repo}/pulls
+  - get_pr_status()     - GET  /repos/{owner}/{repo}/pulls/{number}
 
 Authentication precedence (resolved at construction time):
   1. GitHub App (GITHUB_APP_ID + GITHUB_APP_PRIVATE_KEY + GITHUB_INSTALLATION_ID)
@@ -19,7 +19,7 @@ Authentication precedence (resolved at construction time):
 Rate limiting (GitHub REST API):
   - Authenticated requests: 5 000 / hour.
   - PR creation: conservative internal cap of 5 / hour enforced by caller
-    (BountySubmitExecutor), not here — this connector is the transport layer.
+    (BountySubmitExecutor), not here - this connector is the transport layer.
 
 This connector does NOT extend PlatformConnector because it is not an OAuth2
 flow connector; it is a thin HTTP client facade with optional IAT delegation
@@ -59,7 +59,7 @@ class GitHubConnector:
 
     Supports GitHub App authentication (via GitHubAppConnector) and personal
     token fallback.  All HTTP operations return plain Python dicts / strings
-    rather than domain models — the executor layer owns any result mapping.
+    rather than domain models - the executor layer owns any result mapping.
 
     Thread-safety: NOT thread-safe.  Single-threaded asyncio like all EOS.
     """
@@ -106,7 +106,7 @@ class GitHubConnector:
         self._logger = logger.bind(component="github_connector")
 
         # Seal the env-var PAT in IdentityVault so it is never stored plaintext.
-        # This runs synchronously at construction — vault.encrypt_token_json is
+        # This runs synchronously at construction - vault.encrypt_token_json is
         # CPU-only (Fernet) and safe to call from __init__.
         if self._personal_token and vault is not None:
             try:
@@ -139,7 +139,7 @@ class GitHubConnector:
         if self._app_connector is not None:
             token = await self._app_connector.get_access_token()
             if token:
-                # Cache for IAT TTL minus guard — same convention as PlatformConnector
+                # Cache for IAT TTL minus guard - same convention as PlatformConnector
                 await self._write_cache(token, ttl=_IAT_TTL_S - _CACHE_GUARD_S)
                 self._logger.debug("github_iat_acquired_and_cached")
                 return token
@@ -369,7 +369,7 @@ class GitHubConnector:
             base=base,
         )
 
-        # Apply labels — best-effort; do not fail PR creation on label errors
+        # Apply labels - best-effort; do not fail PR creation on label errors
         if labels:
             await self._apply_labels(owner, repo, pr_number, labels, token)
 
@@ -438,7 +438,7 @@ class GitHubConnector:
         Returns None if neither is available.  Callers should raise or fall back
         gracefully rather than passing None to API calls.
         """
-        # 1. Own instance token — provisioned by the I-3 GitHub account flow
+        # 1. Own instance token - provisioned by the I-3 GitHub account flow
         own_token: str | None = None
         if self._app_connector is not None:
             # Try to get the IAT for the organism's own GitHub App installation
@@ -473,7 +473,7 @@ class GitHubConnector:
         labels: list[str],
         token: str,
     ) -> None:
-        """Apply labels to a PR — best-effort, errors logged but not raised."""
+        """Apply labels to a PR - best-effort, errors logged but not raised."""
         try:
             resp = await self._http.post(
                 f"/repos/{owner}/{repo}/issues/{pr_number}/labels",

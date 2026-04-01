@@ -2,11 +2,11 @@
 Unit tests for KAIROS-ECON-1: Economic causal mining pipeline.
 
 Tests:
-1. EconomicCausalMiner.discover_patterns() — all three heuristics
+1. EconomicCausalMiner.discover_patterns() - all three heuristics
 2. KairosPipeline economic event handlers (_on_economic_episode,
    _on_fovea_economic_error, _on_price_observation)
-3. Nova._on_economic_causal_invariant() — belief update + EFE weight update
-4. Oikos._emit_economic_episode_to_memory() — payload structure
+3. Nova._on_economic_causal_invariant() - belief update + EFE weight update
+4. Oikos._emit_economic_episode_to_memory() - payload structure
 """
 from __future__ import annotations
 
@@ -216,7 +216,7 @@ class TestEconomicCausalMinerConfidenceFloor:
         """Patterns with confidence < 0.6 are not returned."""
         miner = EconomicCausalMiner()
         # 71% success: confidence = 0.70 + (0.71 - 0.70) * 1.5 = 0.715 ≥ 0.6 ✓
-        # But just barely above 70% threshold — should still be ≥ 0.6
+        # But just barely above 70% threshold - should still be ≥ 0.6
         obs = [{"action_type": "yield_deploy", "protocol": "borderline",
                 "success": i < 71, "roi_pct": 5.0, "day_of_week": 1,
                 "eth_price_usd": 0.0,
@@ -342,7 +342,7 @@ class TestKairosPipelineEconomicHandlers:
 
 
 class TestNovaEconomicInvariantHandler:
-    """Nova._on_economic_causal_invariant — belief update + EFE weight."""
+    """Nova._on_economic_causal_invariant - belief update + EFE weight."""
 
     def _make_nova(self) -> "NovaService":
         from systems.nova.service import NovaService
@@ -437,7 +437,7 @@ class TestNovaEconomicInvariantHandler:
 
 
 class TestOikosEconomicEpisodeEmission:
-    """OikosService._emit_economic_episode_to_memory — payload structure."""
+    """OikosService._emit_economic_episode_to_memory - payload structure."""
 
     @pytest.mark.asyncio
     async def test_episode_event_emitted_with_required_fields(self) -> None:

@@ -1,11 +1,11 @@
 """
-EcodiaOS — Synapse Event Bus
+EcodiaOS - Synapse Event Bus
 
 Dual-output event publication: in-memory callbacks for internal coordination
 plus Redis pub/sub for the Alive WebSocket layer.
 
 High-frequency events (CYCLE_COMPLETED at ~6.7Hz) skip in-memory callbacks
-by default to avoid overwhelming listeners — they go to Redis only.
+by default to avoid overwhelming listeners - they go to Redis only.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ EventCallback = Callable[[SynapseEvent], Coroutine[Any, Any, None]]
 # Events that were previously skipped for in-memory callbacks.
 # CYCLE_COMPLETED fires at ~6.7 Hz. Keeping it here was preventing the
 # EventTracer from observing it (observatory coverage gap). The set is now
-# empty — the 100ms per-callback timeout is sufficient protection.
+# empty - the 100ms per-callback timeout is sufficient protection.
 _HIGH_FREQUENCY_EVENTS: frozenset[SynapseEventType] = frozenset()
 
 # Maximum time a callback gets before we log a warning and move on
@@ -129,8 +129,8 @@ class EventBus:
     Synapse inter-system event bus.
 
     Provides two delivery mechanisms:
-    1. In-memory async callbacks — for internal system coordination (low latency)
-    2. Redis pub/sub — for external consumers (Alive WebSocket, monitoring)
+    1. In-memory async callbacks - for internal system coordination (low latency)
+    2. Redis pub/sub - for external consumers (Alive WebSocket, monitoring)
 
     High-frequency events (CYCLE_COMPLETED) only go to Redis to avoid
     callback overhead on every theta tick.
@@ -139,15 +139,15 @@ class EventBus:
     def __init__(self, redis: RedisClient | None = None) -> None:
         self._redis = redis
         self._logger = logger.bind(component="event_bus")
-        # Instance identity — set via set_instance_id() after construction.
+        # Instance identity - set via set_instance_id() after construction.
         # When non-empty: stamped onto every emitted event and used to namespace
         # the Redis channel so Federation/Mitosis deployments don't cross-pollute.
         self._instance_id: str = ""
         self._redis_channel: str = _REDIS_CHANNEL
 
-        # Per-type callback registrations — stored as (callback, timeout_s) pairs
+        # Per-type callback registrations - stored as (callback, timeout_s) pairs
         self._subscribers: dict[SynapseEventType, list[tuple[EventCallback, float]]] = defaultdict(list)
-        # Catch-all subscribers (receive every event) — stored as (callback, timeout_s) pairs
+        # Catch-all subscribers (receive every event) - stored as (callback, timeout_s) pairs
         self._global_subscribers: list[tuple[EventCallback, float]] = []
 
         # Ring buffers for recent event history

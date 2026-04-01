@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Remote Compute Executor (re-export shim)
+EcodiaOS - SACM Remote Compute Executor (re-export shim)
 
 The executor has moved to systems.axon.executors.remote_compute.
 This module re-exports RemoteComputeExecutor for backward compatibility

@@ -364,6 +364,6 @@ class TestExecutorAgent:
         lines.extend([
             "",
             "Fix the implementation so all tests pass. "
-            "Do NOT modify the test files — they test the specification.",
+            "Do NOT modify the test files - they test the specification.",
         ])
         return "\n".join(lines)

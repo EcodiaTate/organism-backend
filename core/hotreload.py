@@ -1,5 +1,5 @@
 """
-EcodiaOS — Neuroplasticity Bus
+EcodiaOS - Neuroplasticity Bus
 
 A single central dispatcher that subscribes once to ``eos:events:code_evolved``,
 imports each changed file once, and fans out discovered classes to every system
@@ -51,11 +51,11 @@ Handler descriptor
 
 Each registered handler is a ``_Handler`` dataclass that carries:
 
-- ``base_class``             — the ABC to match against
-- ``registration_callback`` — called with the instantiated component
-- ``system_id``             — for log attribution
-- ``instance_qualifier``    — optional ``(cls) → bool`` gate
-- ``instance_factory``      — optional ``(cls) → T``; defaults to ``cls()``
+- ``base_class``             - the ABC to match against
+- ``registration_callback`` - called with the instantiated component
+- ``system_id``             - for log attribution
+- ``instance_qualifier``    - optional ``(cls) → bool`` gate
+- ``instance_factory``      - optional ``(cls) → T``; defaults to ``cls()``
 
 Design invariants
 =================
@@ -147,10 +147,10 @@ class NeuroplasticityBus:
                                     *registration_callback*.
             registration_callback:  Called once per discovered instance.
             system_id:              Log attribution label (e.g. "axon").
-            instance_qualifier:     Optional ``(cls) → bool`` — return False
+            instance_qualifier:     Optional ``(cls) → bool`` - return False
                                     to skip a class even if it passes the
                                     subclass check.
-            instance_factory:       Optional ``(cls) → T`` — use when the
+            instance_factory:       Optional ``(cls) → T`` - use when the
                                     component needs constructor args.  Defaults
                                     to zero-arg ``cls()``.
         """
@@ -200,7 +200,7 @@ class NeuroplasticityBus:
         """
         Attach the single background subscriber to the running event loop.
 
-        Safe to call multiple times — subsequent calls are no-ops if the task
+        Safe to call multiple times - subsequent calls are no-ops if the task
         is already alive.  Must be called from inside an async context.
         """
         if self._task is not None and not self._task.done():
@@ -465,7 +465,7 @@ class NeuroplasticityBus:
             self._logger.warning(
                 "hotreload_restart_skipped_no_degradation_manager",
                 systems=sorted(self._pending_restarts),
-                reason="DegradationManager not attached — call set_degradation_manager()",
+                reason="DegradationManager not attached - call set_degradation_manager()",
             )
             self._pending_restarts.clear()
             return
@@ -556,13 +556,13 @@ class NeuroplasticityBus:
 
 # ─── Thin per-system facade ───────────────────────────────────────
 #
-# Systems call bus.register() directly — no separate HotReloader object needed.
+# Systems call bus.register() directly - no separate HotReloader object needed.
 # This alias exists only so existing code that imports HotReloader still works
 # during the transition period.  New code should use NeuroplasticityBus directly.
 
 class HotReloader:
     """
-    Deprecated facade — wraps a shared NeuroplasticityBus.
+    Deprecated facade - wraps a shared NeuroplasticityBus.
 
     Preserved for backward compatibility with the three services already wired
     (Axon, Nova, Voxis).  New systems should call ``bus.register()`` directly

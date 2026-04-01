@@ -1,5 +1,5 @@
 """
-Fovea — Embedding Gradient Attention.
+Fovea - Embedding Gradient Attention.
 
 Computes token-level salience attribution for embedding-similarity heads
 by analysing the Jacobian ∂similarity/∂token_embedding.  This answers the

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Grid Metabolism Sensor
+EcodiaOS - Grid Metabolism Sensor
 
 Maps physical power-grid carbon intensity into the organism's MetabolicState.
 The external energy environment becomes a first-class somatic signal: when the
@@ -15,7 +15,7 @@ Architecture:
   GRID_METABOLISM_CHANGED is emitted on the event bus.
 
 Iron Rules (same contract as ExternalVolatilitySensor):
-  - Never called from the theta cycle — runs on its own asyncio timer.
+  - Never called from the theta cycle - runs on its own asyncio timer.
   - All HTTP calls are bounded by ``fetch_timeout_s`` with a hard outer cap.
   - Any exception in the fetch or classification path is swallowed and logged;
     the sensor stays running and retries at the next poll interval.
@@ -28,7 +28,7 @@ API reference:
   Response: {"carbonIntensity": 123.4, "datetime": "...", "zone": "AU-NSW", ...}
 
   Free tier: 100 req/month. At 15-minute intervals the sensor uses ≤ 2,976
-  req/month — a paid plan is required for production. Set api_key = "" to
+  req/month - a paid plan is required for production. Set api_key = "" to
   disable without touching enabled flag (sensor will log a warning and skip).
 """
 
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.soma.grid_sensor")
 
-# Electricity Maps v3 endpoint — lat/lon resolved to nearest grid zone
+# Electricity Maps v3 endpoint - lat/lon resolved to nearest grid zone
 _ELECTRICITY_MAPS_URL = (
     "https://api.electricitymap.org/v3/carbon-intensity/latest"
     "?lat={lat}&lon={lon}"
@@ -99,7 +99,7 @@ class GridMetabolismSensor:
         self._config = config
         self._event_bus = event_bus
 
-        # Last known state — None until first successful fetch
+        # Last known state - None until first successful fetch
         self._current_state: MetabolicState | None = None
         # Last raw reading retained for diagnostics
         self._last_carbon_intensity_g: float | None = None
@@ -196,7 +196,7 @@ class GridMetabolismSensor:
         """Fetch carbon intensity, classify, and emit on state change."""
         carbon_g = await self._fetch_carbon_intensity()
         if carbon_g is None:
-            # API unavailable — keep existing state, skip update
+            # API unavailable - keep existing state, skip update
             self._log.debug("grid_no_data_skip")
             return
 
@@ -211,7 +211,7 @@ class GridMetabolismSensor:
         )
 
         if new_state == self._current_state:
-            return  # No transition — nothing to emit
+            return  # No transition - nothing to emit
 
         previous_state = self._current_state
         self._current_state = new_state
@@ -301,5 +301,5 @@ class GridMetabolismSensor:
                 )
             )
         except Exception as exc:
-            # Event bus failures are non-fatal — state is already updated locally.
+            # Event bus failures are non-fatal - state is already updated locally.
             self._log.warning("grid_event_emit_failed", error=str(exc))

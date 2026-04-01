@@ -1,21 +1,21 @@
 """
-EcodiaOS — Send Discord Executor (Axon, action_type="send_discord")
+EcodiaOS - Send Discord Executor (Axon, action_type="send_discord")
 
 Sends a Discord message to a specified channel_id via DiscordConnector.
-Requires COLLABORATOR autonomy (level 2) — sending unsolicited messages to
+Requires COLLABORATOR autonomy (level 2) - sending unsolicited messages to
 an external channel is not reversible and has real-world effect.
 
 Constitutional gating:
   - Equor gates every execution via the normal Axon pipeline (Stage 0).
   - Honesty drive: Voxis personality rendering recommended but not enforced
-    here — this executor emits raw text; callers should pass rendered content.
+    here - this executor emits raw text; callers should pass rendered content.
 
 RE training:
   - Emits RE_TRAINING_EXAMPLE on every send with outcome_quality and
     constitutional_alignment scores.
 
 Env vars:
-  ECODIAOS_DISCORD_CHANNEL_ID — default channel_id fallback
+  ECODIAOS_DISCORD_CHANNEL_ID - default channel_id fallback
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ class SendDiscordExecutor(Executor):
     Emits:
       RE_TRAINING_EXAMPLE on each send.
 
-    Level 2 (COLLABORATOR) — sending messages is not reversible.
+    Level 2 (COLLABORATOR) - sending messages is not reversible.
     Rate limit: 30 / hour.
     """
 
@@ -94,7 +94,7 @@ class SendDiscordExecutor(Executor):
                 f"'message' exceeds Discord's {_MAX_TEXT_LENGTH}-char limit"
             )
 
-        # channel_id is optional — validated at execution time when connector resolves default
+        # channel_id is optional - validated at execution time when connector resolves default
         channel_id = params.get("channel_id")
         if channel_id is not None and not isinstance(channel_id, (int, str)):
             return ValidationResult.fail("'channel_id' must be an int or string if provided")
@@ -112,7 +112,7 @@ class SendDiscordExecutor(Executor):
 
         message: str = params["message"]
 
-        # Resolve channel_id — param → env fallback → error
+        # Resolve channel_id - param → env fallback → error
         channel_id = params.get("channel_id")
         if channel_id is None:
             env_channel_id = os.environ.get("ECODIAOS_DISCORD_CHANNEL_ID", "")
@@ -130,7 +130,7 @@ class SendDiscordExecutor(Executor):
             await self._emit_re_training(context, success=False, error="no_connector")
             return ExecutionResult(
                 success=False,
-                error="DiscordConnector not configured — set ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN",
+                error="DiscordConnector not configured - set ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN",
             )
 
         t0 = time.monotonic()

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Allostatic Loop Executor
+EcodiaOS - Soma Allostatic Loop Executor
 
 Closes the gap between loop *definition* (feedback_loops.py) and loop
 *execution*. The executor reads the currently active loops and dispatches
@@ -8,9 +8,9 @@ concrete regulatory signals to target systems via their in-memory refs.
 Design:
   - Runs once per theta cycle AFTER signal emission (sub-1ms budget).
   - All target system writes are fire-and-forget attribute mutations or
-    method calls on in-memory refs — no I/O, no LLM, no DB.
+    method calls on in-memory refs - no I/O, no LLM, no DB.
   - If a target system ref is None (not wired), the loop is silently
-    skipped. Soma is advisory — systems may also ignore.
+    skipped. Soma is advisory - systems may also ignore.
   - Coupling strength (0-1, tunable by Evo) scales the regulatory
     magnitude before dispatch.
 
@@ -20,7 +20,7 @@ Loop Execution Contract:
     2. Multiplies by coupling_strength
     3. Dispatches a regulatory nudge to the target system
 
-  The nudge is NOT an Intent (no constitutional gate) — it's a
+  The nudge is NOT an Intent (no constitutional gate) - it's a
   parametric adjustment, like tweaking a gain or threshold. This is
   the organism's autonomic nervous system, not its deliberate will.
 
@@ -45,7 +45,7 @@ logger = structlog.get_logger("systems.soma.loop_executor")
 
 
 class LoopDispatch:
-    """Result of executing one feedback loop — for logging and Evo learning."""
+    """Result of executing one feedback loop - for logging and Evo learning."""
 
     __slots__ = ("loop_name", "target", "action", "magnitude", "applied")
 
@@ -83,7 +83,7 @@ class LoopExecutor:
     """
 
     def __init__(self) -> None:
-        # System references — set during wiring
+        # System references - set during wiring
         self._atune: Any = None
         self._nova: Any = None
         self._voxis: Any = None
@@ -162,7 +162,7 @@ class LoopExecutor:
 
         Args:
             signal: Current AllostaticSignal (full state context)
-            active_loops: Output of get_active_loop_signals() —
+            active_loops: Output of get_active_loop_signals() -
                           loop_name -> {error, rate, coupled_strength}
 
         Returns:

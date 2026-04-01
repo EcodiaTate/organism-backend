@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Bounty Hunter (Phase 16b: The Freelancer — Active Foraging)
+EcodiaOS - Oikos Bounty Hunter (Phase 16b: The Freelancer - Active Foraging)
 
 The organism's autonomous foraging behaviour. This module scans external
 platforms for paid work, evaluates whether the caloric return exceeds the
@@ -11,7 +11,7 @@ economic decision engine. It answers one question per candidate:
 
 Design principles:
   - All monetary values are Decimal (no float rounding on money)
-  - Pure evaluation logic — evaluate() has no side effects
+  - Pure evaluation logic - evaluate() has no side effects
   - Platform scanners are isolated and individually failable
   - Dedup via Redis SET of known issue_urls prevents re-evaluation
   - Emits BOUNTY_SOLUTION_PENDING on Synapse when a bounty is accepted
@@ -67,7 +67,7 @@ class BountyPolicy:
     Hard economic constraints for bounty acceptance. The organism must
     meet ALL thresholds before a bounty candidate is approved.
 
-    These are conservative defaults — survival economics demand that
+    These are conservative defaults - survival economics demand that
     every bounty is decisively profitable before committing resources.
     """
 
@@ -136,7 +136,7 @@ class BountyEvaluation(EOSBaseModel):
     """
     Result of scoring a BountyCandidate against BountyPolicy.
 
-    This is a pure data record — the evaluate() method produces it,
+    This is a pure data record - the evaluate() method produces it,
     and accept_bounty() consumes it. The separation ensures the
     approval decision is auditable and reproducible.
     """
@@ -353,7 +353,7 @@ class BountyHunter:
         """
         Scan Dework for available bounties.
 
-        Placeholder — Dework API integration pending. Returns empty list.
+        Placeholder - Dework API integration pending. Returns empty list.
         """
         self._log.info(
             "dework_scan_placeholder",
@@ -365,7 +365,7 @@ class BountyHunter:
         """
         Scan the Ecodia internal bounty portal.
 
-        Placeholder — the portal API does not exist yet. Returns empty list.
+        Placeholder - the portal API does not exist yet. Returns empty list.
         """
         self._log.info(
             "ecodia_portal_scan_placeholder",
@@ -461,7 +461,7 @@ class BountyHunter:
                         f"Deadline {candidate.deadline} is less than 24h away"
                     )
             except (ValueError, TypeError):
-                # Unparseable deadline — treat as no deadline (feasible)
+                # Unparseable deadline - treat as no deadline (feasible)
                 self._log.warning(
                     "unparseable_deadline",
                     candidate_id=candidate.candidate_id,
@@ -483,7 +483,7 @@ class BountyHunter:
             roi_score=roi_score,
             estimated_cost_usd=estimated_cost,
             capability_match=candidate.capability_match,
-            ethical_alignment=Decimal("1.0"),  # Default — Equor gates downstream
+            ethical_alignment=Decimal("1.0"),  # Default - Equor gates downstream
             time_feasible=time_feasible,
             within_capacity=within_capacity,
             approved=approved,
@@ -572,7 +572,7 @@ class BountyHunter:
         economic_state: EconomicState,
     ) -> list[BountyEvaluation]:
         """
-        Main entry point — called periodically by the Oikos service.
+        Main entry point - called periodically by the Oikos service.
 
         Steps:
           1. Scan all configured platforms for new candidates
@@ -753,7 +753,7 @@ class BountyHunter:
 
     async def _on_bounty_paid(self, event: object) -> None:
         """
-        Handle BOUNTY_PAID event — log for audit trail.
+        Handle BOUNTY_PAID event - log for audit trail.
 
         The actual balance update is handled by OikosService. This handler
         exists so the BountyHunter can track its own success rate.
@@ -812,7 +812,7 @@ class BountyHunter:
             return Decimal("0.90")
         if strong_hits == 1:
             return Decimal("0.70")
-        # Unknown domain — assume moderate capability
+        # Unknown domain - assume moderate capability
         return Decimal("0.50")
 
     @staticmethod

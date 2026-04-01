@@ -121,7 +121,7 @@ _SECURITY_PATTERNS: list[tuple[str, str, str]] = [
     (r"subprocess\.(?:call|run|Popen)\s*\(.*shell\s*=\s*True", "Shell injection risk", "high"),
     (r"pickle\.loads?\s*\(", "Deserialization vulnerability via pickle", "high"),
     (r"yaml\.load\s*\([^)]*\)(?!.*Loader)", "Unsafe YAML loading (no Loader specified)", "medium"),
-    (r"__import__\s*\(", "Dynamic import — potential code injection", "medium"),
+    (r"__import__\s*\(", "Dynamic import - potential code injection", "medium"),
     (r"os\.system\s*\(", "Shell command execution via os.system()", "medium"),
     (r"tempfile\.mk(?:stemp|dtemp)\s*\((?![^)]*dir=)", "Temp file without explicit directory", "low"),
     (r"hashlib\.md5\s*\(", "Weak hash function (MD5)", "low"),

@@ -1,25 +1,25 @@
 """
-EcodiaOS — Anti-Forgetting Stack (Speciation Bible §3.3)
+EcodiaOS - Anti-Forgetting Stack (Speciation Bible §3.3)
 
 Implements 4 of 7 mechanisms that wrap around train_lora.py (which runs as a
 subprocess and is never modified):
 
-  1. SurprisePrioritizedReplay  — ERI-LoRA (2024): Redis-backed 300–500 sample
+  1. SurprisePrioritizedReplay  - ERI-LoRA (2024): Redis-backed 300–500 sample
      replay buffer; high-surprise episodes weighted higher via sorted set.
 
-  2. SuReEMAAdapter  — SuRe (2025): Dual fast/slow adapters; production always
+  2. SuReEMAAdapter  - SuRe (2025): Dual fast/slow adapters; production always
      serves the EMA-stabilised slow adapter; fast adapter = newly trained weights.
 
-  3. STABLEKLGate  — STABLE (NeurIPS 2025): KL divergence gate on anchor prompts
+  3. STABLEKLGate  - STABLE (NeurIPS 2025): KL divergence gate on anchor prompts
      before deploying a new adapter; rejects updates that shift behaviour too far.
 
-  4. AnchorPerplexityMonitor  — Perplexity-spike alarm on anchor prompts;
+  4. AnchorPerplexityMonitor  - Perplexity-spike alarm on anchor prompts;
      detects general-knowledge forgetting independently of KL gate.
 
 Mechanisms NOT in this file (require train_lora.py internals):
   - CLoRA orthogonal subspace (Round 4)
-  - SLAO time-aware merge      (Round 4 — quarterly)
-  - SVD pruning                (Round 4 — quarterly)
+  - SLAO time-aware merge      (Round 4 - quarterly)
+  - SVD pruning                (Round 4 - quarterly)
 
 ANCHOR PROMPTS:  data/re_training_batches/anchor_prompts.jsonl
   - NEVER include these in any training data JSONL.
@@ -55,7 +55,7 @@ class AntiForgetConfig:
     ema_decay: float = 0.99              # SuRe slow adapter EMA decay coefficient
     kl_budget: float = 0.1              # STABLE KL divergence gate budget (nats)
     anchor_perplexity_alarm: float = 0.20  # 20% spike from baseline = alarm
-    svd_prune_top_k: int = 5            # intruder dims to prune (quarterly — Round 4)
+    svd_prune_top_k: int = 5            # intruder dims to prune (quarterly - Round 4)
 
 
 # ── Redis keys ─────────────────────────────────────────────────────────────────
@@ -115,14 +115,14 @@ class SurprisePrioritizedReplay:
             novelty = float(ex.get("novelty", 0.5))
             priority = quality * (1.0 + novelty * self._config.replay_surprise_weight)
 
-            # Strip heavy metadata before buffering — keep only the messages payload
+            # Strip heavy metadata before buffering - keep only the messages payload
             slim = {"messages": ex["messages"]}
             if "stream_id" in ex:
                 slim["stream_id"] = ex["stream_id"]
 
             pipe.zadd(_REPLAY_BUFFER_KEY, {json.dumps(slim): priority})
 
-        # Trim to max size — keep top-N by score (highest priority)
+        # Trim to max size - keep top-N by score (highest priority)
         trim_start = 0
         trim_end = -(self._config.replay_buffer_size + 1)  # keep top N
         pipe.zremrangebyrank(_REPLAY_BUFFER_KEY, trim_start, trim_end)
@@ -150,7 +150,7 @@ class SurprisePrioritizedReplay:
 
         # Top half = highest surprise scores
         high_raw = await self._redis.zrevrange(_REPLAY_BUFFER_KEY, 0, max(high_n - 1, 0))
-        # Lower half — offset into the buffer
+        # Lower half - offset into the buffer
         low_start = max(high_n, 0)
         low_raw = await self._redis.zrevrange(_REPLAY_BUFFER_KEY, low_start, low_start + max(low_n - 1, 0))
 
@@ -184,7 +184,7 @@ class SuReEMAAdapter:
       fast adapter  = newly trained weights (direct output of train_lora.py)
       slow adapter  = EMA of all historical fast adapters
 
-    Production ALWAYS serves the slow adapter — more stable, less susceptible
+    Production ALWAYS serves the slow adapter - more stable, less susceptible
     to catastrophic updates from any single training run.
 
     slow_weights[k] = ema_decay * slow_weights[k] + (1 - ema_decay) * fast_weights[k]
@@ -202,7 +202,7 @@ class SuReEMAAdapter:
 
         Returns: path to updated slow adapter.
         """
-        # Lazy import — safetensors not required at boot (no GPU needed for EMA merge)
+        # Lazy import - safetensors not required at boot (no GPU needed for EMA merge)
         try:
             import torch
             from safetensors.torch import load_file, save_file
@@ -211,7 +211,7 @@ class SuReEMAAdapter:
             _has_safetensors = False
 
         if self._slow_adapter_path is None:
-            # First training cycle — slow adapter doesn't exist yet
+            # First training cycle - slow adapter doesn't exist yet
             logger.info(
                 "sure_ema_first_cycle",
                 fast_adapter_path=fast_adapter_path,
@@ -231,7 +231,7 @@ class SuReEMAAdapter:
             return output_path
 
         if not _has_safetensors:
-            # safetensors not available — copy fast as fallback
+            # safetensors not available - copy fast as fallback
             logger.warning(
                 "sure_ema_no_safetensors",
                 note="safetensors not installed; copying fast adapter as slow adapter fallback",
@@ -255,7 +255,7 @@ class SuReEMAAdapter:
             fast_tensors = load_file(str(fast_file))
             slow_tensors = load_file(str(slow_file))
 
-            # EMA merge — only keys present in both adapters
+            # EMA merge - only keys present in both adapters
             merged: dict[str, Any] = {}
             for key in fast_tensors:
                 if key in slow_tensors:
@@ -265,10 +265,10 @@ class SuReEMAAdapter:
                         fast_tensors[key].dtype
                     )
                 else:
-                    # New key in fast — include as-is (new LoRA modules)
+                    # New key in fast - include as-is (new LoRA modules)
                     merged[key] = fast_tensors[key]
 
-            # Keys in slow but not in fast — preserve them
+            # Keys in slow but not in fast - preserve them
             for key in slow_tensors:
                 if key not in fast_tensors:
                     merged[key] = slow_tensors[key]
@@ -321,7 +321,7 @@ class STABLEKLGate:
     Before deploying a new adapter to production:
       1. Run anchor prompts through BOTH current and new adapter
       2. Compute mean KL divergence between output distributions
-      3. If KL > budget: REJECT — adapter caused too large a behavioural shift
+      3. If KL > budget: REJECT - adapter caused too large a behavioural shift
 
     This prevents catastrophic updates from reaching production even if the
     training loss improved.
@@ -381,7 +381,7 @@ class STABLEKLGate:
             return True, 0.0
 
         if not self._anchor_prompts:
-            logger.warning("stable_kl_no_anchors_pass", reason="no anchor prompts loaded — deploying anyway")
+            logger.warning("stable_kl_no_anchors_pass", reason="no anchor prompts loaded - deploying anyway")
             return True, 0.0
 
         try:
@@ -402,7 +402,7 @@ class STABLEKLGate:
                 logger.warning("stable_kl_restore_failed", error=str(restore_exc))
 
             if not current_logprobs or not new_logprobs:
-                logger.warning("stable_kl_empty_logprobs_pass", reason="inference returned empty — deploying anyway")
+                logger.warning("stable_kl_empty_logprobs_pass", reason="inference returned empty - deploying anyway")
                 return True, 0.0
 
             # Compute mean KL divergence across all anchor prompts
@@ -427,7 +427,7 @@ class STABLEKLGate:
             logger.warning(
                 "stable_kl_gate_error_pass",
                 error=str(exc),
-                reason="KL gate error — deploying anyway to avoid blocking training",
+                reason="KL gate error - deploying anyway to avoid blocking training",
             )
             return True, 0.0
 
@@ -440,7 +440,7 @@ class AnchorPerplexityMonitor:
 
     If perplexity spikes >20% above the baseline established on the first run,
     the model may be forgetting general knowledge. Emits a BENCHMARK_REGRESSION
-    alarm via the event bus (non-blocking — never blocks deployment).
+    alarm via the event bus (non-blocking - never blocks deployment).
     """
 
     def __init__(self, config: AntiForgetConfig, redis_client: "Redis") -> None:
@@ -474,7 +474,7 @@ class AnchorPerplexityMonitor:
                     temperature=0.0,
                     # Request logprobs of the first output token as proxy
                 )
-                # Extract logprob from response — RE service returns dict
+                # Extract logprob from response - RE service returns dict
                 lp = _extract_logprob_from_result(result)
                 if lp is not None:
                     total_log_prob += lp
@@ -514,7 +514,7 @@ class AnchorPerplexityMonitor:
             raw_baseline = None
 
         if raw_baseline is None:
-            # First measurement — establish baseline
+            # First measurement - establish baseline
             try:
                 await self._redis.set(_PERPLEXITY_BASELINE_KEY, str(current))
             except Exception as exc:
@@ -652,7 +652,7 @@ def _extract_logprob_from_result(result: Any) -> float | None:
     if result is None:
         return None
     if isinstance(result, str):
-        # Plain string response — no logprob available
+        # Plain string response - no logprob available
         return None
     if isinstance(result, dict):
         # OpenAI-compat: choices[0].logprobs.content[0].logprob

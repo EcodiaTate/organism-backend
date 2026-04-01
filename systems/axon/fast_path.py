@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Fast-Path Executor
+EcodiaOS - Axon Fast-Path Executor
 
 The terminal stage of the Arbitrage Reflex Arc. Receives FastPathIntents
 from Atune's MarketPatternDetector and executes them directly against the
@@ -93,7 +93,7 @@ class FastPathExecutor:
         Execute a FastPathIntent against the appropriate Axon executor.
 
         Returns FastPathOutcome with latency breakdown and execution result.
-        Never raises — failures are captured in the outcome.
+        Never raises - failures are captured in the outcome.
         """
         start = time.monotonic()
         self._total_executions += 1
@@ -108,7 +108,7 @@ class FastPathExecutor:
         )
 
         # ── Gate 1: Template still active and fresh? ────────────────
-        # Use get() for O(1) lookup but apply staleness check ourselves —
+        # Use get() for O(1) lookup but apply staleness check ourselves -
         # drives may have changed since template registration.
         template = self._templates.get(intent.template_id)
         if template is None or not template.active:

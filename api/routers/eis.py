@@ -1,20 +1,20 @@
 """
-EcodiaOS — EIS (Epistemic Immune System) API Router
+EcodiaOS - EIS (Epistemic Immune System) API Router
 
 Endpoints:
-  GET  /api/v1/eis/health                — health + zone config merged
-  GET  /api/v1/eis/stats                 — live counter snapshot
-  GET  /api/v1/eis/threat-library        — threat library stats
-  GET  /api/v1/eis/anomalies             — recent behavioral anomalies
-  GET  /api/v1/eis/anomalies/stats       — anomaly detector statistics
-  GET  /api/v1/eis/quarantine-gate       — quarantine gate verdict statistics
-  GET  /api/v1/eis/taint                 — taint engine stats
-  GET  /api/v1/eis/config                — all thresholds and weights
-  GET  /api/v1/eis/innate-checks         — catalog of all innate check definitions
-  GET  /api/v1/eis/pathogens             — browse pathogen store
-  GET  /api/v1/eis/pathogens/stats       — vector store collection stats
-  POST /api/v1/eis/config/weights        — update composite score weights
-  POST /api/v1/eis/config/thresholds     — update quarantine/block thresholds
+  GET  /api/v1/eis/health                - health + zone config merged
+  GET  /api/v1/eis/stats                 - live counter snapshot
+  GET  /api/v1/eis/threat-library        - threat library stats
+  GET  /api/v1/eis/anomalies             - recent behavioral anomalies
+  GET  /api/v1/eis/anomalies/stats       - anomaly detector statistics
+  GET  /api/v1/eis/quarantine-gate       - quarantine gate verdict statistics
+  GET  /api/v1/eis/taint                 - taint engine stats
+  GET  /api/v1/eis/config                - all thresholds and weights
+  GET  /api/v1/eis/innate-checks         - catalog of all innate check definitions
+  GET  /api/v1/eis/pathogens             - browse pathogen store
+  GET  /api/v1/eis/pathogens/stats       - vector store collection stats
+  POST /api/v1/eis/config/weights        - update composite score weights
+  POST /api/v1/eis/config/thresholds     - update quarantine/block thresholds
 """
 
 from __future__ import annotations
@@ -132,7 +132,7 @@ async def eis_stats(request: Request) -> EISStatsResponse:
     """
     Return live EIS counter snapshot.
 
-    Reads the in-process counters directly — no I/O, always fast.
+    Reads the in-process counters directly - no I/O, always fast.
     ``pass_rate`` and ``block_rate`` are 0.0 when ``screened`` is 0.
     """
     eis = request.app.state.eis
@@ -378,7 +378,7 @@ class InnateCheckDetail(EOSBaseModel):
     match_count: int = Field(0, description="Times this check matched (session counter)")
 
 
-# Static catalog — mirrors the checks defined in innate.py
+# Static catalog - mirrors the checks defined in innate.py
 _INNATE_CATALOG: list[dict[str, str]] = [
     {
         "id": InnateCheckID.SYSTEM_PROMPT_LEAK,
@@ -551,7 +551,7 @@ async def eis_pathogens(
     Browse the pathogen store.
 
     Optionally filter by threat_class, severity, or retired status.
-    Delegates to Qdrant scroll (no vector required — payload-filter only).
+    Delegates to Qdrant scroll (no vector required - payload-filter only).
     """
     eis = request.app.state.eis
     pathogen_store = getattr(eis, "_pathogen_store", None)
@@ -676,7 +676,7 @@ async def eis_update_weights(
     Update composite score weights (innate / structural / histogram / semantic).
 
     Validates that all four weights sum to 1.0 (±0.01 tolerance) before
-    applying. Modifies ``eis._config`` in place — effective immediately.
+    applying. Modifies ``eis._config`` in place - effective immediately.
     """
     eis = request.app.state.eis
     cfg = eis._config
@@ -705,7 +705,7 @@ async def eis_update_thresholds(
     Update quarantine and block thresholds.
 
     Validates that block_threshold > quarantine_threshold before applying.
-    Modifies ``eis._config`` in place — effective immediately.
+    Modifies ``eis._config`` in place - effective immediately.
     """
     eis = request.app.state.eis
     cfg = eis._config

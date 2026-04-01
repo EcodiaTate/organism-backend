@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Internal Types
+EcodiaOS - Axon Internal Types
 
 All types internal to Axon's action execution system.
 
@@ -8,7 +8,7 @@ Design notes:
   world-state changes, and rollback metadata. When reporting back to Nova,
   it is converted to IntentOutcome (from nova/types.py), which is the
   cross-system outcome primitive.
-- ExecutionContext is assembled per-execution — it carries the approved intent,
+- ExecutionContext is assembled per-execution - it carries the approved intent,
   Equor verdict, scoped credentials, and current affect. Executors receive it
   but cannot modify it.
 - ScopedCredentials wraps time-limited tokens issued per-execution. Executors
@@ -21,7 +21,7 @@ import enum
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime  # noqa: TC003 — Pydantic requires at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic requires at runtime
 from typing import Any
 
 from pydantic import Field
@@ -64,9 +64,9 @@ class FailureReason(enum.StrEnum):
 
 
 class CircuitStatus(enum.StrEnum):
-    CLOSED = "closed"      # Normal — executions allowed
-    OPEN = "open"          # Tripped — executions blocked
-    HALF_OPEN = "half_open"  # Recovering — limited executions allowed
+    CLOSED = "closed"      # Normal - executions allowed
+    OPEN = "open"          # Tripped - executions blocked
+    HALF_OPEN = "half_open"  # Recovering - limited executions allowed
 
 
 # ─── Primitive Execution Types ────────────────────────────────────
@@ -100,7 +100,7 @@ class ExecutionResult(EOSBaseModel):
     """
     The result of executing a single action step.
 
-    The data dict carries step-specific output — query results, created IDs,
+    The data dict carries step-specific output - query results, created IDs,
     API responses. Callers should not depend on specific keys without checking
     the executor's documentation.
     """
@@ -134,7 +134,7 @@ class StepOutcome(EOSBaseModel):
 class ScopedCredentials(EOSBaseModel):
     """
     Time-limited, scope-restricted tokens for external services.
-    Issued per-execution by CredentialStore — executors never see raw secrets.
+    Issued per-execution by CredentialStore - executors never see raw secrets.
     """
 
     tokens: dict[str, str] = Field(default_factory=dict)
@@ -148,7 +148,7 @@ class ScopedCredentials(EOSBaseModel):
 class ExecutionContext(EOSBaseModel):
     """
     The complete context for one intent execution.
-    Assembled once, passed to all executors — read-only from executor perspective.
+    Assembled once, passed to all executors - read-only from executor perspective.
     """
 
     execution_id: str = Field(default_factory=new_id)
@@ -172,7 +172,7 @@ ExecutionContext.model_rebuild()
 class ExecutionBudget:
     """
     Per-cycle limits on action execution.
-    Non-negotiable safety valve — cannot be overridden by Nova or Simula.
+    Non-negotiable safety valve - cannot be overridden by Nova or Simula.
     Only governance (Equor amendment) can change these limits.
     """
 
@@ -299,7 +299,7 @@ class AuditRecord(Identified, Timestamped):
     equor_verdict: str
     equor_reasoning: str
     action_type: str
-    # SHA-256 of JSON-serialised parameters — never raw
+    # SHA-256 of JSON-serialised parameters - never raw
     parameters_hash: str
     target: str            # What system/entity was acted upon
     result: str            # "success" | "failure" | "partial" | "rolled_back"
@@ -376,14 +376,14 @@ class ExecutorTemplate(EOSBaseModel):
 
     The safety envelope declared here (max_budget_usd, safety_constraints,
     risk_tier) is injected into the generated executor class body and enforced
-    at runtime by DynamicExecutorBase — not by the generated code itself.
+    at runtime by DynamicExecutorBase - not by the generated code itself.
 
     Lifecycle:
       1. Evo generates ExecutorTemplate from OPPORTUNITY_DISCOVERED event data.
       2. EVOLUTION_CANDIDATE(mutation_type="add_executor") emitted.
       3. Simula's ExecutorGenerator validates and generates the executor.
       4. Axon's ExecutorRegistry.register_dynamic_executor() hot-loads and registers it.
-      5. EXECUTOR_REGISTERED emitted — Thymos opens a 24h monitoring window.
+      5. EXECUTOR_REGISTERED emitted - Thymos opens a 24h monitoring window.
     """
 
     name: str
@@ -439,7 +439,7 @@ class DynamicExecutorRecord(EOSBaseModel):
     registered_at: datetime = Field(default_factory=utc_now)
     enabled: bool = True
     incident_count_24h: int = 0
-    """Rolling 24h incident counter — if ≥ 3, executor is auto-disabled."""
+    """Rolling 24h incident counter - if ≥ 3, executor is auto-disabled."""
 
     neo4j_node_id: str = ""
     """Neo4j DynamicExecutor node ID for audit trail queries."""

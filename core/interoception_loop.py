@@ -1,5 +1,5 @@
 """
-EcodiaOS — Interoceptive Feedback Loop
+EcodiaOS - Interoceptive Feedback Loop
 
 Bridges log analysis to Soma's allostatic control. Periodically queries
 the LogAnalyzer for aggregate health signals (error rate, cascade pressure,
@@ -130,7 +130,7 @@ def _inject_signal(soma: SomaService, signal: dict[str, Any]) -> None:
         payload["slowest_system"] = signal.get("interpretation", "")
 
     # Inject into Soma's signal buffer
-    # NB: This is synchronous — safe to call from async context
+    # NB: This is synchronous - safe to call from async context
     soma.signal_buffer.ingest_log(
         system_id="interoception",
         status=status,

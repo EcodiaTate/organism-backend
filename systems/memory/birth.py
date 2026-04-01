@@ -1,5 +1,5 @@
 """
-EcodiaOS — Instance Birth (Seeding)
+EcodiaOS - Instance Birth (Seeding)
 
 Creates the foundational graph structure for a new EOS instance:
 the Self node, the Constitution, and any initial entities from the seed.

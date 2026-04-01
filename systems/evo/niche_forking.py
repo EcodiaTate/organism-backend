@@ -1,8 +1,8 @@
 """
-EcodiaOS — Niche Forking Engine: Cognitive Organogenesis
+EcodiaOS - Niche Forking Engine: Cognitive Organogenesis
 
 When a cognitive niche reaches sufficient maturity and coherence, it can
-propose FORKING THE COGNITIVE ARCHITECTURE ITSELF — requesting that
+propose FORKING THE COGNITIVE ARCHITECTURE ITSELF - requesting that
 Simula create a new processing pathway, detector, evidence function, or
 consolidation strategy specialized for that niche.
 
@@ -10,28 +10,28 @@ This is the organism growing new cognitive organs.
 
 Five fork types:
 
-1. **Detector Fork** — The niche proposes a new PatternDetector that's
+1. **Detector Fork** - The niche proposes a new PatternDetector that's
    specialized for its domain. Instead of using the general-purpose
    CooccurrenceDetector, the niche wants a detector tuned to its
    specific pattern vocabulary. Dispatched to Simula for synthesis.
 
-2. **Evidence Function Fork** — The niche has learned that the standard
+2. **Evidence Function Fork** - The niche has learned that the standard
    Bayesian evidence scoring doesn't work for its domain. It proposes
    a custom evidence function: different priors, different decay rates,
    different complexity penalties. Applied as a niche-local override.
 
-3. **Consolidation Strategy Fork** — The niche has its own optimal
+3. **Consolidation Strategy Fork** - The niche has its own optimal
    consolidation rhythm. Instead of the global 6-hour cycle, it might
    need 1-hour rapid iteration or 24-hour deep reflection. The niche
    gets its own consolidation schedule with its own phase ordering.
 
-4. **Schema Topology Fork** — The niche has discovered that its domain
+4. **Schema Topology Fork** - The niche has discovered that its domain
    needs a fundamentally different graph structure. Instead of the
    standard entity→relation→entity pattern, it proposes hierarchical,
    temporal, or multi-relational schemas. Dispatched to Simula for
    graph migration.
 
-5. **Worldview Fork** — The nuclear option. The niche has diverged so
+5. **Worldview Fork** - The nuclear option. The niche has diverged so
    far that it proposes becoming a separate cognitive subsystem entirely.
    This triggers Mitosis-level genome extraction: the niche's hypotheses,
    schemas, procedures, and forked processing components are packaged as
@@ -55,7 +55,7 @@ Integration:
 from __future__ import annotations
 
 import statistics
-from datetime import datetime  # noqa: TC003 — Pydantic needs at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs at runtime
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -145,7 +145,7 @@ class SchemaTopologyFork(ForkType):
 
 class WorldviewFork(ForkType):
     """
-    The nuclear option — niche becomes a separate cognitive subsystem.
+    The nuclear option - niche becomes a separate cognitive subsystem.
 
     Packages the niche's entire knowledge state into a CognitiveGenome
     that can be inherited by child instances or integrated as a
@@ -193,7 +193,7 @@ class NicheForkingResult(EOSBaseModel):
 
 class NicheForkingEngine:
     """
-    Cognitive organogenesis — the organism growing new cognitive organs.
+    Cognitive organogenesis - the organism growing new cognitive organs.
 
     Examines mature niches and proposes architectural forks that
     specialize processing for each niche's domain. The forks are
@@ -302,11 +302,11 @@ class NicheForkingEngine:
         Determine the most appropriate fork type for a mature niche.
 
         Priority order (most specific first):
-          1. Worldview fork — if niche is extremely mature and large
-          2. Detector fork — if niche has poor detection coverage
-          3. Evidence function fork — if calibration is poor
-          4. Consolidation strategy fork — if niche learning velocity is abnormal
-          5. Schema topology fork — if niche schemas don't compress well
+          1. Worldview fork - if niche is extremely mature and large
+          2. Detector fork - if niche has poor detection coverage
+          3. Evidence function fork - if calibration is poor
+          4. Consolidation strategy fork - if niche learning velocity is abnormal
+          5. Schema topology fork - if niche schemas don't compress well
         """
         # 1. Worldview fork (nuclear option)
         if (
@@ -316,11 +316,11 @@ class NicheForkingEngine:
         ):
             return self._propose_worldview_fork(niche, niche_hyps)
 
-        # 2. Detector fork — poor pattern detection in this niche
+        # 2. Detector fork - poor pattern detection in this niche
         if niche.detector_affinities and self._has_poor_detection(niche, niche_hyps):
             return self._propose_detector_fork(niche, niche_hyps)
 
-        # 3. Evidence function fork — poor calibration
+        # 3. Evidence function fork - poor calibration
         if hypothesis_outcomes:
             niche_outcomes = {
                 cat: outcomes
@@ -330,11 +330,11 @@ class NicheForkingEngine:
             if niche_outcomes and self._has_poor_calibration(niche_outcomes):
                 return self._propose_evidence_fork(niche, niche_outcomes)
 
-        # 4. Consolidation strategy fork — abnormal learning velocity
+        # 4. Consolidation strategy fork - abnormal learning velocity
         if self._has_abnormal_velocity(niche):
             return self._propose_consolidation_fork(niche)
 
-        # 5. Schema topology fork — poor compression
+        # 5. Schema topology fork - poor compression
         if niche.schema_ids and len(niche.schema_ids) > 3:
             return self._propose_schema_fork(niche)
 
@@ -546,7 +546,7 @@ class NicheForkingEngine:
         if self._event_bus is not None:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # Use NICHE_FORK_PROPOSAL (not EVOLUTION_CANDIDATE) — fork proposals
+            # Use NICHE_FORK_PROPOSAL (not EVOLUTION_CANDIDATE) - fork proposals
             # request cognitive organogenesis, not structural code changes.
             await self._event_bus.emit(
                 SynapseEvent(

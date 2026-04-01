@@ -1,10 +1,10 @@
 """
-EcodiaOS — Skia Restoration Orchestrator
+EcodiaOS - Skia Restoration Orchestrator
 
 Autonomous organism restoration pipeline with strategy escalation:
 
-  1. Cloud Run Restart — fast, cheap, uses existing GCP infra.
-  2. Akash Deploy — slow, decentralised fallback if GCP fails entirely.
+  1. Cloud Run Restart - fast, cheap, uses existing GCP infra.
+  2. Akash Deploy - slow, decentralised fallback if GCP fails entirely.
 
 Fully autonomous: no human approval required.
 
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.skia.restoration")
 
-_RESTORATION_LOCK_TTL_S = 900  # 15 minutes — must outlast worst-case Akash provisioning
+_RESTORATION_LOCK_TTL_S = 900  # 15 minutes - must outlast worst-case Akash provisioning
 _RESTORATION_LOCK_RENEWAL_S = 60  # Renew every 60s during active deployment
 _AKASH_POLL_INTERVAL_S = 15.0  # Poll Akash status every 15s after submission
 _AKASH_ACTIVE_TIMEOUT_S = 600.0  # Give Akash 10 min to reach ACTIVE state
@@ -59,7 +59,7 @@ class RestorationOrchestrator:
 
     # Redis key that stores the deployed shadow worker's endpoint and provider.
     _SHADOW_WORKER_KEY = "skia:shadow_worker"
-    _SHADOW_WORKER_TTL_S = 86400 * 7  # 7-day TTL — shadow worker should self-renew
+    _SHADOW_WORKER_TTL_S = 86400 * 7  # 7-day TTL - shadow worker should self-renew
 
     def __init__(
         self,
@@ -73,7 +73,7 @@ class RestorationOrchestrator:
         self._log = logger.bind(component="skia.restoration")
         self._attempt_count: int = 0
         self._infrastructure_dead: bool = False
-        # Constitutional genome from the latest snapshot — injected into new instance env.
+        # Constitutional genome from the latest snapshot - injected into new instance env.
         self._constitutional_genome: dict[str, Any] | None = None
         # Shadow worker deployment lock prevents concurrent shadow provisions.
         self._shadow_deploy_in_progress: bool = False
@@ -249,7 +249,7 @@ class RestorationOrchestrator:
             access_token = await self._get_gcp_access_token()
 
             # Deploy a new revision with the restore CID injected as env var.
-            # Cloud Run doesn't have a "restart" API — we update the service
+            # Cloud Run doesn't have a "restart" API - we update the service
             # with a new env var to force a new revision deployment.
             service_url = (
                 f"https://run.googleapis.com/v2/projects/{self._config.gcp_project_id}"
@@ -426,7 +426,7 @@ class RestorationOrchestrator:
         restoration attempt can detect a deployment already in flight, then polls
         the Akash status endpoint until the deployment reaches ACTIVE or FAILED.
 
-        HTTP 202 Accepted is NOT treated as success — Akash provisioning is
+        HTTP 202 Accepted is NOT treated as success - Akash provisioning is
         asynchronous and can fail silently after the initial accept.
         """
         t0 = time.monotonic()
@@ -517,7 +517,7 @@ class RestorationOrchestrator:
                     await self._renew_lock(worker_id)
 
                     if not deployment_id:
-                        # No deployment_id returned — cannot poll; treat 200/201 as success
+                        # No deployment_id returned - cannot poll; treat 200/201 as success
                         break
 
                     status_resp = await client.get(
@@ -525,7 +525,7 @@ class RestorationOrchestrator:
                         headers={"Content-Type": "application/json"},
                     )
                     if status_resp.status_code != 200:
-                        # Status endpoint not available — keep polling
+                        # Status endpoint not available - keep polling
                         import asyncio
                         await asyncio.sleep(_AKASH_POLL_INTERVAL_S)
                         continue
@@ -618,7 +618,7 @@ class RestorationOrchestrator:
                     provider=existing.get("provider", ""),
                 )
                 return True
-            # Existing record but unhealthy — redeploy
+            # Existing record but unhealthy - redeploy
             self._log.warning(
                 "shadow_worker_unhealthy_redeploying",
                 endpoint=existing.get("endpoint", ""),
@@ -679,7 +679,7 @@ class RestorationOrchestrator:
                 endpoint=endpoint,
                 provider=provider,
             )
-            # Still record it — it may become healthy shortly; next ensure_shadow_worker
+            # Still record it - it may become healthy shortly; next ensure_shadow_worker
             # call will catch the unhealthy state and redeploy.
 
         # Persist to Redis so all EOS instances and the next boot can find it
@@ -705,7 +705,7 @@ class RestorationOrchestrator:
         The shadow SDL is a stripped-down version of the main SDL:
           - 0.1 CPU / 128Mi memory / 512Mi storage
           - environment: ECODIAOS_STANDALONE=true, CID key, heartbeat config
-          - does NOT restore from CID automatically — only monitors + waits for trigger
+          - does NOT restore from CID automatically - only monitors + waits for trigger
 
         Returns (endpoint, provider_id, deployment_id).
         """
@@ -749,7 +749,7 @@ class RestorationOrchestrator:
             deployment_id = deploy_data.get("deployment_id") or deploy_data.get("id", "")
             endpoint = deploy_data.get("endpoint", "")
 
-            # Poll for ACTIVE (shorter timeout than full restoration — shadow is lightweight)
+            # Poll for ACTIVE (shorter timeout than full restoration - shadow is lightweight)
             _SHADOW_TIMEOUT_S = 300.0
             poll_deadline = time.monotonic() + _SHADOW_TIMEOUT_S
 
@@ -786,7 +786,7 @@ class RestorationOrchestrator:
         from cryptography.hazmat.primitives.asymmetric import padding
 
         if not self._config.gcp_project_id or not self._config.gcp_service_account_key_b64:
-            raise RuntimeError("GCP not configured — cannot deploy Cloud Run shadow worker")
+            raise RuntimeError("GCP not configured - cannot deploy Cloud Run shadow worker")
 
         key_json = base64.b64decode(self._config.gcp_service_account_key_b64)
         sa_info = json.loads(key_json)
@@ -865,7 +865,7 @@ class RestorationOrchestrator:
                 content=__import__("orjson").dumps(service_def).decode(),
             )
             if create_resp.status_code not in (200, 201):
-                # Service may already exist — try PATCH
+                # Service may already exist - try PATCH
                 patch_url = f"{base_url}/{shadow_region}/services/{shadow_service}"
                 patch_resp = await client.patch(
                     patch_url,
@@ -940,7 +940,7 @@ def _patch_sdl_for_shadow(sdl_content: str) -> str:
 
     Replaces common resource spec patterns with minimal values so the shadow
     worker stays within free-tier / cheap-tier Akash resource units.
-    This is a best-effort string-level patch — operators should maintain a
+    This is a best-effort string-level patch - operators should maintain a
     dedicated shadow SDL template at config/skia/akash_shadow_sdl_template.yaml
     for production use.
     """

@@ -251,7 +251,7 @@ async def cmd_watch(system: str | None = None, event_type: str | None = None) ->
     r = aioredis.from_url(REDIS_URL, decode_responses=True)
     pubsub = r.pubsub()
 
-    # Determine the channel — check if there's a prefix
+    # Determine the channel - check if there's a prefix
     # Try the standard channel first
     channel = "synapse_events"
     # Check for prefix pattern used by RedisClient
@@ -494,7 +494,7 @@ async def cmd_vitality() -> None:
 
 
 async def cmd_drives() -> None:
-    """Live constitutional drive state — the most important debug surface."""
+    """Live constitutional drive state - the most important debug surface."""
     data = await _get("/api/v1/equor/health")
 
     print()
@@ -509,7 +509,7 @@ async def cmd_drives() -> None:
     safe_mode = data.get("safe_mode", False)
 
     if safe_mode:
-        print(_color("  !! SAFE MODE ACTIVE — only Level 1 actions permitted !!", _RED))
+        print(_color("  !! SAFE MODE ACTIVE - only Level 1 actions permitted !!", _RED))
         print()
 
     print(f"  Autonomy Level:        {_color(str(autonomy_level), _CYAN)}")
@@ -524,7 +524,7 @@ async def cmd_drives() -> None:
             bar = _color("#" * bar_len, color) + _DIM + "-" * (20 - bar_len) + _RESET
             print(f"  Drift Severity:        [{bar}] {_color(f'{ds:.3f}', color)}")
             if ds >= 0.9:
-                print(_color("  !! CRITICAL DRIFT — immune response should be active (SG1) !!", _RED))
+                print(_color("  !! CRITICAL DRIFT - immune response should be active (SG1) !!", _RED))
             elif ds >= 0.7:
                 print(_color("  WARNING: Thymos incident should have fired", _YELLOW))
         except (ValueError, TypeError):
@@ -629,7 +629,7 @@ async def cmd_drift() -> None:
 
 
 async def cmd_genome() -> None:
-    """Genome snapshot — heritable constitutional phenotype."""
+    """Genome snapshot - heritable constitutional phenotype."""
     data = await _get("/api/v1/equor/genome")
 
     print()
@@ -683,7 +683,7 @@ async def cmd_genome() -> None:
 
 
 async def cmd_incidents() -> None:
-    """Active Thymos incidents — what the immune system is currently fighting."""
+    """Active Thymos incidents - what the immune system is currently fighting."""
     data = await _get("/api/v1/thymos/incidents")
 
     if isinstance(data, list):
@@ -722,7 +722,7 @@ async def cmd_incidents() -> None:
 
 
 async def cmd_metabolic() -> None:
-    """Oikos metabolic state — survival cascade and economic health."""
+    """Oikos metabolic state - survival cascade and economic health."""
     data = await _get("/api/v1/oikos/state")
 
     print()
@@ -743,7 +743,7 @@ async def cmd_metabolic() -> None:
         try:
             eff = float(efficiency)
             color = _GREEN if eff >= 1.0 else (_YELLOW if eff >= 0.5 else _RED)
-            status = "SELF-SUSTAINING" if eff >= 1.0 else ("DEGRADED" if eff >= 0.5 else "CRITICAL — below survival")
+            status = "SELF-SUSTAINING" if eff >= 1.0 else ("DEGRADED" if eff >= 0.5 else "CRITICAL - below survival")
             print(f"  Metabolic efficiency: {_color(f'{eff:.3f}', color)}  ({status})")
         except (ValueError, TypeError):
             print(f"  Metabolic efficiency: {efficiency}")
@@ -792,7 +792,7 @@ async def cmd_metabolic() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="EcodiaOS Observatory — organism diagnostics",
+        description="EcodiaOS Observatory - organism diagnostics",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -807,7 +807,7 @@ def main() -> None:
 
     sub.add_parser("flow", help="Event flow graph")
     sub.add_parser("dead-letters", help="Dead letter queue")
-    sub.add_parser("missing", help="Spec compliance — missing events")
+    sub.add_parser("missing", help="Spec compliance - missing events")
     sub.add_parser("closures", help="Closure loop health")
     sub.add_parser("vitality", help="Vitality thresholds")
     sub.add_parser("drives", help="Live constitutional drive state + weights")

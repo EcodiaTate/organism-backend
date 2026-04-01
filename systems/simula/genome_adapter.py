@@ -1,9 +1,9 @@
 """
-EcodiaOS — Simula Genome Protocol Adapter
+EcodiaOS - Simula Genome Protocol Adapter
 
 Wraps the existing SimulaGenomeExtractor/SimulaGenomeSeeder in the new
 organism-wide GenomeExtractionProtocol interface. Does NOT rewrite the
-existing genome code — just bridges between OrganGenomeSegment and
+existing genome code - just bridges between OrganGenomeSegment and
 SimulaGenome.
 """
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Executor: ExecuteSocialPost
+EcodiaOS - Axon Executor: ExecuteSocialPost
 
 Publishes Voxis-generated content to external social platforms (X, GitHub)
 while enforcing the AI-transparency disclaimer required by platform ToS.
@@ -10,7 +10,7 @@ Platform routing:
 
 Disclaimer injection:
     Every post has SOCIAL_DISCLAIMER appended unconditionally before the
-    platform call.  This cannot be suppressed at the executor level — any
+    platform call.  This cannot be suppressed at the executor level - any
     attempt to omit it requires a constitutional amendment via Equor.
 
 Vault retrieval:
@@ -100,7 +100,7 @@ _GITHUB_ACTION_GIST = "gist"
 _GITHUB_ACTION_DISCUSSION = "discussion_comment"
 _SUPPORTED_GITHUB_ACTIONS = frozenset({_GITHUB_ACTION_GIST, _GITHUB_ACTION_DISCUSSION})
 
-# Vault envelope purpose identifier — must match the identity system's convention.
+# Vault envelope purpose identifier - must match the identity system's convention.
 _VAULT_PURPOSE_OAUTH = "oauth_token"
 
 # ScopedCredentials token key for a sealed envelope payload:
@@ -202,7 +202,7 @@ class ExecuteSocialPostExecutor(Executor):
         if self._vault is None:
             return self._degraded_result(
                 platform_str,
-                reason="IdentityVault not wired to executor — check service startup.",
+                reason="IdentityVault not wired to executor - check service startup.",
             )
 
         # ── 2. Disclaimer injection ────────────────────────────────────
@@ -309,7 +309,7 @@ class ExecuteSocialPostExecutor(Executor):
                     "disclaimer_injected": True,
                 },
                 new_observations=[
-                    f"EOS social post to {platform} rejected with HTTP 429 — "
+                    f"EOS social post to {platform} rejected with HTTP 429 - "
                     f"platform rate limit reached. Do not schedule further "
                     f"social posts to {platform} for at least 1 hour. "
                     f"Error: {post_result.error[:200]}"
@@ -395,7 +395,7 @@ def _inject_disclaimer(platform: str, content: str, disclaimer: str) -> str:
     Append the disclaimer to content, applying platform-specific rules.
 
     X: uses truncate_for_x() to respect the 280-char hard limit.
-    GitHub: no hard limit — appends with a markdown separator.
+    GitHub: no hard limit - appends with a markdown separator.
     """
     if platform == _PLATFORM_X:
         return truncate_for_x(content, disclaimer)

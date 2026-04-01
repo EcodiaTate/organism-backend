@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: Drives as Intelligence Topology
+EcodiaOS - Telos: Drives as Intelligence Topology
 
 The four constitutional drives (Care, Coherence, Growth, Honesty) are not
 constraints on intelligence. They are the geometry of the space intelligence

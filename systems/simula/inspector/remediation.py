@@ -1,16 +1,16 @@
 """
-EcodiaOS — Inspector Autonomous Remediation (Phase 6)
+EcodiaOS - Inspector Autonomous Remediation (Phase 6)
 
 Two remediation implementations:
 
-RepairAgent (Phase 5 — lightweight, LLM-direct):
+RepairAgent (Phase 5 - lightweight, LLM-direct):
   Stateless conversational patcher. Takes an LLMProvider and a
   VulnerabilityProver. Prompts the LLM to rewrite vulnerable code,
   then re-runs Z3 to confirm the vulnerability is gone. Retries up to
   max_retries times, feeding each failed Z3 counterexample back into the
   conversation so the LLM can correct its patch.
 
-InspectorRepairOrchestrator (Phase 6 — heavyweight, RepairAgent FSM):
+InspectorRepairOrchestrator (Phase 6 - heavyweight, RepairAgent FSM):
   Bridges Inspector vulnerability discoveries into the existing Stage 5B
   RepairAgent pipeline, then re-verifies patches via Z3. Designed for
   workspace-backed file patching with full diff generation.
@@ -97,7 +97,7 @@ class RepairAgent:
         Retries up to max_retries times. Each failed attempt feeds the new
         Z3 counterexample back into the LLM conversation so it can refine
         its patch. Returns None if all attempts are exhausted or an error
-        occurs — callers must handle None gracefully.
+        occurs - callers must handle None gracefully.
 
         Args:
             report: A proven VulnerabilityReport from the prover.
@@ -105,7 +105,7 @@ class RepairAgent:
         Returns:
             Patched source code string if Z3 confirms UNSAT, else None.
         """
-        from clients.llm import Message  # local import — avoids circular
+        from clients.llm import Message  # local import - avoids circular
 
         log = self._log.bind(
             vulnerability_id=report.id,
@@ -160,7 +160,7 @@ class RepairAgent:
                 )
 
                 if reverification is None:
-                    # UNSAT — vulnerability is gone
+                    # UNSAT - vulnerability is gone
                     log.info(
                         "repair_agent_verified",
                         attempt=attempt,
@@ -168,7 +168,7 @@ class RepairAgent:
                     )
                     return patched_code
 
-                # SAT — vulnerability still present; feed counterexample back
+                # SAT - vulnerability still present; feed counterexample back
                 log.info(
                     "repair_agent_patch_insufficient",
                     attempt=attempt,
@@ -408,7 +408,7 @@ class InspectorRepairOrchestrator:
                 )
 
                 if reverification is None:
-                    # UNSAT — vulnerability eliminated
+                    # UNSAT - vulnerability eliminated
                     attempt.verification_result = "UNSAT"
                     attempt.vulnerability_eliminated = True
                     attempt.duration_ms = int(
@@ -433,7 +433,7 @@ class InspectorRepairOrchestrator:
                         final_code=patched_code,
                     )
 
-                # SAT — vulnerability still present after patch
+                # SAT - vulnerability still present after patch
                 attempt.verification_result = "SAT"
                 attempt.error = (
                     "Patch did not eliminate vulnerability. "
@@ -551,7 +551,7 @@ class InspectorRepairOrchestrator:
             description=(
                 f"Security fix: {vuln.vulnerability_class.value} "
                 f"vulnerability ({vuln.severity.value}) in "
-                f"{vuln.attack_surface.file_path} — {vuln.attack_goal}"
+                f"{vuln.attack_surface.file_path} - {vuln.attack_goal}"
             ),
             change_spec=ChangeSpec(
                 capability_description=(
@@ -569,7 +569,7 @@ class InspectorRepairOrchestrator:
                 affected_systems=["inspector"],
             ),
             expected_benefit=f"Eliminate {vuln.severity.value}-severity {vuln.vulnerability_class.value} vulnerability",
-            risk_assessment="Low risk — targeted security patch for proven vulnerability",
+            risk_assessment="Low risk - targeted security patch for proven vulnerability",
             created_at=utc_now(),
         )
 

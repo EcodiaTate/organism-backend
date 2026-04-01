@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 3: Static Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 3: Static Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 3 pipeline:
 
@@ -39,7 +39,7 @@ Phase3Result.exit_criterion_met is True when:
   - At least one reachable fragment has been enumerated from that location.
 
 If no Phase 2 data is provided, the criterion is met if the CFG contains at
-least one function AND the fragment catalog contains at least one fragment —
+least one function AND the fragment catalog contains at least one fragment -
 meaning the static understanding layer is operational.
 """
 
@@ -67,7 +67,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.static_analyzer")
 
 class StaticAnalyzer:
     """
-    Phase 3 orchestrator — builds an ExecutionAtlas for a target.
+    Phase 3 orchestrator - builds an ExecutionAtlas for a target.
 
     The atlas combines:
     - Static CFG (what the program *could* do)
@@ -226,7 +226,7 @@ class StaticAnalyzer:
         if trace_mappings:
             atlas.exit_criterion_met = atlas.can_locate_and_enumerate()
         else:
-            # No Phase 2 data — criterion met if static understanding is operational
+            # No Phase 2 data - criterion met if static understanding is operational
             atlas.exit_criterion_met = (
                 cfg.total_functions > 0 and catalog.total_fragments > 0
             )

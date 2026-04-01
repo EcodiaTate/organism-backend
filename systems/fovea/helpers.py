@@ -1,5 +1,5 @@
 """
-Fovea — Utility Functions.
+Fovea - Utility Functions.
 
 Low-level helpers used across multiple Fovea modules: vector math, text
 analysis primitives, and hashing for provenance chains.

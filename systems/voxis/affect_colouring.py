@@ -1,5 +1,5 @@
 """
-EcodiaOS — Voxis Affect Colouring Engine
+EcodiaOS - Voxis Affect Colouring Engine
 
 Modulates the expression strategy based on the organism's current AffectState.
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Patterns indicating forced positivity — phrases that suggest artificial enthusiasm
+# Patterns indicating forced positivity - phrases that suggest artificial enthusiasm
 _FORCED_POSITIVITY_PATTERNS = re.compile(
     r"\b(thrilled|absolutely amazing|so excited|I love helping|wonderful question|"
     r"great question|fantastic|I'm so happy|delighted to|my pleasure|certainly!)\b",
@@ -44,7 +44,7 @@ class AffectColouringEngine:
     """
     Applies the current AffectState to shape StrategyParams.
 
-    Called after PersonalityEngine.apply() — affect colouring happens
+    Called after PersonalityEngine.apply() - affect colouring happens
     on top of personality-shaped strategy, and can override it where
     the emotional state is strong enough.
     """

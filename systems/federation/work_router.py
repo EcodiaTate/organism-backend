@@ -1,7 +1,7 @@
 """
-EcodiaOS — Federation Work Router (Nexus Specialisation Routing)
+EcodiaOS - Federation Work Router (Nexus Specialisation Routing)
 
-Nexus detects epistemic specialisation across federated instances — which
+Nexus detects epistemic specialisation across federated instances - which
 domains each instance has developed mastery in.  WorkRouter wires this
 knowledge into task routing: Solidity bounties go to Solidity specialists,
 Rust bounties go to Rust specialists.
@@ -11,9 +11,9 @@ Specialisation emerges from Evo's domain mastery tracking via
 triangulation scores per domain.
 
 The router maintains a live specialisation registry updated from:
-  - ``NEXUS_EPISTEMIC_VALUE`` — epistemic depth per instance/domain
-  - ``FEDERATION_CAPACITY_AVAILABLE`` — declared specialisations from peers
-  - Task completion history — empirical success rates per domain
+  - ``NEXUS_EPISTEMIC_VALUE`` - epistemic depth per instance/domain
+  - ``FEDERATION_CAPACITY_AVAILABLE`` - declared specialisations from peers
+  - Task completion history - empirical success rates per domain
 
 Routing algorithm (scored selection):
   score(peer, domain) =

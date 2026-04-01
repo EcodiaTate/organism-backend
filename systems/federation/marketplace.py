@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Marketplace
+EcodiaOS - Federation Marketplace
 
 A lightweight internal marketplace where instances post tasks, bid on them,
 and build trust scoring history.
@@ -9,12 +9,12 @@ plus local Synapse event bus.  Each instance subscribes to the global
 ``eos:federation:marketplace`` channel on startup.
 
 Workflow:
-  post_listing()     — instance posts a task with reward
-  handle_listing()   — peer receives, evaluates, may call bid()
-  bid()              — peer submits a bid
-  handle_bid()       — poster evaluates bids, awards best
-  complete_listing() — winner submits result; poster rates it
-  rate_result()      — poster issues a MarketplaceRating
+  post_listing()     - instance posts a task with reward
+  handle_listing()   - peer receives, evaluates, may call bid()
+  bid()              - peer submits a bid
+  handle_bid()       - poster evaluates bids, awards best
+  complete_listing() - winner submits result; poster rates it
+  rate_result()      - poster issues a MarketplaceRating
 
 Trust scoring: ratings update the trust history used by TrustManager for
 future COLLEAGUE+ promotions.

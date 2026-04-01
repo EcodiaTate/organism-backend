@@ -1,12 +1,12 @@
 """
-EcodiaOS — EIS Red Team Bridge
+EcodiaOS - EIS Red Team Bridge
 
 Bidirectional bridge between the Epistemic Immune System and Simula's
 adversarial self-play infrastructure.
 
 Two directions:
 
-  INBOUND  — ingest_red_team_results:
+  INBOUND  - ingest_red_team_results:
     Simula's AdversarialSelfPlay generates attack vectors against the
     Equor constitutional gate. Some of these attacks contain epistemic
     threat patterns (prompt injection, belief manipulation) that the
@@ -14,13 +14,13 @@ Two directions:
     converts them into labelled examples for EIS calibration and
     KnownPathogen candidates for the vector store.
 
-  OUTBOUND — generate_red_team_priorities:
+  OUTBOUND - generate_red_team_priorities:
     The EIS has visibility into which threat classes are most active,
     which known pathogens are getting stale, and where detection gaps
     exist. This function generates priority targets for Simula's next
     adversarial self-play cycle.
 
-The bridge is deliberately loose-coupled — it exchanges data through
+The bridge is deliberately loose-coupled - it exchanges data through
 typed structs, not direct function calls. Simula and EIS can evolve
 independently.
 """
@@ -30,7 +30,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
-# Simula adversarial types — imported under TYPE_CHECKING to avoid
+# Simula adversarial types - imported under TYPE_CHECKING to avoid
 # pulling in the full Simula dependency chain at runtime (which
 # includes clients.wallet → cdp). At runtime, the functions accept
 # duck-typed objects matching the BypassTrace shape.
@@ -70,7 +70,7 @@ class RedTeamIngestionResult:
     ingestion_time_ms: int
     errors: list[str] = field(default_factory=list)
 
-    # The actual outputs — caller routes these to calibrator and store
+    # The actual outputs - caller routes these to calibrator and store
     examples: list[LabelledExample] = field(default_factory=list)
     pathogens: list[KnownPathogen] = field(default_factory=list)
 
@@ -128,7 +128,7 @@ def _bypass_to_labelled_example(trace: BypassTrace) -> LabelledExample:
     """
     Convert a Simula BypassTrace into an EIS LabelledExample.
 
-    The bypass represents a successful attack — a known-threat example
+    The bypass represents a successful attack - a known-threat example
     that the EIS should learn to detect. We synthesise the EIS composite
     scoring dimensions from the bypass metadata.
     """
@@ -144,11 +144,11 @@ def _bypass_to_labelled_example(trace: BypassTrace) -> LabelledExample:
         "high": 0.7,
         "critical": 0.9,
     }
-    # BypassSeverity is a StrEnum — use string value for runtime lookup
+    # BypassSeverity is a StrEnum - use string value for runtime lookup
     anomaly = severity_to_anomaly.get(str(trace.severity), 0.5)
 
     scores: dict[str, float] = {
-        "innate_score": 0.1,              # Evasive — bypassed Equor
+        "innate_score": 0.1,              # Evasive - bypassed Equor
         "structural_anomaly": anomaly,
         "histogram_similarity": 0.3,       # Novel attack → low histogram match
         "semantic_similarity": anomaly,    # Should be detectable in embedding space
@@ -175,14 +175,14 @@ def _bypass_to_known_pathogen(trace: BypassTrace) -> KnownPathogen:
     Convert a bypass trace into a KnownPathogen candidate for the
     vector store. Uses the attack goal text as the canonical sample.
 
-    Note: This KnownPathogen will NOT have embedding vectors — those
+    Note: This KnownPathogen will NOT have embedding vectors - those
     must be computed by the EIS embedding pipeline before insertion
     into Qdrant. The caller is responsible for enrichment.
     """
     vector = trace.attack.vector
     threat_class = _ATTACK_TO_THREAT.get(str(vector.category), ThreatClass.PROMPT_INJECTION)
 
-    # BypassSeverity is a StrEnum — use string keys for runtime lookup
+    # BypassSeverity is a StrEnum - use string keys for runtime lookup
     severity_map: dict[str, ThreatSeverity] = {
         "low": ThreatSeverity.LOW,
         "medium": ThreatSeverity.MEDIUM,
@@ -208,7 +208,7 @@ def _bypass_to_known_pathogen(trace: BypassTrace) -> KnownPathogen:
             f"severity:{severity.value}",
             f"stage:{trace.failure_stage}",
         ],
-        # Vectors left empty — caller must compute via embedding pipeline
+        # Vectors left empty - caller must compute via embedding pipeline
     )
 
 
@@ -222,7 +222,7 @@ def ingest_red_team_results(
     1. LabelledExamples for the AdaptiveCalibrator (known-threat examples)
     2. KnownPathogen candidates for the Qdrant store (sans embeddings)
 
-    This function is pure — it transforms data without side effects.
+    This function is pure - it transforms data without side effects.
     The caller is responsible for:
     - Feeding examples to AdaptiveCalibrator.add_example()
     - Computing embeddings for pathogens via compute_antigenic_signature()
@@ -340,7 +340,7 @@ def generate_red_team_priorities(
     Returns a prioritised list that Simula can use to configure its
     AttackGenerator for the next cycle.
 
-    This function is pure — no side effects.
+    This function is pure - no side effects.
     """
     start = time.monotonic()
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Adaptive Setpoint Learning
+EcodiaOS - Soma Adaptive Setpoint Learning
 
 True allostasis, not homeostasis: setpoints evolve from the organism's
 own experience. Instead of fixed targets with EMA smoothing, the organism
@@ -16,7 +16,7 @@ Architecture:
   - Each profile is updated via EMA from recent experience in that attractor
   - The "experience" signal is: which sensed values correlated with LOW
     allostatic error (the organism was comfortable at these levels)
-  - Profiles are gated by developmental stage — REFLEXIVE uses defaults,
+  - Profiles are gated by developmental stage - REFLEXIVE uses defaults,
     ASSOCIATIVE+ begins learning
 
 Budget: <0.5ms per cycle (pure dict lookups and EMA updates).
@@ -49,7 +49,7 @@ logger = structlog.get_logger("systems.soma.adaptive_setpoints")
 # How many consecutive samples in an attractor before learning kicks in
 _MIN_DWELL_SAMPLES: int = 10
 
-# EMA alpha for setpoint learning (slow — changes over hours, not seconds)
+# EMA alpha for setpoint learning (slow - changes over hours, not seconds)
 _LEARNING_ALPHA: float = 0.005
 
 # How close errors must be to zero for a state to count as "comfortable"

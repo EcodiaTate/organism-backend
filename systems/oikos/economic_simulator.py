@@ -1,10 +1,10 @@
 """
-EcodiaOS — Oikos: Economic Simulator (Phase 16i: Economic Dreaming)
+EcodiaOS - Oikos: Economic Simulator (Phase 16i: Economic Dreaming)
 
 Monte Carlo simulation engine that projects the organism's economic
 future across thousands of stochastic paths. During consolidation
 (sleep), this engine stress-tests survival strategy and derives
-parameter adjustments — all without spending real capital.
+parameter adjustments - all without spending real capital.
 
 The model uses Geometric Brownian Motion with jump-diffusion for
 fat-tailed shocks (LLM cost spikes, DeFi exploits, demand droughts).
@@ -14,7 +14,7 @@ Design choices:
   - NumPy for vectorised path simulation (10,000 paths x 365 days)
   - Decimal for inputs/outputs (financial precision), float internally
     for vectorised math (acceptable for Monte Carlo estimates)
-  - No I/O — pure computation, safe for the asyncio event loop via
+  - No I/O - pure computation, safe for the asyncio event loop via
     run_in_executor for the heavy matrix operations
   - Deterministic seed option for reproducible testing
 """

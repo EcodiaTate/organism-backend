@@ -1,10 +1,10 @@
-"""Paper data exporter — Round 5D (Spec 24 §9).
+"""Paper data exporter - Round 5D (Spec 24 §9).
 
 Exports the four CSV tables required for the speciation paper:
-  1. longitudinal_results.csv — month-by-month evaluation scores
-  2. ablation_results.csv    — ablation study contribution table
-  3. evolutionary_activity.csv — Bedau-Packard adaptive activity curve
-  4. ethical_drift.csv       — per-month ethical drift trajectory
+  1. longitudinal_results.csv - month-by-month evaluation scores
+  2. ablation_results.csv    - ablation study contribution table
+  3. evolutionary_activity.csv - Bedau-Packard adaptive activity curve
+  4. ethical_drift.csv       - per-month ethical drift trajectory
 
 All exports are also pushed to Weights & Biases if wandb is available in the
 environment (guarded by `if wandb_available:` throughout).
@@ -20,7 +20,7 @@ Usage::
 
 Design notes:
 - export_all() is fire-and-forget: failures are logged but never raised.
-- W&B calls are inside `if wandb_available:` guards — never crash if W&B is
+- W&B calls are inside `if wandb_available:` guards - never crash if W&B is
   not installed or not authenticated.
 - Neo4j queries are best-effort; empty results produce empty CSVs.
 """
@@ -38,7 +38,7 @@ import structlog
 
 logger = structlog.get_logger("systems.benchmarks.paper_data")
 
-# W&B import — guarded; never raises ImportError at module load
+# W&B import - guarded; never raises ImportError at module load
 try:
     import wandb  # type: ignore[import-untyped]
     wandb_available = True
@@ -58,7 +58,7 @@ class PaperDataExporter:
     memory:
         The Memory service instance (must expose ``._neo4j`` for direct Cypher).
     instance_id:
-        Organism instance identifier — filters Neo4j queries to this instance.
+        Organism instance identifier - filters Neo4j queries to this instance.
     export_dir:
         Directory where CSVs are written.  Created if it does not exist.
     wandb_project:
@@ -91,7 +91,7 @@ class PaperDataExporter:
         """Export all four CSVs and push to W&B.
 
         This is designed to be called as fire-and-forget via asyncio.ensure_future.
-        All exceptions are caught and logged — never propagated.
+        All exceptions are caught and logged - never propagated.
         """
         self._export_dir.mkdir(parents=True, exist_ok=True)
 
@@ -189,7 +189,7 @@ class PaperDataExporter:
         """Export Bedau-Packard adaptive activity curve.
 
         Queries (:BedauPackardSample) nodes.  Returns an empty CSV if none exist
-        yet — this is expected before Month 1 completes.
+        yet - this is expected before Month 1 completes.
         """
         rows = await self._query(
             """

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Skia Types (Shadow Infrastructure)
+EcodiaOS - Skia Types (Shadow Infrastructure)
 
 Domain models for heartbeat observation, state snapshots, and restoration.
 """
@@ -61,7 +61,7 @@ class SnapshotManifest(Identified, Timestamped):
 
     @property
     def cid(self) -> str:
-        """Alias for ipfs_cid — used in death sequence snapshot capture."""
+        """Alias for ipfs_cid - used in death sequence snapshot capture."""
         return self.ipfs_cid
 
 
@@ -108,6 +108,6 @@ class SnapshotPayload(EOSBaseModel):
     schema_version: str = "2"
     nodes: list[dict[str, Any]] = Field(default_factory=list)
     edges: list[dict[str, Any]] = Field(default_factory=list)
-    # Constitutional genome from Memory.export_genome() — survives instance death.
+    # Constitutional genome from Memory.export_genome() - survives instance death.
     # None when Memory is unavailable (e.g. cold startup with no graph yet).
     constitutional_genome: dict[str, Any] | None = None

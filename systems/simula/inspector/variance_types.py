@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 7: Physical Execution Variance Types
+EcodiaOS - Inspector Phase 7: Physical Execution Variance Types
 
 All domain models for side-channel-style execution distinguishability analysis.
 
@@ -22,20 +22,20 @@ determine distinguishability under realistic noise conditions.
 Layer map
 ---------
   ┌──────────────────────────────────────────────────────────────────────────┐
-  │  Phase 6 (Phase6Result — protocol boundary failures + FSM coverage)      │
-  │  Phase 5 (Phase5Result — trust corridors + privilege gradient paths)     │
-  │  Phase 4 (Phase4Result — control-flow regions + steerable branches)      │
+  │  Phase 6 (Phase6Result - protocol boundary failures + FSM coverage)      │
+  │  Phase 5 (Phase5Result - trust corridors + privilege gradient paths)     │
+  │  Phase 4 (Phase4Result - control-flow regions + steerable branches)      │
   │    ↓  WorkloadProfile                                                    │
-  │  MeasurementPlan — what to measure, isolation strategy, trial count      │
+  │  MeasurementPlan - what to measure, isolation strategy, trial count      │
   │    ↓  VarianceMeasurer                                                   │
-  │  TrialBatch — raw latency + microarch counter observations per operation │
+  │  TrialBatch - raw latency + microarch counter observations per operation │
   │    ↓  VarianceProfiler                                                   │
-  │  VarianceProfile — distribution stats + noise model per (target, op)     │
+  │  VarianceProfile - distribution stats + noise model per (target, op)     │
   │    ↓  DistinguishabilityAnalyzer                                         │
-  │  DistinguishabilityResult — "distinguishable vs not" with evidence       │
+  │  DistinguishabilityResult - "distinguishable vs not" with evidence       │
   │    ↓                                                                     │
-  │  ChannelSignature — mapping: variance signature → higher-layer event     │
-  │  Phase7Result — top-level output with exit criterion                     │
+  │  ChannelSignature - mapping: variance signature → higher-layer event     │
+  │  Phase7Result - top-level output with exit criterion                     │
   └──────────────────────────────────────────────────────────────────────────┘
 
 Exit criterion
@@ -48,13 +48,13 @@ Phase7Result.exit_criterion_met = True when:
 
 Key concepts
 ------------
-OperationClass       — the class of operation being measured (crypto, branch, etc.)
-IsolationStrategy    — scheduling isolation approach (affinity, quiesce, perf-event)
-StatisticalTest      — the statistical test applied (Welch, Mann-Whitney, KS, etc.)
-ChannelKind          — the physical side channel category (timing, cache, etc.)
-NoiseLevel           — characterisation of measurement environment noise
-DistinguishabilityResult — core finding: can an observer classify code path from signal?
-ChannelSignature     — mapping: variance profile → protocol/trust-layer event
+OperationClass       - the class of operation being measured (crypto, branch, etc.)
+IsolationStrategy    - scheduling isolation approach (affinity, quiesce, perf-event)
+StatisticalTest      - the statistical test applied (Welch, Mann-Whitney, KS, etc.)
+ChannelKind          - the physical side channel category (timing, cache, etc.)
+NoiseLevel           - characterisation of measurement environment noise
+DistinguishabilityResult - core finding: can an observer classify code path from signal?
+ChannelSignature     - mapping: variance profile → protocol/trust-layer event
 """
 
 from __future__ import annotations
@@ -74,14 +74,14 @@ class OperationClass(enum.StrEnum):
     """
     The class of operation whose timing is being profiled.
 
-    CRYPTO_BRANCH     — constant-time vs variable-time crypto decision
-    AUTH_DECISION     — accept/reject authentication comparison
-    PROTOCOL_GUARD    — guard predicate at a protocol FSM boundary state
-    MEMORY_ACCESS     — cache-sensitive data load/store
-    CONTROL_FLOW      — branch taken vs not-taken (general)
-    SERIALISATION     — variable-length encode/decode
-    NETWORK_IO        — syscall latency variation
-    CUSTOM            — target-specific operation class
+    CRYPTO_BRANCH     - constant-time vs variable-time crypto decision
+    AUTH_DECISION     - accept/reject authentication comparison
+    PROTOCOL_GUARD    - guard predicate at a protocol FSM boundary state
+    MEMORY_ACCESS     - cache-sensitive data load/store
+    CONTROL_FLOW      - branch taken vs not-taken (general)
+    SERIALISATION     - variable-length encode/decode
+    NETWORK_IO        - syscall latency variation
+    CUSTOM            - target-specific operation class
     """
 
     CRYPTO_BRANCH   = "crypto_branch"
@@ -98,14 +98,14 @@ class ChannelKind(enum.StrEnum):
     """
     Physical side-channel category.
 
-    TIMING_COARSE    — wall-clock, millisecond precision (system-call, HTTP latency)
-    TIMING_FINE      — nanosecond-precision via monotonic clock + spin-wait
-    CACHE_L1         — L1-cache load-miss distinguishable via Flush+Reload / Prime+Probe
-    CACHE_LLC        — Last-level cache cross-core leakage (requires perf events)
-    BRANCH_PREDICTOR — speculative execution residue via branch-miss rate
-    MEMORY_BUS       — DRAM access pattern via memory-bus contention (coarse)
-    POWER_PROXY      — CPU frequency scaling or RAPL energy as power proxy
-    UNKNOWN          — unclassified channel
+    TIMING_COARSE    - wall-clock, millisecond precision (system-call, HTTP latency)
+    TIMING_FINE      - nanosecond-precision via monotonic clock + spin-wait
+    CACHE_L1         - L1-cache load-miss distinguishable via Flush+Reload / Prime+Probe
+    CACHE_LLC        - Last-level cache cross-core leakage (requires perf events)
+    BRANCH_PREDICTOR - speculative execution residue via branch-miss rate
+    MEMORY_BUS       - DRAM access pattern via memory-bus contention (coarse)
+    POWER_PROXY      - CPU frequency scaling or RAPL energy as power proxy
+    UNKNOWN          - unclassified channel
     """
 
     TIMING_COARSE    = "timing_coarse"
@@ -122,13 +122,13 @@ class IsolationStrategy(enum.StrEnum):
     """
     Scheduling isolation approach to reduce noise during measurement.
 
-    NONE             — no special isolation; baseline noise only
-    CPU_AFFINITY     — pin measurer and target to same/different core
-    QUIESCE_SYSTEM   — disable background services before measurement window
-    PERF_EVENT_GUARD — use Linux perf_event_open to gate measurement
-    REALTIME_SCHED   — elevate measurer to SCHED_FIFO / SCHED_RR
-    CGROUP_ISOLATION — isolate target in dedicated cgroup
-    COMBINED         — multiple strategies applied together
+    NONE             - no special isolation; baseline noise only
+    CPU_AFFINITY     - pin measurer and target to same/different core
+    QUIESCE_SYSTEM   - disable background services before measurement window
+    PERF_EVENT_GUARD - use Linux perf_event_open to gate measurement
+    REALTIME_SCHED   - elevate measurer to SCHED_FIFO / SCHED_RR
+    CGROUP_ISOLATION - isolate target in dedicated cgroup
+    COMBINED         - multiple strategies applied together
     """
 
     NONE             = "none"
@@ -144,12 +144,12 @@ class StatisticalTest(enum.StrEnum):
     """
     The statistical test applied to determine distributional difference.
 
-    WELCH_T          — Welch's t-test (unequal variance, parametric)
-    MANN_WHITNEY_U   — Mann-Whitney U (non-parametric rank test)
-    KS_TWO_SAMPLE    — Kolmogorov-Smirnov two-sample test (distribution shape)
-    EFFECT_SIZE_D    — Cohen's d effect size (practical significance)
-    LEAKAGE_RATIO    — simple ratio of means (coarse operational measure)
-    MUTUAL_INFO      — mutual information estimate between class label and latency
+    WELCH_T          - Welch's t-test (unequal variance, parametric)
+    MANN_WHITNEY_U   - Mann-Whitney U (non-parametric rank test)
+    KS_TWO_SAMPLE    - Kolmogorov-Smirnov two-sample test (distribution shape)
+    EFFECT_SIZE_D    - Cohen's d effect size (practical significance)
+    LEAKAGE_RATIO    - simple ratio of means (coarse operational measure)
+    MUTUAL_INFO      - mutual information estimate between class label and latency
     """
 
     WELCH_T        = "welch_t"
@@ -164,10 +164,10 @@ class NoiseLevel(enum.StrEnum):
     """
     Characterisation of the noise environment during measurement.
 
-    LOW     — controlled environment (isolated core, quiesced system, perf-event-gated)
-    MEDIUM  — semi-controlled (CPU affinity only, background services present)
-    HIGH    — uncontrolled (production-like; shared CPU, OS scheduler noise)
-    UNKNOWN — noise characterisation not performed
+    LOW     - controlled environment (isolated core, quiesced system, perf-event-gated)
+    MEDIUM  - semi-controlled (CPU affinity only, background services present)
+    HIGH    - uncontrolled (production-like; shared CPU, OS scheduler noise)
+    UNKNOWN - noise characterisation not performed
     """
 
     LOW     = "low"
@@ -180,11 +180,11 @@ class DistinguishabilityVerdict(enum.StrEnum):
     """
     Outcome of a distinguishability test for one (operation_a, operation_b) pair.
 
-    DISTINGUISHABLE     — statistically significant difference with sufficient effect size
-    NOT_DISTINGUISHABLE — no significant difference under the noise conditions tested
-    MARGINAL            — significant difference but small effect size; may need tighter isolation
-    INCONCLUSIVE        — insufficient trials or high variance; cannot determine
-    ERROR               — measurement infrastructure failure
+    DISTINGUISHABLE     - statistically significant difference with sufficient effect size
+    NOT_DISTINGUISHABLE - no significant difference under the noise conditions tested
+    MARGINAL            - significant difference but small effect size; may need tighter isolation
+    INCONCLUSIVE        - insufficient trials or high variance; cannot determine
+    ERROR               - measurement infrastructure failure
     """
 
     DISTINGUISHABLE     = "distinguishable"
@@ -305,7 +305,7 @@ class MicroarchCounters(EOSBaseModel):
     """
     Microarchitectural performance counters for a single trial.
 
-    All fields are optional — only those available on the current platform
+    All fields are optional - only those available on the current platform
     and with the current isolation strategy will be populated.
     """
 

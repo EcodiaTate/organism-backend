@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Cross-Service Call Graph Tracer
+EcodiaOS - Inspector Cross-Service Call Graph Tracer
 
 Extends the single-service CallGraphTracer concept across docker-compose
 service boundaries. Given a compose topology, this tracer:
@@ -192,8 +192,8 @@ class CrossServiceTracer:
         Map compose service names to their source directories on the host.
 
         Checks (in priority order):
-          1. build.context — the Dockerfile build context directory
-          2. volumes — host-mounted source directories
+          1. build.context - the Dockerfile build context directory
+          2. volumes - host-mounted source directories
           3. Falls back to service name as a subdirectory of workspace root
         """
         services = self._compose_data.get("services", {})
@@ -217,7 +217,7 @@ class CrossServiceTracer:
                     mapping[svc_name] = candidate
                     continue
 
-            # 2. volumes — look for host:container mounts
+            # 2. volumes - look for host:container mounts
             volumes = svc_def.get("volumes", [])
             for vol in volumes:
                 if isinstance(vol, str) and ":" in vol:

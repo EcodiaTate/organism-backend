@@ -1,5 +1,5 @@
 """
-EcodiaOS — One-time migration: purge stale maintenance goals from Neo4j.
+EcodiaOS - One-time migration: purge stale maintenance goals from Neo4j.
 
 On boot, Nova loads every persisted Goal with status='active'|'suspended'.
 After system-recovery events, goals with source='maintenance' accumulate
@@ -11,7 +11,7 @@ This script deletes Goal nodes where:
   - created_at < now() - 24 hours
 
 Safety:
-  - Uses DETACH DELETE on individual batches — no full graph lock.
+  - Uses DETACH DELETE on individual batches - no full graph lock.
   - Safe to run while EcodiaOS is live (Neo4j row-level locking).
   - Logs count before and after so the operator can verify.
 
@@ -77,7 +77,7 @@ async def main(dry_run: bool, older_than_hours: float) -> None:
             return
 
         # ── Delete in batches of 500 to avoid large TX memory ────────
-        # DETACH DELETE removes the node and any relationships — no graph lock.
+        # DETACH DELETE removes the node and any relationships - no graph lock.
         deleted_total = 0
         batch_size = 500
         while True:
@@ -96,7 +96,7 @@ async def main(dry_run: bool, older_than_hours: float) -> None:
             deleted_total += batch_deleted
             logger.info("purge_batch_deleted", batch=batch_deleted, total_so_far=deleted_total)
             if batch_deleted < batch_size:
-                break  # Last batch — nothing left
+                break  # Last batch - nothing left
 
         # ── Count after ───────────────────────────────────────────────
         after_rows = await neo4j.execute_read(

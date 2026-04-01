@@ -1,5 +1,5 @@
 """
-EcodiaOS — Speciation Engine: Cognitive Architecture Evolution
+EcodiaOS - Speciation Engine: Cognitive Architecture Evolution
 
 The difference between a system that learns facts and one that evolves
 new ways of thinking.
@@ -7,28 +7,28 @@ new ways of thinking.
 The SpeciationEngine implements five biological speciation mechanisms
 adapted for cognitive architecture evolution:
 
-1. **Allopatric Speciation** — Geographic isolation analog.
+1. **Allopatric Speciation** - Geographic isolation analog.
    When hypotheses about different domains accumulate incompatible
    evidence, they're forced into separate niches. Isolation strengthens
    over time as the niches develop independent fitness landscapes.
 
-2. **Sympatric Speciation** — Divergence within the same domain.
+2. **Sympatric Speciation** - Divergence within the same domain.
    Two competing worldviews about the SAME domain both have evidence.
    Instead of forcing one out, they speciate: each becomes a niche
    that processes evidence differently. The organism maintains
    multiple interpretive frameworks for the same phenomenon.
 
-3. **Adaptive Radiation** — Environmental pressure creates diversity.
+3. **Adaptive Radiation** - Environmental pressure creates diversity.
    When the organism encounters a novel domain (high prediction error,
    no existing hypotheses), it triggers rapid niche creation from
    generalist knowledge, specializing for the new environment.
 
-4. **Parapatric Speciation** — Gradual divergence at domain boundaries.
+4. **Parapatric Speciation** - Gradual divergence at domain boundaries.
    Hypotheses at the edge of two niches gradually diverge as they
    adapt to the transition zone. Creates "hybrid" niches that span
-   domain boundaries — the organism inventing new categories.
+   domain boundaries - the organism inventing new categories.
 
-5. **Ring Species** — Circular compatibility chains.
+5. **Ring Species** - Circular compatibility chains.
    Niche A is compatible with B, B with C, C with D, but D is
    incompatible with A. Gene flow follows the ring but the endpoints
    can't exchange evidence. Detects genuine worldview incompatibilities
@@ -102,7 +102,7 @@ _RING_COMPATIBILITY_THRESHOLD: float = 0.6     # Above this = compatible
 
 
 class SpeciationEvent(EOSBaseModel):
-    """Record of a speciation event — a new cognitive niche being born."""
+    """Record of a speciation event - a new cognitive niche being born."""
 
     event_type: str  # "allopatric" | "sympatric" | "radiation" | "parapatric" | "ring"
     new_niche_ids: list[str] = Field(default_factory=list)
@@ -114,7 +114,7 @@ class SpeciationEvent(EOSBaseModel):
 
 
 class RingSpecies(EOSBaseModel):
-    """A detected ring species — circular compatibility chain with endpoint incompatibility."""
+    """A detected ring species - circular compatibility chain with endpoint incompatibility."""
 
     ring_niche_ids: list[str] = Field(default_factory=list)
     incompatible_pair: tuple[str, str] = ("", "")
@@ -128,7 +128,7 @@ class SpeciationResult(EOSBaseModel):
     events: list[SpeciationEvent] = Field(default_factory=list)
     niches_created: int = 0
     niches_extinct: int = 0
-    # IDs of niches that went extinct this cycle — needed for EVO_NICHE_EXTINCT
+    # IDs of niches that went extinct this cycle - needed for EVO_NICHE_EXTINCT
     # Synapse event so consumers (Telos, Benchmarks, Thread, Alive) can react to
     # specific niche deaths rather than just a count.
     extinct_niche_ids: list[str] = Field(default_factory=list)
@@ -142,7 +142,7 @@ class SpeciationResult(EOSBaseModel):
 
 class SpeciationEngine:
     """
-    Drives cognitive speciation — the organism evolving new ways of thinking.
+    Drives cognitive speciation - the organism evolving new ways of thinking.
 
     Each consolidation cycle:
       1. Check for allopatric speciation (domain divergence)
@@ -192,14 +192,14 @@ class SpeciationEngine:
         prediction_errors = prediction_errors or {}
         hypothesis_fitness = hypothesis_fitness or {}
 
-        # 1. Allopatric speciation — promote divergent species to niches
+        # 1. Allopatric speciation - promote divergent species to niches
         for sp in species:
             if sp.graph_distance_from_main >= _ALLOPATRIC_DIVERGENCE_MIN:
                 event = self._attempt_allopatric_speciation(sp, hypotheses)
                 if event:
                     events.append(event)
 
-        # 2. Sympatric speciation — same-domain worldview splits
+        # 2. Sympatric speciation - same-domain worldview splits
         domain_groups = self._group_by_domain(hypotheses)
         for domain, domain_hyps in domain_groups.items():
             if len(domain_hyps) >= _SYMPATRIC_MIN_COMPETITORS:
@@ -207,14 +207,14 @@ class SpeciationEngine:
                 if event:
                     events.append(event)
 
-        # 3. Adaptive radiation — novel domain pressure
+        # 3. Adaptive radiation - novel domain pressure
         for domain, error in prediction_errors.items():
             if error >= _RADIATION_PREDICTION_ERROR:
                 event = self._attempt_adaptive_radiation(domain, hypotheses, hypothesis_fitness)
                 if event:
                     events.append(event)
 
-        # 4. Parapatric speciation — boundary zone divergence
+        # 4. Parapatric speciation - boundary zone divergence
         parapatric_events = self._check_parapatric_speciation(hypotheses, hypothesis_fitness)
         events.extend(parapatric_events)
 
@@ -292,7 +292,7 @@ class SpeciationEngine:
         conflict_rate = total_contradictions / max(1, total_evidence)
 
         if conflict_rate > _ALLOPATRIC_EVIDENCE_CONFLICT:
-            return None  # Too much internal conflict — not a coherent species
+            return None  # Too much internal conflict - not a coherent species
 
         niche = self._registry.create_niche_from_species(
             species,
@@ -332,7 +332,7 @@ class SpeciationEngine:
         but make incompatible predictions. Instead of killing one, we
         speciate: the organism maintains multiple interpretive frameworks.
 
-        Uses bimodality detection on evidence scores — if the distribution
+        Uses bimodality detection on evidence scores - if the distribution
         is bimodal, there are two competing worldviews.
         """
         # Skip if already niche-assigned
@@ -352,7 +352,7 @@ class SpeciationEngine:
         sorted_scores = sorted(scores)
         score_range = sorted_scores[-1] - sorted_scores[0]
         if score_range < 0.5:
-            return None  # Too compressed — no real divergence
+            return None  # Too compressed - no real divergence
 
         max_gap = 0.0
         split_idx = 0
@@ -364,7 +364,7 @@ class SpeciationEngine:
 
         bimodality = max_gap / max(0.01, score_range)
         if bimodality < _SYMPATRIC_BIMODALITY_THRESHOLD:
-            return None  # Unimodal — no worldview split
+            return None  # Unimodal - no worldview split
 
         # Split into two groups
         threshold = (sorted_scores[split_idx - 1] + sorted_scores[split_idx]) / 2.0
@@ -636,7 +636,7 @@ class SpeciationEngine:
 
         for neighbor_id, compat in compatibility.get(current_id, {}).items():
             if compat < _RING_COMPATIBILITY_THRESHOLD:
-                continue  # Not compatible — can't extend chain
+                continue  # Not compatible - can't extend chain
 
             if neighbor_id == start_id and len(path) >= _RING_MIN_LENGTH:
                 # Check if endpoints are incompatible

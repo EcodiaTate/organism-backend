@@ -1,5 +1,5 @@
 """
-EcodiaOS — Algora Bounty Client
+EcodiaOS - Algora Bounty Client
 
 Algora does not expose a public JSON REST API.  Their bounties are posted as
 GitHub issues labelled ``💎 Bounty`` across many repos.  This client queries

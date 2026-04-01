@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: LinkedIn Client
+EcodiaOS - Social Interface: LinkedIn Client
 
 Posts content on behalf of the organism to LinkedIn using the UGC Posts API v2.
 
@@ -13,8 +13,8 @@ purpose="oauth_token" containing:
 Required OAuth scopes: r_liteprofile, w_member_social
 
 API:
-    POST https://api.linkedin.com/v2/ugcPosts   — share text update
-    POST https://api.linkedin.com/v2/ugcPosts   — article share (lifecycleState=PUBLISHED)
+    POST https://api.linkedin.com/v2/ugcPosts   - share text update
+    POST https://api.linkedin.com/v2/ugcPosts   - article share (lifecycleState=PUBLISHED)
 
 Char limits:
     - Text update (ARTICLE_SHARE / TEXT_ONLY): 3,000 chars max.
@@ -51,7 +51,7 @@ class LinkedInSocialClient:
     """
     Thin async HTTP client for LinkedIn UGC Posts API.
 
-    Credentials are loaded from the IdentityVault at call time — no
+    Credentials are loaded from the IdentityVault at call time - no
     plaintext secrets are stored on this object after construction.
     """
 
@@ -75,7 +75,7 @@ class LinkedInSocialClient:
             visibility: "PUBLIC" | "CONNECTIONS" (default "PUBLIC").
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, person_urn = self._load_credentials()
         if not token:
@@ -119,7 +119,7 @@ class LinkedInSocialClient:
             visibility: "PUBLIC" | "CONNECTIONS".
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, person_urn = self._load_credentials()
         if not token:
@@ -211,10 +211,10 @@ class LinkedInSocialClient:
         Decrypt the vault envelope and extract (access_token, person_urn).
 
         person_urn defaults to "urn:li:person:me" which resolves to the
-        authenticated user — LinkedIn's /v2/ugcPosts accepts this form.
+        authenticated user - LinkedIn's /v2/ugcPosts accepts this form.
 
         Returns:
-            (access_token, person_urn) — both empty strings on failure.
+            (access_token, person_urn) - both empty strings on failure.
         """
         try:
             token_set = self._vault.decrypt_token_set(self._envelope)

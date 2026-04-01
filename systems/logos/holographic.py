@@ -1,10 +1,10 @@
 """
-EcodiaOS — Logos: Holographic Encoder
+EcodiaOS - Logos: Holographic Encoder
 
 The holographic principle applied to episodic memory.
 
 The event horizon of a black hole doesn't store the 3D objects that fell in.
-It stores a 2D projection — the minimal encoding that conserves the information.
+It stores a 2D projection - the minimal encoding that conserves the information.
 
 We do the same: don't store the experience.
 Store what the experience revealed that the world model didn't already know.
@@ -32,7 +32,7 @@ class HolographicEncoder:
     """
     Computes the delta between what happened and what the world model
     predicted would happen. Only the delta needs to be stored. The
-    prediction is free — the model generates it.
+    prediction is free - the model generates it.
 
     This is identical to how video compression works:
     - Store keyframes (world model updates)
@@ -61,7 +61,7 @@ class HolographicEncoder:
         Only the delta needs to be stored. The prediction is free.
 
         If prediction was perfect (delta < discard_threshold), the experience
-        adds nothing — pure redundancy, no storage needed.
+        adds nothing - pure redundancy, no storage needed.
 
         If information_content > update_threshold, the world model needs updating.
         """
@@ -78,7 +78,7 @@ class HolographicEncoder:
 
         self.total_encoded += 1
 
-        # If prediction was perfect, delta is empty — experience adds nothing
+        # If prediction was perfect, delta is empty - experience adds nothing
         if semantic_delta.information_content < self._discard_threshold:
             self.total_discarded += 1
             logger.debug(
@@ -207,11 +207,11 @@ class HolographicEncoder:
         """
         Typed semantic distance between two values, in [0, 1].
 
-        Numeric  — relative error clamped to 1.0.
-        String   — 1 - character-level Jaccard (cheap proxy; no embedding needed).
-        Dict     — key-overlap distance (shallow).
-        Sequence — length-difference ratio.
-        Other    — equality check.
+        Numeric  - relative error clamped to 1.0.
+        String   - 1 - character-level Jaccard (cheap proxy; no embedding needed).
+        Dict     - key-overlap distance (shallow).
+        Sequence - length-difference ratio.
+        Other    - equality check.
 
         Spec 21 §5.2 P4: holographic encoding must capture value-level novelty,
         not just key-level novelty.
@@ -253,4 +253,3 @@ class HolographicEncoder:
             return abs(len_p - len_a) / max(len_p, len_a, 1)
 
         return 0.0 if predicted == actual else 1.0
-

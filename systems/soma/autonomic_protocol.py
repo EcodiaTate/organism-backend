@@ -1,19 +1,19 @@
 """
-EcodiaOS — Soma Autonomic Regulation Protocol
+EcodiaOS - Soma Autonomic Regulation Protocol
 
 The organism's autonomic nervous system: reflexive regulatory actions
 triggered by somatic thresholds, without deliberation.
 
 This is NOT deliberate decision-making (that's Nova). This is the
 organism's equivalent of vasoconstriction, pupil dilation, cortisol
-release — fast, pre-conscious, reflexive responses to interoceptive
+release - fast, pre-conscious, reflexive responses to interoceptive
 signals that keep the organism viable.
 
 Hierarchy of Regulation:
-  1. REFLEXIVE — immediate, unconditional (energy critical → safe mode)
-  2. PROTECTIVE — conditional on trend (energy declining fast → conserve)
-  3. MODULATIVE — continuous adjustment (arousal high → slow clock)
-  4. PROPHYLACTIC — anticipatory (cascade forecast → preemptive action)
+  1. REFLEXIVE - immediate, unconditional (energy critical → safe mode)
+  2. PROTECTIVE - conditional on trend (energy declining fast → conserve)
+  3. MODULATIVE - continuous adjustment (arousal high → slow clock)
+  4. PROPHYLACTIC - anticipatory (cascade forecast → preemptive action)
 
 Key difference from LoopExecutor:
   - LoopExecutor dispatches feedback loop signals (parametric nudges)

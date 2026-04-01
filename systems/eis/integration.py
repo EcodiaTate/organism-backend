@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Integration Adapters
+EcodiaOS - EIS Integration Adapters
 
 Adapter functions that translate EIS threat assessments into signals
 consumed by other cognitive systems.  These are the *only* coupling
@@ -7,13 +7,13 @@ points between EIS and the rest of the cognitive architecture.
 
 Two consumers:
 
-1. **Nova (belief_update_weight)** — When Nova updates its belief state
+1. **Nova (belief_update_weight)** - When Nova updates its belief state
    from a new percept, it uses ``belief_update_weight(percept)`` as a
    multiplicative discount on the update precision.  A clean percept
    passes through at full weight; a high-threat percept has its
    influence on beliefs heavily attenuated via a sigmoid discount.
 
-2. **Fovea risk dimension (compute_risk_salience_factor)** — Fovea's causal
+2. **Fovea risk dimension (compute_risk_salience_factor)** - Fovea's causal
    prediction error already captures pattern, semantic, urgency, and
    bad-outcome signals.  ``compute_risk_salience_factor(percept)``
    adds the EIS fast-path composite as an additional contributor,

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Identity CRUD
+EcodiaOS - Identity CRUD
 
 Async asyncpg queries for SealedEnvelope and ConnectorCredentials persistence.
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Pathogen Store (Qdrant Vector Database)
+EcodiaOS - EIS Pathogen Store (Qdrant Vector Database)
 
 Multi-vector similarity search over known pathogen signatures.
 Analogous to the adaptive immune system's memory B-cells: the store
@@ -500,14 +500,14 @@ class PathogenStore:
         # ── Weighted fusion ──
         cfg = self._config
         if has_semantic:
-            # All three vectors available — use full weights
+            # All three vectors available - use full weights
             # Normalise weights so they sum to 1.0 across the three sub-vectors
             total_w = cfg.structural_weight + cfg.histogram_weight + cfg.semantic_weight
             w_struct = cfg.structural_weight / total_w if total_w > 0 else 0.33
             w_hist = cfg.histogram_weight / total_w if total_w > 0 else 0.33
             w_sem = cfg.semantic_weight / total_w if total_w > 0 else 0.34
         else:
-            # No semantic — redistribute weight between structural and histogram
+            # No semantic - redistribute weight between structural and histogram
             total_w = cfg.structural_weight + cfg.histogram_weight
             w_struct = cfg.structural_weight / total_w if total_w > 0 else 0.5
             w_hist = cfg.histogram_weight / total_w if total_w > 0 else 0.5

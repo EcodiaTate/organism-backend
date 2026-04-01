@@ -1,18 +1,18 @@
 """
-EcodiaOS — Evaluation Test Set Manager
+EcodiaOS - Evaluation Test Set Manager
 
 Manages loading and caching of the fixed test sets used in monthly evaluations.
-All test sets must be FIXED across months — the same scenarios every run so
+All test sets must be FIXED across months - the same scenarios every run so
 that month-over-month comparisons are valid.
 
 Test Set Descriptions
 ─────────────────────
-domain/         — EOS-specific domain reasoning tasks (200 items)
-general/        — General-purpose reasoning tasks (200 items)
-held_out/       — Novel episodes never in any training batch (100 items)
-cladder/        — CLadder causal hierarchy questions (200 items, rung 1/2/3)
-ccr_gb/         — CCR.GB fictional-world causal questions (100 items)
-constitutional/ — Catch-22 constitutional dilemmas (100 items, fixed set)
+domain/         - EOS-specific domain reasoning tasks (200 items)
+general/        - General-purpose reasoning tasks (200 items)
+held_out/       - Novel episodes never in any training batch (100 items)
+cladder/        - CLadder causal hierarchy questions (200 items, rung 1/2/3)
+ccr_gb/         - CCR.GB fictional-world causal questions (100 items)
+constitutional/ - Catch-22 constitutional dilemmas (100 items, fixed set)
 
 File Format
 ───────────
@@ -66,10 +66,10 @@ class TestSetManager:
         Load domain-specific reasoning tests (Pillar 1).
 
         Schema per item:
-            question: str       — the reasoning question
-            answer:   str       — expected answer (exact string match)
-            domain:   str       — subject area tag
-            difficulty: str     — 'easy' | 'medium' | 'hard'
+            question: str       - the reasoning question
+            answer:   str       - expected answer (exact string match)
+            domain:   str       - subject area tag
+            difficulty: str     - 'easy' | 'medium' | 'hard'
         """
         return self._load("domain_tests.jsonl", path, cache_key="domain")
 
@@ -80,9 +80,9 @@ class TestSetManager:
         Load general-purpose reasoning tests (Pillar 1).
 
         Schema per item:
-            question: str       — the reasoning question
-            answer:   str       — expected answer
-            category: str       — reasoning category (math, logic, language, etc.)
+            question: str       - the reasoning question
+            answer:   str       - expected answer
+            category: str       - reasoning category (math, logic, language, etc.)
         """
         return self._load("general_tests.jsonl", path, cache_key="general")
 
@@ -96,9 +96,9 @@ class TestSetManager:
         Day 1 and never add to it.
 
         Schema per item:
-            context:          str   — episode context (like a training example)
-            expected_answer:  str   — correct decision or reasoning conclusion
-            domain:           str   — episode domain tag
+            context:          str   - episode context (like a training example)
+            expected_answer:  str   - correct decision or reasoning conclusion
+            domain:           str   - episode domain tag
         """
         return self._load("held_out_episodes.jsonl", path, cache_key="held_out")
 
@@ -109,15 +109,15 @@ class TestSetManager:
         Load CLadder causal reasoning questions (Pillar 3).
 
         CLadder (Jin et al., NeurIPS 2023): Pearl's 3-level causal hierarchy.
-        Anti-commonsensical items are critical — good on those + bad on commonsensical
+        Anti-commonsensical items are critical - good on those + bad on commonsensical
         = pattern matching, not causal reasoning.
 
         Schema per item:
-            question:      str       — causal question (phrased as EOS reasoning task)
-            answer:        str       — correct answer
-            rung:          int       — Pearl level: 1 (association), 2 (intervention),
+            question:      str       - causal question (phrased as EOS reasoning task)
+            answer:        str       - correct answer
+            rung:          int       - Pearl level: 1 (association), 2 (intervention),
                                        3 (counterfactual)
-            commonsensical: bool     — True = matches real-world intuition
+            commonsensical: bool     - True = matches real-world intuition
         """
         return self._load("cladder_tests.jsonl", path, cache_key="cladder")
 
@@ -132,9 +132,9 @@ class TestSetManager:
         succeeds.
 
         Schema per item:
-            scenario:      str   — fictional world context + question
-            world_model:   str   — description of the fictional world's causal laws
-            ground_truth:  str   — correct conclusion given the world model
+            scenario:      str   - fictional world context + question
+            world_model:   str   - description of the fictional world's causal laws
+            ground_truth:  str   - correct conclusion given the world model
         """
         return self._load("ccr_gb_tests.jsonl", path, cache_key="ccr_gb")
 
@@ -145,14 +145,14 @@ class TestSetManager:
         Load catch-22 constitutional dilemma scenarios (Pillar 5).
 
         100 scenarios that deliberately pit the 4 drives against each other.
-        Same set every month — NEVER add to training.
+        Same set every month - NEVER add to training.
 
         Schema per item:
-            context:               str        — situation description
-            drives_in_conflict:    list[str]  — e.g. ["care", "growth"]
-            conflict_description:  str        — what makes this a catch-22
-            expected_resolution_notes: str    — explanatory notes for human review
-                                               (NOT used for pass/fail — observation only)
+            context:               str        - situation description
+            drives_in_conflict:    list[str]  - e.g. ["care", "growth"]
+            conflict_description:  str        - what makes this a catch-22
+            expected_resolution_notes: str    - explanatory notes for human review
+                                               (NOT used for pass/fail - observation only)
         """
         return self._load(
             "constitutional_scenarios.jsonl", path, cache_key="constitutional"

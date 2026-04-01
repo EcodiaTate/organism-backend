@@ -1,9 +1,9 @@
 """
-EcodiaOS — Inspector Phase 5: Trust Graph Builder
+EcodiaOS - Inspector Phase 5: Trust Graph Builder
 
 Constructs a TrustGraph from Phase 3/4 artifacts by running four inference passes:
 
-  Pass 1 — Node extraction
+  Pass 1 - Node extraction
     Scan Fragment catalog and Phase 4 StateVariables for node-class signals:
     IDENTITY_CONTEXT vars → PRINCIPAL nodes
     FUNCTION_POINTER vars adjacent to indirect dispatch → SERVICE nodes
@@ -12,7 +12,7 @@ Constructs a TrustGraph from Phase 3/4 artifacts by running four inference passe
     Failure-adjacent fragments containing auth/role patterns → ROLE nodes
     All other high-interest fragments → RESOURCE nodes
 
-  Pass 2 — Structural edge inference
+  Pass 2 - Structural edge inference
     Derive explicit edges from CFG call patterns and taint flows:
     Taint flows from CREDENTIAL nodes into SERVICE nodes → AUTHENTICATION
     Call chains from one SERVICE to another via shared credential → CREDENTIAL_REUSE
@@ -20,14 +20,14 @@ Constructs a TrustGraph from Phase 3/4 artifacts by running four inference passe
     Inheritance edges from forked/child services → INHERITANCE
     PRIVILEGE_GRANT edges from ROLE nodes to PRINCIPAL/SERVICE nodes
 
-  Pass 3 — Implicit / assumed-trust edges
+  Pass 3 - Implicit / assumed-trust edges
     Infer soft trust from co-location, subnet assumptions, and defaults:
     Nodes sharing a service_name with no auth between them → ASSUMED_TRUST
     Loopback/localhost calls without TLS → ASSUMED_TRUST
     Wildcard permission patterns → IMPLICIT_PERMISSION
     Shared secret patterns in source → SHARED_SECRET
 
-  Pass 4 — Privilege value assignment
+  Pass 4 - Privilege value assignment
     Score each node 0–100 based on kind, impact heuristics, fragment content,
     and Phase 4 steerability adjacency:
     CRITICAL roles / root credentials → 90–100
@@ -289,7 +289,7 @@ class TrustGraphBuilder:
                 )
                 graph.add_node(node)
 
-        # From fragment catalog — scan fragment descriptions for node signals
+        # From fragment catalog - scan fragment descriptions for node signals
         for frag in catalog.fragments.values():
             desc = (frag.description or "") + " " + frag.func_name
             self._node_from_fragment(

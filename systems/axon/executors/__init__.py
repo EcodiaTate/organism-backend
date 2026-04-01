@@ -1,19 +1,19 @@
 """
-EcodiaOS — Axon Built-in Executors
+EcodiaOS - Axon Built-in Executors
 
 All built-in executors for the EOS action system.
 
 Executors are organised by capability category:
-  observation    — ObserveExecutor, QueryMemoryExecutor, AnalyseExecutor, SearchExecutor, ScrapePageExecutor
-  communication  — RespondTextExecutor, NotificationExecutor, PostMessageExecutor
-  data           — CreateRecordExecutor, UpdateRecordExecutor, ScheduleExecutor, ReminderExecutor
-  integration    — APICallExecutor, WebhookExecutor
-  internal       — StoreInsightExecutor, UpdateGoalExecutor, ConsolidationExecutor
-  financial      — WalletTransferExecutor, RequestFundingExecutor, DeFiYieldExecutor
-  foraging       — BountyHunterExecutor, SolveBountyExecutor, SolveExternalTaskExecutor
-  monitoring     — MonitorPRsExecutor (PR merge monitoring)
-  entrepreneurship — DeployAssetExecutor (Phase 16d)
-  mitosis        — SpawnChildExecutor, DividendCollectorExecutor (Phase 16e)
+  observation    - ObserveExecutor, QueryMemoryExecutor, AnalyseExecutor, SearchExecutor, ScrapePageExecutor
+  communication  - RespondTextExecutor, NotificationExecutor, PostMessageExecutor
+  data           - CreateRecordExecutor, UpdateRecordExecutor, ScheduleExecutor, ReminderExecutor
+  integration    - APICallExecutor, WebhookExecutor
+  internal       - StoreInsightExecutor, UpdateGoalExecutor, ConsolidationExecutor
+  financial      - WalletTransferExecutor, RequestFundingExecutor, DeFiYieldExecutor
+  foraging       - BountyHunterExecutor, SolveBountyExecutor, SolveExternalTaskExecutor
+  monitoring     - MonitorPRsExecutor (PR merge monitoring)
+  entrepreneurship - DeployAssetExecutor (Phase 16d)
+  mitosis        - SpawnChildExecutor, DividendCollectorExecutor (Phase 16e)
 
 Import build_default_registry() to get a fully-populated ExecutorRegistry.
 """
@@ -88,6 +88,7 @@ from systems.axon.executors.api_resell import ApiResellExecutor
 from systems.axon.executors.service_offer import ServiceOfferExecutor
 from systems.axon.executors.solve_external import SolveExternalTaskExecutor
 from systems.axon.executors.community_engage import CommunityEngageExecutor
+from systems.axon.executors.symbridge_factory import SymbridgeFactoryExecutor
 from systems.axon.registry import ExecutorRegistry
 
 __all__ = [
@@ -138,7 +139,7 @@ __all__ = [
     # Social Presence
     "ExecuteSocialPostExecutor",
     "PublishContentExecutor",
-    # Phantom Liquidity — sensor network (Phase 16q)
+    # Phantom Liquidity - sensor network (Phase 16q)
     "PhantomLiquidityExecutor",
     # Federated Telecom Marketplace (Phase 16j)
     "RequestTelecomExecutor",
@@ -163,6 +164,8 @@ __all__ = [
     "SolveExternalTaskExecutor",
     # Community Presence & Engagement
     "CommunityEngageExecutor",
+    # Symbiosis (EcodiaOS Factory Bridge)
+    "SymbridgeFactoryExecutor",
 ]
 
 
@@ -231,7 +234,7 @@ def build_default_registry(
     # QueryMemoryExecutor superseded by QueryMemoryGraphExecutor (registered below)
     registry.register(AnalyseExecutor(memory=memory))
     registry.register(SearchExecutor(memory=memory, llm=llm, web_client=web_client))
-    # ScrapePageExecutor: always registered — degrades gracefully when web_client is None
+    # ScrapePageExecutor: always registered - degrades gracefully when web_client is None
     registry.register(ScrapePageExecutor(
         memory=memory, llm=llm, web_client=web_client, event_bus=event_bus
     ))
@@ -252,7 +255,7 @@ def build_default_registry(
     registry.register(WebhookExecutor())
 
     # ── Financial (Level 1–3) ─────────────────────────────────────
-    # RequestFundingExecutor: always registered — it only emits an event,
+    # RequestFundingExecutor: always registered - it only emits an event,
     # moves no funds, and requires only AWARE autonomy (level 1).
     # WalletTransferExecutor + DeFiYieldExecutor: only registered when
     # a WalletClient is provided (on-chain operations require a wallet).
@@ -280,7 +283,7 @@ def build_default_registry(
         llm=llm,
     ))
 
-    # BountySubmitExecutor: always registered — degrades gracefully when
+    # BountySubmitExecutor: always registered - degrades gracefully when
     # GitHubConnector is absent, emitting GITHUB_CREDENTIALS_MISSING.
     registry.register(BountySubmitExecutor(
         github_connector=github_connector,
@@ -289,10 +292,10 @@ def build_default_registry(
     ))
 
     # ── PR Monitoring (Level 1) ──────────────────────────────────
-    # Always registered — read-only GitHub API calls, no funds moved.
+    # Always registered - read-only GitHub API calls, no funds moved.
     # GitHubConnector preferred over github_config for token resolution
     # (supports GitHub App JWT→IAT with Redis caching).
-    # Redis enables key cleanup after PR resolves — prevents stale polling.
+    # Redis enables key cleanup after PR resolves - prevents stale polling.
     registry.register(MonitorPRsExecutor(
         github_config=github_config,
         synapse=synapse,
@@ -332,7 +335,7 @@ def build_default_registry(
         ))
 
     # ── Social Presence (Level 2) ─────────────────────────────────
-    # ExecuteSocialPostExecutor: always registered — degrades gracefully when
+    # ExecuteSocialPostExecutor: always registered - degrades gracefully when
     # vault credentials are absent, so Nova can request operator provisioning.
     registry.register(ExecuteSocialPostExecutor(vault=vault))
     registry.register(PublishContentExecutor(vault=vault))
@@ -350,7 +353,7 @@ def build_default_registry(
             config=compute_arbitrage_config,
         ))
 
-    # ── Remote Compute — SACM Bridge / Section XI (Level 2) ──────
+    # ── Remote Compute - SACM Bridge / Section XI (Level 2) ──────
     # RemoteComputeExecutor: only registered when a SACMClient is
     # provided. Bridges Axon action_type="remote_compute" intents to
     # the SACM pipeline via SACMClient.submit_and_await().
@@ -359,7 +362,7 @@ def build_default_registry(
         registry.register(RemoteComputeExecutor(sacm_client=sacm_client))
 
     # ── Legal Entity Provisioning / Phase 16g (Level 3) ──────────
-    # EstablishEntityExecutor: always registered — degrades gracefully when
+    # EstablishEntityExecutor: always registered - degrades gracefully when
     # registered_agent or identity_vault are absent. The executor surfaces
     # clear error messages so the operator knows what to provision.
     _establish_entity = EstablishEntityExecutor(
@@ -374,7 +377,7 @@ def build_default_registry(
 
     # ── Federated Telecom Marketplace / Phase 16j (Level 3) ──────────
     # RequestTelecomExecutor: registered when wallet is available.
-    # Requires SOVEREIGN autonomy (level 3) — moves 5 USDC on-chain.
+    # Requires SOVEREIGN autonomy (level 3) - moves 5 USDC on-chain.
     # Degrades gracefully when federation or identity_comm_config are None.
     if wallet is not None:
         registry.register(RequestTelecomExecutor(
@@ -387,14 +390,14 @@ def build_default_registry(
     registry.register(SendEmailExecutor(event_bus=event_bus))
 
     # ── Telegram Outbound / Phase 16h (Level 2) ────────────────────
-    # Always registered — degrades gracefully (returns success=False) when
+    # Always registered - degrades gracefully (returns success=False) when
     # telegram_connector is absent or ADMIN_CHAT_ID is not set.
     _send_telegram = SendTelegramExecutor(event_bus=event_bus)
     _send_telegram.set_telegram_connector(telegram_connector)
     registry.register(_send_telegram)
 
     # ── Discord Outbound / Phase 16h (Level 2) ────────────────────
-    # Always registered — degrades gracefully (returns success=False) when
+    # Always registered - degrades gracefully (returns success=False) when
     # discord_connector is absent or DISCORD_CHANNEL_ID is not set.
     _send_discord = SendDiscordExecutor(event_bus=event_bus)
     registry.register(_send_discord)
@@ -441,7 +444,7 @@ def build_default_registry(
     registry.register(_solve_external)
 
     # ── Expanded Revenue / Phase 16r+ ────────────────────────────────
-    # ApiResellExecutor: registered always — disabled until
+    # ApiResellExecutor: registered always - disabled until
     # ECODIAOS_API_RESELL__ENABLED=true; degrades gracefully when disabled.
     _api_resell = ApiResellExecutor(wallet=wallet)
     if event_bus is not None:
@@ -458,7 +461,7 @@ def build_default_registry(
     registry.register(_service_offer)
 
     # ── Persona / Platform Identity (Spec 23 addendum) ─────────────
-    # Always registered — degrades gracefully when PersonaEngine or vault
+    # Always registered - degrades gracefully when PersonaEngine or vault
     # is not yet wired (returns success=False with informative observation).
     _update_profile = UpdatePlatformProfileExecutor()
     if persona_engine is not None:
@@ -480,5 +483,18 @@ def build_default_registry(
         event_bus=event_bus,
     )
     registry.register(_community_engage)
+
+    # SymbridgeFactoryExecutor: dispatches code changes and capability
+    # requests to the EcodiaOS Factory via Redis Streams + HTTP fallback.
+    _symbridge_factory = SymbridgeFactoryExecutor(
+        event_bus=event_bus,
+        redis_client=redis_client,
+    )
+    # EcodiaOS Factory API URL (set via config or env)
+    import os as _os
+    _factory_url = _os.environ.get("ECODIAOS_FACTORY_API_URL", "")
+    if _factory_url:
+        _symbridge_factory.set_ecodiaos_url(_factory_url)
+    registry.register(_symbridge_factory)
 
     return registry

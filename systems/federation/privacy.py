@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Privacy Filter
+EcodiaOS - Federation Privacy Filter
 
 CRITICAL: Individual private data NEVER crosses federation boundaries
 without that individual's explicit consent.
@@ -7,13 +7,13 @@ without that individual's explicit consent.
 The privacy filter is the last line of defence before knowledge leaves
 this instance. It operates on three principles:
 
-1. Items marked PRIVATE are always removed — no exceptions.
+1. Items marked PRIVATE are always removed - no exceptions.
 2. Items marked COMMUNITY_ONLY require at least COLLEAGUE trust.
 3. All items are anonymised: individual identifiers (names, IDs,
    contact information) are stripped or replaced with anonymous tokens.
 
 Even at ALLY trust level, individual data is anonymised. The federation
-protocol shares patterns, procedures, and aggregate knowledge — never
+protocol shares patterns, procedures, and aggregate knowledge - never
 individual people's information.
 """
 
@@ -51,7 +51,7 @@ class PrivacyFilter:
     3. Strips individual identifiers from remaining items
     4. Tracks statistics for observability
 
-    The privacy filter is deliberately conservative — it is better to
+    The privacy filter is deliberately conservative - it is better to
     over-filter than to leak private data.
     """
 

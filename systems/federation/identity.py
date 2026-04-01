@@ -1,10 +1,10 @@
 """
-EcodiaOS — Federation Identity Management
+EcodiaOS - Federation Identity Management
 
 Handles creation and verification of instance identity cards,
 Ed25519 signing and verification, and certificate fingerprinting.
 
-Every EOS instance has a permanent identity — an Ed25519 keypair generated
+Every EOS instance has a permanent identity - an Ed25519 keypair generated
 at birth, a self-signed TLS certificate for mutual authentication, and a
 public identity card that can be shared with federation partners.
 
@@ -53,7 +53,7 @@ class IdentityManager:
         self._certificate_fingerprint: str = ""
         self._local_identity: InstanceIdentityCard | None = None
         self._logger = logger.bind(component="identity_manager")
-        # Drive weights for constitutional hash — defaults until Equor provides actuals
+        # Drive weights for constitutional hash - defaults until Equor provides actuals
         self._drive_weights: dict[str, float] = {
             "coherence": 1.0, "care": 1.0, "growth": 1.0, "honesty": 1.0,
         }
@@ -205,7 +205,7 @@ class IdentityManager:
     def sign(self, data: bytes) -> bytes:
         """Sign data with this instance's Ed25519 private key."""
         if self._private_key is None:
-            raise RuntimeError("IdentityManager not initialized — no private key")
+            raise RuntimeError("IdentityManager not initialized - no private key")
         return self._private_key.sign(data)
 
     # ─── Verification ───────────────────────────────────────────────

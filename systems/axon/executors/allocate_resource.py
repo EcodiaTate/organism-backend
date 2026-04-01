@@ -1,5 +1,5 @@
 """
-EcodiaOS — Allocate Resource Executor
+EcodiaOS - Allocate Resource Executor
 
 Allocates compute or memory resources for the organism's subsystems.
 Emits ACTION_EXECUTED / ACTION_FAILED events and RE training traces.
@@ -73,7 +73,7 @@ class AllocateResourceExecutor(Executor):
                 )
                 # Proceed as a no-op allocation (informational)
 
-            # RE trace only — AXON_EXECUTION_RESULT is the canonical aggregate;
+            # RE trace only - AXON_EXECUTION_RESULT is the canonical aggregate;
             # per-executor ACTION_EXECUTED creates duplicate signals.
             await self._emit_re_trace(context, params, success=True, allocation_id=allocation_id)
 
@@ -129,7 +129,7 @@ class AllocateResourceExecutor(Executor):
 
             reasoning_trace = "\n".join([
                 f"1. VALIDATE: resource_type={resource_type!r}, amount={amount}, target_system={target_system!r}",
-                f"2. RESOURCE MANAGER: {'configured' if has_manager else 'MISSING — proceeding as informational no-op'}",
+                f"2. RESOURCE MANAGER: {'configured' if has_manager else 'MISSING - proceeding as informational no-op'}",
                 f"3. ALLOCATION: {amount} {resource_type} → {target_system} for {duration_s}s",
                 f"4. OUTCOME: success={success}"
                 + (f", allocation_id={allocation_id!r}" if allocation_id else "")
@@ -142,14 +142,14 @@ class AllocateResourceExecutor(Executor):
             ]
             if not success:
                 alternatives.append(
-                    f"Alternative: check Oikos metabolic gate — if starvation_level is critical, resource allocation may be blocked"
+                    f"Alternative: check Oikos metabolic gate - if starvation_level is critical, resource allocation may be blocked"
                 )
 
             counterfactual = ""
             if success:
                 counterfactual = (
                     f"If {amount} {resource_type} had not been allocated to '{target_system}', "
-                    f"that subsystem would operate under its prior resource constraint — potentially "
+                    f"that subsystem would operate under its prior resource constraint - potentially "
                     f"causing performance degradation or execution timeouts in resource-intensive tasks."
                 )
             else:

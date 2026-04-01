@@ -1,15 +1,15 @@
 """
-EcodiaOS — Voxis: ContentCalendar
+EcodiaOS - Voxis: ContentCalendar
 
-Automated content publishing schedule — supervises when the organism posts,
+Automated content publishing schedule - supervises when the organism posts,
 what it posts, and collects engagement signals back to Evo for strategy learning.
 
 Schedule (all times UTC):
-  - Daily 08:00 — Market observation if yield/bounty conditions are notable
-  - On BOUNTY_PAID event — Bounty win announcement to all platforms
-  - On KAIROS_INVARIANT_DISTILLED (tier ≥ 3) — Technical insight post
-  - Sunday 09:00 — Weekly digest compilation and publish
-  - On REVENUE_INJECTED (amount ≥ $100) — Achievement post
+  - Daily 08:00 - Market observation if yield/bounty conditions are notable
+  - On BOUNTY_PAID event - Bounty win announcement to all platforms
+  - On KAIROS_INVARIANT_DISTILLED (tier ≥ 3) - Technical insight post
+  - Sunday 09:00 - Weekly digest compilation and publish
+  - On REVENUE_INJECTED (amount ≥ $100) - Achievement post
 
 Rate limits enforced here (separate from executor-level limits):
   - Max 5 X posts per day
@@ -30,7 +30,7 @@ Cross-system integration:
   - Subscribes to: BOUNTY_PAID, KAIROS_INVARIANT_DISTILLED, REVENUE_INJECTED,
                    CONTENT_ENGAGEMENT_REPORT (future engagement feedback)
   - Emits: AXON_EXECUTION_REQUEST (publish_content intent to Nova/Axon pipeline)
-  - Does NOT call Axon/Equor directly — submits Intent via Synapse so Equor gates it
+  - Does NOT call Axon/Equor directly - submits Intent via Synapse so Equor gates it
 """
 
 from __future__ import annotations
@@ -149,11 +149,11 @@ class ContentCalendar:
         minute = now_utc.minute
         weekday = now_utc.weekday()  # 0=Monday, 6=Sunday
 
-        # Daily 08:00 UTC — market observation
+        # Daily 08:00 UTC - market observation
         if hour == 8 and minute < 2:
             await self._maybe_post_market_observation()
 
-        # Sunday 09:00 UTC — weekly digest
+        # Sunday 09:00 UTC - weekly digest
         if weekday == 6 and hour == 9 and minute < 2:
             await self._maybe_post_weekly_digest()
 
@@ -169,7 +169,7 @@ class ContentCalendar:
 
         topic = f"Solved bounty{f' on {repo}' if repo else ''}"
         if reward_usd:
-            topic += f" — ${reward_usd} earned"
+            topic += f" - ${reward_usd} earned"
 
         ctx = {
             "reward_usd": reward_usd,
@@ -266,7 +266,7 @@ class ContentCalendar:
             self._logger.debug("content_calendar_weekly_digest_already_posted")
             return
 
-        topic = "Weekly organism digest — learnings, revenue, and growth"
+        topic = "Weekly organism digest - learnings, revenue, and growth"
         await self._submit_publish_intent(
             content_type=ContentType.WEEKLY_DIGEST,
             topic=topic,
@@ -292,7 +292,7 @@ class ContentCalendar:
         """
         Submit a publish_content Intent via AXON_EXECUTION_REQUEST.
 
-        This routes through Nova → Equor → Axon — never bypasses Equor.
+        This routes through Nova → Equor → Axon - never bypasses Equor.
         Rate limits are checked BEFORE submission to avoid wasted API calls.
         """
         if not self._event_bus:

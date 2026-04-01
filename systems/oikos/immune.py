@@ -1,33 +1,33 @@
 """
-EcodiaOS — Oikos Economic Immune System (Phase 16f: 4-Layer Defence)
+EcodiaOS - Oikos Economic Immune System (Phase 16f: 4-Layer Defence)
 
 The organism's economic defence system. As it deploys capital into DeFi and
 earns via on-chain mechanisms, it becomes a target. This module provides four
 concentric layers of protection:
 
-  Layer 1 — Transaction Shield:
+  Layer 1 - Transaction Shield:
       Pre-simulate every on-chain action before broadcast. Reject failing
       simulations without spending gas. Slippage capped at 50 bps
       (configurable). Route through Flashbots RPC to avoid MEV.
 
-  Layer 2 — Threat Pattern Recognition:
+  Layer 2 - Threat Pattern Recognition:
       Adaptive detection via pattern matching. Monitors flash-loan prefix
       patterns, price manipulation signatures, suspicious contract
       interactions, and mempool poisoning. Known malicious addresses are
       blacklisted on detection.
 
-  Layer 3 — Protocol Health Monitoring:
+  Layer 3 - Protocol Health Monitoring:
       Continuous monitoring of protocols holding organism capital. Triggers
       on TVL drop >20%, oracle deviation >5%, governance anomalies, or
       contract pause events. On alert: emit EMERGENCY_WITHDRAWAL intent.
 
-  Layer 4 — Federation Threat Intelligence:
+  Layer 4 - Federation Threat Intelligence:
       Broadcast and receive ThreatAdvisory to/from federated instances.
       Trusted partners receive advisories immediately. Confirmed
       intelligence increases trust score.
 
 Design:
-  - All Decimal for money values — no float rounding on economics.
+  - All Decimal for money values - no float rounding on economics.
   - Async-only I/O; pure computation stays sync.
   - Communicates via Synapse EventBus (no direct cross-system imports).
   - structlog with component="economic_immune".
@@ -36,7 +36,7 @@ Design:
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — needed at runtime for Pydantic field resolution
+from datetime import datetime  # noqa: TC003 - needed at runtime for Pydantic field resolution
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
@@ -45,7 +45,7 @@ from pydantic import Field
 
 from primitives.common import EOSBaseModel, new_id, utc_now
 
-# Module-level import — acceptable because Synapse never imports from Oikos,
+# Module-level import - acceptable because Synapse never imports from Oikos,
 # so no circular dependency exists. If that ever changes, move these to per-method
 # deferred imports (matching the pattern in service.py and yield_strategy.py).
 from systems.synapse.types import SynapseEvent, SynapseEventType
@@ -199,7 +199,7 @@ def _build_default_threat_patterns() -> list[ThreatPattern]:
         ThreatPattern(
             name="Suspicious Contract Interaction",
             description="Interaction with a contract deployed within the minimum age "
-            "window — elevated rug-pull risk.",
+            "window - elevated rug-pull risk.",
             pattern_type=ThreatPatternType.SUSPICIOUS_CONTRACT,
             detection_fn_name="_detect_suspicious_contract",
             severity=TransactionRisk.HIGH,
@@ -239,10 +239,10 @@ class EconomicImmuneSystem:
     Four-layer economic defence system for the organism's on-chain capital.
 
     Layers:
-      1. Transaction Shield — pre-simulate, slippage cap, Flashbots routing
-      2. Threat Pattern Recognition — adaptive detection of attack vectors
-      3. Protocol Health Monitoring — TVL, oracle, governance, pause events
-      4. Federation Threat Intelligence — broadcast/receive ThreatAdvisory
+      1. Transaction Shield - pre-simulate, slippage cap, Flashbots routing
+      2. Threat Pattern Recognition - adaptive detection of attack vectors
+      3. Protocol Health Monitoring - TVL, oracle, governance, pause events
+      4. Federation Threat Intelligence - broadcast/receive ThreatAdvisory
 
     Lifecycle:
       __init__(config, redis)  → wire internal state
@@ -711,8 +711,8 @@ class EconomicImmuneSystem:
         Check every protocol currently holding organism capital.
 
         For each yield position:
-          - Compare current TVL to TVL at deposit — alert if drop >20%
-          - Check oracle deviation against reference price — alert if >5%
+          - Compare current TVL to TVL at deposit - alert if drop >20%
+          - Check oracle deviation against reference price - alert if >5%
           - Check for contract pause events
           - Governance anomaly detection
           - Emit PROTOCOL_ALERT for degraded protocols
@@ -906,7 +906,7 @@ class EconomicImmuneSystem:
                 advisory_id=advisory_id,
                 source_instance=source_instance,
             )
-            # Accept unsigned advisories with a warning — federation trust
+            # Accept unsigned advisories with a warning - federation trust
             # model is handled at a higher layer. We still ingest the
             # intelligence but log the lack of signature.
 
@@ -1008,7 +1008,7 @@ class EconomicImmuneSystem:
         Add an address to the blacklist.
 
         Emitting ADDRESS_BLACKLISTED is done synchronously from the caller's
-        perspective — fire-and-forget via the event bus is acceptable here
+        perspective - fire-and-forget via the event bus is acceptable here
         because blacklist updates are idempotent.
         """
         normalised = address.lower().strip()

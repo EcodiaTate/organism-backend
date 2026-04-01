@@ -1,5 +1,5 @@
 """
-EcodiaOS — Perception Scheduler
+EcodiaOS - Perception Scheduler
 
 Runs named, cron-like background tasks that generate percepts on a fixed
 interval.  Each task is a simple callable that returns text (or None to skip),
@@ -20,7 +20,7 @@ Usage:
 Design notes:
 - Each task runs independently; a slow task does not block others.
 - Tasks fire immediately on first tick (no initial delay), then at interval.
-- Exceptions in task callables are caught and logged — the scheduler
+- Exceptions in task callables are caught and logged - the scheduler
   continues running.
 - Tasks can be added/removed at runtime (start() must be called first).
 """

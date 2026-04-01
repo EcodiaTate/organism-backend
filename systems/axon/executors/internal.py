@@ -1,15 +1,15 @@
 """
-EcodiaOS — Axon Internal Executors
+EcodiaOS - Axon Internal Executors
 
-Internal executors operate entirely within EOS — no external calls, no
+Internal executors operate entirely within EOS - no external calls, no
 user-facing side effects. They are Level 1 (ADVISOR autonomy) because
 EOS modifying its own memory and internal state is within its base autonomy.
 
-StoreInsightExecutor     — store a learning/insight in Memory
-UpdateGoalExecutor       — update goal status via Nova
-ConsolidationExecutor    — trigger memory consolidation
+StoreInsightExecutor     - store a learning/insight in Memory
+UpdateGoalExecutor       - update goal status via Nova
+ConsolidationExecutor    - trigger memory consolidation
 
-These are the "self-maintenance" actions — EOS caring for its own
+These are the "self-maintenance" actions - EOS caring for its own
 cognitive coherence. They reflect the Growth and Coherence drives.
 """
 
@@ -42,7 +42,7 @@ class StoreInsightExecutor(Executor):
 
     This is how EOS explicitly commits a generalised belief or learned pattern.
     Unlike ObserveExecutor (which stores episodic observations), this targets
-    the semantic layer — generalised knowledge that persists beyond the
+    the semantic layer - generalised knowledge that persists beyond the
     specific episode that generated it.
 
     Use this when:
@@ -160,7 +160,7 @@ class UpdateGoalExecutor(Executor):
 
     Required params:
       goal_id (str): The ID of the goal to update.
-      status (str): New status — "active" | "achieved" | "abandoned" | "suspended".
+      status (str): New status - "active" | "achieved" | "abandoned" | "suspended".
 
     Optional params:
       progress (float 0-1): Updated progress towards the goal. Default unchanged.
@@ -176,7 +176,7 @@ class UpdateGoalExecutor(Executor):
     counts_toward_budget = False
     emits_to_atune = False
 
-    # Nova service reference — injected at startup
+    # Nova service reference - injected at startup
     _nova: Any = None
 
     def set_nova(self, nova: Any) -> None:
@@ -255,7 +255,7 @@ class UpdateGoalExecutor(Executor):
 
 class ConsolidationExecutor(Executor):
     """
-    Trigger memory consolidation — the process of integrating and pruning
+    Trigger memory consolidation - the process of integrating and pruning
     episodic memories into semantic generalizations.
 
     This is a background maintenance action that EOS should schedule
@@ -266,7 +266,7 @@ class ConsolidationExecutor(Executor):
       - Governance requests a knowledge audit
 
     Required params:
-      scope (str): What to consolidate — "recent" | "domain" | "full".
+      scope (str): What to consolidate - "recent" | "domain" | "full".
 
     Optional params:
       domain (str): If scope="domain", which domain to consolidate. Default "all".
@@ -323,7 +323,7 @@ class ConsolidationExecutor(Executor):
 
         if self._memory is not None:
             try:
-                # Memory.consolidate() is the actual API (no scope/domain filtering yet —
+                # Memory.consolidate() is the actual API (no scope/domain filtering yet -
                 # Evo will drive more granular consolidation in Phase 7)
                 result = await self._memory.consolidate()
                 episodes_processed = result.get("episodes_processed", 0) if result else 0
@@ -350,5 +350,5 @@ class ConsolidationExecutor(Executor):
             return ExecutionResult(
                 success=True,
                 data={"note": "No memory service"},
-                side_effects=[f"Consolidation requested (scope={scope}) — no memory service"],
+                side_effects=[f"Consolidation requested (scope={scope}) - no memory service"],
             )

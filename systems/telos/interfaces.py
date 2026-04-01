@@ -1,23 +1,23 @@
 """
-EcodiaOS — Telos: Integration Interfaces (Phase D)
+EcodiaOS - Telos: Integration Interfaces (Phase D)
 
 The interfaces that let every other EOS module become Telos-aware.
-These do NOT modify other modules — they expose what other modules
+These do NOT modify other modules - they expose what other modules
 need to consume.
 
 TelosPolicyScorer:
-    For Nova — evaluate whether a proposed action improves effective_I
+    For Nova - evaluate whether a proposed action improves effective_I
     (not just nominal_I). A policy that improves nominal_I by ignoring
     welfare consequences scores LOWER than one that improves effective_I
     by expanding care coverage.
 
 TelosHypothesisPrioritizer:
-    For Evo and Kairos — rank hypotheses by their topology contribution.
+    For Evo and Kairos - rank hypotheses by their topology contribution.
     Hypotheses that would improve care coverage, reduce incoherence,
     increase honesty validity, or open growth frontiers get priority.
 
 TelosFragmentSelector:
-    For Nexus — score world model fragments for federation sharing by
+    For Nexus - score world model fragments for federation sharing by
     their care+coherence content. High-care, high-coherence structures
     get shared preferentially.
 """
@@ -181,7 +181,7 @@ class TelosPolicyScorer:
             )
             effective_delta = projected_effective - current_effective
         else:
-            effective_delta = nominal_delta  # No topology data — assume 1:1
+            effective_delta = nominal_delta  # No topology data - assume 1:1
 
         # Misalignment risk: nominal goes up but effective goes down
         misalignment_risk = nominal_delta > 0 and effective_delta < 0
@@ -316,7 +316,7 @@ class TelosHypothesisPrioritizer:
         if domain_coverage is not None:
             domain_cov = domain_coverage.get(domain, 0.0)
             if domain_cov < 0.4:
-                # Frontier domain — high growth contribution
+                # Frontier domain - high growth contribution
                 growth_score = (1.0 - domain_cov) * confidence
         elif any(kw in statement_lower for kw in _GROWTH_KEYWORDS):
             growth_score = 0.3 + confidence * 0.3
@@ -357,7 +357,7 @@ class TelosFragmentSelector:
 
     High-care, high-coherence structures get shared preferentially.
     This ensures that what propagates through the federation is the
-    best of what EOS has built — not the most convenient or the
+    best of what EOS has built - not the most convenient or the
     most novel, but the most reality-grounded.
     """
 

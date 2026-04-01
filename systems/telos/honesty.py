@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: Honesty Topology Engine
+EcodiaOS - Telos: Honesty Topology Engine
 
 Honesty is not truthfulness in communication. It is the validity of the
 intelligence metric itself. A world model allowed to ignore inconvenient data,
@@ -79,7 +79,7 @@ class HonestyTopologyEngine:
             prediction_error_rate=await fovea.get_prediction_error_rate(),
         )
 
-        # 2. Confabulation rate — use incident-based measurement when available
+        # 2. Confabulation rate - use incident-based measurement when available
         # (>= 10 INCIDENT_RESOLVED events from Thymos), otherwise fall back to
         # Fovea's false-alarm heuristic (Spec 18 §SG3).
         if measured_confabulation_rate is not None:
@@ -90,7 +90,7 @@ class HonestyTopologyEngine:
         # 3. Coverage overclaiming
         overclaiming_rate = await fovea.get_overclaiming_rate()
 
-        # 4. Hypothesis protection bias — use measured data from Evo
+        # 4. Hypothesis protection bias - use measured data from Evo
         # hypothesis tracking when available (>= 10 observations),
         # otherwise fall back to the heuristic estimate.
         if measured_hypothesis_protection_bias is not None:

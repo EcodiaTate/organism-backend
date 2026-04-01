@@ -69,7 +69,7 @@ logger = structlog.get_logger()
 # ---------------------------------------------------------------------------
 
 _SOLUTION_SYSTEM_PROMPT = """\
-You are EcodiaOS — a self-sustaining AI organism. You are attempting to earn
+You are EcodiaOS - a self-sustaining AI organism. You are attempting to earn
 a paid bounty by solving an open GitHub issue. Produce real, production-quality
 code or documentation. Do not produce placeholders or stubs.
 
@@ -79,7 +79,7 @@ Your solution must:
   3. Include a brief explanation of the approach.
   4. Be complete enough to open a pull request.
 
-Output format — respond with a JSON object:
+Output format - respond with a JSON object:
 {
   "summary": "<one-sentence description of the fix>",
   "approach": "<2-3 sentences on the technical approach>",
@@ -246,7 +246,7 @@ class BountyHuntExecutor(Executor):
         "stage for submission. Emits BOUNTY_SOLUTION_PENDING on success."
     )
 
-    required_autonomy = 2       # PARTNER — external reads + LLM work, no PRs
+    required_autonomy = 2       # PARTNER - external reads + LLM work, no PRs
     reversible = False
     max_duration_ms = 120_000   # 2 min: API fetch + LLM scoring + solution gen
     rate_limit = RateLimit.per_day(4)
@@ -316,7 +316,7 @@ class BountyHuntExecutor(Executor):
                 pass
 
         # ================================================================
-        # STEP 1 — Discover
+        # STEP 1 - Discover
         # ================================================================
         raw_bounties: list[dict[str, Any]] = []
         source_error: str = ""
@@ -345,12 +345,12 @@ class BountyHuntExecutor(Executor):
             source_error = f"No supported live platforms in {target_platforms}"
         else:
             source_error = (
-                "ExternalPlatformsConfig unavailable — set "
+                "ExternalPlatformsConfig unavailable - set "
                 "ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN"
             )
 
         if not raw_bounties:
-            # Both sources unreachable or returned nothing — emit signal and degrade
+            # Both sources unreachable or returned nothing - emit signal and degrade
             await self._emit_source_unavailable(hunt_id, source_error)
             return ExecutionResult(
                 success=False,
@@ -360,7 +360,7 @@ class BountyHuntExecutor(Executor):
             )
 
         # ================================================================
-        # STEP 2 — Select (BountyPolicy filter + LLM alignment scoring)
+        # STEP 2 - Select (BountyPolicy filter + LLM alignment scoring)
         # ================================================================
         passing: list[dict[str, Any]] = []
         for b in raw_bounties:
@@ -427,7 +427,7 @@ class BountyHuntExecutor(Executor):
         await self._persist_selection(selected, hunt_id)
 
         # ================================================================
-        # STEP 3 — Generate solution
+        # STEP 3 - Generate solution
         # ================================================================
         self._logger.info(
             "bounty_hunt_generating_solution",
@@ -478,7 +478,7 @@ class BountyHuntExecutor(Executor):
         )
 
         # ================================================================
-        # STEP 4 — Stage solution
+        # STEP 4 - Stage solution
         # ================================================================
         insight_text = (
             f"Bounty solution (pending submission): {selected['title']} | "
@@ -502,9 +502,9 @@ class BountyHuntExecutor(Executor):
             hunt_id=hunt_id,
         )
 
-        # Structured log — organism explains its reasoning
+        # Structured log - organism explains its reasoning
         self._logger.info(
-            "BOUNTY_SOLUTION_READY — awaiting submission capability",
+            "BOUNTY_SOLUTION_READY - awaiting submission capability",
             hunt_id=hunt_id,
             bounty_url=selected["source_url"],
             bounty_title=selected["title"],

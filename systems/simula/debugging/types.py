@@ -1,7 +1,7 @@
 """
 EcodiaOS -- Simula Debugging Types (Stage 5D)
 
-Types for causal debugging — when a health check fails after applying
+Types for causal debugging - when a health check fails after applying
 a change, build a causal DAG from the execution trace and use AID
 (Actual Interventionist Definition) reasoning to narrow the root cause
 before invoking repair or rollback.
@@ -117,7 +117,7 @@ class InterventionResult(EOSBaseModel):
 
 
 class CausalDiagnosis(EOSBaseModel):
-    """Final causal debugging output — the root cause and supporting evidence."""
+    """Final causal debugging output - the root cause and supporting evidence."""
 
     dag: CausalDAG | None = None
     interventions: list[InterventionResult] = Field(default_factory=list)

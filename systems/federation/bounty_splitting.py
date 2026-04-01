@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Bounty Co-Solving
+EcodiaOS - Federation Bounty Co-Solving
 
 When a bounty exceeds a single instance's time/resource budget, the
 BountySplitter decomposes it into N sub-tasks, distributes them to
@@ -10,14 +10,14 @@ on receipt of the bounty payout.
 Workflow:
   1. Nova deliberates: "too large for solo, federation available"
      → calls ``BountySplitter.should_split()``
-  2. ``split_bounty()`` — Simula generates task boundaries; N sub-tasks
+  2. ``split_bounty()`` - Simula generates task boundaries; N sub-tasks
      are produced as TaskDelegation objects.
-  3. ``broadcast_sub_tasks()`` — each sub-task is offered via
+  3. ``broadcast_sub_tasks()`` - each sub-task is offered via
      TaskDelegationManager to PARTNER+ peers ordered by trust score.
-  4. ``collect_results()`` — waits up to ``deadline_hours`` for results.
-  5. ``merge_and_submit()`` — aggregates accepted sub-results into a
+  4. ``collect_results()`` - waits up to ``deadline_hours`` for results.
+  5. ``merge_and_submit()`` - aggregates accepted sub-results into a
      unified PR/solution payload.
-  6. ``on_bounty_paid()`` — splits the received bounty USDC among
+  6. ``on_bounty_paid()`` - splits the received bounty USDC among
      contributors proportionally.
 
 Simula boundary generation: when Simula is wired, it is asked to produce
@@ -73,7 +73,7 @@ class BountySplitter:
     Orchestrates bounty decomposition and multi-instance co-solving.
 
     One BountySplitter lives inside FederationService.  It is stateless
-    between bounties — each ``split_bounty()`` call creates a fresh
+    between bounties - each ``split_bounty()`` call creates a fresh
     in-flight record.
     """
 
@@ -221,7 +221,7 @@ class BountySplitter:
         deadline_hours: int = 24,
     ) -> list[dict[str, Any]]:
         """
-        Wait for sub-task results.  Non-blocking — callers should poll
+        Wait for sub-task results.  Non-blocking - callers should poll
         ``get_results()`` or subscribe to FEDERATION_TASK_COMPLETED events.
         Returns whatever results are already available.
         """

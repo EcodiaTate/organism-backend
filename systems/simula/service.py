@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Service
+EcodiaOS - Simula Service
 
 The self-evolution system. Simula is the organism's capacity for
 metamorphosis: structural change beyond parameter tuning.
@@ -7,25 +7,25 @@ metamorphosis: structural change beyond parameter tuning.
 Where Evo adjusts the knobs, Simula redesigns the dashboard.
 
 Simula coordinates the full evolution proposal pipeline:
-  1. DEDUPLICATE — check for duplicate/similar active proposals
-  2. VALIDATE    — reject forbidden categories immediately
-  3. SIMULATE    — deep multi-strategy impact prediction
-  4. GATE        — route governed changes through community governance
-  5. APPLY       — invoke the code agent or config updater with rollback
-  6. VERIFY      — health check post-application
-  7. RECORD      — write immutable history, increment version, update analytics
+  1. DEDUPLICATE - check for duplicate/similar active proposals
+  2. VALIDATE    - reject forbidden categories immediately
+  3. SIMULATE    - deep multi-strategy impact prediction
+  4. GATE        - route governed changes through community governance
+  5. APPLY       - invoke the code agent or config updater with rollback
+  6. VERIFY      - health check post-application
+  7. RECORD      - write immutable history, increment version, update analytics
 
 Interfaces:
-  initialize()            — build sub-systems, load current version
-  process_proposal()      — main entry point for rich proposals
-  receive_evo_proposal()  — receive from Evo via bridge translation
-  get_history()           — recent evolution records
-  get_current_version()   — current config version number
-  get_analytics()         — evolution quality metrics
-  shutdown()              — graceful teardown
-  stats                   — service-level metrics
+  initialize()            - build sub-systems, load current version
+  process_proposal()      - main entry point for rich proposals
+  receive_evo_proposal()  - receive from Evo via bridge translation
+  get_history()           - recent evolution records
+  get_current_version()   - current config version number
+  get_analytics()         - evolution quality metrics
+  shutdown()              - graceful teardown
+  stats                   - service-level metrics
 
-Iron Rules (never violated — see SIMULA_IRON_RULES in types.py):
+Iron Rules (never violated - see SIMULA_IRON_RULES in types.py):
   - Cannot modify Equor, constitutional drives, invariants
   - Cannot modify its own logic
   - Must simulate before applying any change
@@ -100,17 +100,17 @@ logger = structlog.get_logger()
 
 class SimulaService:
     """
-    Simula — the EOS self-evolution system.
+    Simula - the EOS self-evolution system.
 
     Coordinates eight sub-systems:
-      ChangeSimulator           — deep multi-strategy impact prediction
-      SimulaCodeAgent           — Claude-backed code generation with 11 tools
-      ChangeApplicator          — routes proposals to the right application strategy
-      RollbackManager           — file snapshots and restore
-      EvolutionHistoryManager   — immutable Neo4j history
-      EvoSimulaBridge           — Evo→Simula proposal translation
-      ProposalIntelligence      — deduplication, prioritization, dependency analysis
-      EvolutionAnalyticsEngine  — evolution quality tracking
+      ChangeSimulator           - deep multi-strategy impact prediction
+      SimulaCodeAgent           - Claude-backed code generation with 11 tools
+      ChangeApplicator          - routes proposals to the right application strategy
+      RollbackManager           - file snapshots and restore
+      EvolutionHistoryManager   - immutable Neo4j history
+      EvoSimulaBridge           - Evo→Simula proposal translation
+      ProposalIntelligence      - deduplication, prioritization, dependency analysis
+      EvolutionAnalyticsEngine  - evolution quality tracking
     """
 
     system_id: str = "simula"
@@ -189,7 +189,7 @@ class SimulaService:
         self._egraph: object | None = None  # EqualitySaturationEngine (lazy import)
         self._symbolic_execution: object | None = None  # SymbolicExecutionEngine (lazy import)
 
-        # Stage 7 sub-systems (Inspector — lazy runtime imports in initialize())
+        # Stage 7 sub-systems (Inspector - lazy runtime imports in initialize())
         self._inspector: InspectorService | None = None
         self._inspector_analytics: InspectorAnalyticsEmitter | None = None
 
@@ -203,19 +203,19 @@ class SimulaService:
 
         # Cross-system references wired after construction
         self._synapse: Any = None
-        self._telos: Any = None  # TelosService — for constitutional binding validation
-        self._evo: Any = None    # EvoService — for learned repair pattern validation
-        self._soma_ref: Any = None    # SomaService — allostatic state for repair context
-        self._fovea_ref: Any = None   # FoveaService — attention profile for repair context
-        self._log_analyzer: Any = None  # LogAnalyzer — organism health signals
-        self._benchmarks: Any = None  # BenchmarksService — retained for legacy; KPI now via bus
+        self._telos: Any = None  # TelosService - for constitutional binding validation
+        self._evo: Any = None    # EvoService - for learned repair pattern validation
+        self._soma_ref: Any = None    # SomaService - allostatic state for repair context
+        self._fovea_ref: Any = None   # FoveaService - attention profile for repair context
+        self._log_analyzer: Any = None  # LogAnalyzer - organism health signals
+        self._benchmarks: Any = None  # BenchmarksService - retained for legacy; KPI now via bus
 
-        # Organizational closure (Speciation Bible §8.3) — generates new subsystem modules
+        # Organizational closure (Speciation Bible §8.3) - generates new subsystem modules
         self._subsystem_generator: Any = None  # SubsystemGenerator (built in initialize())
-        # Dynamic capability expansion — generates new Axon executor classes at runtime
+        # Dynamic capability expansion - generates new Axon executor classes at runtime
         self._executor_generator: Any = None  # ExecutorGenerator (built in initialize())
 
-        # Cache from ALIGNMENT_GAP_WARNING — set True when Telos flags a drive topology violation,
+        # Cache from ALIGNMENT_GAP_WARNING - set True when Telos flags a drive topology violation,
         # cleared after next successful proposal application.
         self._telos_alignment_gap_active: bool = False
 
@@ -226,7 +226,7 @@ class SimulaService:
         self._dream_results: dict[str, dict[str, Any]] = {}
         self._dream_results_lock: asyncio.Lock = asyncio.Lock()
 
-        # Grid metabolism state — pauses the evolution pipeline in CONSERVATION
+        # Grid metabolism state - pauses the evolution pipeline in CONSERVATION
         self._grid_state: str = "normal"  # MetabolicState values as strings
         self._evo_consolidation_stalled: bool = False
         self._evo_stall_expires_at: float = 0.0
@@ -263,7 +263,7 @@ class SimulaService:
         self._proactive_scanner_task: asyncio.Task[None] | None = None
         self._governance_timeout_task: asyncio.Task[None] | None = None
 
-        # Preventive audit — scheduled 4-hour fragility scanner
+        # Preventive audit - scheduled 4-hour fragility scanner
         self._preventive_audit: SimulaPreventiveAudit | None = None
         self._preventive_audit_task: asyncio.Task[None] | None = None
 
@@ -357,7 +357,7 @@ class SimulaService:
                     provider=self._config.thinking_model_provider,
                 )
             except Exception as exc:
-                # Raise rather than silently degrade — caller must decide whether
+                # Raise rather than silently degrade - caller must decide whether
                 # to retry, use a fallback key, or start without extended thinking.
                 raise RuntimeError(
                     f"thinking_provider_init_failed: {exc}. "
@@ -378,7 +378,7 @@ class SimulaService:
                     model=self._config.embedding_model,
                 )
             except Exception as exc:
-                # Raise rather than silently degrade — semantic similarity search
+                # Raise rather than silently degrade - semantic similarity search
                 # will be unavailable, which degrades duplicate-detection quality.
                 raise RuntimeError(
                     f"embedding_client_init_failed: {exc}. "
@@ -820,7 +820,7 @@ class SimulaService:
         if self._bridge is not None and self._swe_grep is not None:
             self._bridge.set_swe_grep(self._swe_grep)
 
-        # ── Stage 7: Inspector — Zero-Day Discovery Engine ─────────────────────
+        # ── Stage 7: Inspector - Zero-Day Discovery Engine ─────────────────────
         if self._config.inspector_enabled and z3_bridge is not None:
             from systems.simula.inspector.analytics import InspectorAnalyticsEmitter
             from systems.simula.inspector.prover import VulnerabilityProver
@@ -896,7 +896,7 @@ class SimulaService:
                 self._logger.warning(
                     "initial_analytics_failed",
                     error=str(exc),
-                    detail="Retrying after 5s — stale analytics risk if retry also fails.",
+                    detail="Retrying after 5s - stale analytics risk if retry also fails.",
                 )
                 import asyncio as _aio_analytics
 
@@ -1081,7 +1081,7 @@ class SimulaService:
         """
         self._synapse = synapse
         # initialize() checks `if self._synapse is not None` but that guard is
-        # always False at init time — Synapse is wired later. Subscribe here.
+        # always False at init time - Synapse is wired later. Subscribe here.
         if self._initialized:
             try:
                 from systems.synapse.types import SynapseEventType
@@ -1129,12 +1129,12 @@ class SimulaService:
                     SynapseEventType.BUDGET_EMERGENCY,
                     self._on_budget_emergency,
                 )
-                # Bounty solution request — Axon bounty_hunt delegates to Simula
+                # Bounty solution request - Axon bounty_hunt delegates to Simula
                 synapse._event_bus.subscribe(
                     SynapseEventType.BOUNTY_SOLUTION_REQUESTED,
                     self._on_bounty_solution_requested,
                 )
-                # Thymos sandbox validation — replay proposed fix against recent episodes
+                # Thymos sandbox validation - replay proposed fix against recent episodes
                 synapse._event_bus.subscribe(
                     SynapseEventType.SIMULA_SANDBOX_REQUESTED,
                     self._on_simula_sandbox_requested,
@@ -1148,24 +1148,24 @@ class SimulaService:
                     SynapseEventType.THYMOS_REPAIR_APPROVED,
                     self._on_thymos_repair_approved,
                 )
-                # Oneiros consolidation — enriches proposal context
+                # Oneiros consolidation - enriches proposal context
                 synapse._event_bus.subscribe(
                     SynapseEventType.ONEIROS_CONSOLIDATION_COMPLETE,
                     self._on_oneiros_consolidation_complete,
                 )
-                # Benchmarks regression — may trigger corrective proposals
+                # Benchmarks regression - may trigger corrective proposals
                 # NOTE: Benchmarks emits BENCHMARK_REGRESSION (not BENCHMARK_REGRESSION_DETECTED)
                 synapse._event_bus.subscribe(
                     SynapseEventType.BENCHMARK_REGRESSION,
                     self._on_benchmark_regression_detected,
                 )
-                # Telos constitutional alignment gap — cache for VALIDATE stage
+                # Telos constitutional alignment gap - cache for VALIDATE stage
                 if hasattr(SynapseEventType, "ALIGNMENT_GAP_WARNING"):
                     synapse._event_bus.subscribe(
                         SynapseEventType.ALIGNMENT_GAP_WARNING,
                         self._on_telos_alignment_gap_warning,
                     )
-                # Degradation Engine §8.2 — stub subscription.
+                # Degradation Engine §8.2 - stub subscription.
                 # Round 2 will implement: perturb the learnable config params
                 # by ±drift_rate so Evo must re-optimise to keep them near optimal.
                 if hasattr(SynapseEventType, "CONFIG_DRIFT"):
@@ -1185,7 +1185,7 @@ class SimulaService:
                         SynapseEventType.EVO_ADJUST_BUDGET,
                         self._on_evo_adjust_budget,
                     )
-                # SPEC_DRAFTED — Nova drafted a Spec for a new subsystem after
+                # SPEC_DRAFTED - Nova drafted a Spec for a new subsystem after
                 # gap detection; Simula implements after Equor approval arrives
                 # via EQUOR_ECONOMIC_PERMIT (correlated by proposal_id).
                 if hasattr(SynapseEventType, "SPEC_DRAFTED"):
@@ -1213,7 +1213,7 @@ class SimulaService:
                     SynapseEventType.SYSTEM_MODULATION,
                     self._on_system_modulation,
                 )
-                # Fatal crash pattern learning — subscribe to confirmed patterns
+                # Fatal crash pattern learning - subscribe to confirmed patterns
                 # emitted by Thymos (after all repair tiers fail) and Kairos
                 # (causal invariants tagged as crash patterns).
                 if hasattr(SynapseEventType, "CRASH_PATTERN_CONFIRMED"):
@@ -1406,7 +1406,7 @@ class SimulaService:
                     },
                 ))
                 # Co-emit SIMULA_EVOLUTION_APPLIED for Mitosis genome distribution
-                # (different consumer set from EVOLUTION_APPLIED — Mitosis only).
+                # (different consumer set from EVOLUTION_APPLIED - Mitosis only).
                 _changed = files_changed or []
                 await event_bus.emit(SynapseEvent(
                     event_type=SynapseEventType.SIMULA_EVOLUTION_APPLIED,
@@ -1475,7 +1475,7 @@ class SimulaService:
             )
             await bus.emit(event)
         except Exception:
-            pass  # Best-effort — never block the evolution pipeline
+            pass  # Best-effort - never block the evolution pipeline
 
     # ─── RE Training Emission ────────────────────────────────────────────────────
 
@@ -1603,7 +1603,7 @@ class SimulaService:
                 },
             ))
         except Exception:
-            pass  # Best-effort — never block the proof pipeline
+            pass  # Best-effort - never block the proof pipeline
 
     async def _emit_proof_events_from_health(
         self,
@@ -1613,7 +1613,7 @@ class SimulaService:
         """Emit PROOF_FOUND/PROOF_FAILED/PROOF_TIMEOUT from a completed health check.
 
         Extracts Dafny, Z3, and Lean results from the HealthCheckResult and fires
-        the appropriate proof lifecycle event for each. Best-effort — never raises.
+        the appropriate proof lifecycle event for each. Best-effort - never raises.
         """
         try:
             fv = getattr(health, "formal_verification", None)
@@ -1685,7 +1685,7 @@ class SimulaService:
                             solver="lean4",
                         ))
         except Exception:
-            pass  # Best-effort — never block the pipeline
+            pass  # Best-effort - never block the pipeline
 
     async def _emit_vulnerability_confirmed(
         self,
@@ -1703,7 +1703,7 @@ class SimulaService:
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # INSPECTOR_VULNERABILITY_FOUND — closes the observatory gap for this event
+            # INSPECTOR_VULNERABILITY_FOUND - closes the observatory gap for this event
             await bus.emit(SynapseEvent(
                 event_type=SynapseEventType.INSPECTOR_VULNERABILITY_FOUND,
                 source_system="simula",
@@ -1833,7 +1833,7 @@ class SimulaService:
         Emit an Incident to Thymos when Simula encounters an internal error.
 
         The immune system must be able to heal itself. Simula errors that go
-        unreported are the worst failure mode — they prevent the organism from
+        unreported are the worst failure mode - they prevent the organism from
         self-healing.
         """
         if self._synapse is None:
@@ -1961,7 +1961,7 @@ class SimulaService:
         """
         React to physical grid carbon intensity changes.
 
-        CONSERVATION: pause the evolution pipeline — no new proposals will be
+        CONSERVATION: pause the evolution pipeline - no new proposals will be
                       processed until the grid recovers. The SimulaCodeAgent is
                       expensive (multi-turn LLM calls) and must not run on a
                       carbon-heavy grid.
@@ -1999,7 +1999,7 @@ class SimulaService:
         """React to Evo's learning pipeline being stalled.
 
         When Evo hasn't consolidated in 2× its expected interval, evolution
-        proposals sourced from Evo are deferred — applying structural changes
+        proposals sourced from Evo are deferred - applying structural changes
         when Evo can't learn from outcomes wastes resources.  The stall flag
         auto-clears after 2× the expected interval reported in the event.
         """
@@ -2056,7 +2056,7 @@ class SimulaService:
     # ─── Shutdown ───────────────────────────────────────────────────────────────
 
     async def _on_metabolic_pressure(self, event: Any) -> None:
-        """Handle METABOLIC_PRESSURE — gate mutation pipeline by starvation level."""
+        """Handle METABOLIC_PRESSURE - gate mutation pipeline by starvation level."""
         data = getattr(event, "data", {}) or {}
         level = data.get("starvation_level", "")
         if not level:
@@ -2096,7 +2096,7 @@ class SimulaService:
                 amount_usd=amount,
                 action="reinforce_bounty_strategy",
             )
-            # Track as positive economic signal — future ProactiveScanner proposals
+            # Track as positive economic signal - future ProactiveScanner proposals
             # should avoid disrupting code paths that led to this outcome.
             if hasattr(self, "_proactive_scanner") and self._proactive_scanner is not None:
                 if hasattr(self._proactive_scanner, "record_positive_economic_outcome"):
@@ -2213,7 +2213,7 @@ class SimulaService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Simula directive: {"speculative_mutations": False} — pause speculative
+        Simula directive: {"speculative_mutations": False} - pause speculative
         mutations to conserve compute and economic resources during austerity.
         """
         speculative = directives.get("speculative_mutations", True)
@@ -2450,7 +2450,7 @@ class SimulaService:
         reason = "unknown"
 
         try:
-            # Iron Rule check — reject repairs that touch protected systems
+            # Iron Rule check - reject repairs that touch protected systems
             protected = {"equor", "simula", "constitution", "invariant"}
             action_lower = (repair_action or "").lower()
             target_lower = (target_system or "").lower()
@@ -2518,14 +2518,14 @@ class SimulaService:
                             # Fail-closed on simulation timeout within sandbox
                             reason = "simulation_timeout"
                         except Exception as sim_exc:
-                            # Simulator unavailable — approve PARAMETER/RESTART tiers conservatively
+                            # Simulator unavailable - approve PARAMETER/RESTART tiers conservatively
                             if repair_tier in ("PARAMETER", "RESTART", "KNOWN_FIX"):
                                 approved = True
                                 reason = f"simulator_error_conservative_approve: {sim_exc}"
                             else:
                                 reason = f"simulator_error_conservative_reject: {sim_exc}"
                     else:
-                        # No simulator wired — approve lower tiers only
+                        # No simulator wired - approve lower tiers only
                         if repair_tier in ("PARAMETER", "RESTART", "KNOWN_FIX"):
                             approved = True
                             reason = "no_simulator_conservative_approve"
@@ -2540,7 +2540,7 @@ class SimulaService:
             )
             reason = f"sandbox_internal_error: {exc}"
 
-        # Emit result — Thymos resolves its Future by correlation_id
+        # Emit result - Thymos resolves its Future by correlation_id
         event_bus = getattr(self._synapse, "_event_bus", None) if self._synapse else None
         if event_bus is None:
             self._logger.warning(
@@ -2575,7 +2575,7 @@ class SimulaService:
 
     async def _on_thymos_repair_requested(self, event: Any) -> None:
         """
-        Handle THYMOS_REPAIR_REQUESTED — Thymos needs Simula to synthesise a
+        Handle THYMOS_REPAIR_REQUESTED - Thymos needs Simula to synthesise a
         structural repair proposal for a high-tier incident.
         """
         data = getattr(event, "data", {}) or {}
@@ -2593,7 +2593,7 @@ class SimulaService:
             repair_tier=repair_tier,
         )
 
-        # Only handle tier 3+ repairs — lower tiers Thymos handles directly
+        # Only handle tier 3+ repairs - lower tiers Thymos handles directly
         if repair_tier < 3:
             return
 
@@ -2630,7 +2630,7 @@ class SimulaService:
 
     async def _on_bounty_solution_requested(self, event: Any) -> None:
         """
-        Handle BOUNTY_SOLUTION_REQUESTED — Axon bounty_hunt executor asks Simula
+        Handle BOUNTY_SOLUTION_REQUESTED - Axon bounty_hunt executor asks Simula
         to generate a code solution for an external bounty issue.
 
         Constructs an EvolutionProposal from the raw event payload and fires
@@ -2691,7 +2691,7 @@ class SimulaService:
 
     async def _on_thymos_repair_approved(self, event: Any) -> None:
         """
-        Handle THYMOS_REPAIR_APPROVED — Thymos has approved a Simula-generated
+        Handle THYMOS_REPAIR_APPROVED - Thymos has approved a Simula-generated
         repair. Resume pipeline from apply stage if proposal is awaiting.
         """
         data = getattr(event, "data", {}) or {}
@@ -2717,7 +2717,7 @@ class SimulaService:
 
     async def _on_spec_drafted(self, event: Any) -> None:
         """
-        Handle SPEC_DRAFTED — Nova's SelfModificationPipeline has drafted a new
+        Handle SPEC_DRAFTED - Nova's SelfModificationPipeline has drafted a new
         Spec document for a capability requiring a full subsystem (not just an
         executor). Simula queues a SubsystemGenerator run for the Spec, gated
         on Equor's constitutional review of the SELF_MODIFICATION_PROPOSED event
@@ -2760,7 +2760,7 @@ class SimulaService:
 
     async def _on_oneiros_consolidation_complete(self, event: Any) -> None:
         """
-        Handle ONEIROS_CONSOLIDATION_COMPLETE — sleep consolidation finished.
+        Handle ONEIROS_CONSOLIDATION_COMPLETE - sleep consolidation finished.
         Clear stale dream simulation results so pre-consolidation verdicts
         do not block proposals with now-outdated world model state.
         """
@@ -2775,7 +2775,7 @@ class SimulaService:
 
     async def _on_benchmark_regression_detected(self, event: Any) -> None:
         """
-        Handle BENCHMARK_REGRESSION_DETECTED — a KPI crossed its regression
+        Handle BENCHMARK_REGRESSION_DETECTED - a KPI crossed its regression
         threshold. For regressions >20% automatically generate a corrective
         evolution proposal targeting the affected system.
         """
@@ -2853,7 +2853,7 @@ class SimulaService:
                     primary_cause=primary_cause,
                 )
             else:
-                # Minor gap — clear the block
+                # Minor gap - clear the block
                 self._telos_alignment_gap_active = False
         except Exception:
             pass
@@ -3094,10 +3094,10 @@ class SimulaService:
         """Extract a normalised feature set from a code patch for pattern matching.
 
         Mirrors CrashPatternAnalyzer.extract_features() conventions:
-            source:{system}    — from context["target_system"]
-            class:{category}   — from context["change_category"]
-            kw:{token}         — top-8 significant tokens from patch text
-            affects:{system}   — from context["affected_systems"]
+            source:{system}    - from context["target_system"]
+            class:{category}   - from context["change_category"]
+            kw:{token}         - top-8 significant tokens from patch text
+            affects:{system}   - from context["affected_systems"]
         """
         feats: set[str] = set()
 
@@ -3112,7 +3112,7 @@ class SimulaService:
         if error_type:
             feats.add(f"etype:{error_type}")
 
-        # Keyword extraction — skip stopwords and short tokens
+        # Keyword extraction - skip stopwords and short tokens
         _STOP = {"the", "a", "an", "is", "in", "at", "of", "to", "and", "or",
                  "for", "def", "self", "return", "import", "from", "pass",
                  "true", "false", "none", "with", "not", "if", "else"}
@@ -3331,11 +3331,11 @@ class SimulaService:
                 self._logger.debug("proactive_pattern_scan_loop_error", error=str(exc))
 
     async def _on_config_drift(self, event: Any) -> None:
-        """Degradation Engine §8.2 — apply Gaussian noise to learnable config params.
+        """Degradation Engine §8.2 - apply Gaussian noise to learnable config params.
 
         Selects min(num_params_affected, total_learnable) params at random and
         perturbs each by Gaussian noise: param *= (1.0 + gauss(0, drift_rate)).
-        Values are clamped to per-param bounds. This forces Evo to re-optimise —
+        Values are clamped to per-param bounds. This forces Evo to re-optimise -
         creating genuine ongoing maintenance pressure on the organism.
         """
         import random
@@ -3366,7 +3366,7 @@ class SimulaService:
                 ("performance_baseline_timeout_s", 10.0, 300.0),
                 ("agent_coder_test_timeout_s", 10.0, 300.0),
                 # Economic learnable parameters (SIMULA-ECON-1)
-                # Must mirror _ECON_PARAM_BOUNDS exactly — see comment above.
+                # Must mirror _ECON_PARAM_BOUNDS exactly - see comment above.
                 ("yield_apy_drop_rebalance_threshold", 0.05, 0.50),
                 ("yield_apy_minimum_acceptable", 0.01, 0.20),
                 ("bounty_min_roi_multiple", 1.0, 5.0),
@@ -3393,7 +3393,7 @@ class SimulaService:
                 ("agent_coder_max_iterations", 1, 10),
             ]
 
-            # Build candidate list (attr, lo, hi, is_float) — only include attrs
+            # Build candidate list (attr, lo, hi, is_float) - only include attrs
             # that actually exist on this config instance
             candidates: list[tuple[str, float, float, bool]] = []
             for attr, lo, hi in float_params:
@@ -3503,7 +3503,7 @@ class SimulaService:
         # are listed in INT_PARAMS (module-level constant on SimulaService) and will
         # be cast to int after clamping.
         _ECON_PARAM_BOUNDS: dict[str, tuple[float, float]] = {
-            "yield_apy_drop_rebalance_threshold": (0.05, 0.50),  # Fix 1: was (0.50, 0.99) — matched float_params range
+            "yield_apy_drop_rebalance_threshold": (0.05, 0.50),  # Fix 1: was (0.50, 0.99) - matched float_params range
             "yield_apy_minimum_acceptable": (0.01, 0.20),
             "bounty_min_roi_multiple": (1.0, 5.0),
             "bounty_max_risk_score": (0.20, 0.90),
@@ -3962,7 +3962,7 @@ class SimulaService:
         If this proposal modifies code on endpoint X but doesn't include Z,
         flag for human review (HITL) or log a warning for metrics.
 
-        Does NOT block the proposal — it's advisory.
+        Does NOT block the proposal - it's advisory.
         """
         assert self._evo is not None
 
@@ -3998,7 +3998,7 @@ class SimulaService:
                     m = _re.search(r"applying '([^']+)'", h.statement)
                     fix = m.group(1) if m else ""
                 if not fix:
-                    return True  # Nothing to validate — don't flag
+                    return True  # Nothing to validate - don't flag
                 return fix in proposal_lower or fix.replace("_", " ") in proposal_lower
 
             missing_fixes = [h for h in flagged_hypotheses if not _fix_mentioned(h)]
@@ -4023,7 +4023,7 @@ class SimulaService:
 
                 # Emit SIMULA_VALIDATION_ADVISORY so Evo can penalise the
                 # relevant hypotheses and Thymos can track recurring blind spots.
-                # Advisory only — does not block the proposal pipeline.
+                # Advisory only - does not block the proposal pipeline.
                 _bus = getattr(self._synapse, "_event_bus", None) if self._synapse else None
                 if _bus is not None:
                     try:
@@ -4041,7 +4041,7 @@ class SimulaService:
                             },
                         )))
                     except Exception:
-                        pass  # Advisory — never block the evolution pipeline
+                        pass  # Advisory - never block the evolution pipeline
 
                 if high_confidence:
                     self._logger.info(
@@ -4205,7 +4205,7 @@ class SimulaService:
         # ── GRID CONSERVATION GATE ───────────────────────────────────────────
         # Do not run the expensive SimulaCodeAgent pipeline while the physical
         # grid is in carbon-heavy CONSERVATION mode.  Proposals are deferred
-        # rather than lost — callers should retry once the grid recovers.
+        # rather than lost - callers should retry once the grid recovers.
         if self._grid_state == "conservation":
             self._proposals_rejected += 1
             log.info(
@@ -4214,31 +4214,31 @@ class SimulaService:
             )
             return ProposalResult(
                 status=ProposalStatus.REJECTED,
-                reason="Grid is in CONSERVATION mode — evolution pipeline paused. Retry when grid recovers.",
+                reason="Grid is in CONSERVATION mode - evolution pipeline paused. Retry when grid recovers.",
             )
 
         # ── METABOLIC STARVATION GATE ─────────────────────────────────────────
         # Simula is expensive (LLM + Dafny + tests). Gate early.
         # AUSTERITY: only Thymos-flagged critical bug fixes proceed
-        # EMERGENCY/CRITICAL: full halt — protect existing codebase
+        # EMERGENCY/CRITICAL: full halt - protect existing codebase
         if self._starvation_level in ("emergency", "critical"):
             self._proposals_rejected += 1
             log.info("proposal_blocked_starvation", level=self._starvation_level)
             return ProposalResult(
                 status=ProposalStatus.REJECTED,
-                reason=f"Metabolic starvation ({self._starvation_level}) — evolution halted.",
+                reason=f"Metabolic starvation ({self._starvation_level}) - evolution halted.",
             )
         if self._starvation_level == "austerity" and proposal.source != "thymos":
             self._proposals_rejected += 1
             log.info("proposal_deferred_austerity", source=proposal.source)
             return ProposalResult(
                 status=ProposalStatus.REJECTED,
-                reason="Metabolic austerity — only Thymos-flagged critical mutations proceed.",
+                reason="Metabolic austerity - only Thymos-flagged critical mutations proceed.",
             )
 
         # ── EVO CONSOLIDATION STALL GATE ──────────────────────────────────────
         # When Evo's learning pipeline is stalled, defer Evo-sourced proposals.
-        # Repairs from Thymos/Axon still proceed — they're urgent and don't
+        # Repairs from Thymos/Axon still proceed - they're urgent and don't
         # depend on Evo learning from the outcome.
         if (
             self._evo_consolidation_stalled
@@ -4257,7 +4257,7 @@ class SimulaService:
                 return ProposalResult(
                     status=ProposalStatus.REJECTED,
                     reason=(
-                        "Evo consolidation is stalled — evolution proposals "
+                        "Evo consolidation is stalled - evolution proposals "
                         "deferred until learning pipeline recovers."
                     ),
                 )
@@ -4395,7 +4395,7 @@ class SimulaService:
                 reason=f"Pipeline timed out after {self._config.pipeline_timeout_s}s",
             )
         except Exception as exc:
-            # Unexpected exception in pipeline — emit to Thymos for immune response
+            # Unexpected exception in pipeline - emit to Thymos for immune response
             # The immune system must be able to heal itself
             log.error(
                 "proposal_pipeline_exception",
@@ -4403,7 +4403,7 @@ class SimulaService:
                 error=str(exc),
             )
             # Meta-healing: report via sentinel (structured Incident)
-            # 10s timeout — a stuck sentinel must not block meta-healing
+            # 10s timeout - a stuck sentinel must not block meta-healing
             try:
                 await asyncio.wait_for(
                     self._sentinel.report(
@@ -4474,7 +4474,7 @@ class SimulaService:
         self, proposal: EvolutionProposal, log: Any
     ) -> ProposalResult:
         """Inner pipeline body, always called from process_proposal's try/finally."""
-        # ── STEP 1: Validate — Iron Rules + Constraint Satisfaction ────────
+        # ── STEP 1: Validate - Iron Rules + Constraint Satisfaction ────────
         # ConstraintSatisfactionChecker covers all Section 8 invariants.
         # HARD violations are rejected immediately; SOFT ones are logged only.
         from systems.simula.constraint_checker import ConstraintSatisfactionChecker
@@ -4508,7 +4508,7 @@ class SimulaService:
 
         # ── STEP 1.1: Telos Constitutional Binding ─────────────────────────
         # Validate that this mutation does not violate the drive topology.
-        # Telos is the constitutional authority — if it says no, the proposal
+        # Telos is the constitutional authority - if it says no, the proposal
         # is dead regardless of simulation outcome.
         # Budget: 1s for the entire validation stage.
         try:
@@ -4597,7 +4597,7 @@ class SimulaService:
                     episodes_tested=0,
                     risk_level=RiskLevel.LOW,
                     risk_summary=(
-                        f"Simulation skipped — metabolic starvation ({self._starvation_level}). "
+                        f"Simulation skipped - metabolic starvation ({self._starvation_level}). "
                         "Confidence reduced."
                     ),
                     benefit_summary=proposal.expected_benefit,
@@ -4751,7 +4751,7 @@ class SimulaService:
                     self._active_proposals.pop(proposal.id, None)
                 return ProposalResult(status=ProposalStatus.REJECTED, reason=reason)
             else:
-                # Dream approved — annotate for history
+                # Dream approved - annotate for history
                 proposal.dream_origin = True
                 proposal.dream_coherence_score = dream_report.get(
                     "overall_performance_delta", 0.0
@@ -4957,7 +4957,7 @@ class SimulaService:
         if proposal.category not in GOVERNANCE_REQUIRED:
             return False
 
-        # Low-risk proposals are auto-approved — no governance bottleneck
+        # Low-risk proposals are auto-approved - no governance bottleneck
         if proposal.efe_score is not None and proposal.efe_score < -1.0:
             return False  # Low EFE score = safe change, auto-approve
 
@@ -5112,7 +5112,7 @@ class SimulaService:
                             ),
                         ))
                 except Exception:
-                    pass  # Non-fatal — child starts with empty mutation history
+                    pass  # Non-fatal - child starts with empty mutation history
 
             # ── Dafny spec hashes ──────────────────────────────────────────────
             dafny_spec_hashes: dict[str, str] = {}
@@ -5255,7 +5255,7 @@ class SimulaService:
         Reads ECODIAOS_SIMULA_GENOME_PAYLOAD (JSON-encoded SimulaGenome) injected
         by LocalDockerSpawner.  If present, applies inherited learnable config params
         to self._config so the child starts with the parent's tuned evolution state.
-        Non-fatal — child falls back to default config on any error.
+        Non-fatal - child falls back to default config on any error.
 
         Applies bounded ±10% Gaussian jitter per param for genetic variation, matching
         the Telos pattern (Spec 18 SG3).
@@ -5370,7 +5370,7 @@ class SimulaService:
                             kind=kind,
                             description=ab_data.get("description", ""),
                             signature=ab_data.get("signature", ""),
-                            source_code="",  # Not transmitted — child re-discovers
+                            source_code="",  # Not transmitted - child re-discovers
                             usage_count=ab_data.get("usage_count", 1),
                             confidence=ab_data.get("confidence", 0.3) * 0.8,  # Decay
                             tags=ab_data.get("tags", []),
@@ -5754,7 +5754,7 @@ class SimulaService:
         (Section 17) for consumers that need typed component-level data
         (e.g. Skia, Thymos, OpenTelemetry adapters).
 
-        Spec ref: Section 17 — Health & Monitoring.
+        Spec ref: Section 17 - Health & Monitoring.
         """
         from systems.simula.evolution_types import (
             HealthStatus,
@@ -5925,13 +5925,13 @@ class SimulaService:
         """
         Run Inspector against an external GitHub repository.
 
-        Inspector is purely additive — it never modifies EOS files and all
+        Inspector is purely additive - it never modifies EOS files and all
         analysis happens in temporary workspaces.
 
         Args:
             github_url: HTTPS URL of the target repository.
             authorized_targets: Override config authorized targets for this hunt.
-                Creates a scoped config copy — the shared config is never mutated.
+                Creates a scoped config copy - the shared config is never mutated.
             attack_goals: Custom attack goals (defaults to predefined set).
             generate_pocs: Generate exploit PoC scripts (default from config).
             generate_patches: Generate + verify patches (default from config).
@@ -6075,7 +6075,7 @@ class SimulaService:
 
         Call this after SimulaService.initialize() has been awaited, and after
         EvoService is wired to the same event_bus instance.  main.py is
-        responsible for the wiring — this method is intentionally separate from
+        responsible for the wiring - this method is intentionally separate from
         get_evo_callback() so the two delivery paths can be enabled independently.
         """
         from systems.synapse.types import SynapseEventType
@@ -6429,7 +6429,7 @@ class SimulaService:
 
         For code-generation and formal-verification resources (papers or repos),
         queue a lightweight ADD_SYSTEM_CAPABILITY proposal so Simula can absorb
-        the technique.  Governance-gated — no auto-apply.
+        the technique.  Governance-gated - no auto-apply.
         """
         try:
             data: dict[str, Any] = event.data if hasattr(event, "data") else event
@@ -6466,7 +6466,7 @@ class SimulaService:
                 description=description,
                 change_spec=ChangeSpec(
                     capability_description=(
-                        f"Absorb {resource_type} '{title}' — domain={domain}, "
+                        f"Absorb {resource_type} '{title}' - domain={domain}, "
                         f"gaps=[{gap_text}], url={url}"
                     ),
                 ),
@@ -6695,7 +6695,7 @@ class SimulaService:
         # ── Corpus 14 §13: Identity scope verification (Spec 23) ─────────────
         # Proposals may arrive from federation with a foreign identity_id.
         # Verify the proposal's identity_id (if set) matches this instance before
-        # applying mutations to local code — prevents rogue cross-instance applies.
+        # applying mutations to local code - prevents rogue cross-instance applies.
         import os as _os_id
         _local_identity = _os_id.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
         _proposal_identity = getattr(proposal, "identity_id", "") or ""
@@ -6707,7 +6707,7 @@ class SimulaService:
                 local_identity=_local_identity,
                 action="proceeding_with_caution",
             )
-            # Do NOT reject — federated governance proposals are valid cross-instance,
+            # Do NOT reject - federated governance proposals are valid cross-instance,
             # but log so Thymos/Identity can audit. A hard DENY would require the
             # Identity system to provide cryptographic proof, not just env-variable matching.
 
@@ -6779,7 +6779,7 @@ class SimulaService:
                 "synthesis_returned_no_files",
                 proposal_id=proposal.id,
                 category=proposal.category.value,
-                detail="Applicator reported success but files_written is empty — treating as failure.",
+                detail="Applicator reported success but files_written is empty - treating as failure.",
             )
             code_result.success = False
             code_result.error = "Synthesis returned no files"
@@ -6863,7 +6863,7 @@ class SimulaService:
                             steps=len(dr_result.denoise_steps),
                             improvement=f"{dr_result.improvement_rate:.0%}",
                         )
-                        # Mark as success — diffusion repair saved the change
+                        # Mark as success - diffusion repair saved the change
                         code_result.success = True
                         code_result.files_written = dr_result.files_repaired
                         code_result.error = ""
@@ -6897,7 +6897,7 @@ class SimulaService:
 
             # Meta-healing: report rollback to Thymos so the immune system
             # knows a repair attempt failed and can escalate
-            # 10s timeout — a stuck sentinel must not block meta-healing
+            # 10s timeout - a stuck sentinel must not block meta-healing
             try:
                 await asyncio.wait_for(
                     self._sentinel.report(
@@ -6935,7 +6935,7 @@ class SimulaService:
                             )
                         )
                 except Exception:
-                    pass  # Best-effort — sentinel report above is primary
+                    pass  # Best-effort - sentinel report above is primary
 
             # RepairMemory: record failed application outcome (Task 2, 4)
             if self._repair_memory is not None:
@@ -7245,7 +7245,7 @@ class SimulaService:
                             restored_files=_actual,
                             detail=(
                                 "Some snapshot files could not be restored"
-                                " — system may be in inconsistent state."
+                                " - system may be in inconsistent state."
                             ),
                         )
                         with contextlib.suppress(Exception):
@@ -7274,7 +7274,7 @@ class SimulaService:
                         "rollback_restore_failed",
                         proposal_id=proposal.id,
                         error=str(_rb_exc),
-                        detail="Rollback raised an exception — system state is unknown.",
+                        detail="Rollback raised an exception - system state is unknown.",
                     )
                     with contextlib.suppress(Exception):
                         await self._sentinel.report(
@@ -7480,7 +7480,7 @@ class SimulaService:
             self._current_version += 1
 
         # ── Canary deployment plan for MODERATE-risk proposals ────────────────
-        # Spec ref: Section 7 — Temporal Simulation & Forward Modeling.
+        # Spec ref: Section 7 - Temporal Simulation & Forward Modeling.
         # MODERATE risk changes are applied immediately but a canary plan is
         # attached so the ProactiveScanner / Thymos can monitor at each ramp
         # step and trigger rollback if rollback_criteria are violated.
@@ -7498,7 +7498,7 @@ class SimulaService:
                 initial_pct=canary_plan.initial_traffic_percentage,
                 steps=len(canary_plan.increase_schedule),
             )
-            # Run canary ramp in background — does not block the pipeline return.
+            # Run canary ramp in background - does not block the pipeline return.
             asyncio.ensure_future(self._run_canary_ramp(canary_plan, proposal, log))
 
         # Stash PR info on proposal so _record_evolution can persist it to history
@@ -8151,7 +8151,7 @@ class SimulaService:
                 self._logger.error("version_write_failed", error=str(exc))
 
         # ── RE training: self_evolution signal (richest training example) ─────
-        # Emitted after every completed RECORD stage — applied and rolled-back.
+        # Emitted after every completed RECORD stage - applied and rolled-back.
         _evo_quality = 0.0 if rolled_back else min(
             1.0,
             0.6 + (record.constitutional_alignment or 0.0) * 0.2

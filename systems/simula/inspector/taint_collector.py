@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — Inspector Taint Collector Daemon
+EcodiaOS - Inspector Taint Collector Daemon
 
 Runs inside the privileged eBPF sidecar container. Loads BPF programs,
 correlates kernel-level data flow events into cross-service taint graphs,
@@ -10,13 +10,13 @@ This script is self-contained: it depends only on Python stdlib + bcc.
 It is volume-mounted into the sidecar, not installed via pip.
 
 HTTP API (default port 9471):
-  GET  /health                          — readiness probe
-  GET  /taint/flows                     — all observed taint flows
-  GET  /taint/flows?source_service=X    — flows from named service
-  POST /taint/inject                    — inject synthetic taint tag
-  GET  /taint/graph                     — full taint propagation graph
-  GET  /taint/connections               — connection map (who talks to whom)
-  GET  /taint/stats                     — collector operational stats
+  GET  /health                          - readiness probe
+  GET  /taint/flows                     - all observed taint flows
+  GET  /taint/flows?source_service=X    - flows from named service
+  POST /taint/inject                    - inject synthetic taint tag
+  GET  /taint/graph                     - full taint propagation graph
+  GET  /taint/connections               - connection map (who talks to whom)
+  GET  /taint/stats                     - collector operational stats
 
 Iron Rules:
   - All BPF programs are read-only (no kernel writes).
@@ -149,14 +149,14 @@ class PidServiceMapper:
         return result
 
     def resolve_service(self, pid: int) -> str:
-        """Convenience wrapper — returns just the service name."""
+        """Convenience wrapper - returns just the service name."""
         return self.resolve(pid)[0]
 
     def _resolve_uncached(self, pid: int) -> tuple[str, str]:
         """Attempt to resolve PID → container_id → service_name."""
         container_id = self._pid_to_container_id(pid)
         if not container_id:
-            # Not containerised — use process comm as the node label
+            # Not containerised - use process comm as the node label
             return (self._pid_to_comm(pid), "")
 
         if container_id in self._container_cache:
@@ -235,7 +235,7 @@ class BpfLoader:
     to load, the loader skips it and tracks which programs are active.
     """
 
-    # BPF C programs — imported from ebpf_programs.py at construction
+    # BPF C programs - imported from ebpf_programs.py at construction
     # but stored inline here for self-containment in the sidecar.
     # The actual programs are passed via constructor.
 
@@ -257,7 +257,7 @@ class BpfLoader:
             from bcc import BPF  # type: ignore[import-untyped]
             self._bcc_available = True
         except ImportError:
-            log.warning("bcc not available — running in degraded mode (no eBPF)")
+            log.warning("bcc not available - running in degraded mode (no eBPF)")
             for name in self._program_sources:
                 self._loaded[name] = False
                 self._errors[name] = "bcc not installed"
@@ -397,8 +397,8 @@ class TaintCorrelator:
         """Match send/write and recv events by payload hash within time window.
 
         Pairs matched:
-          flow 0 (tcp_sendmsg)  → flow 1 (tcp_recvmsg)  — kernel TCP send/recv
-          flow 6 (sys_exit_write) → flow 1 (tcp_recvmsg) — userspace write() to socket,
+          flow 0 (tcp_sendmsg)  → flow 1 (tcp_recvmsg)  - kernel TCP send/recv
+          flow 6 (sys_exit_write) → flow 1 (tcp_recvmsg) - userspace write() to socket,
               payload later received by a peer; lets us spot the taint token leaving a
               process (B) via write() and arriving at the destination (C).
         """
@@ -713,7 +713,7 @@ def _event_poll_loop(
     if loader._bpf is not None:
         try:
             def _handle_event(ctx: Any, data: Any, size: int) -> None:
-                """Ring buffer callback — parse ctypes struct into TaintEvent."""
+                """Ring buffer callback - parse ctypes struct into TaintEvent."""
                 try:
                     # Define ctypes struct matching the BPF taint_event
                     class _CtypesTaintEvent(ctypes.Structure):
@@ -801,7 +801,7 @@ def _get_bpf_programs() -> dict[str, str]:
         except (json.JSONDecodeError, OSError) as exc:
             log.warning("Failed to load BPF programs from %s: %s", companion, exc)
 
-    log.info("No companion BPF programs file — using built-in minimal set")
+    log.info("No companion BPF programs file - using built-in minimal set")
     return {}
 
 
@@ -828,7 +828,7 @@ def main() -> None:
     if loaded > 0:
         log.info("Loaded %d/%d BPF programs", loaded, len(programs))
     else:
-        log.warning("No BPF programs loaded — running in degraded mode")
+        log.warning("No BPF programs loaded - running in degraded mode")
 
     # Start event polling thread
     stop_event = threading.Event()
@@ -849,7 +849,7 @@ def main() -> None:
 
     # Signal handlers for graceful shutdown
     def _shutdown(signum: int, frame: Any) -> None:
-        log.info("Received signal %d — shutting down", signum)
+        log.info("Received signal %d - shutting down", signum)
         stop_event.set()
         server.shutdown()
 

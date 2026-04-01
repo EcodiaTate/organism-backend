@@ -1,6 +1,6 @@
 """
-EcodiaOS — Simula Subsystem Generator
-Speciation Bible §8.3 — Organizational Closure.
+EcodiaOS - Simula Subsystem Generator
+Speciation Bible §8.3 - Organizational Closure.
 
 Enables Simula to generate NEW subsystem modules (not just parameter patches).
 This is the constructive test of organizational closure: the organism can create
@@ -20,7 +20,7 @@ Iron Rules enforced:
   - Cannot generate code that imports cross-system (all comms via Synapse)
   - Generated code must implement initialize(), shutdown(), health()
   - Generated code must pass AST syntax check before being written to disk
-  - No auto-registration — registry.py wiring is manual for the next incarnation
+  - No auto-registration - registry.py wiring is manual for the next incarnation
 
 Generated subsystems are NOT auto-loaded. They live on disk for the next boot.
 """
@@ -59,7 +59,7 @@ _FORBIDDEN_IMPORT_PATTERNS: list[re.Pattern[str]] = [
 # Required method signatures that every EOS service must expose
 _REQUIRED_METHODS: tuple[str, ...] = ("initialize", "shutdown", "health")
 
-# Required Synapse subscription pattern — generated service must call subscribe()
+# Required Synapse subscription pattern - generated service must call subscribe()
 _SYNAPSE_SUBSCRIBE_PATTERN: re.Pattern[str] = re.compile(
     r"subscribe\s*\(", re.MULTILINE
 )
@@ -234,7 +234,7 @@ class SubsystemGenerator:
             loop = asyncio.get_running_loop()
             loop.create_task(_emit())
         except RuntimeError:
-            pass  # No running event loop — skip silently
+            pass  # No running event loop - skip silently
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -243,7 +243,7 @@ class SubsystemGenerator:
         Generate a new subsystem module from a specification.
 
         Returns a SubsystemGenerationResult describing success or failure.
-        Never raises — all errors are captured in result.validation_errors.
+        Never raises - all errors are captured in result.validation_errors.
         """
         log = self._log.bind(
             name=spec.name,
@@ -367,7 +367,7 @@ class SubsystemGenerator:
             purpose=spec.purpose,
             hypothesis_id=spec.trigger_hypothesis_id,
             file_paths=written_paths,
-            reason="Generated successfully — available on next incarnation",
+            reason="Generated successfully - available on next incarnation",
         )
         self._generated_subsystems.append(result)
 
@@ -420,7 +420,7 @@ class SubsystemGenerator:
                     system=(
                         "You are an expert EcodiaOS system architect. "
                         "Generate complete, production-ready Python code only. "
-                        "Output the raw Python module — no markdown fences, no explanation."
+                        "Output the raw Python module - no markdown fences, no explanation."
                     ),
                 ),
                 timeout=60.0,
@@ -449,7 +449,7 @@ class SubsystemGenerator:
             f"            # TODO: subscribe to {e}" for e in spec.required_events
         ) or "            pass"
         return f'''"""
-EcodiaOS — {class_name} System (auto-generated skeleton)
+EcodiaOS - {class_name} System (auto-generated skeleton)
 
 {spec.purpose}
 
@@ -537,7 +537,7 @@ class {class_name}Service:
 ## Additional constraints
 {constraints_text}
 
-## Architecture rules (MANDATORY — violations cause rejection)
+## Architecture rules (MANDATORY - violations cause rejection)
 1. NO cross-system imports. Do not import from `systems.*` directly.
    All inter-system communication via Synapse event bus only.
 2. Import types ONLY from `primitives.*` and `systems.synapse.types`.
@@ -563,7 +563,7 @@ class {class_name}Service:
 ## Skeleton (adapt, do not copy verbatim)
 ```python
 """
-EcodiaOS — {_to_class_name(spec.name)} System
+EcodiaOS - {_to_class_name(spec.name)} System
 
 {spec.purpose}
 
@@ -602,7 +602,7 @@ class {_to_class_name(spec.name)}Service:
         return {{"status": "healthy", "system": "{spec.name}"}}
 ```
 
-Generate the full implementation. Be complete — do not use placeholder comments.
+Generate the full implementation. Be complete - do not use placeholder comments.
 '''
 
     # ── Code validation ───────────────────────────────────────────────────────
@@ -686,7 +686,7 @@ Generate the full implementation. Be complete — do not use placeholder comment
                 )
             if fragment in purpose_lower and "modif" in purpose_lower:
                 errors.append(
-                    f"Subsystem purpose references modifying '{fragment}' — forbidden by Iron Rules."
+                    f"Subsystem purpose references modifying '{fragment}' - forbidden by Iron Rules."
                 )
 
         if not spec.name or not re.match(r"^[a-z][a-z0-9_]*$", spec.name):
@@ -729,7 +729,7 @@ Generate the full implementation. Be complete — do not use placeholder comment
             self._log.warning("subsystem_generated_emit_failed", error=str(exc))
 
         # Also emit NOVEL_ACTION_CREATED so Nova and Evo subscribers fire.
-        # A new subsystem is a novel organisational action — observers treat it
+        # A new subsystem is a novel organisational action - observers treat it
         # identically to a newly hot-loaded executor.
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType

@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma Interoceptor
+EcodiaOS - Soma Interoceptor
 
 Reads from all cognitive systems every theta cycle to compose the
-9-dimensional sensed interoceptive state. All reads are in-memory —
+9-dimensional sensed interoceptive state. All reads are in-memory -
 no database, no LLM, no network calls. Total sensing budget: 2ms.
 
 Each interoceptor maps a system reference to one dimension with a
@@ -48,7 +48,7 @@ class Interoceptor:
     """
 
     def __init__(self) -> None:
-        # System references — set during wiring
+        # System references - set during wiring
         self._atune: Any = None
         self._synapse: Any = None
         self._nova: Any = None
@@ -183,7 +183,7 @@ class Interoceptor:
         except Exception:
             pass
 
-        # AUTONOMY: Axon compute cost enrichment — high cost per action drains energy
+        # AUTONOMY: Axon compute cost enrichment - high cost per action drains energy
         compute_drain: float = 0.0
         try:
             if self._axon is not None and hasattr(self._axon, "executor_stats"):
@@ -256,11 +256,11 @@ class Interoceptor:
         except Exception:
             pass
 
-        # AUTONOMY: Fovea prediction error spread — narrow spread = confident
+        # AUTONOMY: Fovea prediction error spread - narrow spread = confident
         fovea_confidence: float | None = None
         try:
             if self._fovea is not None:
-                # Read cached error count — sync-safe, no async
+                # Read cached error count - sync-safe, no async
                 if hasattr(self._fovea, "cached_error_stats"):
                     stats = self._fovea.cached_error_stats
                     if stats is not None and isinstance(stats, dict):
@@ -273,7 +273,7 @@ class Interoceptor:
         except Exception:
             pass
 
-        # AUTONOMY: Evo learning velocity — fast learning = confident
+        # AUTONOMY: Evo learning velocity - fast learning = confident
         evo_boost: float = 0.0
         try:
             if self._evo is not None and hasattr(self._evo, "hypothesis_success_rate"):
@@ -302,7 +302,7 @@ class Interoceptor:
 
         Augmented with:
         - Telos alignment_gap (Loop 6, 20% weight)
-        - Logos compression quality (AUTONOMY, 10% weight) — high compression
+        - Logos compression quality (AUTONOMY, 10% weight) - high compression
           fidelity = internal consistency
 
         The organism feels coherent when: systems are integrated (phi), drives
@@ -338,7 +338,7 @@ class Interoceptor:
         except Exception:
             pass
 
-        # AUTONOMY: Logos compression quality — clean compression = coherent knowledge
+        # AUTONOMY: Logos compression quality - clean compression = coherent knowledge
         logos_coherence: float | None = None
         try:
             if self._logos is not None:
@@ -442,7 +442,7 @@ class Interoceptor:
         except Exception:
             pass
 
-        # AUTONOMY: Simula repair effectiveness — failed repairs = structural concern
+        # AUTONOMY: Simula repair effectiveness - failed repairs = structural concern
         simula_integrity: float = 1.0
         try:
             if self._simula is not None:
@@ -466,7 +466,7 @@ class Interoceptor:
         + external_stress * 0.3, clamped 0-1.
 
         The external_stress component is injected by ExternalVolatilitySensor
-        and represents cross-modal synesthesia — market / codebase volatility
+        and represents cross-modal synesthesia - market / codebase volatility
         translated into felt time pressure.
         """
         goal_urgency = 0.0

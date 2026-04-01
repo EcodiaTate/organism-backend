@@ -1,5 +1,5 @@
 """
-EcodiaOS — Metabolic Gate Primitives
+EcodiaOS - Metabolic Gate Primitives
 
 Standard interface for systems to check metabolic permission before
 expensive operations. Systems that consume significant resources
@@ -17,7 +17,7 @@ from pydantic import Field
 from primitives.common import EOSBaseModel, SystemID
 
 
-# Import Oikos types — these are the authoritative definitions
+# Import Oikos types - these are the authoritative definitions
 from systems.oikos.models import MetabolicPriority, StarvationLevel
 
 

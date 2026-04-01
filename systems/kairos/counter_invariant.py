@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Phase D: Counter-Invariant Detection
+EcodiaOS - Kairos Phase D: Counter-Invariant Detection
 
 Actively searches for violations of accepted invariants.
 
@@ -11,7 +11,7 @@ For each invariant:
    with this feature)
 5. Check if distinguishing feature is a significant modulator (not noise)
 
-Refined invariants are more precise, not weaker — knowing the boundary
+Refined invariants are more precise, not weaker - knowing the boundary
 condition is itself knowledge.
 """
 
@@ -38,7 +38,7 @@ class CounterInvariantDetector:
     """
     Phase D: Actively searches for violations of accepted invariants.
 
-    Finding a boundary condition is knowledge — a refined invariant is
+    Finding a boundary condition is knowledge - a refined invariant is
     more precise, not weaker. The invariant "X causes Y everywhere except
     when Z > threshold" is strictly more informative than "X causes Y".
     """
@@ -97,7 +97,7 @@ class CounterInvariantDetector:
                 continue
 
             # Use the stored causal direction to determine expected sign.
-            # direction="" means unknown — fall back to positive assumption.
+            # direction="" means unknown - fall back to positive assumption.
             expected_positive = invariant.direction != "negative"
             is_violation = False
             if expected_positive and r < -0.1:

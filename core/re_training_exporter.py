@@ -1,14 +1,14 @@
 """
-EcodiaOS — RE Training Data Exporter
+EcodiaOS - RE Training Data Exporter
 
 Collects RE_TRAINING_EXAMPLE events from the Synapse bus, assembles them
 into hourly RETrainingExportBatch objects, and ships them to:
-  1. S3 / local filesystem — JSON lines for the offline CLoRA fine-tuning pipeline
-  2. Neo4j — (:RETrainingBatch) nodes with [:CONTAINS]→(:RETrainingDatapoint) edges
+  1. S3 / local filesystem - JSON lines for the offline CLoRA fine-tuning pipeline
+  2. Neo4j - (:RETrainingBatch) nodes with [:CONTAINS]→(:RETrainingDatapoint) edges
               for audit lineage and Benchmarks tracking
 
 The exporter runs as a supervised background task started in Phase 11 of
-registry.py.  It is intentionally decoupled from every cognitive system —
+registry.py.  It is intentionally decoupled from every cognitive system -
 it only reads from the event bus ring buffer + subscribes to
 RE_TRAINING_EXAMPLE events.  No direct imports from any system module.
 
@@ -31,7 +31,7 @@ PERMITTED training data sources (internal organism execution only):
   - Any other internal EOS cognitive system
 
 FORBIDDEN training data sources (must NEVER feed into RE training):
-  - X (Twitter) API data — posts, replies, timelines, search results
+  - X (Twitter) API data - posts, replies, timelines, search results
     (X Developer Agreement §5 prohibits use of X Content for model training)
   - Any other third-party platform content (LinkedIn, Reddit, etc.)
   - Web-scraped external content (Brave/SerpAPI results)
@@ -58,7 +58,7 @@ import structlog
 from primitives.re_training import RETrainingDatapoint, RETrainingExportBatch
 from primitives.common import new_id
 
-# Deferred import — only resolved at export time to avoid circular deps at module load
+# Deferred import - only resolved at export time to avoid circular deps at module load
 def _get_scaffold_validator():  # type: ignore[return]
     try:
         from systems.reasoning_engine.scaffold_formatter import validate
@@ -105,12 +105,12 @@ def _datapoint_from_event(event: SynapseEvent) -> RETrainingDatapoint | None:
     Convert a raw RE_TRAINING_EXAMPLE SynapseEvent into a RETrainingDatapoint.
 
     Returns None if the payload is malformed, missing required fields, or fails
-    validation checks. The conversion is best-effort — never raises.
+    validation checks. The conversion is best-effort - never raises.
 
     Validation rules:
     - instruction must be a non-empty string with at least _MIN_INSTRUCTION_LEN chars
     - output must be a non-empty string with at least _MIN_OUTPUT_LEN chars
-    - outcome_quality must be in [0.0, 1.0] (clamped — not rejected on range)
+    - outcome_quality must be in [0.0, 1.0] (clamped - not rejected on range)
     - source_system must not be empty
     """
     try:
@@ -139,7 +139,7 @@ def _datapoint_from_event(event: SynapseEvent) -> RETrainingDatapoint | None:
             quality = float(quality_raw)
         except (TypeError, ValueError):
             quality = 0.0
-        # Clamp to valid range — don't reject, just fix
+        # Clamp to valid range - don't reject, just fix
         quality = min(max(quality, 0.0), 1.0)
 
         source_system = str(data.get("source_system", event.source_system)).strip()
@@ -191,7 +191,7 @@ class RETrainingExporter:
         self._redis = redis
         # In-memory accumulator for the current window
         self._pending: list[RETrainingDatapoint] = []
-        # Dedup: (source_system, episode_id) — episode_id="" means no dedup
+        # Dedup: (source_system, episode_id) - episode_id="" means no dedup
         self._seen_episode_ids: set[str] = set()
         # Index for O(1) retroactive quality corrections: episode_id → datapoint
         self._episode_index: dict[str, RETrainingDatapoint] = {}
@@ -227,7 +227,7 @@ class RETrainingExporter:
         # Hypothesis lifecycle → RE training examples
         # EVO_HYPOTHESIS_CONFIRMED/REFUTED are high-signal training datapoints:
         # they represent Evo's adjudicated view of a hypothesis after real-world
-        # testing — exactly the kind of reasoning quality signal the RE should learn.
+        # testing - exactly the kind of reasoning quality signal the RE should learn.
         if hasattr(SynapseEventType, "EVO_HYPOTHESIS_CONFIRMED"):
             self._event_bus.subscribe(
                 SynapseEventType.EVO_HYPOTHESIS_CONFIRMED,
@@ -242,12 +242,12 @@ class RETrainingExporter:
         logger.info("re_training_exporter_attached")
 
     def detach(self) -> None:
-        """Unsubscribe (best-effort — EventBus may not support unsubscribe)."""
+        """Unsubscribe (best-effort - EventBus may not support unsubscribe)."""
         self._attached = False
         logger.info("re_training_exporter_detached")
 
     async def _on_re_training_example(self, event: SynapseEvent) -> None:
-        """Hot-path handler — called by EventBus on every RE_TRAINING_EXAMPLE event."""
+        """Hot-path handler - called by EventBus on every RE_TRAINING_EXAMPLE event."""
         dp = _datapoint_from_event(event)
         if dp is None:
             return
@@ -305,7 +305,7 @@ class RETrainingExporter:
         prioritises the reasoning traces that led to revenue or failure.
 
         Boost table (mirrors StarvationLevel thresholds in oikos/models.py):
-          CRITICAL / EMERGENCY → 2.0× (urgent — organism near death)
+          CRITICAL / EMERGENCY → 2.0× (urgent - organism near death)
           AUSTERITY            → 1.5× (significant pressure)
           NOMINAL / CAUTIOUS   → 1.0× (no boost)
         """
@@ -338,7 +338,7 @@ class RETrainingExporter:
         real evidence across ≥10 episodes with evidence_score ≥ 3.0. This is
         exactly the kind of slow, careful reasoning chain the RE should internalize.
 
-        outcome_quality = 1.0 (success — the hypothesis was correct)
+        outcome_quality = 1.0 (success - the hypothesis was correct)
         """
         try:
             data = getattr(event, "data", {}) or {}
@@ -362,7 +362,7 @@ class RETrainingExporter:
                 f"1. HYPOTHESIS: {statement[:300]}\n"
                 f"2. EVIDENCE: evidence_score={evidence_score:.2f}, supporting_count={supporting}\n"
                 f"3. CONFIDENCE: {confidence:.2f} after real-world episode accumulation\n"
-                f"4. VERDICT: CONFIRMED — hypothesis passed empirical testing"
+                f"4. VERDICT: CONFIRMED - hypothesis passed empirical testing"
             )
 
             dp = RETrainingDatapoint(
@@ -381,7 +381,7 @@ class RETrainingExporter:
                 ],
                 episode_id=hypothesis_id,
             )
-            # Dedup — hypothesis_id is stable; don't double-count multiple CONFIRMED events
+            # Dedup - hypothesis_id is stable; don't double-count multiple CONFIRMED events
             if hypothesis_id:
                 dedup_key = f"evo_confirmed:{hypothesis_id}"
                 if dedup_key in self._seen_episode_ids:
@@ -400,7 +400,7 @@ class RETrainingExporter:
         Training the RE to recognise refuted reasoning patterns prevents the
         organism from repeatedly proposing the same failed hypotheses.
 
-        outcome_quality = 0.0 (failure — the hypothesis was wrong)
+        outcome_quality = 0.0 (failure - the hypothesis was wrong)
         """
         try:
             data = getattr(event, "data", {}) or {}
@@ -423,7 +423,7 @@ class RETrainingExporter:
                 f"1. HYPOTHESIS: {statement[:300]}\n"
                 f"2. COUNTER-EVIDENCE: {contradictions} contradicting episodes, evidence_score={evidence_score:.2f}\n"
                 f"3. REFUTATION REASON: {refutation_reason[:200]}\n"
-                f"4. VERDICT: REFUTED — hypothesis failed empirical testing"
+                f"4. VERDICT: REFUTED - hypothesis failed empirical testing"
             )
 
             dp = RETrainingDatapoint(
@@ -545,10 +545,10 @@ class RETrainingExporter:
         """
         Classify a datapoint into a quality tier.
 
-        gold   — scaffold-compliant, rich trace, has alternatives or counterfactual,
+        gold   - scaffold-compliant, rich trace, has alternatives or counterfactual,
                  high confidence
-        silver — scaffold-compliant OR moderate richness
-        bronze — minimal data or scaffold-non-compliant
+        silver - scaffold-compliant OR moderate richness
+        bronze - minimal data or scaffold-non-compliant
         """
         has_trace = len(dp.reasoning_trace) > 100
         has_alternatives = len(dp.alternatives_considered) >= 2
@@ -641,7 +641,7 @@ class RETrainingExporter:
                             break
 
                 if len(matched_indices) == len(pattern_steps):
-                    # Strategy detected — annotate the matched datapoints
+                    # Strategy detected - annotate the matched datapoints
                     matched_dps = [window[i] for i in matched_indices]
                     t_start = _ts_seconds(matched_dps[0])
                     t_end = _ts_seconds(matched_dps[-1])
@@ -653,7 +653,7 @@ class RETrainingExporter:
                         dp.strategy_step_number = step_num
                         dp.strategy_total_steps = len(matched_dps)
                         dp.strategy_duration_hours = round(duration_hours, 2)
-                        # 1.3× priority boost — surface in curriculum
+                        # 1.3× priority boost - surface in curriculum
                         dp.task_difficulty = min(1.0, dp.task_difficulty * 1.3)
 
                     logger.info(
@@ -687,7 +687,7 @@ class RETrainingExporter:
             dp.quality_tier = self._assign_quality_tier(dp, scaffold_valid)
 
         # Apply metabolic boost: during starvation, economic examples are
-        # the most urgent curriculum content — surface them by boosting confidence
+        # the most urgent curriculum content - surface them by boosting confidence
         # (which acts as a priority proxy for curriculum building).
         if self._metabolic_boost > 1.0:
             _economic_keywords = ("economic", "oikos", "yield", "bounty", "asset", "spawn")
@@ -781,7 +781,7 @@ class RETrainingExporter:
     async def sync_to_memory(self, batch: RETrainingExportBatch) -> None:
         """
         Write batch lineage to Neo4j as (:RETrainingBatch) + (:RETrainingDatapoint)
-        nodes.  Non-fatal — failures are logged and swallowed.
+        nodes.  Non-fatal - failures are logged and swallowed.
         """
         if self._neo4j is None or not batch.datapoints:
             return

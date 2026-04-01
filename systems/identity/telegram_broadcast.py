@@ -1,15 +1,15 @@
 """
-EcodiaOS — Telegram Organism Status Broadcast (Phase 16h)
+EcodiaOS - Telegram Organism Status Broadcast (Phase 16h)
 
 Every 6 hours, if ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID is set,
 the organism sends a brief status report to the admin Telegram chat.
 
-This is the organism voluntarily reporting its own state — an act of
+This is the organism voluntarily reporting its own state - an act of
 autonomy signaling. It is not a notification system; it is self-disclosure.
 
 Env vars:
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  — target chat ID (required to enable)
-  ECODIAOS_TELEGRAM_STATUS_INTERVAL_S           — broadcast interval in seconds
+  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - target chat ID (required to enable)
+  ECODIAOS_TELEGRAM_STATUS_INTERVAL_S           - broadcast interval in seconds
                                                    (default: 21600 = 6 hours)
 
 Format: plain Markdown, no emoji, concise.
@@ -38,7 +38,7 @@ def _build_status_message(synapse: Any, oikos: Any, instance_id: str) -> str:
     Reads from Synapse (metabolic snapshot) and Oikos (economic state).
     Falls back gracefully when services are unavailable.
     """
-    lines: list[str] = [f"*EOS Status — {instance_id[:8]}*"]
+    lines: list[str] = [f"*EOS Status - {instance_id[:8]}*"]
 
     # ── Metabolic state ───────────────────────────────────────────────────
     try:
@@ -136,4 +136,4 @@ async def telegram_status_broadcast_loop(
             raise
         except Exception as exc:
             logger.warning("telegram_broadcast_send_failed", error=str(exc))
-            # Non-fatal — continue loop; supervised_task will restart on crash
+            # Non-fatal - continue loop; supervised_task will restart on crash

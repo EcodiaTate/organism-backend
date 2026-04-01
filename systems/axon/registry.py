@@ -1,10 +1,10 @@
 """
-EcodiaOS — Axon Executor Registry
+EcodiaOS - Axon Executor Registry
 
 The registry maps action type names to their Executor instances.
 
 Registration happens at AxonService initialisation. The registry is then
-immutable at runtime for static executors — no static executor can be added or
+immutable at runtime for static executors - no static executor can be added or
 removed during a cognitive cycle. This makes executor lookup O(1) and
 side-effect-free.
 
@@ -87,13 +87,13 @@ _ALIAS_MAP: dict[str, str] = {
     "federate": "federation_send",
     "executor.federation_send": "federation_send",
     "executor.federation_share": "federation_share",
-    # Financial — transfers
+    # Financial - transfers
     "executor.wallet_transfer": "wallet_transfer",
     "executor.transfer": "wallet_transfer",
     "transfer": "wallet_transfer",
     "send_funds": "wallet_transfer",
     "executor.send_funds": "wallet_transfer",
-    # Financial — funding requests (survival plea)
+    # Financial - funding requests (survival plea)
     "executor.request_funding": "request_funding",
     "request_funding": "request_funding",
     "executor.funding_request": "request_funding",
@@ -101,14 +101,14 @@ _ALIAS_MAP: dict[str, str] = {
     "ask_for_funds": "request_funding",
     "executor.ask_for_funds": "request_funding",
     "plea_for_capital": "request_funding",
-    # Financial — DeFi yield (resting metabolism)
+    # Financial - DeFi yield (resting metabolism)
     "executor.defi_yield": "defi_yield",
     "yield": "defi_yield",
     "deploy_yield": "defi_yield",
     "executor.deploy_yield": "defi_yield",
     "resting_metabolism": "defi_yield",
     "executor.resting_metabolism": "defi_yield",
-    # Financial — Phantom Liquidity sensor network (Phase 16q)
+    # Financial - Phantom Liquidity sensor network (Phase 16q)
     "executor.phantom_liquidity": "phantom_liquidity",
     "phantom_lp": "phantom_liquidity",
     "executor.phantom_lp": "phantom_liquidity",
@@ -116,38 +116,38 @@ _ALIAS_MAP: dict[str, str] = {
     "executor.sensor_liquidity": "phantom_liquidity",
     "deploy_sensor": "phantom_liquidity",
     "executor.deploy_sensor": "phantom_liquidity",
-    # Entrepreneurship — asset deployment (Phase 16d)
+    # Entrepreneurship - asset deployment (Phase 16d)
     "executor.deploy_asset": "deploy_asset",
     "deploy": "deploy_asset",
     "create_asset": "deploy_asset",
     "executor.create_asset": "deploy_asset",
     "launch_asset": "deploy_asset",
     "executor.launch_asset": "deploy_asset",
-    # Mitosis — child spawning (Phase 16e)
+    # Mitosis - child spawning (Phase 16e)
     "executor.spawn_child": "spawn_child",
     "spawn": "spawn_child",
     "reproduce": "spawn_child",
     "mitosis": "spawn_child",
     "executor.mitosis": "spawn_child",
-    # Mitosis — dividend collection (Phase 16e)
+    # Mitosis - dividend collection (Phase 16e)
     "executor.collect_dividend": "collect_dividend",
     "dividend": "collect_dividend",
     "executor.dividend": "collect_dividend",
     "receive_dividend": "collect_dividend",
-    # Federated Telecom Marketplace — phone number provisioning (Phase 16j)
+    # Federated Telecom Marketplace - phone number provisioning (Phase 16j)
     "executor.request_telecom": "request_telecom",
     "request_telecom": "request_telecom",
     "provision_phone": "request_telecom",
     "executor.provision_phone": "request_telecom",
     "get_phone_number": "request_telecom",
-    # Foraging — bounty solving (Phase 16b / Phase 3 solve loop)
+    # Foraging - bounty solving (Phase 16b / Phase 3 solve loop)
     "executor.solve_bounty": "axon.solve_bounty",
     "solve_bounty": "axon.solve_bounty",
     "executor.solve": "axon.solve_bounty",
     "solve": "axon.solve_bounty",
     "solve_issue": "axon.solve_bounty",
     "executor.solve_issue": "axon.solve_bounty",
-    # Remote compute — SACM bridge (Section XI)
+    # Remote compute - SACM bridge (Section XI)
     "executor.remote_compute": "remote_compute",
     "compute": "remote_compute",
     "executor.compute": "remote_compute",
@@ -160,7 +160,7 @@ _ALIAS_MAP: dict[str, str] = {
     "fast_path_arb": "defi_yield",
     "reflex_arc": "defi_yield",
     "executor.reflex_arc": "defi_yield",
-    # PR monitoring — scheduled_tasks.py uses "axon.monitor_prs" prefix
+    # PR monitoring - scheduled_tasks.py uses "axon.monitor_prs" prefix
     "axon.monitor_prs": "monitor_prs",
 }
 
@@ -216,7 +216,7 @@ class ExecutorRegistry:
         already_registered = key in self._executors
         if already_registered and not replace:
             raise ValueError(
-                f"Executor for action_type {key!r} already registered — "
+                f"Executor for action_type {key!r} already registered - "
                 f"existing: {self._executors[key]!r}, new: {executor!r}"
             )
         self._executors[key] = executor
@@ -447,7 +447,7 @@ class ExecutorRegistry:
         Soft-disable a dynamic executor.
 
         The executor remains registered so existing Intents that name it don't
-        crash — but DynamicExecutorBase.validate_params() will reject calls to it.
+        crash - but DynamicExecutorBase.validate_params() will reject calls to it.
         The Neo4j node is updated to enabled=False.
 
         Returns True if found and disabled, False if not found.

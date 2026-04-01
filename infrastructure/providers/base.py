@@ -1,5 +1,5 @@
 """
-EcodiaOS — Compute Provider Interface
+EcodiaOS - Compute Provider Interface
 
 Defines the ProviderManager ABC and shared pricing primitives.
 
@@ -85,7 +85,7 @@ class ProviderManager(ABC):
         """
         Fetch a real-time price quote for the EOS reference workload.
 
-        Must not raise — return a quote with status=UNREACHABLE on failure.
+        Must not raise - return a quote with status=UNREACHABLE on failure.
         """
         ...
 

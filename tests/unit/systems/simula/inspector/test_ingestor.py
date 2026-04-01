@@ -177,10 +177,10 @@ def public_handler():
     async def test_handles_syntax_error_gracefully(self, tmp_path: Path):
         _write_file(tmp_path, "broken.py", '''\
 def foo(
-    # Missing closing paren and colon — SyntaxError
+    # Missing closing paren and colon - SyntaxError
 ''')
         ingestor = _make_ingestor(tmp_path)
-        # Should not raise — returns empty list for this file
+        # Should not raise - returns empty list for this file
         await ingestor.map_attack_surfaces()
         # No crash is the test
 

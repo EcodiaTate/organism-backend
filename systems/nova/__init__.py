@@ -1,4 +1,4 @@
-"""EcodiaOS — Nova: Decision & Planning System (Phase 5)."""
+"""EcodiaOS - Nova: Decision & Planning System (Phase 5)."""
 
 from systems.nova.service import NovaService
 from systems.nova.types import (

@@ -1,7 +1,7 @@
 """
-EcodiaOS — Cognitive Niches: Isolated Hypothesis Ecosystems
+EcodiaOS - Cognitive Niches: Isolated Hypothesis Ecosystems
 
-A CognitiveNiche is a self-contained worldview module — a cluster of
+A CognitiveNiche is a self-contained worldview module - a cluster of
 hypotheses, schemas, and procedures that has diverged enough from the
 general population to warrant its own fitness landscape, evidence
 thresholds, and processing strategy.
@@ -34,7 +34,7 @@ Integration:
 from __future__ import annotations
 
 import statistics
-from datetime import datetime  # noqa: TC003 — Pydantic needs at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs at runtime
 from typing import Any
 
 import structlog
@@ -190,7 +190,7 @@ class NicheRegistry:
         self._barriers: dict[str, ReproductiveBarrier] = {}  # "a::b" → barrier
         self._hypothesis_to_niche: dict[str, str] = {}  # hyp_id → niche_id
         self._logger = logger.bind(system="evo.cognitive_niche")
-        # Cached starvation level from Oikos — updated via set_starvation_level().
+        # Cached starvation level from Oikos - updated via set_starvation_level().
         # Niche expansion is blocked when the organism is starving or critical
         # (GROWTH gate semantics: creating new isolated cognitive ecosystems
         # costs ongoing metabolic budget beyond the immediate cycle).
@@ -459,7 +459,7 @@ class NicheRegistry:
 
     def compute_maturity(self, niche_id: str) -> float:
         """
-        Compute niche maturity score — determines fork eligibility.
+        Compute niche maturity score - determines fork eligibility.
 
         maturity = coherence × isolation × metabolic_efficiency × age_factor
         """

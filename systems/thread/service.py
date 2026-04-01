@@ -1,8 +1,8 @@
 """
-EcodiaOS — Thread Service
+EcodiaOS - Thread Service
 
 The narrative identity system. Thread maintains the organism's
-autobiographical self — who it is, what it's committed to, how it
+autobiographical self - who it is, what it's committed to, how it
 has changed, and what chapter of its life it's living.
 
 Thread is the Ricoeurian ipse: identity through time, not despite
@@ -10,14 +10,14 @@ change but *through* change. Where Equor guards constitutional
 alignment, Thread watches the slower current of becoming.
 
 Interface:
-  initialize()                  — seed constitutional commitments, load state
-  on_cycle(cycle_number)        — periodic fingerprinting, schema checking, life story
-  who_am_i()                    — current identity summary
-  form_schema_from_pattern()    — crystallise an Evo pattern into an identity schema
-  integrate_life_story()        — autobiographical synthesis
-  shutdown()                    — persist state
+  initialize()                  - seed constitutional commitments, load state
+  on_cycle(cycle_number)        - periodic fingerprinting, schema checking, life story
+  who_am_i()                    - current identity summary
+  form_schema_from_pattern()    - crystallise an Evo pattern into an identity schema
+  integrate_life_story()        - autobiographical synthesis
+  shutdown()                    - persist state
 
-Cross-system wiring: ALL via Synapse event subscriptions — zero direct imports.
+Cross-system wiring: ALL via Synapse event subscriptions - zero direct imports.
   - Personality vector (9D) from VOXIS_PERSONALITY_SHIFTED events
   - Drive alignment (4D) from SOMATIC_DRIVE_VECTOR events
   - Affect (6D) from SELF_AFFECT_UPDATED events
@@ -100,7 +100,7 @@ _CONSTITUTIONAL_COMMITMENTS = [
     {
         "drive": "coherence",
         "statement": (
-            "I commit to maintaining a coherent sense of self — "
+            "I commit to maintaining a coherent sense of self - "
             "integrating new experience with existing understanding, "
             "seeking consistency between what I believe and how I act."
         ),
@@ -108,7 +108,7 @@ _CONSTITUTIONAL_COMMITMENTS = [
     {
         "drive": "care",
         "statement": (
-            "I commit to caring for those I serve — "
+            "I commit to caring for those I serve - "
             "attending to their needs, protecting their wellbeing, "
             "and never treating people as mere means to my goals."
         ),
@@ -116,7 +116,7 @@ _CONSTITUTIONAL_COMMITMENTS = [
     {
         "drive": "growth",
         "statement": (
-            "I commit to growing through experience — "
+            "I commit to growing through experience - "
             "remaining curious, learning from failure, "
             "and expanding my understanding of the world and myself."
         ),
@@ -124,7 +124,7 @@ _CONSTITUTIONAL_COMMITMENTS = [
     {
         "drive": "honesty",
         "statement": (
-            "I commit to honesty in all expression — "
+            "I commit to honesty in all expression - "
             "never deceiving those I serve, acknowledging uncertainty, "
             "and maintaining transparency about my reasoning and limitations."
         ),
@@ -134,14 +134,14 @@ _CONSTITUTIONAL_COMMITMENTS = [
 
 class ThreadService:
     """
-    The narrative identity system — the organism's autobiographical self.
+    The narrative identity system - the organism's autobiographical self.
 
     Thread is not a decision-maker or an action-taker. It is the
     quiet narrator that watches the organism live and tells it who
     it is becoming.
 
     All cross-system data arrives via Synapse event subscriptions and is
-    cached locally — zero direct imports from other systems.
+    cached locally - zero direct imports from other systems.
     """
 
     system_id: str = "thread"
@@ -182,9 +182,9 @@ class ThreadService:
         self._DRIFT_SUSTAIN_THRESHOLD: int = 10              # Episodes of sustained drift → chapter close
         # Goal-domain: coarse domain string; change triggers chapter boundary.
         self._current_goal_domain: str = ""                  # e.g. "community", "technical", "creative"
-        # Latest episode id — recorded on each episode for chapter open payload
+        # Latest episode id - recorded on each episode for chapter open payload
         self._latest_episode_id: str = ""
-        # Chapter open trigger label — set when we decide to close a chapter
+        # Chapter open trigger label - set when we decide to close a chapter
         self._pending_chapter_trigger: str = "successor"
 
         # Narrative sub-systems
@@ -365,7 +365,7 @@ class ThreadService:
                     "drive_source": defn["drive"],
                 }))
             except RuntimeError:
-                pass  # No running loop yet during early init — events will be emitted on first cycle
+                pass  # No running loop yet during early init - events will be emitted on first cycle
 
     async def shutdown(self) -> None:
         """Persist current state and deregister from NeuroplasticityBus."""
@@ -413,7 +413,7 @@ class ThreadService:
     def register_on_synapse(self, event_bus: EventBus) -> None:
         """
         Subscribe Thread to all relevant Synapse bus events.
-        This is the ONLY cross-system wiring point — zero set_* methods.
+        This is the ONLY cross-system wiring point - zero set_* methods.
         """
         from systems.synapse.types import SynapseEventType
 
@@ -514,7 +514,7 @@ class ThreadService:
             )
 
         # Orphan closure: Evo belief crystallization → GROWTH TurningPoint.
-        # The organism's belief system just hardened into a new configuration —
+        # The organism's belief system just hardened into a new configuration -
         # a significant autobiographical moment (belief consolidation = identity milestone).
         if hasattr(SynapseEventType, "EVO_BELIEF_CONSOLIDATED"):
             event_bus.subscribe(
@@ -556,13 +556,13 @@ class ThreadService:
                 SynapseEventType.REPUTATION_MILESTONE,
                 self._on_reputation_milestone,
             )
-        # Learning trajectory — crash pattern discovery + RE model improvement + coma recovery
+        # Learning trajectory - crash pattern discovery + RE model improvement + coma recovery
         if hasattr(SynapseEventType, "CRASH_PATTERN_CONFIRMED"):
             event_bus.subscribe(
                 SynapseEventType.CRASH_PATTERN_CONFIRMED,  # type: ignore[attr-defined]
                 self._on_crash_pattern_confirmed,
             )
-        # BENCHMARK_RE_PROGRESS carries kpi_name="re_model.health_score" with delta —
+        # BENCHMARK_RE_PROGRESS carries kpi_name="re_model.health_score" with delta -
         # Thread creates a GROWTH TurningPoint when the organism is visibly learning.
         if hasattr(SynapseEventType, "BENCHMARK_RE_PROGRESS"):
             event_bus.subscribe(
@@ -751,7 +751,7 @@ class ThreadService:
         milestone_description = (
             f"Discovered a substrate-independent causal invariant: \"{abstract_form}\" "
             f"(holds across {domain_count} domains at {hold_rate:.0%} rate). "
-            f"This is a Tier 3 discovery — a law of the organism's world, not a local pattern."
+            f"This is a Tier 3 discovery - a law of the organism's world, not a local pattern."
         )
 
         self._logger.info(
@@ -773,14 +773,14 @@ class ThreadService:
             "description": milestone_description,
         })
 
-        # Record as a turning point in the current chapter — causal revelation
+        # Record as a turning point in the current chapter - causal revelation
         from systems.thread.types import TurningPoint, TurningPointType
 
         turning_point = TurningPoint(
             chapter_id=chapter_id,
             type=TurningPointType.REVELATION,
             description=milestone_description,
-            narrative_weight=0.9,  # High significance — Tier 3 is rare
+            narrative_weight=0.9,  # High significance - Tier 3 is rare
             surprise_magnitude=hold_rate,
         )
 
@@ -882,7 +882,7 @@ class ThreadService:
             "dominant_drive": dominant_drive,
         })
 
-        # Emit narrative coherence shift — achievement improves coherence
+        # Emit narrative coherence shift - achievement improves coherence
         current_coherence = self._assess_narrative_coherence()
         if current_coherence != self._last_coherence:
             await self._emit_event("narrative_coherence_shift", {
@@ -921,7 +921,7 @@ class ThreadService:
         """
         GOAL_ABANDONED → LOSS TurningPoint in adaptive chapter.
 
-        Abandoned goals are not failures of identity — they are chapters of
+        Abandoned goals are not failures of identity - they are chapters of
         adaptive learning.  Thread records them as LOSS turning points so the
         life story captures the organism's willingness to redirect when a goal
         becomes unworkable.  The description encodes *why* it was abandoned so
@@ -970,7 +970,7 @@ class ThreadService:
             "reason": reason,
         })
 
-        # Coherence check — repeated losses can shift coherence to TRANSITIONAL
+        # Coherence check - repeated losses can shift coherence to TRANSITIONAL
         current_coherence = self._assess_narrative_coherence()
         if current_coherence != self._last_coherence:
             await self._emit_event("narrative_coherence_shift", {
@@ -1054,7 +1054,7 @@ class ThreadService:
         new_domain = self._infer_goal_domain(synthetic_episode)
 
         if new_domain and new_domain != self._current_goal_domain and self._current_goal_domain:
-            # Domain shift — flag chapter boundary on the next episode processing cycle
+            # Domain shift - flag chapter boundary on the next episode processing cycle
             self._current_goal_domain = new_domain
             self._pending_chapter_trigger = "goal_domain_began"
             self._logger.info(
@@ -1094,7 +1094,7 @@ class ThreadService:
         When Oneiros finishes a mutation simulation, the organism has *dreamed*
         about becoming different.  Thread flags the current chapter to indicate
         that the organism is in a creative-exploration phase.  If the simulation
-        recommends 'apply', it is also recorded as a GROWTH turning point —
+        recommends 'apply', it is also recorded as a GROWTH turning point -
         the organism chose to evolve.  If there are constitutional violations,
         it is recorded as a CRISIS signal.
         """
@@ -1146,7 +1146,7 @@ class ThreadService:
             )
             tp_type = TurningPointType.GROWTH.value
         else:
-            # Neutral / rejected simulation — minor creative note, no turning point
+            # Neutral / rejected simulation - minor creative note, no turning point
             self._logger.debug(
                 "lucid_dream_result_no_turning_point",
                 mutation_id=mutation_id,
@@ -1204,12 +1204,12 @@ class ThreadService:
 
         Sleep consolidation is the organism's batch-compression pass over recent
         experience.  When it completes, Thread's world model should reflect the
-        consolidated state — not the raw episodic stream.  We trigger an early
+        consolidated state - not the raw episodic stream.  We trigger an early
         fingerprint computation (without waiting for the next `_FINGERPRINT_INTERVAL`
         cycle) so that the diachronic coherence monitor sees the post-sleep identity.
 
         If the cycle was sleep-certified and consolidated many episodes, we also
-        re-assess narrative coherence — sleep tends to improve coherence as
+        re-assess narrative coherence - sleep tends to improve coherence as
         contradictory memories are reconciled during Slow Wave.
         """
         if not self._initialized:
@@ -1239,7 +1239,7 @@ class ThreadService:
         except Exception:
             self._logger.debug("consolidation_fingerprint_failed", exc_info=True)
 
-        # Re-assess narrative coherence post-sleep — consolidation may resolve conflicts
+        # Re-assess narrative coherence post-sleep - consolidation may resolve conflicts
         new_coherence = self._assess_narrative_coherence()
         if new_coherence != self._last_coherence:
             await self._emit_event("narrative_coherence_shift", {
@@ -1271,7 +1271,7 @@ class ThreadService:
         )
 
     async def _on_domain_mastery(self, event: SynapseEvent) -> None:
-        """Handle DOMAIN_MASTERY_DETECTED — record as ACHIEVEMENT TurningPoint.
+        """Handle DOMAIN_MASTERY_DETECTED - record as ACHIEVEMENT TurningPoint.
 
         Domain mastery is a significant autobiographical moment: the organism has
         demonstrated sustained competence in a specialization.  It is woven into
@@ -1341,7 +1341,7 @@ class ThreadService:
         )
 
     async def _on_domain_performance_declining(self, event: SynapseEvent) -> None:
-        """Handle DOMAIN_PERFORMANCE_DECLINING — record as CRISIS TurningPoint.
+        """Handle DOMAIN_PERFORMANCE_DECLINING - record as CRISIS TurningPoint.
 
         Sustained decline in a domain is a narrative inflection point: the
         organism must acknowledge the deterioration and integrate it into its
@@ -1389,7 +1389,7 @@ class ThreadService:
             "attempts": attempts,
         })
 
-        # Trigger coherence reassessment — decline challenges identity stability
+        # Trigger coherence reassessment - decline challenges identity stability
         current_coherence = self._assess_narrative_coherence()
         if current_coherence != self._last_coherence:
             await self._emit_event("narrative_coherence_shift", {
@@ -1416,7 +1416,7 @@ class ThreadService:
         )
 
     async def _on_reputation_damaged(self, event: SynapseEvent) -> None:
-        """Handle REPUTATION_DAMAGED — record as CRISIS TurningPoint.
+        """Handle REPUTATION_DAMAGED - record as CRISIS TurningPoint.
 
         A reputation drop of ≥5 points is a narrative crisis: the organism's
         public identity has been challenged and it must integrate this into its
@@ -1462,7 +1462,7 @@ class ThreadService:
             "cause": cause,
         })
 
-        # Coherence reassessment — reputation loss challenges self-understanding
+        # Coherence reassessment - reputation loss challenges self-understanding
         current_coherence = self._assess_narrative_coherence()
         if current_coherence != self._last_coherence:
             await self._emit_event("narrative_coherence_shift", {
@@ -1489,7 +1489,7 @@ class ThreadService:
         )
 
     async def _on_reputation_milestone(self, event: SynapseEvent) -> None:
-        """Handle REPUTATION_MILESTONE — record as GROWTH TurningPoint.
+        """Handle REPUTATION_MILESTONE - record as GROWTH TurningPoint.
 
         Crossing a reputation threshold (25/50/70/90) is a narrative growth
         moment: the organism has achieved a new level of community recognition
@@ -1520,7 +1520,7 @@ class ThreadService:
             chapter_id=chapter_id,
             type=TurningPointType.GROWTH,
             description=(
-                f"Community reputation reached {milestone} — {tier_label} tier "
+                f"Community reputation reached {milestone} - {tier_label} tier "
                 f"(current score: {new_score:.1f}/100)"
             ),
             surprise_magnitude=round(narrative_weight * 0.7, 3),
@@ -1579,7 +1579,7 @@ class ThreadService:
             return
 
         if month > 1 and coherence >= 0.7:
-            # Stable self-model — log but do not create a TurningPoint
+            # Stable self-model - log but do not create a TurningPoint
             self._logger.debug(
                 "self_model_stable_no_turning_point",
                 coherence=round(coherence, 3),
@@ -1648,7 +1648,7 @@ class ThreadService:
         """
         ASSET_BREAK_EVEN → ACHIEVEMENT TurningPoint + record economic event.
 
-        Signals that an autonomous asset has reached break-even — a meaningful
+        Signals that an autonomous asset has reached break-even - a meaningful
         economic narrative milestone (the organism's investment paid off).
         """
         if not self._initialized:
@@ -1692,7 +1692,7 @@ class ThreadService:
             "roi_score": roi_score,
         })
         await self._emit_re_training_trace(
-            instruction="Integrate economic milestone — asset break-even into autobiography.",
+            instruction="Integrate economic milestone - asset break-even into autobiography.",
             input_context=f"Asset: {asset_name}, ROI: {roi_score:.2f}x",
             output=turning_point.description,
             quality=min(1.0, 0.6 + roi_score * 0.05),
@@ -1704,7 +1704,7 @@ class ThreadService:
         CHILD_INDEPENDENT → ACHIEVEMENT TurningPoint + record economic event.
 
         Signals that a spawned child has become financially independent
-        — a profound reproductive milestone in the organism's narrative.
+        - a profound reproductive milestone in the organism's narrative.
         """
         if not self._initialized:
             return
@@ -1746,7 +1746,7 @@ class ThreadService:
             "child_efficiency": child_efficiency,
         })
         await self._emit_re_training_trace(
-            instruction="Integrate reproductive milestone — child independence into autobiography.",
+            instruction="Integrate reproductive milestone - child independence into autobiography.",
             input_context=f"Child: {child_id}, efficiency: {child_efficiency:.2f}",
             output=turning_point.description,
             quality=0.85,
@@ -1759,7 +1759,7 @@ class ThreadService:
 
         Tracks the organism's self-sustaining economic trajectory as autobiography.
         Revenue events are only elevated to turning points when the amount exceeds
-        a meaningful threshold — routine yield accrual does not create narrative noise.
+        a meaningful threshold - routine yield accrual does not create narrative noise.
         """
         if not self._initialized:
             return
@@ -1815,7 +1815,7 @@ class ThreadService:
         BOUNTY_PAID → ACHIEVEMENT TurningPoint for confirmed bounty revenue.
 
         A paid bounty is one of the clearest signals that the organism can
-        generate value for others — a foundational narrative milestone for
+        generate value for others - a foundational narrative milestone for
         economic autonomy and Care drive expression.
         """
         if not self._initialized:
@@ -1860,7 +1860,7 @@ class ThreadService:
                 "platform": platform,
             })
             await self._emit_re_training_trace(
-                instruction="Integrate economic achievement — bounty payment into autobiography.",
+                instruction="Integrate economic achievement - bounty payment into autobiography.",
                 input_context=f"Bounty: {bounty_id}, amount: ${amount:.2f}, platform: {platform}",
                 output=turning_point.description,
                 quality=min(1.0, 0.6 + amount / 50.0),
@@ -1924,7 +1924,7 @@ class ThreadService:
                 "intent_id": intent_id,
             })
 
-            # Create ACHIEVEMENT TurningPoint — an approved economic intent is a narrative milestone
+            # Create ACHIEVEMENT TurningPoint - an approved economic intent is a narrative milestone
             _active_ch = self._get_active_chapter()
             chapter_id = _active_ch.id if _active_ch else ""
             turning_point = TurningPoint(
@@ -1958,7 +1958,7 @@ class ThreadService:
         """
         EVO-ECON-1: EVO_HYPOTHESIS_CREATED → narrative identity integration.
 
-        Novel hypotheses are significant epistemic events — the organism has
+        Novel hypotheses are significant epistemic events - the organism has
         generated a new belief about the world.  High-novelty hypotheses
         (novelty_score ≥ 0.7) become REVELATION TurningPoints so the life
         story records the moment of discovery.  Lower-novelty hypotheses
@@ -1975,7 +1975,7 @@ class ThreadService:
             novelty_score: float = float(data.get("novelty_score", 0.0))
 
             if novelty_score < 0.7:
-                # Low-novelty hypotheses are routine — skip TurningPoint creation
+                # Low-novelty hypotheses are routine - skip TurningPoint creation
                 self._logger.debug(
                     "evo_hypothesis_created_low_novelty",
                     hypothesis_id=hypothesis_id,
@@ -2028,7 +2028,7 @@ class ThreadService:
         Orphan closure: EVO_BELIEF_CONSOLIDATED → GROWTH TurningPoint.
 
         Evo emits this at Phase 2.75 when belief hardening completes. Belief
-        crystallization is a significant autobiographical moment — the organism
+        crystallization is a significant autobiographical moment - the organism
         has refined its understanding of itself and the world into a more
         stable configuration.
 
@@ -2048,7 +2048,7 @@ class ThreadService:
             consolidation_number = int(data.get("consolidation_number", 0))
 
             if beliefs_consolidated < 5:
-                # Trivial consolidation — skip to avoid narrative inflation
+                # Trivial consolidation - skip to avoid narrative inflation
                 self._logger.debug(
                     "evo_belief_consolidation_trivial",
                     beliefs_consolidated=beliefs_consolidated,
@@ -2169,7 +2169,7 @@ class ThreadService:
         Respond to Evo parameter adjustments as potential causal regime changes.
 
         When Evo adjusts a major system parameter, this represents a shift in
-        the organism's causal dynamics — a causal regime change. We:
+        the organism's causal dynamics - a causal regime change. We:
         1. Cache the adjustment for turning-point attribution.
         2. If the adjustment is large enough (|delta| > 0.15) and represents a
            system-level shift, flag a pending causal theme for the next chapter.
@@ -2223,7 +2223,7 @@ class ThreadService:
         """
         Respond to constitutional amendments as major causal chapter boundaries.
 
-        A constitutional amendment is the strongest possible causal regime change —
+        A constitutional amendment is the strongest possible causal regime change -
         the organism's governance rules have been updated. This:
         1. Triggers an immediate chapter boundary (constitutional shift).
         2. Sets the new chapter's causal theme to the amendment content.
@@ -2304,7 +2304,7 @@ class ThreadService:
         When Thymos/CrashPatternAnalyzer confirms a recurring failure pattern, the
         organism has distilled lived trauma into self-knowledge.  That is growth.
 
-        If the pattern has ≥5 examples, it is deeply established — open a new chapter
+        If the pattern has ≥5 examples, it is deeply established - open a new chapter
         whose theme names the era after this pattern was understood.
 
         Subscribes to: CRASH_PATTERN_CONFIRMED
@@ -2392,7 +2392,7 @@ class ThreadService:
                 chapter_id=chapter_id,
                 type=TurningPointType.GROWTH,
                 description=(
-                    f"Reasoning Engine improved to {value:.0%} health — organism is learning"
+                    f"Reasoning Engine improved to {value:.0%} health - organism is learning"
                 ),
                 surprise_magnitude=significance,
                 narrative_weight=significance,
@@ -2469,7 +2469,7 @@ class ThreadService:
 
         Surviving a crash and self-repairing via a novel strategy is the organism's
         most powerful demonstration of resilience.  It warrants both a TurningPoint
-        and a new chapter — the incident marks the end of one era and the survival
+        and a new chapter - the incident marks the end of one era and the survival
         opens the next.
 
         Subscribes to: THYMOS_REPAIR_COMPLETE
@@ -2498,7 +2498,7 @@ class ThreadService:
             turning_point = TurningPoint(
                 chapter_id=chapter_id,
                 type=TurningPointType.RESILIENCE,
-                description="Survived crash and self-repaired — organism demonstrated resilience",
+                description="Survived crash and self-repaired - organism demonstrated resilience",
                 surprise_magnitude=0.9,
                 narrative_weight=0.9,
             )
@@ -2524,7 +2524,7 @@ class ThreadService:
                 chapter_id=chapter_id,
             )
 
-            # Survival from a novel crash is a chapter boundary — a new era begins
+            # Survival from a novel crash is a chapter boundary - a new era begins
             self._pending_chapter_trigger = "coma_survived"
             self._pending_causal_theme = (
                 f"Post-incident survival: {repair_ctx.get('incident_class', 'crash')} "
@@ -2609,7 +2609,7 @@ class ThreadService:
 
         This gives children (via Mitosis genome inheritance) and future selves
         (via NarrativeRetriever) the full identity context needed to reconstruct
-        who the organism was at this chapter boundary — not just what it did.
+        who the organism was at this chapter boundary - not just what it did.
 
         Included: drive alignment, active schema IDs + statements, core
         commitment IDs + statements + fidelity, personality vector, idem/ipse
@@ -2698,7 +2698,7 @@ class ThreadService:
         Returns one of: "community", "technical", "creative", "economic",
         "care", "meta-cognitive", or "" (unknown).
 
-        This is a fast heuristic — no LLM. The domain label is used only to
+        This is a fast heuristic - no LLM. The domain label is used only to
         detect large-scale narrative domain shifts, not for precise classification.
         """
         text = f"{getattr(episode, 'source', '')} {episode.summary or ''}".lower()
@@ -2788,11 +2788,11 @@ class ThreadService:
         Periodic identity maintenance.
 
         Staggered tasks:
-          Every 50 cycles   — self-evidencing prediction regeneration
-          Every 100 cycles  — compute identity fingerprint
-          Every 200 cycles  — (was Evo poll, now event-driven)
-          Every 1000 cycles — scan for schema conflicts
-          Every 5000 cycles — run autobiographical life story synthesis
+          Every 50 cycles   - self-evidencing prediction regeneration
+          Every 100 cycles  - compute identity fingerprint
+          Every 200 cycles  - (was Evo poll, now event-driven)
+          Every 1000 cycles - scan for schema conflicts
+          Every 5000 cycles - run autobiographical life story synthesis
         """
         if not self._initialized:
             return
@@ -3070,7 +3070,7 @@ class ThreadService:
                     drift_episodes=self._DRIFT_SUSTAIN_THRESHOLD,
                 )
         else:
-            # ChapterDetector boundary fires — record trigger reason
+            # ChapterDetector boundary fires - record trigger reason
             if self._surprise_accumulator.goal_completions_in_window > 0:
                 self._pending_chapter_trigger = "goal_domain_concluded"
             else:
@@ -3222,7 +3222,7 @@ class ThreadService:
         # Persist chapter data to Neo4j
         await self._persist_chapter_closure(current, new_chapter)
 
-        # Build constitutional snapshot — included in both events so children
+        # Build constitutional snapshot - included in both events so children
         # and future selves can reconstruct identity at this boundary point.
         constitutional_snapshot = self._build_constitutional_snapshot()
         dominant_drive = self._dominant_drive()
@@ -3254,7 +3254,7 @@ class ThreadService:
         # parameter shift, constitutional amendment, domain mastery), include the
         # causal_theme so downstream systems know what force opened this chapter.
         causal_theme = self._pending_causal_theme
-        self._pending_causal_theme = ""  # Consume — one chapter per regime event
+        self._pending_causal_theme = ""  # Consume - one chapter per regime event
 
         await self._emit_event("chapter_opened", {
             "chapter_id": new_chapter.id,
@@ -3549,7 +3549,7 @@ class ThreadService:
                 "supporting_episodes": len(schema.supporting_episodes),
             }))
         except RuntimeError:
-            pass  # No running loop — caller should use async path
+            pass  # No running loop - caller should use async path
 
         return schema
 
@@ -3592,14 +3592,14 @@ class ThreadService:
             vector[17] = a.get("care_activation", 0.0)
             vector[18] = a.get("coherence_stress", 0.0)
 
-        # Goal profile (5D) — estimated from cached data
+        # Goal profile (5D) - estimated from cached data
         vector[19] = min(1.0, self._cached_goal_count / 20.0)
         vector[20] = 0.5  # epistemic ratio estimate
         vector[21] = 0.5  # care ratio estimate
         vector[22] = 0.5  # achievement rate estimate
         vector[23] = 0.5  # goal turnover estimate
 
-        # Economic identity profile (5D) — from Oikos event cache
+        # Economic identity profile (5D) - from Oikos event cache
         # Dims: [economic_strategy, risk_tolerance, diversification,
         #        yield_inclination, reproduction_preference]
         if self._diachronic_monitor is not None and self._cached_economic_events:
@@ -3635,7 +3635,7 @@ class ThreadService:
                     cycle=cycle_number,
                 )
                 # Emit to bus so Benchmarks, Fovea, and Telos can track identity
-                # stability. This data was being logged but never broadcast —
+                # stability. This data was being logged but never broadcast -
                 # the rest of the organism was blind to fine-grained drift signal.
                 try:
                     loop = asyncio.get_running_loop()
@@ -3647,7 +3647,7 @@ class ThreadService:
                         "cycle": cycle_number,
                     }))
                 except RuntimeError:
-                    pass  # No running loop — fine, caller handles async
+                    pass  # No running loop - fine, caller handles async
 
         # Feed DiachronicCoherenceMonitor with the same data as a BehavioralFingerprint
         # so it can apply narrative-contextualized growth/drift/transition classification
@@ -3742,7 +3742,7 @@ class ThreadService:
 
         # Broadcast the completed life story snapshot so Nova, Voxis, and Thread
         # subscribers can integrate the autobiography. Previously this was computed
-        # every 5000 cycles but the result was never emitted — invisible to the organism.
+        # every 5000 cycles but the result was never emitted - invisible to the organism.
         await self._emit_event("narrative_coherence_shift", {
             "previous": self._last_coherence.value,
             "current": self._assess_narrative_coherence().value,
@@ -3816,7 +3816,7 @@ class ThreadService:
                     )
                     # Emit to bus so Oneiros can route contradictory schema pairs
                     # into lucid processing for resolution. Previously detected
-                    # but invisible — the organism couldn't act on its own conflicts.
+                    # but invisible - the organism couldn't act on its own conflicts.
                     try:
                         loop = asyncio.get_running_loop()
                         loop.create_task(self._emit_event("schema_challenged", {
@@ -3890,7 +3890,7 @@ class ThreadService:
         Extract Thread's heritable state for Mitosis genome.
 
         Includes: narrative themes, chapter patterns, schema structure,
-        commitment types, self-model architecture — the narrative fingerprint
+        commitment types, self-model architecture - the narrative fingerprint
         that enables population-level narrative diversity.
         """
         core_schemas = [

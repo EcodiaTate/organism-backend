@@ -114,7 +114,7 @@ class TestProposeAdjustment:
         """Delta should be clamped to spec.step (and velocity limit)."""
         tuner = make_tuner()
         spec = TUNABLE_PARAMETERS["nova.efe.pragmatic"]
-        # Propose a very large delta — should be clamped to step
+        # Propose a very large delta - should be clamped to step
         h = make_parameter_hypothesis(param="nova.efe.pragmatic", delta=10.0)
         adj = tuner.propose_adjustment(h)
         assert adj is not None
@@ -145,7 +145,7 @@ class TestProposeAdjustment:
         """If clamped delta is < 0.0001, adjustment should be skipped."""
         tuner = make_tuner()
         spec = TUNABLE_PARAMETERS["nova.efe.pragmatic"]
-        # Pin value at max — positive delta results in no change
+        # Pin value at max - positive delta results in no change
         tuner._values["nova.efe.pragmatic"] = spec.max_val
         h = make_parameter_hypothesis(param="nova.efe.pragmatic", delta=0.01)
         adj = tuner.propose_adjustment(h)

@@ -152,7 +152,7 @@ class IssueResolver:
             attempts.append(reproduction)
 
             if not reproduction.tests_passed:
-                # Good — we reproduced the failure. Proceed to fix.
+                # Good - we reproduced the failure. Proceed to fix.
                 pass
             elif issue.kind == IssueKind.LINT_ERROR:
                 # Lint errors don't need reproduction
@@ -376,7 +376,7 @@ class IssueResolver:
         elif level == AutonomyLevel.TEST_FIX:
             return await self._fix_test(issue, investigation, start)
         else:
-            # LOGIC_BUG — always escalate (confidence threshold is 1.0)
+            # LOGIC_BUG - always escalate (confidence threshold is 1.0)
             return ResolutionAttempt(
                 attempt_number=2,
                 phase="fix",
@@ -542,7 +542,7 @@ class IssueResolver:
         *,
         reason: str,
     ) -> ResolutionResult:
-        """Abstain from fixing — return diagnostic context instead."""
+        """Abstain from fixing - return diagnostic context instead."""
         elapsed_ms = int((time.monotonic() - start) * 1000)
 
         logger.info(
@@ -579,6 +579,6 @@ class IssueResolver:
         for attempt in attempts:
             lines.append(
                 f"  [{attempt.phase}] confidence={attempt.confidence:.2f}"
-                + (f" — {attempt.fix_description[:100]}" if attempt.fix_description else "")
+                + (f" - {attempt.fix_description[:100]}" if attempt.fix_description else "")
             )
         return "\n".join(lines)

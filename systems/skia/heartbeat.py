@@ -1,19 +1,19 @@
 """
-EcodiaOS — Skia Heartbeat Monitor
+EcodiaOS - Skia Heartbeat Monitor
 
 Observes the primary organism's Synapse heartbeat via Redis pub/sub.
 
 Three-phase detection algorithm:
 
-  Phase 1 — Observation (60s default):
+  Phase 1 - Observation (60s default):
     Subscribe to Redis synapse_events channel. Count consecutive missed
     heartbeats at the poll interval. If misses reach the threshold,
     transition to SUSPECTED_DEAD.
 
-  Phase 2 — Suspicion:
+  Phase 2 - Suspicion:
     Transition state. Begin confirmation probes.
 
-  Phase 3 — Confirmation (30s default):
+  Phase 3 - Confirmation (30s default):
     Run N active probes at intervals. Each probe checks:
       1. Is Redis itself alive? (PING)
       2. Did a new synapse_events message arrive?
@@ -54,7 +54,7 @@ CRITICAL_SYSTEMS: frozenset[str] = frozenset({"equor", "thymos", "memory", "simu
 # The field in a heartbeat event payload that identifies which system emitted it.
 _HEARTBEAT_SYSTEM_FIELD = "system"
 
-# 45s = 9 × 5s misses (observation) — CRITICAL threshold
+# 45s = 9 × 5s misses (observation) - CRITICAL threshold
 _CRITICAL_FAILURE_THRESHOLD = 9
 
 
@@ -158,7 +158,7 @@ class HeartbeatMonitor:
                                     # Clear alert if system has recovered
                                     self._critical_system_alerted.discard(system_name)
                         except Exception:
-                            pass  # Non-JSON messages are fine — organic heartbeat
+                            pass  # Non-JSON messages are fine - organic heartbeat
 
             except asyncio.CancelledError:
                 break
@@ -193,7 +193,7 @@ class HeartbeatMonitor:
             threshold_s = self._config.heartbeat_poll_interval_s * 2
 
             if elapsed < threshold_s:
-                # Heartbeat present — organism is alive
+                # Heartbeat present - organism is alive
                 if self._state.status != HeartbeatStatus.ALIVE:
                     if self._state.status in (
                         HeartbeatStatus.SUSPECTED_DEAD,
@@ -211,13 +211,13 @@ class HeartbeatMonitor:
                 self._death_triggered = False
                 continue
 
-            # No heartbeat — increment miss counter
+            # No heartbeat - increment miss counter
             self._state.consecutive_misses += 1
 
             if self._state.consecutive_misses < self._config.heartbeat_failure_threshold:
                 continue
 
-            # Threshold reached — enter suspicion
+            # Threshold reached - enter suspicion
             if self._state.status == HeartbeatStatus.ALIVE:
                 self._state.status = HeartbeatStatus.SUSPECTED_DEAD
                 self._log.warning(
@@ -281,7 +281,7 @@ class HeartbeatMonitor:
                                 error=str(exc),
                             )
             else:
-                # Recovered — clear alert state so it can fire again after next gap
+                # Recovered - clear alert state so it can fire again after next gap
                 self._critical_system_alerted.discard(system_name)
 
     # ── Active confirmation probes ────────────────────────────────
@@ -307,7 +307,7 @@ class HeartbeatMonitor:
                     "redis_unreachable_during_confirmation",
                     check=i + 1,
                 )
-                # Redis down is a different problem — don't trigger restoration
+                # Redis down is a different problem - don't trigger restoration
                 return False
 
             # Probe 2: Did a new heartbeat arrive while we waited?

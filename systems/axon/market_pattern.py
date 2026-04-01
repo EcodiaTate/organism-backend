@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Market Pattern Detector
+EcodiaOS - Axon Market Pattern Detector
 
 Extracts pattern signatures from market data percepts and queries Equor's
 template library for fast-path eligibility.
@@ -13,7 +13,7 @@ This is the entry point of the Arbitrage Reflex Arc:
 
 Latency budget: ≤50ms total (30ms extraction + 20ms template lookup)
 
-The pattern extraction strategy uses deterministic feature hashing — no LLM,
+The pattern extraction strategy uses deterministic feature hashing - no LLM,
 no embedding, no I/O. Pure CPU math on structured market data fields.
 """
 
@@ -49,7 +49,7 @@ class MarketPatternDetector:
     Extracts structured pattern signatures from market data percepts
     and matches them against Equor's pre-approved template library.
 
-    Stateless — all state lives in the TemplateLibrary.
+    Stateless - all state lives in the TemplateLibrary.
     """
 
     def __init__(self, template_library: TemplateLibrary) -> None:

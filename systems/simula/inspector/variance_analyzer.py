@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 7: Variance Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 7: Variance Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 7 execution variance pipeline:
 
@@ -84,9 +84,9 @@ class MeasurementPlanBuilder:
 
     Parameters
     ----------
-    max_operations    — cap on operations per plan (default 12)
-    trials_per_class  — trials per input class per operation (default 1000)
-    isolation         — isolation strategy (default CPU_AFFINITY)
+    max_operations    - cap on operations per plan (default 12)
+    trials_per_class  - trials per input class per operation (default 1000)
+    isolation         - isolation strategy (default CPU_AFFINITY)
     """
 
     def __init__(
@@ -251,7 +251,7 @@ def _default_synthetic_operations() -> list[OperationSpec]:
 
 class VarianceAnalyzer:
     """
-    Phase 7 orchestrator — builds a Phase7Result for a target.
+    Phase 7 orchestrator - builds a Phase7Result for a target.
 
     The result combines:
     - A MeasurementPlan derived from Phase 4/5/6 artifacts
@@ -262,12 +262,12 @@ class VarianceAnalyzer:
 
     Parameters
     ----------
-    max_operations      — cap on operations in the plan (default 12)
-    trials_per_class    — measurement trials per input class (default 1000)
-    significance_level  — p-value threshold (default 0.01)
-    min_effect_size_d   — minimum Cohen's d for practical significance (default 0.2)
-    isolation_strategy  — scheduling isolation approach (default CPU_AFFINITY)
-    seed                — RNG seed for reproducibility (default 0)
+    max_operations      - cap on operations in the plan (default 12)
+    trials_per_class    - measurement trials per input class (default 1000)
+    significance_level  - p-value threshold (default 0.01)
+    min_effect_size_d   - minimum Cohen's d for practical significance (default 0.2)
+    isolation_strategy  - scheduling isolation approach (default CPU_AFFINITY)
+    seed                - RNG seed for reproducibility (default 0)
     """
 
     def __init__(

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Trust Model
+EcodiaOS - Federation Trust Model
 
 Trust between EOS instances starts at zero and builds through successful
 interaction. Violations cost 3x; a privacy breach resets trust to zero
@@ -9,7 +9,7 @@ The trust model implements graduated trust levels (NONE → ACQUAINTANCE →
 COLLEAGUE → PARTNER → ALLY) with score thresholds. Trust also decays over
 time for inactive links, preventing stale trust from persisting.
 
-This is not a reputation system — it is a direct relationship model.
+This is not a reputation system - it is a direct relationship model.
 Each link tracks its own trust independently. Trust is earned by this
 specific pair of instances, not inherited from the network.
 """
@@ -41,7 +41,7 @@ class TrustManager:
     Trust is a float score that maps to discrete TrustLevel values via
     thresholds. Successful interactions increment the score; failures
     decrement at a multiplied rate. Privacy breaches are catastrophic
-    — immediate reset to zero.
+    - immediate reset to zero.
 
     Trust also decays over time for inactive links, modelling the
     realistic principle that trust requires ongoing interaction.
@@ -92,7 +92,7 @@ class TrustManager:
             link.failed_interactions += 1
 
             if interaction.violation_type == ViolationType.PRIVACY_BREACH:
-                # Privacy breaches are catastrophic — instant zero
+                # Privacy breaches are catastrophic - instant zero
                 link.trust_score = 0.0
                 link.trust_level = TrustLevel.NONE
                 self._logger.warning(
@@ -107,7 +107,7 @@ class TrustManager:
                 link.trust_score = max(0.0, link.trust_score - penalty)
 
         elif interaction.outcome == InteractionOutcome.TIMEOUT:
-            # Timeouts are mild — half penalty
+            # Timeouts are mild - half penalty
             link.trust_score = max(
                 0.0, link.trust_score - interaction.trust_value * 0.5
             )

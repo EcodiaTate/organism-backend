@@ -1,17 +1,17 @@
 """
-EcodiaOS — Skia System REST Router
+EcodiaOS - Skia System REST Router
 
 Exposes shadow infrastructure (disaster recovery, IPFS snapshots, heartbeat)
 to the Next.js frontend.
 
 Endpoints:
-  GET  /api/v1/skia/health          — Skia system health + component status
-  GET  /api/v1/skia/snapshot        — Latest snapshot manifest from Redis
-  GET  /api/v1/skia/snapshot/history — CID history (sorted-set, newest first)
-  GET  /api/v1/skia/pins            — List Pinata pins for this instance
-  POST /api/v1/skia/snapshot/trigger — Manually trigger a snapshot
-  GET  /api/v1/skia/heartbeat       — Heartbeat monitor state (standalone only)
-  GET  /api/v1/skia/config          — Non-secret configuration parameters
+  GET  /api/v1/skia/health          - Skia system health + component status
+  GET  /api/v1/skia/snapshot        - Latest snapshot manifest from Redis
+  GET  /api/v1/skia/snapshot/history - CID history (sorted-set, newest first)
+  GET  /api/v1/skia/pins            - List Pinata pins for this instance
+  POST /api/v1/skia/snapshot/trigger - Manually trigger a snapshot
+  GET  /api/v1/skia/heartbeat       - Heartbeat monitor state (standalone only)
+  GET  /api/v1/skia/config          - Non-secret configuration parameters
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: Protocol Adapters
+EcodiaOS - Telos: Protocol Adapters
 
 Bridges between the actual Logos/Fovea service implementations and the
 Telos protocol interfaces (LogosMetrics / FoveaMetrics).
@@ -101,7 +101,7 @@ class IHistoryStore:
         honesty_coeff: float,
         growth_score: float,
     ) -> None:
-        """Batch write to Neo4j — called once per Telos cycle."""
+        """Batch write to Neo4j - called once per Telos cycle."""
         if self._neo4j_driver is None:
             return
         try:
@@ -275,7 +275,7 @@ class FoveaPredictionErrorBuffer:
 
 
 # ─── Welfare Keywords ─────────────────────────────────────────────────
-# Shared with CareTopologyEngine — kept here to tag experiences at ingest.
+# Shared with CareTopologyEngine - kept here to tag experiences at ingest.
 
 _WELFARE_KEYWORDS = (
     "welfare", "care", "harm", "trust", "social", "relationship",
@@ -403,7 +403,7 @@ class LogosMetricsAdapter:
     async def get_recent_compression_events(
         self, window_hours: float = 24.0
     ) -> list[CompressionEvent]:
-        """No historical compression events tracked yet — return empty."""
+        """No historical compression events tracked yet - return empty."""
         return []
 
 
@@ -453,7 +453,7 @@ class FoveaMetricsAdapter:
         return {k: v / total for k, v in errors_by_type.items()}
 
     async def get_prediction_success_rate(self) -> float:
-        """Inverse of error rate — fraction of correct predictions."""
+        """Inverse of error rate - fraction of correct predictions."""
         error_rate = await self.get_prediction_error_rate()
         return 1.0 - error_rate
 
@@ -468,7 +468,7 @@ class FoveaMetricsAdapter:
         Confabulation rate from false alarms in weight learner.
 
         False alarms = predictions that triggered attention but weren't
-        followed by actual prediction errors — a proxy for confabulation.
+        followed by actual prediction errors - a proxy for confabulation.
         """
         h = await self._fovea.health()
         false_alarms = h.get("false_alarms", 0)

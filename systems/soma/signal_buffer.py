@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Signal Buffer
+EcodiaOS - Soma Signal Buffer
 
 Bounded ring buffer for interoceptive signal ingestion. Accepts Synapse
 events (via EventBus subscription) and structured log entries, normalizing

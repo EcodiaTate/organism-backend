@@ -1,5 +1,5 @@
 """
-EcodiaOS — Exteroceptive Mapping Engine
+EcodiaOS - Exteroceptive Mapping Engine
 
 The mathematical core of Cross-Modal Synesthesia. Translates normalised
 ExteroceptiveReadings into somatic pressure vectors using configurable
@@ -11,7 +11,7 @@ Design invariants:
     crash from flipping the organism into full anxiety spiral.
   - Total exteroceptive pressure across all modalities is clamped by
     ``max_total_pressure`` (default 0.25). External data nudges the
-    organism's mood — it doesn't control it.
+    organism's mood - it doesn't control it.
   - EMA smoothing prevents rapid oscillation from noisy data sources.
   - When readings become stale, their contribution decays via the
     ``persistence`` factor on the ModalityMapping.
@@ -185,7 +185,7 @@ class ExteroceptiveMappingEngine:
         weight = reading.effective_weight()
 
         if modality not in self._smoothed or weight == 0.0:
-            # First reading or unavailable — seed directly
+            # First reading or unavailable - seed directly
             self._smoothed[modality] = reading
             self._stale_counts[modality] = 0
             return

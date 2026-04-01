@@ -1,5 +1,5 @@
 """
-EcodiaOS — Memory & Identity Core
+EcodiaOS - Memory & Identity Core
 
 The substrate of selfhood. Every other system reads from and writes to this.
 """

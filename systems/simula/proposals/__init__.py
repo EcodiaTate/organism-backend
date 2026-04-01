@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Proposals
+EcodiaOS - Simula Proposals
 
 External proposal ingestion and translation into Simula's native
 EvolutionProposal format.

@@ -175,7 +175,7 @@ class TestCloverLoop:
 
     @pytest.mark.asyncio
     async def test_clover_loop_fails_after_max_rounds(self):
-        """LLM never generates valid Dafny — fails after max rounds."""
+        """LLM never generates valid Dafny - fails after max rounds."""
         bridge = DafnyBridge(dafny_path="dafny", verify_timeout_s=5.0, max_rounds=2)
 
         mock_llm = AsyncMock()

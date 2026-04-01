@@ -1,20 +1,20 @@
 """
-EcodiaOS — Axon Integration Executors
+EcodiaOS - Axon Integration Executors
 
 Integration executors make calls to external systems. They are Level 2-3
 because they cross the boundary between EOS and the outside world.
 
-APICallExecutor   — (Level 2) call an external REST API
-WebhookExecutor   — (Level 2) trigger a webhook endpoint
+APICallExecutor   - (Level 2) call an external REST API
+WebhookExecutor   - (Level 2) trigger a webhook endpoint
 
-These are deliberately generic — specific integrations (GitHub, Slack, IoT sensors)
+These are deliberately generic - specific integrations (GitHub, Slack, IoT sensors)
 will be implemented as purpose-built executors in future phases. For now, these
 provide a general-purpose HTTP capability with safety constraints.
 
 Safety constraints:
   - All URLs are validated (no local network, no internal services)
   - All responses are capped at 50KB
-  - Credentials come from CredentialStore only — no inline secrets
+  - Credentials come from CredentialStore only - no inline secrets
   - All calls are logged with full audit trail
   - Timeouts are strictly enforced (5s default, max 30s)
 """
@@ -37,7 +37,7 @@ from systems.axon.types import (
 
 logger = structlog.get_logger()
 
-# Blocked URL patterns — EOS should never call internal network addresses
+# Blocked URL patterns - EOS should never call internal network addresses
 _BLOCKED_URL_PATTERNS = re.compile(
     r"^https?://(localhost|127\.|0\.0\.0\.0|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)",
     re.IGNORECASE,
@@ -78,7 +78,7 @@ class APICallExecutor(Executor):
 
     Required params:
       url (str): The API endpoint URL.
-      method (str): HTTP method — "GET" | "POST" | "PUT" | "PATCH" | "DELETE".
+      method (str): HTTP method - "GET" | "POST" | "PUT" | "PATCH" | "DELETE".
 
     Optional params:
       body (dict | str): Request body. Default None (no body).
@@ -167,7 +167,7 @@ class APICallExecutor(Executor):
                     response_field=response_field,
                 )
             except ImportError:
-                # aiohttp not available — use urllib as fallback
+                # aiohttp not available - use urllib as fallback
                 result = await asyncio.to_thread(
                     _call_with_urllib,
                     url=url,
@@ -294,7 +294,7 @@ class WebhookExecutor(Executor):
     """
     Trigger a registered webhook endpoint.
 
-    Webhooks are outbound HTTP calls to registered external services —
+    Webhooks are outbound HTTP calls to registered external services -
     GitHub Actions, Zapier, community platform integrations, etc.
     They differ from APICallExecutor in that they use pre-configured
     endpoints from the credential store rather than arbitrary URLs.

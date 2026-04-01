@@ -1,5 +1,5 @@
 """
-EcodiaOS — DynamicExecutorBase
+EcodiaOS - DynamicExecutorBase
 
 Base class for all LLM-generated Axon executors.
 
@@ -8,26 +8,26 @@ DynamicExecutorBase enforces the non-negotiable safety invariants that the
 generated code cannot override:
 
 Safety guarantees (NON-NEGOTIABLE):
-  1. Budget hard cap — every execution is gated against max_budget_usd.
+  1. Budget hard cap - every execution is gated against max_budget_usd.
      Generated code never handles the cap itself; DynamicExecutorBase does.
-  2. Equor pre-approval — every action emits EQUOR_ECONOMIC_INTENT and awaits
+  2. Equor pre-approval - every action emits EQUOR_ECONOMIC_INTENT and awaits
      EQUOR_ECONOMIC_PERMIT (30s timeout → auto-permit with warning to avoid
      deadlock, matching Oikos §M4 pattern).
-  3. Neo4j audit trail — every execution (success or failure) is persisted as
+  3. Neo4j audit trail - every execution (success or failure) is persisted as
      a (:DynamicExecution) node linked to the (:DynamicExecutor) node.
-  4. Automatic rollback signal — on any exception, AXON_ROLLBACK_INITIATED is
+  4. Automatic rollback signal - on any exception, AXON_ROLLBACK_INITIATED is
      emitted so Thymos can open a pre-emptive incident.
-  5. Rate limiting — max N executions per hour, configurable per template.
-  6. RE_TRAINING_EXAMPLE — emitted on every execution for RE training pipeline.
-  7. Incident counter — if 3+ incidents fire within 24h, the executor auto-
+  5. Rate limiting - max N executions per hour, configurable per template.
+  6. RE_TRAINING_EXAMPLE - emitted on every execution for RE training pipeline.
+  7. Incident counter - if 3+ incidents fire within 24h, the executor auto-
      disables itself and emits EXECUTOR_DISABLED.
 
 Generated executors implement:
   _execute_action(params, context) -> ExecutionResult
   _validate_action_params(params) -> ValidationResult
 
-They must NOT override execute() or validate_params() — those are final here.
-All external interactions must go through self._call_api() — a sandboxed
+They must NOT override execute() or validate_params() - those are final here.
+All external interactions must go through self._call_api() - a sandboxed
 HTTP wrapper that enforces URL whitelisting and logs every call.
 
 Filesystem and subprocess access are not available (no os.system, no
@@ -155,7 +155,7 @@ class DynamicExecutorBase(Executor):
         if template is None:
             return ExecutionResult(
                 success=False,
-                error="ExecutorTemplate not injected — executor misconfigured.",
+                error="ExecutorTemplate not injected - executor misconfigured.",
             )
 
         execution_start = time.monotonic()
@@ -244,9 +244,9 @@ class DynamicExecutorBase(Executor):
         """
         Implement the actual action.
 
-        Must not raise — return ExecutionResult(success=False, error=...) on failure.
+        Must not raise - return ExecutionResult(success=False, error=...) on failure.
         May call self._call_api() for external HTTP requests.
-        Must not import from systems.* — all state via params and context.
+        Must not import from systems.* - all state via params and context.
         Must not access filesystem or spawn subprocesses.
         """
         ...
@@ -259,7 +259,7 @@ class DynamicExecutorBase(Executor):
         """
         Validate params for this executor.
 
-        Must be fast — no I/O.
+        Must be fast - no I/O.
         """
         ...
 
@@ -330,7 +330,7 @@ class DynamicExecutorBase(Executor):
         Emit EQUOR_ECONOMIC_INTENT and wait for EQUOR_ECONOMIC_PERMIT.
 
         Returns "PERMIT" or "DENY".  Auto-permits after _EQUOR_TIMEOUT_S seconds
-        with a warning log (matching Oikos §M4 pattern — avoids deadlock).
+        with a warning log (matching Oikos §M4 pattern - avoids deadlock).
         """
         from primitives.common import new_id
         from systems.synapse.types import SynapseEventType

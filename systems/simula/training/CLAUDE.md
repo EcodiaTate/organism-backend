@@ -1,7 +1,7 @@
-# Simula Training — CLAUDE.md
+# Simula Training - CLAUDE.md
 
 **File:** `systems/simula/training/train_lora.py`
-**Role:** Standalone LoRA fine-tuning script. Runs as an asyncio subprocess launched by `ContinualLearningOrchestrator`. Self-contained — no ecodiaos imports.
+**Role:** Standalone LoRA fine-tuning script. Runs as an asyncio subprocess launched by `ContinualLearningOrchestrator`. Self-contained - no ecodiaos imports.
 
 ---
 
@@ -35,7 +35,7 @@
 
 ---
 
-## BASE_ADAPTER + CLoRA — DPO Loop Closure (Round 5A)
+## BASE_ADAPTER + CLoRA - DPO Loop Closure (Round 5A)
 
 `BASE_ADAPTER` and `PREVIOUS_ADAPTER_PATH` are independent env vars:
 
@@ -45,14 +45,14 @@
 | `PREVIOUS_ADAPTER_PATH` | CLoRA orthogonalization target | Always `_sure.production_adapter_path` (slow adapter) |
 
 **When `BASE_ADAPTER` is set:**
-1. `PeftModel.from_pretrained(model, BASE_ADAPTER, is_trainable=True)` — loads DPO-tuned starting point
+1. `PeftModel.from_pretrained(model, BASE_ADAPTER, is_trainable=True)` - loads DPO-tuned starting point
 2. If `PREVIOUS_ADAPTER_PATH` also set: `_apply_clora_init()` modifies the loaded model's `lora_A` tensors in-place to orthogonalize against the slow adapter's directions
 
 **When `BASE_ADAPTER` is NOT set:**
 1. Fresh `get_peft_model()` + standard random init
 2. If `PREVIOUS_ADAPTER_PATH` set: `_apply_clora_init()` applied as before
 
-**Tier 3:** Both env vars are explicitly empty — clean base model start, no CLoRA.
+**Tier 3:** Both env vars are explicitly empty - clean base model start, no CLoRA.
 
 ---
 
@@ -70,7 +70,7 @@ Called automatically after `get_peft_model()` if `PREVIOUS_ADAPTER_PATH` is set 
    - `_, _, Vh = torch.linalg.svd(A_prev, full_matrices=False)`
    - Null space projector: `P_null = I - Vh.T @ Vh` (shape: `[d_in, d_in]`)
    - Re-initialize: `param.data = (randn_like(param) @ P_null).to(dtype)`
-3. Result: new LoRA A matrices are orthogonal to the row space of the previous adapter's A matrices — no interference with previously learned feature directions.
+3. Result: new LoRA A matrices are orthogonal to the row space of the previous adapter's A matrices - no interference with previously learned feature directions.
 
 ### Non-Fatal Conditions
 
@@ -82,7 +82,7 @@ CLoRA init is always non-fatal. It is skipped (with a print log) when:
 
 ### When CLoRA Is NOT Applied
 
-- **Tier 3 quarterly retrain**: `PREVIOUS_ADAPTER_PATH=""` is explicitly set — clean base model start
+- **Tier 3 quarterly retrain**: `PREVIOUS_ADAPTER_PATH=""` is explicitly set - clean base model start
 - **First Tier 2 run**: `self._current_adapter_path` is None → empty string → no previous adapter
 
 ---
@@ -107,7 +107,7 @@ Default (set by `ContinualLearningOrchestrator._get_training_config()`):
 ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 ```
 
-All attention + MLP projection layers — standard Qwen3 LoRA target set.
+All attention + MLP projection layers - standard Qwen3 LoRA target set.
 
 ---
 
@@ -173,7 +173,7 @@ On success, the orchestrator reads `status.json`, runs the SuRe EMA merge, SafeL
 
 ## W&B Integration (7 Mar 2026)
 
-W&B logging is **opt-in via env var** — zero impact if `WANDB_API_KEY` is unset.
+W&B logging is **opt-in via env var** - zero impact if `WANDB_API_KEY` is unset.
 
 ### Activation
 
@@ -215,7 +215,7 @@ Set `WANDB_API_KEY` in the environment (or `.env`). All other vars have sensible
 
 ### Non-fatal guarantee
 
-`wandb.init()` and `wandb.finish()` are both wrapped in `try/except` — failure is logged as `[EOS] W&B init/finish failed (non-fatal): ...` and training continues normally.
+`wandb.init()` and `wandb.finish()` are both wrapped in `try/except` - failure is logged as `[EOS] W&B init/finish failed (non-fatal): ...` and training continues normally.
 
 ### Tier 3 override
 
@@ -235,15 +235,15 @@ The instruction-format branch now wraps `reasoning_trace` in Qwen3-native `<thin
 {output_action content}
 ```
 
-This teaches the model to use its native chain-of-thought mechanism instead of outputting reasoning as visible prose. The `messages` format path is unchanged — if your JSONL already uses `{"messages": [...]}` format, the assistant content should include `<think>` tags directly.
+This teaches the model to use its native chain-of-thought mechanism instead of outputting reasoning as visible prose. The `messages` format path is unchanged - if your JSONL already uses `{"messages": [...]}` format, the assistant content should include `<think>` tags directly.
 
 **Before (genesis_001):** reasoning was injected into the user prompt as `Reasoning: {trace}`, and the assistant output was just `output_action`. The model learned to output reasoning as visible text, not inside think tags.
 
-**After:** reasoning moves to the assistant side inside `<think>` tags. The model learns to think internally before responding — matching Qwen3's pretrained behaviour.
+**After:** reasoning moves to the assistant side inside `<think>` tags. The model learns to think internally before responding - matching Qwen3's pretrained behaviour.
 
 ---
 
 ## Known Issues / Remaining Work
 
-- `signal.pause()` at the end has a Windows fallback (`while True: sleep(3600)`) — this is only needed in Akash mode to keep the status server alive after training.
-- The status server (`/status`, `/health`) is not used in local orchestrator mode — it's purely for Akash job monitoring.
+- `signal.pause()` at the end has a Windows fallback (`while True: sleep(3600)`) - this is only needed in Akash mode to keep the status server alive after training.
+- The status server (`/status`, `/health`) is not used in local orchestrator mode - it's purely for Akash job monitoring.

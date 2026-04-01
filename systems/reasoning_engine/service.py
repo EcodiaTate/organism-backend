@@ -1,11 +1,11 @@
 """
-EcodiaOS — Reasoning Engine Service
+EcodiaOS - Reasoning Engine Service
 
 Wraps a vLLM-served local model (default: ecodiaos-reasoning / Qwen3-8B)
 as an LLMProvider so Nova's PolicyGenerator can route slow-path deliberation
 to it via Thompson sampling.
 
-The RE is completely optional — if vLLM is not running the organism operates
+The RE is completely optional - if vLLM is not running the organism operates
 identically to today (Claude-only mode).  The circuit breaker ensures a
 crashed vLLM server degrades gracefully rather than hanging deliberation.
 
@@ -18,7 +18,7 @@ Integration:
     - Implements LLMProvider ABC from clients/llm.py
     - Passed as re_client to PolicyGenerator (Spec 05 Thompson sampling)
     - Emits RE_ENGINE_STATUS_CHANGED on availability transitions
-    - app.state.reasoning_engine — accessible from health endpoints
+    - app.state.reasoning_engine - accessible from health endpoints
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ class ReasoningEngineService(LLMProvider):
 
     Implements the full LLMProvider ABC so it can be dropped directly into
     Nova's PolicyGenerator as re_client.  evaluate() and generate_with_tools()
-    are implemented as best-effort thin wrappers — the RE is primarily used
+    are implemented as best-effort thin wrappers - the RE is primarily used
     for generate() in the slow-path deliberation hot loop.
 
     Circuit breaker: tracks consecutive failures.  After _CIRCUIT_BREAKER_THRESHOLD
@@ -67,7 +67,7 @@ class ReasoningEngineService(LLMProvider):
             vllm_url
             or os.environ.get("ECODIAOS_RE_VLLM_URL", "http://localhost:8001/v1")
         ).rstrip("/")
-        # Ensure URL ends with /v1 — vLLM OpenAI-compatible API lives at /v1/*
+        # Ensure URL ends with /v1 - vLLM OpenAI-compatible API lives at /v1/*
         if not _raw_url.endswith("/v1"):
             _raw_url = _raw_url + "/v1"
         self._url = _raw_url
@@ -115,7 +115,7 @@ class ReasoningEngineService(LLMProvider):
     async def initialize(self) -> None:
         """
         Probe vLLM /v1/models endpoint.  Sets _available=True if the target
-        model is listed.  Non-fatal — logs a warning and leaves the organism
+        model is listed.  Non-fatal - logs a warning and leaves the organism
         in Claude-only mode if the server is unreachable.
         """
         try:
@@ -140,7 +140,7 @@ class ReasoningEngineService(LLMProvider):
         except (httpx.ConnectError, httpx.TimeoutException, TimeoutError) as exc:
             self._logger.info(
                 "reasoning_engine_unavailable",
-                reason="vLLM not reachable — Claude-only mode",
+                reason="vLLM not reachable - Claude-only mode",
                 error=str(exc),
             )
         except Exception as exc:
@@ -287,7 +287,7 @@ class ReasoningEngineService(LLMProvider):
         max_tokens: int = 500,
         temperature: float = 0.3,
     ) -> LLMResponse:
-        """Short evaluation call — wraps generate() with a minimal user message."""
+        """Short evaluation call - wraps generate() with a minimal user message."""
         return await self.generate(
             system_prompt="You are a precise evaluator. Answer concisely.",
             messages=[Message(role="user", content=prompt)],
@@ -306,7 +306,7 @@ class ReasoningEngineService(LLMProvider):
         """
         Tool use via vLLM.  Most local models have limited tool-call support;
         this is included to satisfy the ABC.  In practice Nova only calls
-        generate() on the RE — tool use stays on Claude.
+        generate() on the RE - tool use stays on Claude.
         """
         openai_messages = [{"role": "system", "content": system_prompt}] + messages
         openai_tools = [
@@ -464,7 +464,7 @@ class ReasoningEngineService(LLMProvider):
 
         Tries POST /v1/load_lora_adapter for dynamic injection. If the endpoint
         returns 404/405 (not available in this vLLM build), falls back to
-        client-side tracking — assumes adapter was loaded at startup via
+        client-side tracking - assumes adapter was loaded at startup via
         --lora-modules flag.
         """
         payload = {
@@ -511,7 +511,7 @@ class ReasoningEngineService(LLMProvider):
                 self._logger.info(
                     "re_dynamic_lora_unload_not_available",
                     adapter_name=name,
-                    hint="Adapter was loaded at startup — restart vLLM to unload",
+                    hint="Adapter was loaded at startup - restart vLLM to unload",
                 )
             else:
                 self._logger.warning("re_adapter_unload_failed", error=str(exc))
@@ -531,7 +531,7 @@ class ReasoningEngineService(LLMProvider):
         Start a background task that periodically reprobes vLLM when the
         circuit is open. This handles the case where vLLM restarts (e.g.
         adapter_watcher restarting it with a new adapter) while the circuit
-        breaker is open — the organism auto-discovers the recovered RE.
+        breaker is open - the organism auto-discovers the recovered RE.
         """
         if self._reprobe_task is not None:
             return

@@ -1,11 +1,11 @@
 """
-EcodiaOS — Soma Phase Space Reconstructor
+EcodiaOS - Soma Phase Space Reconstructor
 
 Implements Takens delay-embedding reconstruction for 7 key scalar metrics.
 Estimates correlation dimension (Grassberger-Procaccia 1983) and largest
 Lyapunov exponent (Rosenstein et al. 1993). Runs on the slow path (~75s).
 
-All algorithms use numpy only — no LLM, no DB, no network.
+All algorithms use numpy only - no LLM, no DB, no network.
 """
 
 from __future__ import annotations
@@ -287,7 +287,7 @@ def estimate_largest_lyapunov(
     if n < n_steps + min_temporal_separation + 10:
         return 0.0
 
-    # Subsample for speed — use up to 300 reference points
+    # Subsample for speed - use up to 300 reference points
     ref_limit = min(n - n_steps - min_temporal_separation, 300)
     if ref_limit < 5:
         return 0.0
@@ -475,7 +475,7 @@ class PhaseSpaceReconstructor:
         # Normalize to [0, 1] to make algorithms scale-invariant
         s_min, s_max = series.min(), series.max()
         if s_max - s_min < 1e-10:
-            # Constant series — degenerate attractor
+            # Constant series - degenerate attractor
             return AttractorDiagnosis(
                 metric=metric,
                 timestamp=time.time(),

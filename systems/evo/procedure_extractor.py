@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Procedure Extractor
+EcodiaOS - Evo Procedure Extractor
 
 Converts mature action-sequence patterns into reusable Procedures stored
 in the Memory graph. Procedures are the "habits" Nova's fast path can use.
@@ -56,8 +56,8 @@ class ProcedureExtractor:
     Extracts reusable Procedures from mature action-sequence patterns.
 
     Dependencies:
-      llm    — for LLM-based extraction
-      memory — for episode retrieval and procedure storage
+      llm    - for LLM-based extraction
+      memory - for episode retrieval and procedure storage
     """
 
     def __init__(
@@ -268,7 +268,7 @@ Detected action types: {action_sequence}
 EXAMPLES:
 {example_lines}
 
-Extract the GENERALISED procedure — the common abstract pattern, not the specific details.
+Extract the GENERALISED procedure - the common abstract pattern, not the specific details.
 
 Respond in JSON:
 {{

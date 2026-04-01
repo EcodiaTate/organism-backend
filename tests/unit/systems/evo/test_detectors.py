@@ -84,7 +84,7 @@ class TestCooccurrenceDetector:
             result = await detector.scan(make_episode(), context)
             assert result == []
 
-        # At threshold — should emit
+        # At threshold - should emit
         result = await detector.scan(make_episode(), context)
         assert len(result) == 1
         assert result[0].type == PatternType.COOCCURRENCE

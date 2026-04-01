@@ -1,5 +1,5 @@
 """
-EcodiaOS — Phantom Liquidity Swap Event Listener (Phase 16q)
+EcodiaOS - Phantom Liquidity Swap Event Listener (Phase 16q)
 
 Async background poller that monitors Uniswap V3 ``Swap`` events on Base L2
 to extract real-time price feeds from phantom liquidity positions.
@@ -295,7 +295,7 @@ class SwapEventListener:
     # ── Poll loop ──────────────────────────────────────────────────
 
     async def _poll_loop(self) -> None:
-        """Background polling loop — runs until stopped."""
+        """Background polling loop - runs until stopped."""
         while self._running:
             try:
                 await self._poll_once()

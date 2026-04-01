@@ -1,5 +1,5 @@
 """
-EcodiaOS — Vitality Coordinator
+EcodiaOS - Vitality Coordinator
 
 Orchestrates organism-level death detection and execution. Runs on its own
 asyncio timer (every 30s), INDEPENDENT of the Synapse cognitive clock.
@@ -69,7 +69,7 @@ class VitalityCoordinator:
     """Orchestrates organism vitality checks and death sequence.
 
     Runs on its own timer (every 30s), independent of the cognitive clock.
-    This is OUTSIDE the organism's control — the organism cannot prevent
+    This is OUTSIDE the organism's control - the organism cannot prevent
     its own death.
 
     Implements VitalitySystemProtocol from primitives.vitality.
@@ -91,12 +91,12 @@ class VitalityCoordinator:
         self._snapshot: StateSnapshotPipeline | None = None
 
         # System references for reading vitality signals (wired post-init)
-        self._oikos: Any = None    # OikosService — runway_days
-        self._thymos: Any = None   # ThymosService — current_health_score
-        self._equor: Any = None    # EquorService — constitutional_drift
-        self._telos: Any = None    # TelosService — effective_I reports
+        self._oikos: Any = None    # OikosService - runway_days
+        self._thymos: Any = None   # ThymosService - current_health_score
+        self._equor: Any = None    # EquorService - constitutional_drift
+        self._telos: Any = None    # TelosService - effective_I reports
 
-        # Functional self-model (wired via set_self_model — optional)
+        # Functional self-model (wired via set_self_model - optional)
         self._self_model: Any = None  # SelfModelService from identity/self_model.py
 
         # Track active systems for self-model (updated lazily each check cycle)
@@ -133,7 +133,7 @@ class VitalityCoordinator:
         # Austerity state
         self._current_austerity_level: str = "nominal"
 
-        # Austerity compliance tracking — which systems acknowledged the last modulation?
+        # Austerity compliance tracking - which systems acknowledged the last modulation?
         self._austerity_pending_acks: set[str] = set()
         self._austerity_received_acks: set[str] = set()
         self._last_austerity_emitted_at: float = 0.0
@@ -188,7 +188,7 @@ class VitalityCoordinator:
                 SynapseEventType.SYSTEM_MODULATION_ACK,
                 self._on_system_modulation_ack,
             )
-            # Telos intelligence-axis vitality — cache effective_I via event
+            # Telos intelligence-axis vitality - cache effective_I via event
             # (supplements direct telos.latest_report reads; reduces coupling)
             event_bus.subscribe(
                 SynapseEventType.TELOS_VITALITY_SIGNAL,
@@ -220,19 +220,19 @@ class VitalityCoordinator:
         self._self_model = self_model
 
     async def _on_metabolic_pressure(self, event: Any) -> None:
-        """Handle METABOLIC_PRESSURE events from Oikos — delegate to austerity enforcement."""
+        """Handle METABOLIC_PRESSURE events from Oikos - delegate to austerity enforcement."""
         data = getattr(event, "data", {}) or {}
         await self.handle_metabolic_pressure(data)
 
     async def _on_soma_vitality_signal(self, event: Any) -> None:
-        """Handle SOMA_VITALITY_SIGNAL — update cached Soma readings."""
+        """Handle SOMA_VITALITY_SIGNAL - update cached Soma readings."""
         data = getattr(event, "data", {}) or {}
         self._soma_urgency = float(data.get("urgency_scalar", 0.0))
         self._soma_allostatic_error = float(data.get("allostatic_error", 0.0))
         self._soma_coherence_stress = float(data.get("coherence_stress", 0.0))
 
     async def _on_telos_vitality_signal(self, event: Any) -> None:
-        """Handle TELOS_VITALITY_SIGNAL — cache Telos intelligence-axis readings.
+        """Handle TELOS_VITALITY_SIGNAL - cache Telos intelligence-axis readings.
 
         Supplements the direct telos.latest_report read path: if Telos
         is not directly wired but is running on the same bus, this cache
@@ -246,7 +246,7 @@ class VitalityCoordinator:
     async def _on_consolidation_complete(self, event: Any) -> None:
         """
         Oneiros completed a sleep consolidation cycle.
-        Counteracts memory degradation pressure — organisms that sleep regularly
+        Counteracts memory degradation pressure - organisms that sleep regularly
         resist memory entropy. Those that don't accumulate fidelity loss.
         """
         self._degradation.on_memory_consolidated(fraction=0.5)
@@ -264,7 +264,7 @@ class VitalityCoordinator:
         Each adjustment counteracts a small slice of config drift pressure.
         Organisms that don't learn drift further from optimal configuration.
 
-        Also routes degradation rate changes if Evo targets them — the organism
+        Also routes degradation rate changes if Evo targets them - the organism
         can evolve its own entropy resistance.
         """
         self._degradation.on_config_optimised(fraction=0.1)
@@ -292,7 +292,7 @@ class VitalityCoordinator:
 
         The organism must know if its survival commands are being obeyed.
         Systems that don't ACK within a reasonable window are either dead,
-        crashed, or ignoring orders — all of which the organism needs to know.
+        crashed, or ignoring orders - all of which the organism needs to know.
         """
         data = getattr(event, "data", {}) or {}
         system_id = data.get("system_id", "")
@@ -347,7 +347,7 @@ class VitalityCoordinator:
     async def _on_evo_belief_consolidated(self, event: Any) -> None:
         """
         Evo completed a belief consolidation phase.
-        Counteracts hypothesis staleness — organisms that consolidate beliefs
+        Counteracts hypothesis staleness - organisms that consolidate beliefs
         maintain epistemic quality; those that don't approach BRAIN_DEATH.
         """
         self._degradation.on_hypotheses_revalidated(fraction=0.6)
@@ -369,7 +369,7 @@ class VitalityCoordinator:
         self._task = asyncio.create_task(
             self._check_loop(), name="skia_vitality_coordinator"
         )
-        # Start degradation engine independently — entropy doesn't pause for death
+        # Start degradation engine independently - entropy doesn't pause for death
         await self._degradation.start()
         self._log.info("vitality_coordinator_started")
 
@@ -395,7 +395,7 @@ class VitalityCoordinator:
     # ── Core Check Loop ───────────────────────────────────────────
 
     async def _check_loop(self) -> None:
-        """Periodic vitality assessment — runs every 30s independently."""
+        """Periodic vitality assessment - runs every 30s independently."""
         while self._running:
             try:
                 if self._is_dead:
@@ -411,10 +411,10 @@ class VitalityCoordinator:
                     if "(BLIND" in (t.description or "")
                 ]
 
-                # Restoration readiness — can the organism save itself right now?
+                # Restoration readiness - can the organism save itself right now?
                 restoration_ready = await self._assess_restoration_readiness()
 
-                # Austerity compliance — are systems obeying survival commands?
+                # Austerity compliance - are systems obeying survival commands?
                 austerity_compliance = await self._check_austerity_compliance()
 
                 # Emit periodic report (includes degradation_pressure from engine)
@@ -479,7 +479,7 @@ class VitalityCoordinator:
         dimension.  Blind thresholds are marked severity='critical' with a
         '(BLIND)' suffix so the organism knows it cannot assess its own state.
         A blind threshold is never 'fatal' (you can't die from something you
-        can't measure) but it IS an emergency — blindness must be resolved.
+        can't measure) but it IS an emergency - blindness must be resolved.
         """
         now = utc_now()
         thresholds: list[VitalityThreshold] = []
@@ -493,7 +493,7 @@ class VitalityCoordinator:
             runway_t.current_value = -1.0
             runway_t = runway_t.model_copy(update={
                 "severity": "critical",
-                "description": f"{runway_t.description} (BLIND — Oikos not wired)",
+                "description": f"{runway_t.description} (BLIND - Oikos not wired)",
             })
         else:
             runway_t.current_value = runway_val
@@ -507,7 +507,7 @@ class VitalityCoordinator:
             brain_t.current_value = -1.0
             brain_t = brain_t.model_copy(update={
                 "severity": "critical",
-                "description": f"{brain_t.description} (BLIND — Telos not wired)",
+                "description": f"{brain_t.description} (BLIND - Telos not wired)",
             })
         else:
             brain_t.current_value = effective_i
@@ -522,7 +522,7 @@ class VitalityCoordinator:
                 self._brain_death_breach_since = None
         thresholds.append(brain_t)
 
-        # 3. Normative collapse (instantaneous — based on constitutional violations)
+        # 3. Normative collapse (instantaneous - based on constitutional violations)
         drift = await self._read_constitutional_drift()
         normative_t = NORMATIVE_COLLAPSE.model_copy()
         if math.isnan(drift):
@@ -530,7 +530,7 @@ class VitalityCoordinator:
             normative_t.current_value = -1.0
             normative_t = normative_t.model_copy(update={
                 "severity": "critical",
-                "description": f"{normative_t.description} (BLIND — Equor not wired)",
+                "description": f"{normative_t.description} (BLIND - Equor not wired)",
             })
         else:
             normative_t.current_value = drift * 12.0
@@ -544,7 +544,7 @@ class VitalityCoordinator:
             immune_t.current_value = -1.0
             immune_t = immune_t.model_copy(update={
                 "severity": "critical",
-                "description": f"{immune_t.description} (BLIND — Thymos not wired)",
+                "description": f"{immune_t.description} (BLIND - Thymos not wired)",
             })
         else:
             healing_failure_rate = 1.0 - health_score
@@ -559,7 +559,7 @@ class VitalityCoordinator:
                 self._immune_failure_breach_since = None
         thresholds.append(immune_t)
 
-        # 5. Somatic collapse (sustained 48 hours — allostatic error > 0.8)
+        # 5. Somatic collapse (sustained 48 hours - allostatic error > 0.8)
         somatic_t = SOMATIC_COLLAPSE.model_copy()
         somatic_t.current_value = self._soma_allostatic_error
 
@@ -580,7 +580,7 @@ class VitalityCoordinator:
         # Compute time_to_fatal from trajectory history
         time_to_fatal = self._estimate_time_to_fatal(thresholds)
 
-        # Log blind spots — the organism MUST be aware of what it cannot see
+        # Log blind spots - the organism MUST be aware of what it cannot see
         if blind_dimensions:
             self._log.warning(
                 "vitality_blind_spots",
@@ -603,7 +603,7 @@ class VitalityCoordinator:
         """Read Oikos EconomicState.runway_days.
 
         Returns actual value when Oikos is wired and readable.
-        Returns NaN when the organism is BLIND to its own runway —
+        Returns NaN when the organism is BLIND to its own runway -
         callers must treat NaN as 'unknown', never as 'safe'.
         """
         if self._oikos is None:
@@ -621,7 +621,7 @@ class VitalityCoordinator:
     async def _read_effective_i(self) -> float:
         """Read Telos EffectiveIntelligenceReport.effective_I.
 
-        Returns NaN when blind — the organism must know it cannot see its own intelligence.
+        Returns NaN when blind - the organism must know it cannot see its own intelligence.
 
         Priority:
         1. Direct read from telos.last_report (most up-to-date)
@@ -653,7 +653,7 @@ class VitalityCoordinator:
     async def _read_constitutional_drift(self) -> float:
         """Read Equor constitutional_drift (0.0–1.0).
 
-        Returns NaN when blind — the organism must know it cannot see its own ethics.
+        Returns NaN when blind - the organism must know it cannot see its own ethics.
         """
         if self._equor is None:
             self._log.warning("drift_read_blind", reason="equor_not_wired")
@@ -668,7 +668,7 @@ class VitalityCoordinator:
     async def _read_thymos_health(self) -> float:
         """Read Thymos current_health_score (0.0–1.0).
 
-        Returns NaN when blind — the organism must know it cannot see its own immune health.
+        Returns NaN when blind - the organism must know it cannot see its own immune health.
         """
         if self._thymos is None:
             self._log.warning("thymos_read_blind", reason="thymos_not_wired")
@@ -690,7 +690,7 @@ class VitalityCoordinator:
         Uses linear extrapolation from the trajectory history.  Returns None
         if all dimensions are stable or improving, or if insufficient data.
 
-        The organism needs this to plan — knowing you will die in 3 days
+        The organism needs this to plan - knowing you will die in 3 days
         is qualitatively different from knowing you are currently alive.
         """
         now = time.monotonic()
@@ -716,7 +716,7 @@ class VitalityCoordinator:
             if "(BLIND" in (t.description or ""):
                 continue
             if t.severity == "fatal" and t.is_breached:
-                # Already breached — time_to_fatal is 0
+                # Already breached - time_to_fatal is 0
                 return timedelta(seconds=0)
 
             # Extract this dimension's history
@@ -746,7 +746,7 @@ class VitalityCoordinator:
             threshold = t.threshold_value
 
             if t.direction == "below":
-                # Fatal when value drops below threshold — slope must be negative
+                # Fatal when value drops below threshold - slope must be negative
                 if slope >= 0:
                     continue
                 # time = (threshold - current) / slope  [slope is negative, threshold < current]
@@ -754,7 +754,7 @@ class VitalityCoordinator:
                     continue  # already breached
                 time_to_cross = (threshold - current) / slope
             else:
-                # Fatal when value rises above threshold — slope must be positive
+                # Fatal when value rises above threshold - slope must be positive
                 if slope <= 0:
                     continue
                 if current >= threshold:
@@ -789,7 +789,7 @@ class VitalityCoordinator:
             result["snapshot_available"] = bool(self._snapshot.last_cid)
             result["ipfs_connected"] = True  # snapshot pipeline exists → Pinata is wired
 
-        # Vault check is implicit — if snapshot exists, vault was available at init
+        # Vault check is implicit - if snapshot exists, vault was available at init
         result["vault_available"] = self._snapshot is not None
 
         # We can infer strategy readiness from whether snapshot pipeline exists
@@ -809,10 +809,10 @@ class VitalityCoordinator:
     async def trigger_death_sequence(self, reason: str) -> None:
         """Execute the three-phase death sequence.
 
-        Phase 1 — Warning (5 min): emit VITALITY_FATAL, halt non-essential systems.
+        Phase 1 - Warning (5 min): emit VITALITY_FATAL, halt non-essential systems.
                   If threshold recovers, cancel and emit VITALITY_RESTORED.
-        Phase 2 — Capture (2 min): snapshot to IPFS, extract genome, persist records.
-        Phase 3 — Cessation: stop clock, emit ORGANISM_DIED, brief fleet notify, exit.
+        Phase 2 - Capture (2 min): snapshot to IPFS, extract genome, persist records.
+        Phase 3 - Cessation: stop clock, emit ORGANISM_DIED, brief fleet notify, exit.
         """
         if self._is_dead:
             return
@@ -844,7 +844,7 @@ class VitalityCoordinator:
             if not self._running:
                 return
 
-            # Re-assess — did the threshold recover?
+            # Re-assess - did the threshold recover?
             report = await self.assess_vitality()
             if not report.fatal_breaches:
                 self._log.info("death_sequence_cancelled", reason="threshold_recovered")
@@ -903,7 +903,7 @@ class VitalityCoordinator:
             "snapshot_cid": snapshot_cid,
         })
 
-        # Fleet notification — children/parent need to know
+        # Fleet notification - children/parent need to know
         await self._notify_fleet_of_death(snapshot_cid, genome_id)
 
         # Brief window for fleet notification propagation
@@ -927,12 +927,12 @@ class VitalityCoordinator:
         Now tracks which systems are expected to ACK compliance.
 
         Levels and actions:
-          CAUTIOUS  — log warning, reduce Oneiros dream frequency by 50%
-          AUSTERITY — halt Oneiros, halt Evo consolidation, halt Simula
+          CAUTIOUS  - log warning, reduce Oneiros dream frequency by 50%
+          AUSTERITY - halt Oneiros, halt Evo consolidation, halt Simula
                       speculative mutations, Federation inbound-only
-          EMERGENCY — above + Nova high-salience-only, Memory read-only,
+          EMERGENCY - above + Nova high-salience-only, Memory read-only,
                       Voxis template-only
-          CRITICAL  — above + halt all except Oikos, Synapse, Skia, Soma
+          CRITICAL  - above + halt all except Oikos, Synapse, Skia, Soma
         """
         if level == self._current_austerity_level:
             return
@@ -1140,7 +1140,7 @@ class VitalityCoordinator:
         """Extract the final OrganismGenome and persist to Neo4j with is_final=True."""
         try:
             # GenomeOrchestrator may be available through the system registry
-            # This is a best-effort extraction — death proceeds even if this fails
+            # This is a best-effort extraction - death proceeds even if this fails
             genome_id = ""
             query = """
                 MERGE (g:OrganismGenome {instance_id: $instance_id, is_final: true})
@@ -1256,7 +1256,7 @@ class VitalityCoordinator:
         except Exception as exc:
             self._log.error("death_record_failed", error=str(exc))
 
-        # Post-mortem RE training example — teaches the Reasoning Engine what kills organisms.
+        # Post-mortem RE training example - teaches the Reasoning Engine what kills organisms.
         # Each death is a labeled training example: input = conditions, output = "organism_died".
         from systems.synapse.types import SynapseEventType as _SET
         await self._emit_event(_SET.RE_TRAINING_EXAMPLE, {
@@ -1281,7 +1281,7 @@ class VitalityCoordinator:
             "resurrection_attempted": bool(snapshot_cid),
         })
 
-        # Incident signal to Thymos — next incarnation boots with awareness of the cause.
+        # Incident signal to Thymos - next incarnation boots with awareness of the cause.
         await self._emit_event(_SET.INCIDENT_DETECTED, {
             "source": "skia_vitality",
             "severity": "HIGH",

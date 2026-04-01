@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos: Neo4j Persistence
+EcodiaOS - Kairos: Neo4j Persistence
 
 Persists CausalInvariant nodes and CausalNode/CAUSES relationships to Neo4j.
 Restores invariants on startup so the hierarchy survives process restarts.

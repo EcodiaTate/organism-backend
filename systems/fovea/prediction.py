@@ -1,5 +1,5 @@
 """
-Fovea — Prediction Engine
+Fovea - Prediction Engine
 
 Generates predictions from the world model before each processing cycle,
 then computes structured prediction errors by comparing prediction to reality.
@@ -66,9 +66,9 @@ class FoveaPredictionEngine:
     Generates predictions from the World Model before each processing cycle.
 
     Lifecycle:
-    1. ``generate_prediction(context)`` — ask the world model what it expects
+    1. ``generate_prediction(context)`` - ask the world model what it expects
     2. Percept arrives
-    3. ``compute_error(prediction, percept)`` — compare expectation to reality
+    3. ``compute_error(prediction, percept)`` - compare expectation to reality
     """
 
     def __init__(self, world_model: LogosWorldModel) -> None:
@@ -267,7 +267,7 @@ class FoveaPredictionEngine:
         if not expected_causal:
             return 0.0
         if not isinstance(actual_causal, dict):
-            return 0.5  # Can't compare — moderate surprise
+            return 0.5  # Can't compare - moderate surprise
 
         expected_keys = set(expected_causal.keys())
         actual_keys = set(actual_causal.keys())

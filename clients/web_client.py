@@ -1,14 +1,14 @@
 """
-EcodiaOS — Web Intelligence Client
+EcodiaOS - Web Intelligence Client
 
 First-class real-time web data gathering for EOS.
 
 Capabilities:
-  search_web()          — Brave Search API | SerpAPI | DuckDuckGo scrape
-  fetch_page()          — HTML retrieval via httpx; optional Playwright JS rendering
-  extract_structured()  — LLM-guided extraction against a caller-supplied schema
-  monitor_url()         — Detect changes on a URL (hash-based diff)
-  check_robots()        — robots.txt compliance (cache 24h per domain)
+  search_web()          - Brave Search API | SerpAPI | DuckDuckGo scrape
+  fetch_page()          - HTML retrieval via httpx; optional Playwright JS rendering
+  extract_structured()  - LLM-guided extraction against a caller-supplied schema
+  monitor_url()         - Detect changes on a URL (hash-based diff)
+  check_robots()        - robots.txt compliance (cache 24h per domain)
 
 Legal / ethical invariants (non-negotiable):
   - robots.txt respected; forbidden domains never fetched
@@ -128,7 +128,7 @@ class WebIntelligenceClient:
 
     Thread-safe for concurrent asyncio tasks; NOT thread-safe across OS threads.
     All fetches are rate-limited per domain.  robots.txt is checked and cached.
-    All operations degrade gracefully — no method raises; errors are logged and
+    All operations degrade gracefully - no method raises; errors are logged and
     reflected in the return value.
     """
 
@@ -262,7 +262,7 @@ class WebIntelligenceClient:
         render_js=True uses Playwright for JS-heavy pages (requires playwright installed
         and config.render_js_enabled=True).  Falls back to plain httpx on any error.
 
-        Raises nothing — returns a PageContent with status_code reflecting the error.
+        Raises nothing - returns a PageContent with status_code reflecting the error.
         """
         log = logger.bind(url=url, render_js=render_js)
 
@@ -635,7 +635,7 @@ class WebIntelligenceClient:
 # High-value URLs and their scraping metadata.
 # "api" targets use official data APIs; "scrape" targets use HTML parsing.
 INTELLIGENCE_FEEDS: list[dict[str, Any]] = [
-    # DeFi ecosystem — official API
+    # DeFi ecosystem - official API
     {
         "id": "defillama_protocols",
         "url": "https://api.llama.fi/protocols",

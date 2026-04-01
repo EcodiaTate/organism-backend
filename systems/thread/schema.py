@@ -1,11 +1,11 @@
 """
-EcodiaOS — Thread Neo4j Schema Extension
+EcodiaOS - Thread Neo4j Schema Extension
 
 Extends Memory's knowledge graph with narrative structure:
 6 new node labels, 15+ relationship types, vector indexes for
 narrative embedding search.
 
-This layer sits ON TOP of episodes/entities/communities — it does not
+This layer sits ON TOP of episodes/entities/communities - it does not
 replace them. Episodes remain the atomic experience unit; NarrativeGraph
 adds the interpretive structure that transforms episodes into autobiography.
 """
@@ -93,7 +93,7 @@ VECTOR_INDEXES = [
 async def ensure_thread_schema(neo4j: Neo4jClient) -> None:
     """
     Create all Thread indexes and constraints if they don't exist.
-    Idempotent — safe to call on every startup.
+    Idempotent - safe to call on every startup.
     """
     logger.info("thread_schema_ensuring")
 

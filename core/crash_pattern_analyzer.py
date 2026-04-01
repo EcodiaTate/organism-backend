@@ -1,5 +1,5 @@
 """
-EcodiaOS — Crash Pattern Analyzer
+EcodiaOS - Crash Pattern Analyzer
 
 Maintains a Redis-backed library of CrashPatterns: known incident signatures
 that have proven difficult or impossible to repair at lower tiers.
@@ -10,7 +10,7 @@ Each CrashPattern records:
   - A confidence score (0.0–1.0) reflecting how reliably this pattern is fatal
   - The highest tier that successfully resolved an incident matching this pattern
 
-The analyzer is stateless between calls — all durable state lives in Redis under
+The analyzer is stateless between calls - all durable state lives in Redis under
 the key prefix ``crash_pattern:``.
 
 Integration points:
@@ -57,7 +57,7 @@ _RESOLVE_DELTA = 0.12
 # Minimum confidence a pattern can decay to (prevents complete erasure of history)
 _MIN_CONFIDENCE = 0.10
 
-# Maximum confidence (1.0 means always fatal — avoid division by zero in callers)
+# Maximum confidence (1.0 means always fatal - avoid division by zero in callers)
 _MAX_CONFIDENCE = 0.98
 
 
@@ -108,15 +108,15 @@ class CrashPatternAnalyzer:
     Redis-backed crash pattern library.
 
     Query flow (used by PatternAwareRouter):
-      1. ``load_all_patterns()`` — fetch all crash_pattern:* keys.
+      1. ``load_all_patterns()`` - fetch all crash_pattern:* keys.
       2. Score each pattern: ``match_score = |incident ∩ signature| / |signature|``.
       3. If best_match_score >= 0.7 and pattern.confidence >= 0.6 → PATTERN_MATCH.
       4. Determine skippable tiers from ``pattern.failed_tiers``.
       5. Route above the highest failed tier (or broadcast to federation if all exhausted).
 
     Update flow (called after repair outcome):
-      - ``update_on_success(pattern_id, repair_tier)`` — decays confidence, records tier.
-      - ``update_on_failure(pattern_id, repair_tier)`` — raises confidence, records tier.
+      - ``update_on_success(pattern_id, repair_tier)`` - decays confidence, records tier.
+      - ``update_on_failure(pattern_id, repair_tier)`` - raises confidence, records tier.
     """
 
     def __init__(self, redis: RedisClient | None = None) -> None:

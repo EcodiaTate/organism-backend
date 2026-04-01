@@ -1,5 +1,5 @@
 """
-EcodiaOS — Configuration System
+EcodiaOS - Configuration System
 
 All configuration is Pydantic-validated and loaded from:
 1. default.yaml (defaults)

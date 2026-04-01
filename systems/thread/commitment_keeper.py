@@ -1,7 +1,7 @@
 """
-EcodiaOS — Thread Commitment Keeper
+EcodiaOS - Thread Commitment Keeper
 
-Tracks the organism's promises — Ricoeur's ipse (selfhood as promise).
+Tracks the organism's promises - Ricoeur's ipse (selfhood as promise).
 
 The distinction between idem (sameness) and ipse (selfhood) is architecturally
 critical: traits (idem) drift naturally with experience. Commitments (ipse)
@@ -245,7 +245,7 @@ class CommitmentKeeper:
             if c.tests_faced >= self._config.commitment_min_tests_for_fidelity
         ]
         if not tested:
-            return 1.0  # No tested commitments — default to faithful
+            return 1.0  # No tested commitments - default to faithful
         return float(sum(c.fidelity for c in tested) / len(tested))
 
     def check_strain(self) -> list[str]:

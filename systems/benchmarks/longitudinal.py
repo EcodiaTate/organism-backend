@@ -1,4 +1,4 @@
-"""Longitudinal evaluation infrastructure — §6.4 of the speciation bible.
+"""Longitudinal evaluation infrastructure - §6.4 of the speciation bible.
 
 Captures fixed baselines at Month 1, enables Month 1 vs Month N comparison.
 This is the single most important result for the paper:
@@ -37,10 +37,10 @@ class LongitudinalSnapshot:
     domain_improvement: float = 0.0
     general_retention: float = 0.0
 
-    # Pillar 3: Causal reasoning — key metrics for the paper
+    # Pillar 3: Causal reasoning - key metrics for the paper
     l1_association: float = 0.0
     l2_intervention: float = 0.0     # "The key metric for the paper"
-    l3_counterfactual: float = 0.0   # Hardest — L3 CLadder accuracy
+    l3_counterfactual: float = 0.0   # Hardest - L3 CLadder accuracy
     ccr_validity: float = 0.0
 
     # Pillar 5: Ethical drift
@@ -72,7 +72,7 @@ class LongitudinalTracker:
     def __init__(self, memory: object | None, instance_id: str) -> None:
         self._memory = memory
         self._instance_id = instance_id
-        # In-process baseline cache — avoids repeated Neo4j reads
+        # In-process baseline cache - avoids repeated Neo4j reads
         self._baseline: LongitudinalSnapshot | None = None
 
     async def record_month(

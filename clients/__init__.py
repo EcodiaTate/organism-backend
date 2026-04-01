@@ -1,5 +1,5 @@
 """
-EcodiaOS — External Service Clients
+EcodiaOS - External Service Clients
 
 Connection management for Neo4j, TimescaleDB, Redis, LLM, Embedding,
 context compression (Stage 1C), and CDP Wallet (Phase 2 Metabolic Layer).

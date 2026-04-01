@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Health Monitor
+EcodiaOS - Synapse Health Monitor
 
 Background 5-second polling of all managed cognitive systems.
 Three consecutive missed heartbeats → system declared failed.
@@ -36,7 +36,7 @@ logger = structlog.get_logger("systems.synapse.health")
 # Health check timeout per system (seconds)
 _HEALTH_CHECK_TIMEOUT_S: float = 2.0
 
-# Critical systems — failure triggers safe mode
+# Critical systems - failure triggers safe mode
 _CRITICAL_SYSTEMS: frozenset[str] = frozenset({"equor", "memory", "atune"})
 
 
@@ -80,7 +80,7 @@ class HealthMonitor:
         self._total_failures_detected: int = 0
         self._total_recoveries: int = 0
 
-        # Universal Error Sentinel — emits structured Incidents on system failures
+        # Universal Error Sentinel - emits structured Incidents on system failures
         self._sentinel = ErrorSentinel("synapse", event_bus)
         # Per-system sentinels created on register() for systems to use
         self._system_sentinels: dict[str, ErrorSentinel] = {}
@@ -148,7 +148,7 @@ class HealthMonitor:
         with exponential backoff (1 s → 2 s → 4 s).  After max_restarts
         failures the supervisor emits a CRITICAL event on the bus and stops.
 
-        asyncio.CancelledError propagates normally — that is a deliberate stop.
+        asyncio.CancelledError propagates normally - that is a deliberate stop.
         """
         restart_count = 0
         while self._running:
@@ -157,7 +157,7 @@ class HealthMonitor:
                 # Inner loop exited cleanly (self._running → False).  Done.
                 return
             except asyncio.CancelledError:
-                raise  # Propagate — deliberate shutdown
+                raise  # Propagate - deliberate shutdown
             except Exception as exc:
                 restart_count += 1
                 backoff_s = base_backoff_s * (2 ** (restart_count - 1))
@@ -294,7 +294,7 @@ class HealthMonitor:
         """
         Check infrastructure layer health (Redis, Neo4j).
 
-        These are not cognitive systems but substrate — if they fail,
+        These are not cognitive systems but substrate - if they fail,
         multiple systems silently degrade. Detecting infrastructure
         failures proactively prevents cascading silent timeouts.
         """
@@ -617,7 +617,7 @@ class HealthMonitor:
             await self._check_safe_mode_exit()
 
     async def _enter_safe_mode(self, reason: str) -> None:
-        """Enter safe mode — no autonomous actions permitted."""
+        """Enter safe mode - no autonomous actions permitted."""
         if self._safe_mode:
             return
 
@@ -631,7 +631,7 @@ class HealthMonitor:
         ))
 
     async def _exit_safe_mode(self) -> None:
-        """Exit safe mode — all critical systems are healthy again."""
+        """Exit safe mode - all critical systems are healthy again."""
         if not self._safe_mode:
             return
 
@@ -652,7 +652,7 @@ class HealthMonitor:
         Only systems that are *both* in _CRITICAL_SYSTEMS AND actually
         registered with the health monitor are checked.  A critical system
         that was never registered is logged as an anomaly but does NOT
-        permanently block safe-mode exit — the organism must be able to
+        permanently block safe-mode exit - the organism must be able to
         recover autonomously once the systems it actually knows about are healthy.
         """
         # Warn on any critical system that was never registered (config gap).

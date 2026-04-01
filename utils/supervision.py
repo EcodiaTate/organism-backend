@@ -1,5 +1,5 @@
 """
-EcodiaOS — Supervised Task Utility
+EcodiaOS - Supervised Task Utility
 
 Wraps asyncio coroutines in a self-restarting supervisor that:
   - Logs every exception with full context and traceback
@@ -25,7 +25,7 @@ Usage::
         source_system="my_system",
     )
 
-The returned asyncio.Task is the *supervisor* task — cancel it to stop
+The returned asyncio.Task is the *supervisor* task - cancel it to stop
 both the supervisor and the underlying coroutine.
 """
 
@@ -61,7 +61,7 @@ def supervised_task(
     Parameters
     ----------
     coro:
-        The coroutine to run.  It will be consumed immediately — if you need
+        The coroutine to run.  It will be consumed immediately - if you need
         to restart it, pass a factory (see note below).
     name:
         Human-readable name used in all log messages and the bus event.
@@ -88,7 +88,7 @@ def supervised_task(
     Note
     ----
     The first invocation consumes *coro* directly.  For tasks that need
-    repeated restarts you must supply a *factory* coroutine — i.e. an
+    repeated restarts you must supply a *factory* coroutine - i.e. an
     ``async def`` that itself creates and awaits the target, then loops.
     Most long-running daemon loops already have an internal ``while True``
     so a single coroutine is sufficient.
@@ -125,15 +125,15 @@ async def _run_supervised(
     while True:
         try:
             if current_coro is None:
-                # All restarts exhausted — exit the supervisor.
+                # All restarts exhausted - exit the supervisor.
                 return
             await current_coro
-            # Coroutine exited cleanly — no need to restart.
+            # Coroutine exited cleanly - no need to restart.
             log.debug("supervised_task_completed", attempt=attempt)
             return
 
         except asyncio.CancelledError:
-            # Propagate cancellation — supervisor is being shut down.
+            # Propagate cancellation - supervisor is being shut down.
             log.debug("supervised_task_cancelled", attempt=attempt)
             raise
 
@@ -174,7 +174,7 @@ async def _run_supervised(
             )
             await asyncio.sleep(delay)
 
-            # The original coroutine is exhausted — we cannot re-await it.
+            # The original coroutine is exhausted - we cannot re-await it.
             # Signal to the caller that supervised tasks needing actual restart
             # should use a factory wrapper.  For the common case of a daemon
             # loop (while True inside the coro), the coro only exits on error

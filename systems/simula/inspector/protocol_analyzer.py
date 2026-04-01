@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 6: Protocol Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 6: Protocol Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 6 pipeline:
 
@@ -24,7 +24,7 @@ Usage
       phase4_result=phase4_result,
   )
 
-  # Minimal (Phase 3 only — fragments only, no counter/trust decorations):
+  # Minimal (Phase 3 only - fragments only, no counter/trust decorations):
   result = analyzer.analyze(
       phase3_result=phase3_result,
   )
@@ -75,7 +75,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.protocol_analyzer"
 
 class ProtocolAnalyzer:
     """
-    Phase 6 orchestrator — builds a Phase6Result for a target.
+    Phase 6 orchestrator - builds a Phase6Result for a target.
 
     The result combines:
     - Protocol FSMs inferred from Phase 3/4/5 artifacts
@@ -86,11 +86,11 @@ class ProtocolAnalyzer:
 
     Parameters
     ----------
-    max_scenarios_per_fsm  — cap on generated scenarios per FSM (default 20)
-    min_confidence         — minimum scenario confidence to include (default 0.3)
-    privilege_threshold    — minimum Phase 5 node privilege_value to inject
+    max_scenarios_per_fsm  - cap on generated scenarios per FSM (default 20)
+    min_confidence         - minimum scenario confidence to include (default 0.3)
+    privilege_threshold    - minimum Phase 5 node privilege_value to inject
                              timer/counter context (default 30)
-    max_path_length        — maximum FSM path length during BFS/DFS (default 12)
+    max_path_length        - maximum FSM path length during BFS/DFS (default 12)
     """
 
     def __init__(
@@ -151,7 +151,7 @@ class ProtocolAnalyzer:
             target_id=target_id,
         )
 
-        # 3. Replay scenarios — detect failures + build coverage reports
+        # 3. Replay scenarios - detect failures + build coverage reports
         failure_dataset, coverage_reports = self._replayer.replay_all(
             library=library,
             fsms=fsms,

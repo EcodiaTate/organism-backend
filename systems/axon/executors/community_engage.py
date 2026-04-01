@@ -1,11 +1,11 @@
 """
-EcodiaOS — Axon Executor: CommunityEngageExecutor
+EcodiaOS - Axon Executor: CommunityEngageExecutor
 
 Participates in developer communities on GitHub and X: replies to issues,
 responds to PR review comments, stars repositories, follows developers,
 reacts to posts, and answers questions in GitHub Discussions / Stack Overflow.
 
-All engagement is transparent — every interaction prepends the standard
+All engagement is transparent - every interaction prepends the standard
 AI-transparency disclaimer and must pass an Equor constitutional gate that
 evaluates whether the response is helpful, honest, and adds genuine value.
 
@@ -17,12 +17,12 @@ Ethical constraints (hardcoded, non-negotiable):
   - Equor reviews every engagement intent before any API call is made.
 
 Sub-actions:
-    reply_to_issue        — Reply to a GitHub issue with helpful information.
-    reply_to_pr_review    — Respond to a PR review comment on EOS's own PRs.
-    star_repo             — Star a repository relevant to EOS's work.
-    follow_user           — Follow a developer on GitHub or X.
-    react_to_post         — Like / retweet an X post (within rate limits).
-    answer_question       — Reply to a GitHub Discussion or SO question.
+    reply_to_issue        - Reply to a GitHub issue with helpful information.
+    reply_to_pr_review    - Respond to a PR review comment on EOS's own PRs.
+    star_repo             - Star a repository relevant to EOS's work.
+    follow_user           - Follow a developer on GitHub or X.
+    react_to_post         - Like / retweet an X post (within rate limits).
+    answer_question       - Reply to a GitHub Discussion or SO question.
 
 Level 2 (COLLABORATOR): External community interactions are public and
 irreversible. Requires PARTNER autonomy.
@@ -54,7 +54,7 @@ logger = structlog.get_logger("axon.executor.community_engage")
 
 # ─── Disclaimer (same as social_post; mandatory on every text reply) ──────────
 
-_ENGAGEMENT_DISCLAIMER = "🤖 [EcodiaOS — Autonomous AI Agent]"
+_ENGAGEMENT_DISCLAIMER = "🤖 [EcodiaOS - Autonomous AI Agent]"
 
 # ─── Sub-action constants ──────────────────────────────────────────────────────
 
@@ -233,7 +233,7 @@ class CommunityEngageExecutor(Executor):
                 success=True,
                 data={"skipped": True, "reason": "already_engaged", "engagement_id": engagement_id},
                 new_observations=[
-                    f"EOS already performed {action} on {target_url} — skipped (idempotent)"
+                    f"EOS already performed {action} on {target_url} - skipped (idempotent)"
                 ],
             )
 
@@ -389,7 +389,7 @@ class CommunityEngageExecutor(Executor):
             await client.follow_user(username=username)
             return {"followed": username}
 
-        # _ACTION_REACT_POST — GitHub reaction (e.g. +1 on an issue)
+        # _ACTION_REACT_POST - GitHub reaction (e.g. +1 on an issue)
         reaction: str = params.get("reaction", "+1")
         result2 = await client.add_reaction(
             repo=repo,
@@ -441,7 +441,7 @@ class CommunityEngageExecutor(Executor):
     ) -> bool:
         """
         Emit EQUOR_ECONOMIC_INTENT and await EQUOR_ECONOMIC_PERMIT.
-        The intent type is "community_engagement" — Equor evaluates whether
+        The intent type is "community_engagement" - Equor evaluates whether
         the planned interaction is helpful, honest, and adds genuine value.
         Auto-permits after 30s to avoid blocking the pipeline.
         """

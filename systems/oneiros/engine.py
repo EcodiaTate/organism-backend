@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oneiros v2: Sleep Cycle Engine
+EcodiaOS - Oneiros v2: Sleep Cycle Engine
 
 Top-level orchestrator for v2 sleep cycles. Drives the four-stage pipeline:
   DESCENT -> SLOW_WAVE -> REM -> EMERGENCE
@@ -545,7 +545,7 @@ class SleepCycleEngine:
         )
         await self._event_bus.emit(event)
 
-        # Co-emit SLEEP_STAGE_CHANGED — semantic alias consumed by Thread, Benchmarks, etc.
+        # Co-emit SLEEP_STAGE_CHANGED - semantic alias consumed by Thread, Benchmarks, etc.
         with contextlib.suppress(Exception):
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.SLEEP_STAGE_CHANGED,
@@ -599,7 +599,7 @@ class SleepCycleEngine:
         Wait 100 cycles for metrics to stabilise, then compare KPIs to baseline
         and emit ONEIROS_SLEEP_OUTCOME.  Adapts pressure threshold accordingly.
 
-        This is fire-and-forget — called via asyncio.ensure_future after Emergence.
+        This is fire-and-forget - called via asyncio.ensure_future after Emergence.
         """
         # 100-cycle stabilisation: each theta cycle ≈ 150ms → ~15s
         await asyncio.sleep(15.0)
@@ -614,7 +614,7 @@ class SleepCycleEngine:
             post = post_kpis.get(key)
             if pre is None or post is None or pre == 0.0:
                 continue
-            # For memory_fragmentation lower is better — invert the sign
+            # For memory_fragmentation lower is better - invert the sign
             raw_delta = (post - pre) / abs(pre)
             deltas[key] = -raw_delta if key == "memory_fragmentation" else raw_delta
 

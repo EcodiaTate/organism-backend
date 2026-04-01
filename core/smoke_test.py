@@ -1,9 +1,9 @@
 """
-EcodiaOS — Startup Smoke Tests
+EcodiaOS - Startup Smoke Tests
 
 Quick validation checks that confirm all critical loops are wired
 at organism startup.  Failures are logged but do not prevent boot
-— the organism starts in a degraded state.
+- the organism starts in a degraded state.
 
 Extracted from main.py lifespan().
 """
@@ -81,7 +81,7 @@ async def _smoke_oikos(oikos: OikosService, thymos: ThymosService) -> bool:
             logger.warning(
                 "smoke_oikos_zero_bmr",
                 bmr=bmr,
-                message="Oikos metabolism is returning zero BMR — metabolic loop may be unwired",
+                message="Oikos metabolism is returning zero BMR - metabolic loop may be unwired",
             )
             return False
     except Exception as exc:
@@ -114,7 +114,7 @@ async def _smoke_thymos_simula(simula: Any) -> bool:
                 simula_health=health,
                 message=(
                     "Simula health check returned error"
-                    " — Thymos Tier 4 repairs may not dispatch"
+                    " - Thymos Tier 4 repairs may not dispatch"
                 ),
             )
             return False
@@ -139,7 +139,7 @@ def _smoke_escalation_webhook() -> None:
             "smoke_escalation_unwired",
             message=(
                 "EOS_ESCALATION_WEBHOOK is empty"
-                " — organism cannot escalate to external operators"
+                " - organism cannot escalate to external operators"
             ),
         )
 

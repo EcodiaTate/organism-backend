@@ -1,5 +1,5 @@
 """
-EcodiaOS — CAPTCHA Solver Client
+EcodiaOS - CAPTCHA Solver Client
 
 Async client for 2captcha and Anti-Captcha services. Used by AccountProvisioner
 to autonomously complete CAPTCHA challenges during platform account creation.
@@ -18,11 +18,11 @@ Pricing (approximate, varies by service):
 All solve costs are logged to the Synapse bus for Oikos metabolic accounting.
 
 Configuration:
-  ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY   — 2captcha API key
-  ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY  — Anti-Captcha API key
-  ECODIAOS_CAPTCHA__PROVIDER             — "2captcha" (default) | "anticaptcha"
-  ECODIAOS_CAPTCHA__POLLING_INTERVAL_S   — seconds between polls (default 5)
-  ECODIAOS_CAPTCHA__MAX_WAIT_S           — max seconds to wait (default 120)
+  ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY   - 2captcha API key
+  ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY  - Anti-Captcha API key
+  ECODIAOS_CAPTCHA__PROVIDER             - "2captcha" (default) | "anticaptcha"
+  ECODIAOS_CAPTCHA__POLLING_INTERVAL_S   - seconds between polls (default 5)
+  ECODIAOS_CAPTCHA__MAX_WAIT_S           - max seconds to wait (default 120)
 """
 
 from __future__ import annotations

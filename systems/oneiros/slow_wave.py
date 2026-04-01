@@ -1,14 +1,14 @@
 """
-EcodiaOS — Oneiros v2: Slow Wave Stage (The Deep Compiler)
+EcodiaOS - Oneiros v2: Slow Wave Stage (The Deep Compiler)
 
 The heart of Oneiros. All systems are available for batch computation.
 No real-time constraints. No user to respond to. No policy to execute.
 Only: find the truth in what we experienced today.
 
 Three operations:
-1. Memory Ladder — four-rung compression from episodic to world model
-2. Hypothesis Graveyard — MDL-based retirement of stale hypotheses
-3. Causal Graph Reconstruction — rebuild causal structure from all evidence
+1. Memory Ladder - four-rung compression from episodic to world model
+2. Hypothesis Graveyard - MDL-based retirement of stale hypotheses
+3. Causal Graph Reconstruction - rebuild causal structure from all evidence
 """
 
 from __future__ import annotations
@@ -54,10 +54,10 @@ class MemoryLadder:
     - anchor memory (irreducibly novel), or
     - decay-flagged (low MDL)
 
-    Rung 1: Episodic -> Semantic — extract entities, relations, semantic nodes
-    Rung 2: Semantic -> Schema — find repeated patterns, replace with schema + refs
-    Rung 3: Schema -> Procedure — extract action-outcome sequences
-    Rung 4: Procedure -> World Model — integrate as generative rules
+    Rung 1: Episodic -> Semantic - extract entities, relations, semantic nodes
+    Rung 2: Semantic -> Schema - find repeated patterns, replace with schema + refs
+    Rung 3: Schema -> Procedure - extract action-outcome sequences
+    Rung 4: Procedure -> World Model - integrate as generative rules
     """
 
     def __init__(
@@ -154,7 +154,7 @@ class MemoryLadder:
         """RE Stream 1: emit training examples from successful reasoning chains.
 
         During NREM consolidation, compressed schemas represent successful
-        abstraction — ideal training data for the RE's consolidation reasoning.
+        abstraction - ideal training data for the RE's consolidation reasoning.
         Fire-and-forget via asyncio.create_task.
         """
         examples: list[RETrainingExample] = []
@@ -242,7 +242,7 @@ class MemoryLadder:
                             entities.append(item)
 
             if not entities and not relations:
-                # Nothing extractable — check if anchor or decay
+                # Nothing extractable - check if anchor or decay
                 if info_content > 0.8:
                     anchored += 1  # Highly novel but unstructured
                 else:
@@ -302,7 +302,7 @@ class MemoryLadder:
 
         for pattern_key, group in pattern_groups.items():
             if len(group) >= 3:
-                # Sufficient repetition — create a schema
+                # Sufficient repetition - create a schema
                 schema = {
                     "id": new_id(),
                     "pattern_key": pattern_key,
@@ -318,7 +318,7 @@ class MemoryLadder:
                 schemas.append(schema)
                 promoted += 1
             else:
-                # Not enough repetition — check info content
+                # Not enough repetition - check info content
                 for node in group:
                     info = node.get("information_content", 0.5)
                     if info > 0.8:
@@ -379,7 +379,7 @@ class MemoryLadder:
                 procedures.append(procedure)
                 promoted += 1
             else:
-                # Schema without procedural content — anchor if high complexity
+                # Schema without procedural content - anchor if high complexity
                 if schema.get("raw_complexity", 0) > 10.0:
                     anchored += 1
 
@@ -440,10 +440,10 @@ class MemoryLadder:
                 await self._logos.integrate_delta(delta)
                 updates += 1
             elif instance_count >= 3:
-                # No Logos — can't integrate, mark as anchor
+                # No Logos - can't integrate, mark as anchor
                 anchored += 1
             else:
-                # Not enough instances for invariant status — anchor
+                # Not enough instances for invariant status - anchor
                 anchored += 1
 
         ratio = len(procedures) / max(updates, 1) if updates > 0 else 1.0
@@ -516,7 +516,7 @@ class HypothesisGraveyard:
             compression_ratio = obs_complexity / desc_length
 
             if compression_ratio >= self.RETIREMENT_RATIO_THRESHOLD:
-                # Good hypothesis — confirm
+                # Good hypothesis - confirm
                 confirmed += 1
                 self._logger.debug(
                     "hypothesis_confirmed",
@@ -535,7 +535,7 @@ class HypothesisGraveyard:
                     bits_freed=round(desc_length, 1),
                 )
             else:
-                # Bad ratio but not enough time — defer
+                # Bad ratio but not enough time - defer
                 deferred += 1
                 self._logger.debug(
                     "hypothesis_deferred",
@@ -697,13 +697,13 @@ class CausalGraphReconstructor:
         PC algorithm with proper d-separation for causal structure learning.
 
         Three phases:
-        1. Skeleton — start with complete undirected graph; iteratively remove
-           edges X—Y where X ⊥ Y | Z for some conditioning set Z using the
+        1. Skeleton - start with complete undirected graph; iteratively remove
+           edges X-Y where X ⊥ Y | Z for some conditioning set Z using the
            Fisher Z-test on partial correlations derived from the co-occurrence
            matrix.  Separation sets sep[X,Y] are recorded.
-        2. V-structure orientation — for each unshielded triple X—Z—Y (X and Y
+        2. V-structure orientation - for each unshielded triple X-Z-Y (X and Y
            not adjacent), orient X→Z←Y iff Z ∉ sep[X,Y] (collider detection).
-        3. Meek rules R1–R3 — propagate orientations to avoid new colliders and
+        3. Meek rules R1–R3 - propagate orientations to avoid new colliders and
            directed cycles.
 
         Returns a dict {"nodes": set[str], "edges": list[dict]} where each edge
@@ -732,7 +732,7 @@ class CausalGraphReconstructor:
             return {"nodes": nodes, "edges": []}
 
         # ── Phase 1: Skeleton via conditional independence tests ──────────
-        # Undirected adjacency set — start from corr edges (already thresholded)
+        # Undirected adjacency set - start from corr edges (already thresholded)
         adj: dict[str, set[str]] = {v: set() for v in node_list}
         for v in node_list:
             for u in corr.get(v, {}):
@@ -807,7 +807,7 @@ class CausalGraphReconstructor:
                 for z_tuple in _combns(cands, cond_size):
                     z_set = set(z_tuple)
                     if _ci_test(x, y, z_set):
-                        # X and Y are conditionally independent — remove edge
+                        # X and Y are conditionally independent - remove edge
                         adj[x].discard(y)
                         adj[y].discard(x)
                         sep[x][y] = z_set
@@ -821,9 +821,9 @@ class CausalGraphReconstructor:
         for z in node_list:
             z_nbrs = sorted(adj[z])
             for x, y in _combns(z_nbrs, 2):
-                # Unshielded triple: x—z—y with x and y NOT adjacent
+                # Unshielded triple: x-z-y with x and y NOT adjacent
                 if y in adj[x]:
-                    continue  # shielded triple — not a collider candidate
+                    continue  # shielded triple - not a collider candidate
                 # Collider iff z was NOT in the separation set of x and y
                 if z not in sep[x][y]:
                     # Orient x→z←y
@@ -838,7 +838,7 @@ class CausalGraphReconstructor:
                 for y in sorted(adj[x]):
                     if directed.get(x, {}).get(y) or directed.get(y, {}).get(x):
                         continue  # already oriented
-                    # R1: Orient z→x—y as z→x→y when z—y not in adj
+                    # R1: Orient z→x-y as z→x→y when z-y not in adj
                     for z in sorted(adj[x]):
                         if z == y:
                             continue
@@ -848,7 +848,7 @@ class CausalGraphReconstructor:
                             break
                     if directed.get(x, {}).get(y):
                         continue
-                    # R2: Orient x—y into x→y when there's a directed path x→z→y
+                    # R2: Orient x-y into x→y when there's a directed path x→z→y
                     for z in sorted(adj[x] & adj[y]):
                         if directed.get(x, {}).get(z) and directed.get(z, {}).get(y):
                             directed.setdefault(x, {})[y] = True
@@ -927,7 +927,7 @@ class CausalGraphReconstructor:
                 candidate_strength = edge["strength"]
 
                 if candidate_strength > existing_strength:
-                    # New evidence wins — remove old, add new
+                    # New evidence wins - remove old, add new
                     existing_graph.revise_link(effect, cause, 0.0)
                     contradictions += 1
                     self._logger.info(
@@ -1032,7 +1032,7 @@ class CausalGraphReconstructor:
         0.0 = no change, 1.0 = complete rebuild.
         """
         if self._logos is None:
-            return 1.0  # No existing model — everything is new
+            return 1.0  # No existing model - everything is new
 
         causal = self._logos.get_causal_structure()
         existing_count = causal.link_count if hasattr(causal, "link_count") else 0
@@ -1056,7 +1056,7 @@ class SynapticDownscaler:
     """
     Apply 0.85x salience decay to episodes not accessed in 7+ days.
 
-    This is how sleep renews memory capacity — stale memories fade unless
+    This is how sleep renews memory capacity - stale memories fade unless
     they've already been consolidated (consolidation_level >= 3).
     """
 
@@ -1215,18 +1215,18 @@ class WorldModelAuditor:
 
     Three audit passes, each independent and try-except guarded:
 
-    1. Orphaned schemas — GenerativeSchema nodes with no linked episode, causal
+    1. Orphaned schemas - GenerativeSchema nodes with no linked episode, causal
        link, or procedure.  Pruned if also low-usage (access_count < 2).
 
-    2. Circular causal structures — detect cycles in the causal graph via
+    2. Circular causal structures - detect cycles in the causal graph via
        iterative DFS over CAUSES_LINK relationships in Neo4j.  Cycles are
        resolved by removing the weakest link in the cycle.
 
-    3. Deprecated hypotheses — Evo Hypothesis nodes with status INVALIDATED or
+    3. Deprecated hypotheses - Evo Hypothesis nodes with status INVALIDATED or
        SUPERSEDED that were promoted as world model beliefs.  Retired by setting
        status = RETIRED and removing the HAS_BELIEF relationship.
 
-    All three passes run against Neo4j directly — no LLM calls.
+    All three passes run against Neo4j directly - no LLM calls.
     """
 
     # Orphaned schema: no linked evidence, used fewer than this many times
@@ -1449,14 +1449,14 @@ class SlowWaveStage:
         )
         await self._broadcast_compression_processed(compression_report)
 
-        # 1b. Synaptic Downscaling — decay stale episode salience
+        # 1b. Synaptic Downscaling - decay stale episode salience
         downscale_result = await self._downscaler.run()
         self._logger.debug(
             "downscaling_done",
             episodes_decayed=downscale_result.get("episodes_decayed", 0),
         )
 
-        # 1c. Belief Compression — identify and retire redundant beliefs
+        # 1c. Belief Compression - identify and retire redundant beliefs
         belief_result = await self._belief_compressor.run()
         self._logger.debug(
             "belief_compression_done",

@@ -1,5 +1,5 @@
 """
-Fovea — Block Competition Monitor.
+Fovea - Block Competition Monitor.
 
 Monitors on-chain block space competition for MEV-aware transaction timing.
 Runs as an async background task within the perception pipeline, sampling
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Default polling interval (seconds) — roughly 1 Base L2 block time
+# Default polling interval (seconds) - roughly 1 Base L2 block time
 _DEFAULT_POLL_INTERVAL_S: float = 12.0
 
 # Gas price percentiles for competition scoring
@@ -159,7 +159,7 @@ class BlockCompetitionMonitor:
     # -- Poll Loop ---------------------------------------------------
 
     async def _poll_loop(self) -> None:
-        """Background polling loop — runs until stopped."""
+        """Background polling loop - runs until stopped."""
         while self._running:
             try:
                 snapshot = await self._sample()

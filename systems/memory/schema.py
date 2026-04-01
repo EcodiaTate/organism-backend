@@ -1,5 +1,5 @@
 """
-EcodiaOS — Memory Schema
+EcodiaOS - Memory Schema
 
 Creates all Neo4j indexes, constraints, and vector indexes on first boot.
 This is the physical structure of the knowledge graph.
@@ -30,7 +30,7 @@ CONSTRAINTS = [
     "CREATE CONSTRAINT consolidated_belief_id IF NOT EXISTS FOR (cb:ConsolidatedBelief) REQUIRE cb.id IS UNIQUE",
     "CREATE CONSTRAINT tournament_id IF NOT EXISTS FOR (t:HypothesisTournament) REQUIRE t.tournament_id IS UNIQUE",
 
-    # Intent/Outcome node types (RE training — Memory Spec 01 M7/SG3)
+    # Intent/Outcome node types (RE training - Memory Spec 01 M7/SG3)
     "CREATE CONSTRAINT intent_id IF NOT EXISTS FOR (i:Intent) REQUIRE i.id IS UNIQUE",
     "CREATE CONSTRAINT outcome_id IF NOT EXISTS FOR (o:Outcome) REQUIRE o.id IS UNIQUE",
 
@@ -61,40 +61,40 @@ INDEXES = [
     # Consolidation
     "CREATE INDEX episode_consolidation IF NOT EXISTS FOR (e:Episode) ON (e.consolidation_level)",
 
-    # RE training enrichment — novelty score index for high-novelty episode queries
+    # RE training enrichment - novelty score index for high-novelty episode queries
     "CREATE INDEX episode_novelty IF NOT EXISTS FOR (e:Episode) ON (e.novelty_score)",
 
-    # Belief half-life — accelerate aging scans and staleness queries
+    # Belief half-life - accelerate aging scans and staleness queries
     "CREATE INDEX belief_halflife IF NOT EXISTS FOR (b:Belief) ON (b.half_life_days)",
     "CREATE INDEX belief_last_verified IF NOT EXISTS FOR (b:Belief) ON (b.last_verified)",
     "CREATE INDEX belief_domain IF NOT EXISTS FOR (b:Belief) ON (b.domain)",
 
-    # Counterfactual episodes — accelerate regret resolution and Evo mining
+    # Counterfactual episodes - accelerate regret resolution and Evo mining
     "CREATE INDEX counterfactual_intent IF NOT EXISTS FOR (e:Counterfactual) ON (e.intent_id)",
     "CREATE INDEX counterfactual_resolved IF NOT EXISTS FOR (e:Counterfactual) ON (e.resolved)",
     "CREATE INDEX counterfactual_policy_type IF NOT EXISTS FOR (e:Counterfactual) ON (e.policy_type)",
 
-    # Semantic compression — lookup compressed episodes by basis
+    # Semantic compression - lookup compressed episodes by basis
     "CREATE INDEX episode_compression_basis IF NOT EXISTS FOR (e:Episode) ON (e.compression_basis_id)",
     "CREATE INDEX projection_basis_community IF NOT EXISTS FOR (pb:ProjectionBasis) ON (pb.community_id)",
 
-    # Consolidated beliefs — hardened high-confidence knowledge (Evo Phase 2.75)
+    # Consolidated beliefs - hardened high-confidence knowledge (Evo Phase 2.75)
     "CREATE INDEX consolidated_belief_domain IF NOT EXISTS FOR (cb:ConsolidatedBelief) ON (cb.domain)",
     "CREATE INDEX consolidated_belief_consolidated_at IF NOT EXISTS FOR (cb:ConsolidatedBelief) ON (cb.consolidated_at)",
 
-    # Hypothesis tournaments — Thompson sampling A/B experiments (Evo Phase 2)
+    # Hypothesis tournaments - Thompson sampling A/B experiments (Evo Phase 2)
     "CREATE INDEX tournament_stage IF NOT EXISTS FOR (t:HypothesisTournament) ON (t.stage)",
     "CREATE INDEX tournament_winner IF NOT EXISTS FOR (t:HypothesisTournament) ON (t.winner_id)",
 
-    # Intent/Outcome — RE training decision/execution records
+    # Intent/Outcome - RE training decision/execution records
     "CREATE INDEX intent_episode IF NOT EXISTS FOR (i:Intent) ON (i.episode_id)",
     "CREATE INDEX intent_timestamp IF NOT EXISTS FOR (i:Intent) ON (i.timestamp)",
     "CREATE INDEX outcome_intent IF NOT EXISTS FOR (o:Outcome) ON (o.intent_id)",
 
-    # CausalNode — Kairos causal graph
+    # CausalNode - Kairos causal graph
     "CREATE INDEX causal_node_domain IF NOT EXISTS FOR (cn:CausalNode) ON (cn.domain)",
 
-    # Experiment — Evo experiment tracking
+    # Experiment - Evo experiment tracking
     "CREATE INDEX experiment_hypothesis IF NOT EXISTS FOR (x:Experiment) ON (x.hypothesis_id)",
     "CREATE INDEX experiment_status IF NOT EXISTS FOR (x:Experiment) ON (x.status)",
 ]
@@ -138,7 +138,7 @@ VECTOR_INDEXES = [
         `vector.similarity_function`: 'cosine'
     }}
     """,
-    # Somatic marker vector index — 19D (9 sensed + 9 errors + 1 PE)
+    # Somatic marker vector index - 19D (9 sensed + 9 errors + 1 PE)
     # for state-congruent recall reranking (Soma §0.5)
     """
     CREATE VECTOR INDEX episode_somatic IF NOT EXISTS
@@ -154,7 +154,7 @@ VECTOR_INDEXES = [
 async def ensure_schema(neo4j: Neo4jClient) -> None:
     """
     Create all indexes and constraints if they don't exist.
-    Idempotent — safe to call on every startup.
+    Idempotent - safe to call on every startup.
     """
     logger.info("memory_schema_ensuring")
 

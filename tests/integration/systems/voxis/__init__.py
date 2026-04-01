@@ -1,1 +1,1 @@
-"""EcodiaOS integration tests — Voxis."""
+"""EcodiaOS integration tests - Voxis."""

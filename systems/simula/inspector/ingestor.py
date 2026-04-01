@@ -1,11 +1,11 @@
 """
-EcodiaOS — Inspector Target Ingestor (Phase 3)
+EcodiaOS - Inspector Target Ingestor (Phase 3)
 
 Clones external repositories, builds dependency graphs via AST parsing,
 and discovers exploitable attack surfaces across Python, JavaScript/
 TypeScript, and Solidity codebases.
 
-Attack surface detection is high-confidence only — regex patterns for
+Attack surface detection is high-confidence only - regex patterns for
 non-Python languages will be refined in future phases.
 """
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 import ast
 import re
 import time
-from pathlib import Path  # noqa: TC003 — used at runtime
+from pathlib import Path  # noqa: TC003 - used at runtime
 from typing import TYPE_CHECKING
 
 import structlog
@@ -453,7 +453,7 @@ class TargetIngestor:
             route_pattern: str | None = None
             surface_type: AttackSurfaceType | None = None
 
-            # Handle @app.get(...) style — ast.Call with ast.Attribute func.
+            # Handle @app.get(...) style - ast.Call with ast.Attribute func.
             if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Attribute):
                 attr_name = decorator.func.attr.lower()
                 if attr_name in _PYTHON_ROUTE_DECORATORS:

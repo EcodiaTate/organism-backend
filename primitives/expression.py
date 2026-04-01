@@ -1,7 +1,7 @@
 """
-EcodiaOS — Expression Primitive
+EcodiaOS - Expression Primitive
 
-The output of Voxis — what the organism says and how it says it.
+The output of Voxis - what the organism says and how it says it.
 Includes the full personality vector, strategy snapshot, generation trace,
 and complete affect snapshot for auditing and feedback.
 """
@@ -49,7 +49,7 @@ class PersonalityVector(EOSBaseModel):
 
 class ExpressionStrategy(EOSBaseModel):
     """
-    Serialised strategy snapshot — how Voxis decided to express something.
+    Serialised strategy snapshot - how Voxis decided to express something.
     Stored on Expression for full audit traceability.
     This is the persisted form; StrategyParams in voxis/types.py is the richer
     internal working representation that gets collapsed into this at render time.
@@ -91,7 +91,7 @@ class Expression(Identified, Timestamped):
     """
     A complete expression from the organism.
 
-    Text output, voice, ambient signals — the final rendered output.
+    Text output, voice, ambient signals - the final rendered output.
     Contains a full snapshot of the state at generation time for auditing.
     """
 

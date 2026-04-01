@@ -292,7 +292,7 @@ Ecodian alignment criteria (score higher if):
   - Is self-contained (no deep domain knowledge required)
   - Has a reasonable reward relative to complexity
 
-Score each issue 0–100. Return ONLY valid JSON — an array of objects with:
+Score each issue 0–100. Return ONLY valid JSON - an array of objects with:
   "id": (the issue id string),
   "score": (integer 0–100),
   "reasoning": (one sentence max)

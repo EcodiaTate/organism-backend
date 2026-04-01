@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Phantom Liquidity Executor (Phase 16q)
+EcodiaOS - Axon Phantom Liquidity Executor (Phase 16q)
 
 Deploy, withdraw, or rebalance phantom liquidity positions on Uniswap V3
 (Base L2).  Each position is a tiny concentrated-liquidity sensor that
@@ -218,7 +218,7 @@ class PhantomLiquidityExecutor(Executor):
     Deploy, withdraw, or rebalance phantom liquidity sensor positions on
     Uniswap V3 (Base L2).
 
-    Phase 16q — Liquidity Phantom Positions.  Tiny concentrated-liquidity
+    Phase 16q - Liquidity Phantom Positions.  Tiny concentrated-liquidity
     positions that provide real-time price feeds via Swap event observation.
 
     Required params:
@@ -263,10 +263,10 @@ class PhantomLiquidityExecutor(Executor):
     action_type = "phantom_liquidity"
     description = (
         "Deploy, withdraw, or rebalance phantom liquidity positions on "
-        "Uniswap V3 — sensor network for real-time price feeds (Level 3)"
+        "Uniswap V3 - sensor network for real-time price feeds (Level 3)"
     )
 
-    required_autonomy = 3       # SOVEREIGN — deploys real capital on-chain
+    required_autonomy = 3       # SOVEREIGN - deploys real capital on-chain
     reversible = False          # On-chain interactions cannot be reversed
     max_duration_ms = 120_000   # LP minting may require approve + mint
     rate_limit = RateLimit.per_hour(6)
@@ -278,7 +278,7 @@ class PhantomLiquidityExecutor(Executor):
     # -- Validation ----------------------------------------------------------
 
     async def validate_params(self, params: dict[str, Any]) -> ValidationResult:
-        """Fast param validation — no I/O."""
+        """Fast param validation - no I/O."""
         action = str(params.get("action", "")).strip().lower()
         if not action:
             return ValidationResult.fail(
@@ -506,7 +506,7 @@ class PhantomLiquidityExecutor(Executor):
         side_effect = (
             f"Deployed phantom LP on {pool_address} "
             f"(fee {fee_tier/10000:.2%}, ticks [{tick_lower}, {tick_upper}]) "
-            f"on {network} — tx: {tx_hash}"
+            f"on {network} - tx: {tx_hash}"
         )
 
         observation = (
@@ -597,7 +597,7 @@ class PhantomLiquidityExecutor(Executor):
 
         side_effect = (
             f"Withdrew phantom LP token_id={token_id} "
-            f"on {network} — tx: {tx_hash}"
+            f"on {network} - tx: {tx_hash}"
         )
 
         observation = (
@@ -631,7 +631,7 @@ class PhantomLiquidityExecutor(Executor):
         if not withdraw_result.success:
             return ExecutionResult(
                 success=False,
-                error=f"Rebalance aborted — withdraw failed: {withdraw_result.error}",
+                error=f"Rebalance aborted - withdraw failed: {withdraw_result.error}",
                 data={"phase": "withdraw", "inner": withdraw_result.data},
             )
 
@@ -640,7 +640,7 @@ class PhantomLiquidityExecutor(Executor):
         if not deploy_result.success:
             return ExecutionResult(
                 success=False,
-                error=f"Rebalance partial — withdraw succeeded but deploy failed: {deploy_result.error}",
+                error=f"Rebalance partial - withdraw succeeded but deploy failed: {deploy_result.error}",
                 data={
                     "phase": "deploy",
                     "withdraw_tx": withdraw_result.data.get("tx_hash", ""),

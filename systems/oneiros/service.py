@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oneiros: The Dream Engine Service (v2)
+EcodiaOS - Oneiros: The Dream Engine Service (v2)
 
 System #13 orchestrator. Coordinates the circadian rhythm, sleep
 stage transitions (v2 batch compiler: DESCENT → SLOW_WAVE → REM → EMERGENCE),
@@ -38,7 +38,7 @@ from systems.synapse.types import MetabolicState, SynapseEventType
 
 # ─── Cross-System Protocols ──────────────────────────────────────
 # Each Protocol defines exactly the surface Oneiros calls on that system.
-# No Any — these are checked at runtime via isinstance() if needed.
+# No Any - these are checked at runtime via isinstance() if needed.
 
 
 @runtime_checkable
@@ -115,38 +115,38 @@ class KairosServiceProtocol(Protocol):
 
 # Thin marker protocols for systems whose methods are accessed via getattr guards
 # (equor, nova, atune, thymos, memory).  We don't call any methods directly on
-# these in service.py — they are forwarded to the engine or used as presence
+# these in service.py - they are forwarded to the engine or used as presence
 # guards only.  Using object as Protocol base with no methods is valid and
 # communicates intent without over-constraining the interface.
 
 @runtime_checkable
 class EquorServiceProtocol(Protocol):
-    """Equor interface marker — forwarded to engine.set_equor()."""
+    """Equor interface marker - forwarded to engine.set_equor()."""
 
 
 @runtime_checkable
 class NovaServiceProtocol(Protocol):
-    """Nova interface marker — wired via engine stages internally."""
+    """Nova interface marker - wired via engine stages internally."""
 
 
 @runtime_checkable
 class AtuneServiceProtocol(Protocol):
-    """Atune interface marker — no direct calls in service.py."""
+    """Atune interface marker - no direct calls in service.py."""
 
 
 @runtime_checkable
 class ThymosServiceProtocol(Protocol):
-    """Thymos interface marker — no direct calls in service.py."""
+    """Thymos interface marker - no direct calls in service.py."""
 
 
 @runtime_checkable
 class MemoryServiceProtocol(Protocol):
-    """Memory interface marker — no direct calls in service.py."""
+    """Memory interface marker - no direct calls in service.py."""
 
 
 @runtime_checkable
 class SimulaServiceProtocol(Protocol):
-    """Simula interface — forwarded to engine.set_simula().
+    """Simula interface - forwarded to engine.set_simula().
 
     Concrete methods are declared in lucid_stage.SimulaProtocol.
     """
@@ -167,7 +167,7 @@ EMERGENCY_WAKE = SynapseEventType.EMERGENCY_WAKE
 
 class OneirosService:
     """
-    The Dream Engine — System #13 (v2 batch compiler).
+    The Dream Engine - System #13 (v2 batch compiler).
 
     Coordinates the organism's circadian rhythm and delegates all sleep-cycle
     work to SleepCycleEngine (Spec 14: DESCENT → SLOW_WAVE → REM → EMERGENCE).
@@ -209,7 +209,7 @@ class OneirosService:
         self._economic_dream_worker: Any = None
         self._threat_model_worker: Any = None
 
-        # Loop 5 — Kairos → Oneiros priority REM seed buffer.
+        # Loop 5 - Kairos → Oneiros priority REM seed buffer.
         self._kairos_rem_seeds: deque[dict[str, Any]] = deque(maxlen=50)
 
         # Core subsystems
@@ -258,7 +258,7 @@ class OneirosService:
         # Grid metabolism state
         self._grid_state: MetabolicState = MetabolicState.NORMAL
 
-        # Metabolic starvation level — AUSTERITY: 50% dreams, EMERGENCY+: halt all
+        # Metabolic starvation level - AUSTERITY: 50% dreams, EMERGENCY+: halt all
         self._starvation_level: str = "nominal"
 
         # ── Skia VitalityCoordinator modulation ───────────────────────
@@ -267,7 +267,7 @@ class OneirosService:
         # Pending insights for wake broadcast
         self._pending_wake_insights: list[Any] = []
 
-        # v2 Sleep Cycle Engine (Spec 14 — Sleep as Batch Compiler)
+        # v2 Sleep Cycle Engine (Spec 14 - Sleep as Batch Compiler)
         event_bus = None
         if synapse is not None:
             with contextlib.suppress(AttributeError):
@@ -413,7 +413,7 @@ class OneirosService:
                 )
 
                 # Spec 14 / Corpus 14 §7: Simula evolution episodes feed sleep pressure.
-                # Each applied proposal is an unconsolidated structural episode — record it
+                # Each applied proposal is an unconsolidated structural episode - record it
                 # so Oneiros's circadian clock builds appropriate consolidation pressure.
                 if hasattr(SynapseEventType, "EVOLUTION_APPLIED"):
                     event_bus.subscribe(
@@ -514,7 +514,7 @@ class OneirosService:
         # Emit metrics
         self._emit_metric("oneiros.sleep_pressure", self._clock.pressure.composite_pressure)
 
-        # Check sleep triggers — cycle count gate fires first
+        # Check sleep triggers - cycle count gate fires first
         cycle_threshold_reached = self._wake_cycle_count >= self._cycles_per_sleep
         if cycle_threshold_reached or self._clock.must_sleep():
             if self._clock.must_sleep():
@@ -540,7 +540,7 @@ class OneirosService:
             })
 
     async def on_episode_stored(self, valence: float, arousal: float) -> None:
-        """Called when Memory stores an episode — more accurate pressure tracking."""
+        """Called when Memory stores an episode - more accurate pressure tracking."""
         self._clock.record_affect_trace(valence, arousal)
 
     # ── Sleep Orchestration ───────────────────────────────────────
@@ -733,8 +733,8 @@ class OneirosService:
         Run Monte Carlo economic simulations during consolidation.
 
         Two workers run in parallel:
-          1. EconomicDreamWorker — organism-level cashflow GBM (survival/ruin)
-          2. ThreatModelWorker — per-asset shock distributions with contagion
+          1. EconomicDreamWorker - organism-level cashflow GBM (survival/ruin)
+          2. ThreatModelWorker - per-asset shock distributions with contagion
         """
         if self._oikos is None:
             return
@@ -788,7 +788,7 @@ class OneirosService:
                     )
                     # ONEIROS-ECON-1: Broadcast economic dream insights so Nova and
                     # other systems can integrate risk awareness. Only broadcast when
-                    # ruin_probability > 0.2 — below that, risk is nominal and not
+                    # ruin_probability > 0.2 - below that, risk is nominal and not
                     # actionable enough to warrant organism-wide attention.
                     if result.ruin_probability > 0.2:
                         optimal_scenarios: list[str] = [
@@ -892,7 +892,7 @@ class OneirosService:
             "quality": quality.value,
         })
 
-        # Emit consolidation complete for Federation — sleep_certified=True only when
+        # Emit consolidation complete for Federation - sleep_certified=True only when
         # all 4 stages completed without interruption (DEEP or NORMAL quality).
         sleep_certified = quality in (SleepQuality.DEEP, SleepQuality.NORMAL)
         certified_ids = self._last_cycle_kairos_seed_ids if sleep_certified else []
@@ -962,7 +962,7 @@ class OneirosService:
         strategy space rather than defaulting to epistemic exploration.
         """
         if self._stage_controller.is_sleeping:
-            # Already asleep — goal will apply to the next cycle
+            # Already asleep - goal will apply to the next cycle
             return
 
         data = getattr(event, "data", {}) or {}
@@ -1064,7 +1064,7 @@ class OneirosService:
 
     async def _on_kairos_tier3_invariant(self, event: Any) -> None:
         """
-        Loop 5 — Kairos → Oneiros (Synapse path).
+        Loop 5 - Kairos → Oneiros (Synapse path).
 
         Queue a Tier 3 invariant as a priority REM seed.
         """
@@ -1085,7 +1085,7 @@ class OneirosService:
 
     async def _on_simula_evolution_applied(self, event: Any) -> None:
         """
-        Corpus 14 §7 — Simula → Oneiros consolidation feed (Spec 14).
+        Corpus 14 §7 - Simula → Oneiros consolidation feed (Spec 14).
 
         Each applied structural evolution is an unconsolidated episode for the
         memory consolidation system. Recording it here increments sleep pressure
@@ -1116,20 +1116,20 @@ class OneirosService:
 
     async def _on_federation_sleep_sync(self, event: Any) -> None:
         """
-        Spec 14 §8 — Federation sleep coordination.
+        Spec 14 §8 - Federation sleep coordination.
 
         When a federated peer requests sleep synchronization, Oneiros evaluates
         whether to honour the proposed sleep time. If already sleeping, ignores.
         If wake-state and the proposed time is within the next theta cycle, nudges
         sleep pressure to trigger imminent consolidation so the organism enters
-        sleep in rough synchrony with the requesting peer — enabling shared
+        sleep in rough synchrony with the requesting peer - enabling shared
         knowledge to be certified and broadcast together.
 
         The actual timing guarantee is best-effort: Oneiros will not override
         EMERGENCY/CRITICAL metabolic starvation guards or active task constraints.
         """
         if self._stage_controller.is_sleeping:
-            return  # Already consolidating — sync happened naturally
+            return  # Already consolidating - sync happened naturally
 
         data = event.data if hasattr(event, "data") else {}
         peer_instance_id = data.get("instance_id", "unknown")
@@ -1234,7 +1234,7 @@ class OneirosService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Oneiros directive: {"dream_frequency_factor": 0.5} — reduce dream
+        Oneiros directive: {"dream_frequency_factor": 0.5} - reduce dream
         frequency to conserve cognitive resources during austerity.
         """
         factor = directives.get("dream_frequency_factor")

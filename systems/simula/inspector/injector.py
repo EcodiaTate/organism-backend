@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Dynamic Taint Injector
+EcodiaOS - Inspector Dynamic Taint Injector
 
 Actively maps live data-flow paths by firing uniquely-tagged HTTP requests
 into a running container cluster and reading back which services the token
@@ -22,7 +22,7 @@ sinks a public entry point connects to.
 
 Iron Rules
 ----------
-- All requests use a 5-second timeout — a hanging server must not stall
+- All requests use a 5-second timeout - a hanging server must not stall
   the pipeline.
 - HTTP error responses (4xx / 5xx) are silently accepted; we care about
   data propagation, not application correctness.
@@ -48,7 +48,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.injector")
 # How long to wait after firing the request for eBPF events to propagate.
 _EBPF_FLUSH_WAIT_S: float = 0.5
 
-# HTTP request timeout — kept short so a dead container doesn't block the pipeline.
+# HTTP request timeout - kept short so a dead container doesn't block the pipeline.
 _REQUEST_TIMEOUT_S: float = 5.0
 
 # Header name used when injecting via custom header.
@@ -115,7 +115,7 @@ class DynamicTaintInjector:
                 **kwargs,
             )
         except (httpx.TimeoutException, httpx.RequestError) as exc:
-            # Network errors are expected when targeting hardened services —
+            # Network errors are expected when targeting hardened services -
             # the token may still have propagated before the error occurred.
             log.debug("taint_injection_network_error", error=str(exc))
 
@@ -142,9 +142,9 @@ class DynamicTaintInjector:
         Construct the (url, method, kwargs) triple for ``httpx.AsyncClient.request``.
 
         Injection strategy (in priority order):
-        1. JSON body field ``_taint`` — used for POST/PUT/PATCH endpoints.
-        2. Query parameter ``_taint`` — used for GET/DELETE/HEAD.
-        3. Custom header ``X-Taint-Token`` — always added regardless of strategy.
+        1. JSON body field ``_taint`` - used for POST/PUT/PATCH endpoints.
+        2. Query parameter ``_taint`` - used for GET/DELETE/HEAD.
+        3. Custom header ``X-Taint-Token`` - always added regardless of strategy.
 
         The route pattern from the surface is appended to ``target_url`` if
         it is set and ``target_url`` does not already end with a path segment.

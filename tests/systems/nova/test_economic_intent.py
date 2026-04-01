@@ -4,7 +4,7 @@ Unit tests for Nova economic intelligence gaps closure.
 Covers:
   NOVA-ECON-1: Economic event subscription handlers
   NOVA-ECON-2: Economic policy template selection via generate_economic_intent()
-  NOVA-ECON-3: BeliefUrgencyMonitor — confidence shift triggers immediate deliberation
+  NOVA-ECON-3: BeliefUrgencyMonitor - confidence shift triggers immediate deliberation
   EVO-NOVA-1: Full hypothesis metadata in NOVA_GOAL_INJECTED
 
 All tests are synchronous or use pytest-asyncio.
@@ -184,7 +184,7 @@ class TestBeliefUrgencyMonitor:
     """Verify BeliefUrgencyMonitor triggers callback on >20% confidence shift."""
 
     def test_no_trigger_on_first_observation(self) -> None:
-        """First check establishes baseline — no callback should fire."""
+        """First check establishes baseline - no callback should fire."""
         callback = AsyncMock()
         monitor = BeliefUrgencyMonitor(callback=callback)
         monitor.check("economic_risk_level", 0.5)
@@ -221,7 +221,7 @@ class TestBeliefUrgencyMonitor:
         callback = AsyncMock()
         monitor = BeliefUrgencyMonitor(callback=callback)
         monitor.check("some_random_belief", 0.1)
-        monitor.check("some_random_belief", 0.9)  # +0.8 shift — but not a priority key
+        monitor.check("some_random_belief", 0.9)  # +0.8 shift - but not a priority key
         assert not callback.called
 
     def test_all_priority_keys_are_monitored(self) -> None:
@@ -275,7 +275,7 @@ class TestBeliefUpdaterUrgencyWiring:
     def test_update_entity_no_monitor_does_not_crash(self) -> None:
         updater = BeliefUpdater()
         updater.inject_entity("bounty_success_rate", "bounty_success_rate", confidence=0.5)
-        # No monitor wired — must not raise
+        # No monitor wired - must not raise
         result = updater.update_entity("bounty_success_rate", confidence=0.9)
         assert result is True
 

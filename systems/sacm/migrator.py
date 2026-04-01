@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Compute Migration Executor
+EcodiaOS - SACM Compute Migration Executor
 
 Handles atomic migration of the organism's primary compute from one infrastructure
 provider to another (Cloud Run ↔ Akash).  Migration is always gated by Equor
@@ -54,7 +54,7 @@ logger = structlog.get_logger("systems.sacm.migrator")
 _EQUOR_PERMIT_TIMEOUT_S = 30.0   # Max wait for EQUOR_ECONOMIC_PERMIT
 _HEARTBEAT_POLL_INTERVAL_S = 10.0
 _MIGRATION_LOCK_KEY = "sacm:migration:lock"
-_MIGRATION_LOCK_TTL_S = 900      # 15 min — matches Skia restoration lock
+_MIGRATION_LOCK_TTL_S = 900      # 15 min - matches Skia restoration lock
 _MIGRATION_HISTORY_KEY = "sacm:migration:history"
 
 
@@ -99,8 +99,8 @@ class MigrationExecutor:
         self._skia_config = skia_config
         self._redis = redis
         self._event_bus: EventBus | None = None
-        self._skia_snapshot: Any | None = None   # StateSnapshotPipeline — injected
-        self._neo4j: Any | None = None           # Neo4j async driver — injected via set_neo4j()
+        self._skia_snapshot: Any | None = None   # StateSnapshotPipeline - injected
+        self._neo4j: Any | None = None           # Neo4j async driver - injected via set_neo4j()
         self._permit_events: dict[str, asyncio.Event] = {}  # request_id → permit event
         self._permit_results: dict[str, bool] = {}          # request_id → approved?
         self._log = logger.bind(component="sacm.migrator")
@@ -110,7 +110,7 @@ class MigrationExecutor:
     def set_neo4j(self, neo4j_driver: Any) -> None:
         """
         Wire a Neo4j async driver so each MigrationRecord is persisted as an
-        (:EconomicEvent) node — immutable audit trail per Spec 27 §10.
+        (:EconomicEvent) node - immutable audit trail per Spec 27 §10.
 
         Closes Known Issue #6 in CLAUDE.md (_write_migration_neo4j() stub was
         implemented but driver injection was never wired from registry.py).
@@ -243,7 +243,7 @@ class MigrationExecutor:
             # ── Step 4: Force Skia snapshot ──────────────────────────────────
             state_cid = await self._capture_state_snapshot()
             if not state_cid:
-                raise RuntimeError("Skia snapshot returned empty CID — cannot migrate without state")
+                raise RuntimeError("Skia snapshot returned empty CID - cannot migrate without state")
 
             # ── Step 5: Provision new instance ───────────────────────────────
             new_endpoint = await self._provision_new_instance(
@@ -263,7 +263,7 @@ class MigrationExecutor:
             if not healthy:
                 raise RuntimeError(
                     f"New instance at {new_endpoint} failed health checks within "
-                    f"{self._config.handoff_timeout_s}s — rolling back"
+                    f"{self._config.handoff_timeout_s}s - rolling back"
                 )
 
             # ── Step 7: Switch routing ────────────────────────────────────────
@@ -440,7 +440,7 @@ class MigrationExecutor:
             return count < self._config.max_migrations_per_24h
         except Exception as exc:
             self._log.warning("circuit_breaker_check_failed", error=str(exc))
-            return True  # Fail open — safety fallback
+            return True  # Fail open - safety fallback
 
     async def _record_migration_timestamp(self) -> None:
         """Record a successful migration timestamp for 24h circuit breaker."""
@@ -533,7 +533,7 @@ class MigrationExecutor:
         """
         Deploy a new Cloud Run revision with state CID injected.
 
-        Triggers a new revision (different from Skia's restart — this targets
+        Triggers a new revision (different from Skia's restart - this targets
         the *migration* service name, which may differ from the Skia-watched service).
         """
         import base64
@@ -727,7 +727,7 @@ class MigrationExecutor:
         """
         Record the new provider endpoint in Redis so all internal consumers
         resolve to the new instance.  This is the lightweight "DNS switch":
-        no external DNS records are managed here — the endpoint is used by
+        no external DNS records are managed here - the endpoint is used by
         internal health monitors (Skia heartbeat, Synapse) to redirect checks.
 
         Operators managing real DNS should subscribe to COMPUTE_MIGRATION_COMPLETED.
@@ -757,7 +757,7 @@ class MigrationExecutor:
 
         This sends ORGANISM_SHUTDOWN_REQUESTED via Synapse so the old instance
         can drain in-flight workloads before dying.  We do NOT forcibly kill the
-        old instance — the organism shuts itself down on receipt of this event.
+        old instance - the organism shuts itself down on receipt of this event.
         """
         await self._emit(SynapseEventType.ORGANISM_SHUTDOWN_REQUESTED, {
             "requester": "sacm.migrator",
@@ -787,7 +787,7 @@ class MigrationExecutor:
             target_provider=target_provider,
             new_endpoint=new_endpoint,
         )
-        # Emit rollback signal — provider-specific cleanup is done by operators
+        # Emit rollback signal - provider-specific cleanup is done by operators
         # or by a future provider-aware cleanup hook.
         await self._emit(SynapseEventType.COMPUTE_MIGRATION_FAILED, {
             "migration_id": migration_id,
@@ -814,7 +814,7 @@ class MigrationExecutor:
         except Exception as exc:
             self._log.warning("migration_record_persist_failed", error=str(exc))
 
-        # Neo4j: (:EconomicEvent) node — immutable audit trail (Known Issue #6 closure)
+        # Neo4j: (:EconomicEvent) node - immutable audit trail (Known Issue #6 closure)
         if self._neo4j is not None:
             asyncio.create_task(
                 self._write_migration_neo4j(rec),
@@ -916,7 +916,7 @@ class CostTriggeredMigrationMonitor:
 
     The 20% threshold and 6-hour window match the spec (cost must be sustained,
     not a transient spike).  The comparison is against the oracle's live pricing
-    surface snapshot — wired via set_oracle().
+    surface snapshot - wired via set_oracle().
     """
 
     _COST_THRESHOLD_FACTOR = 1.20   # 20% more expensive than cheapest
@@ -931,7 +931,7 @@ class CostTriggeredMigrationMonitor:
         self._executor = migration_executor
         self._config = config
         self._event_bus: EventBus | None = None
-        self._oracle: Any | None = None   # ComputeMarketOracle — injected
+        self._oracle: Any | None = None   # ComputeMarketOracle - injected
         self._log = logger.bind(component="sacm.cost_migration_monitor")
 
         # Telemetry accumulation
@@ -1027,7 +1027,7 @@ class CostTriggeredMigrationMonitor:
                     name="sacm_cost_triggered_migration",
                 )
         else:
-            # Cost dropped back below threshold — reset window
+            # Cost dropped back below threshold - reset window
             if self._high_cost_since is not None:
                 hours_was_high = (time.time() - self._high_cost_since) / 3600.0
                 self._log.info(

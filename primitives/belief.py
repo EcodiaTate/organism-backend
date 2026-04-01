@@ -1,7 +1,7 @@
 """
-EcodiaOS — Belief Primitive
+EcodiaOS - Belief Primitive
 
-The fundamental unit of internal state — what EOS "thinks".
+The fundamental unit of internal state - what EOS "thinks".
 
 Each belief can carry half-life metadata (domain-aware decay rate) so the
 organism knows when its knowledge is aging and needs re-verification.
@@ -23,7 +23,7 @@ class Belief(Identified):
     domain: str = ""                          # e.g., "user.emotional_state"
     distribution_type: str = "categorical"    # "categorical" | "gaussian" | "point"
     parameters: dict[str, float] = Field(default_factory=dict)
-    precision: float = 0.5                    # Inverse variance — confidence
+    precision: float = 0.5                    # Inverse variance - confidence
     evidence: list[str] = Field(default_factory=list)  # Percept/Belief IDs
     updated_at: datetime = Field(default_factory=utc_now)
     free_energy: float = 0.0                  # Current prediction error

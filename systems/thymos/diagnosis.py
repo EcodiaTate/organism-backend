@@ -1,13 +1,13 @@
 """
-EcodiaOS — Thymos Diagnostic Layer (Root Cause Analysis)
+EcodiaOS - Thymos Diagnostic Layer (Root Cause Analysis)
 
 Diagnosis is where Thymos becomes genuinely intelligent. It doesn't just
-look at the failing system — it reasons about causality across the organism.
+look at the failing system - it reasons about causality across the organism.
 
 Three diagnostic strategies:
-  1. CausalAnalyzer       — trace error causality through the dependency graph
-  2. TemporalCorrelator   — what changed in the window before the incident?
-  3. DiagnosticEngine      — LLM-backed hypothesis generation and testing
+  1. CausalAnalyzer       - trace error causality through the dependency graph
+  2. TemporalCorrelator   - what changed in the window before the incident?
+  3. DiagnosticEngine      - LLM-backed hypothesis generation and testing
 """
 
 from __future__ import annotations
@@ -81,11 +81,11 @@ def _api_hypotheses(
     hypotheses: list[DiagnosticHypothesis] = []
 
     if sc >= 500 and sc != 503:
-        # Primary: Tier 1 — timeout / resource adjustment
+        # Primary: Tier 1 - timeout / resource adjustment
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"Server error ({sc}) on {method}:{ep} — request timeout or "
+                    f"Server error ({sc}) on {method}:{ep} - request timeout or "
                     "pool exhaustion causing 5xx"
                 ),
                 diagnostic_test="check_upstream_latency",
@@ -99,7 +99,7 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"Persistent {sc} errors on {ep} — owning system in bad state, "
+                    f"Persistent {sc} errors on {ep} - owning system in bad state, "
                     "restart required"
                 ),
                 diagnostic_test="check_resource_exhaustion",
@@ -112,7 +112,7 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"Unhandled exception behind {method}:{ep} ({sc}) — "
+                    f"Unhandled exception behind {method}:{ep} ({sc}) - "
                     "novel codegen repair needed"
                 ),
                 diagnostic_test="check_upstream_latency",
@@ -123,7 +123,7 @@ def _api_hypotheses(
         )
 
     elif sc == 404:
-        # Recurring 404s cannot be fixed by parameter tweaks — the route is
+        # Recurring 404s cannot be fixed by parameter tweaks - the route is
         # structurally missing.  Once occurrence_count is high enough, the
         # NOVEL_FIX hypothesis should dominate so Simula can create the handler.
         is_recurring = incident.occurrence_count > 3
@@ -131,13 +131,13 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"404 on {method}:{ep} — route may not be registered; "
+                    f"404 on {method}:{ep} - route may not be registered; "
                     "search for matching handler and re-register (Tier 1)"
                 ),
                 diagnostic_test="check_upstream_latency",
                 diagnostic_test_params={"endpoint": ep, "status_code": 404},
                 suggested_repair_tier=RepairTier.PARAMETER,
-                # Suppress parameter hypothesis for recurring 404s — tweaking
+                # Suppress parameter hypothesis for recurring 404s - tweaking
                 # timeouts will never create a missing route.
                 confidence_prior=0.30 if is_recurring else 0.55,
             )
@@ -145,7 +145,7 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"404 on {method}:{ep} — similar route exists in antibody "
+                    f"404 on {method}:{ep} - similar route exists in antibody "
                     "library; apply known registration fix (Tier 3)"
                 ),
                 diagnostic_test="check_upstream_latency",
@@ -157,7 +157,7 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"Missing or broken handler at {method}:{ep} — "
+                    f"Missing or broken handler at {method}:{ep} - "
                     "structural fix required; novel repair (Tier 4)"
                 ),
                 diagnostic_test="check_upstream_latency",
@@ -173,7 +173,7 @@ def _api_hypotheses(
         hypotheses.append(
             DiagnosticHypothesis(
                 statement=(
-                    f"Service unavailable (503) on {ep} — owning system "
+                    f"Service unavailable (503) on {ep} - owning system "
                     f"'{owning}' is down or overloaded; restart required"
                 ),
                 diagnostic_test="check_resource_exhaustion",
@@ -306,7 +306,7 @@ class CausalAnalyzer:
                 chain=[incident.source_system],
                 confidence=0.6,
                 reasoning=(
-                    f"No upstream dependencies — failure is local to "
+                    f"No upstream dependencies - failure is local to "
                     f"{incident.source_system}"
                 ),
             )
@@ -347,7 +347,7 @@ class CausalAnalyzer:
             root = unhealthy_upstream[0]
             chain = [root, incident.source_system]
 
-            # Recurse one level deeper — is the upstream's upstream also failing?
+            # Recurse one level deeper - is the upstream's upstream also failing?
             deeper_upstream = deps.get(root, [])
             for deeper in deeper_upstream:
                 deeper_recent = self._recent_incidents.get(deeper, [])
@@ -375,7 +375,7 @@ class CausalAnalyzer:
             chain=[incident.source_system],
             confidence=0.6,
             reasoning=(
-                f"All upstream systems healthy — failure is local to "
+                f"All upstream systems healthy - failure is local to "
                 f"{incident.source_system}"
             ),
         )
@@ -410,7 +410,7 @@ class CausalAnalyzer:
         # systems depend on it (directly or transitively).
         upstream_scores: dict[str, float] = {}
 
-        # Build the set of systems that are "unhealthy" — either have recent
+        # Build the set of systems that are "unhealthy" - either have recent
         # incidents or are flagged by the health monitor.
         unhealthy_systems: set[str] = set()
         for system_id in set(deps.keys()) | source_systems:
@@ -448,7 +448,7 @@ class CausalAnalyzer:
                 )
 
         if not upstream_scores:
-            # No upstream deps at all — fall back to most common source
+            # No upstream deps at all - fall back to most common source
             from collections import Counter
             counts = Counter(inc.source_system for inc in incidents)
             return counts.most_common(1)[0][0] if counts else None
@@ -461,7 +461,7 @@ class CausalAnalyzer:
         if unhealthy_candidates:
             return max(unhealthy_candidates, key=unhealthy_candidates.get)  # type: ignore[arg-type]
 
-        # No upstream is unhealthy — return highest-scoring anyway
+        # No upstream is unhealthy - return highest-scoring anyway
         return max(upstream_scores, key=upstream_scores.get)  # type: ignore[arg-type]
 
 
@@ -611,7 +611,7 @@ class DiagnosticEngine:
                 confidence=antibody_match.effectiveness,
                 repair_tier=RepairTier.KNOWN_FIX,
                 antibody_id=antibody_match.id,
-                reasoning="Known pattern — antibody match with high effectiveness",
+                reasoning="Known pattern - antibody match with high effectiveness",
             )
 
         # Gather evidence
@@ -654,7 +654,7 @@ class DiagnosticEngine:
         evidence: DiagnosticEvidence,
     ) -> list[DiagnosticHypothesis]:
         """
-        Generate diagnostic hypotheses — LLM-backed if available,
+        Generate diagnostic hypotheses - LLM-backed if available,
         rule-based fallback otherwise.
         """
         # Budget check: skip LLM diagnosis in RED tier (fall back to rules)
@@ -778,7 +778,7 @@ Respond in JSON array format:
         self,
         evidence: DiagnosticEvidence,
     ) -> list[DiagnosticHypothesis]:
-        """Rule-based hypothesis generation — always available."""
+        """Rule-based hypothesis generation - always available."""
         incident = evidence.incident
         hypotheses: list[DiagnosticHypothesis] = []
 
@@ -813,7 +813,7 @@ Respond in JSON array format:
         # Hypothesis 2: Based on incident class
         class_hypotheses: dict[str, tuple[str, str, RepairTier]] = {
             "crash": (
-                "Unhandled edge case in {system} — possibly a null/None reference",
+                "Unhandled edge case in {system} - possibly a null/None reference",
                 "check_upstream_latency",
                 RepairTier.NOVEL_FIX,
             ),
@@ -838,7 +838,7 @@ Respond in JSON array format:
                 RepairTier.RESTART,
             ),
             "protocol_degradation": (
-                "API protocol error (4xx) on {system} — missing route or handler",
+                "API protocol error (4xx) on {system} - missing route or handler",
                 "check_upstream_latency",
                 RepairTier.NOVEL_FIX,
             ),

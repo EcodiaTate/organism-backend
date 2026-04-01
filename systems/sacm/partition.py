@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Partition Recovery Policy
+EcodiaOS - SACM Partition Recovery Policy
 
 When a remote provider becomes unreachable mid-execution (network partition,
 provider crash, region outage), the execution engine consults this policy to
@@ -26,7 +26,7 @@ Decision tree:
   5. Otherwise
      → ABORT
 
-The policy is stateless — it reads config thresholds and workload metadata,
+The policy is stateless - it reads config thresholds and workload metadata,
 returning a pure RecoveryAction value.  Retry counting and circuit-breaking
 live in the execution layer.
 """
@@ -62,7 +62,7 @@ class RecoveryActionKind(enum.StrEnum):
     """Execute the workload locally (only viable for small workloads)."""
 
     ABORT = "abort"
-    """Cancel the workload — no recovery path is feasible."""
+    """Cancel the workload - no recovery path is feasible."""
 
 
 class RecoveryAction(EOSBaseModel):

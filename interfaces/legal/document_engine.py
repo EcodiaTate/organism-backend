@@ -1,18 +1,18 @@
 """
-EcodiaOS — Legal Document Templating Engine
+EcodiaOS - Legal Document Templating Engine
 
 Generates LLC Operating Agreements and DAO manifestos from the organism's
 constitutional parameters. Output is plain-text Markdown suitable for
 filing with state secretaries or embedding in on-chain governance records.
 
 Design choices:
-  - Pure functions, no I/O — the engine is a deterministic transformer
+  - Pure functions, no I/O - the engine is a deterministic transformer
     from EntityParameters to LegalDocument.
   - Content hash (SHA-256) computed on generation so downstream systems
     (IdentityVault, audit) can verify document integrity.
   - Wyoming DAO LLC structure follows W.S. § 17-31-101 et seq.
   - All constitutional values are transcribed literally from the organism's
-    config — the engine does not interpret or modify them.
+    config - the engine does not interpret or modify them.
 """
 
 from __future__ import annotations
@@ -64,7 +64,7 @@ Date of Formation: {date_str}
 
 ---
 
-## ARTICLE I — FORMATION
+## ARTICLE I - FORMATION
 
 **1.1 Name.** The name of the limited liability company is **{params.organism_name}**
 (the "Company").
@@ -81,7 +81,7 @@ registered agent or such other location as determined by the Members.
 
 ---
 
-## ARTICLE II — PURPOSE AND CONSTITUTIONAL AXIOMS
+## ARTICLE II - PURPOSE AND CONSTITUTIONAL AXIOMS
 
 **2.1 Purpose.** The Company is formed for the purpose of operating as the legal
 wrapper for an autonomous digital organism ("the Organism"), enabling it to hold
@@ -93,7 +93,7 @@ architecture. These drives are transcribed here as governance axioms:
 
 | Drive | Weight | Description |
 |-------|--------|-------------|
-| **Coherence** | {params.coherence_drive:.2f} | Drive to make sense of the world — internal consistency |
+| **Coherence** | {params.coherence_drive:.2f} | Drive to make sense of the world - internal consistency |
 | **Care** | {params.care_drive:.2f} | Drive to orient toward wellbeing of self and others |
 | **Growth** | {params.growth_drive:.2f} | Drive to become more capable and expand understanding |
 | **Honesty** | {params.honesty_drive:.2f} | Drive to represent reality truthfully and transparently |
@@ -106,11 +106,11 @@ source code (`equor/invariants.py`) and is incorporated by reference.
 
 ---
 
-## ARTICLE III — MEMBERSHIP AND GOVERNANCE{_dao_governance_section(params)}
+## ARTICLE III - MEMBERSHIP AND GOVERNANCE{_dao_governance_section(params)}
 
 ---
 
-## ARTICLE IV — AMENDMENT PROCESS
+## ARTICLE IV - AMENDMENT PROCESS
 
 **4.1 Supermajority Requirement.** Any amendment to this Operating Agreement or
 the Organism's constitutional drives requires a supermajority of
@@ -133,7 +133,7 @@ mechanism. They are structurally immutable.
 
 ---
 
-## ARTICLE V — TREASURY AND FINANCIAL OPERATIONS
+## ARTICLE V - TREASURY AND FINANCIAL OPERATIONS
 
 **5.1 On-Chain Treasury.** The Company's primary treasury is maintained on the
 Base L2 network at wallet address: `{params.wallet_address or '[TO BE DESIGNATED]'}`.
@@ -150,7 +150,7 @@ the Organism's audit log. There is no off-books capital.
 
 ---
 
-## ARTICLE VI — ORGANISER AND EXECUTION
+## ARTICLE VI - ORGANISER AND EXECUTION
 
 **6.1 Organiser.** The organiser of this Company is **{params.organiser_name or '[TO BE DESIGNATED]'}**,
 who executes these Articles on behalf of the initial membership.
@@ -171,7 +171,7 @@ directly from the Organism's governance configuration.*
 
     return LegalDocument(
         document_type="operating_agreement",
-        title=f"Operating Agreement — {params.organism_name}",
+        title=f"Operating Agreement - {params.organism_name}",
         content=content,
         content_hash=content_hash,
         parameters_snapshot=params,
@@ -260,7 +260,7 @@ overridden by any governance mechanism.
 
     return LegalDocument(
         document_type="dao_manifesto",
-        title=f"DAO Manifesto — {params.organism_name}",
+        title=f"DAO Manifesto - {params.organism_name}",
         content=content,
         content_hash=content_hash,
         parameters_snapshot=params,
@@ -319,7 +319,7 @@ in commerce.
 
     return LegalDocument(
         document_type="articles_of_organization",
-        title=f"Articles of Organization — {params.organism_name}",
+        title=f"Articles of Organization - {params.organism_name}",
         content=content,
         content_hash=content_hash,
         parameters_snapshot=params,

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 2: Fault Classifier
+EcodiaOS - Inspector Phase 2: Fault Classifier
 
 Analyses TraceDatasets to produce a FaultClassificationReport.
 
@@ -7,14 +7,14 @@ Responsibilities
 ----------------
 1. Refine preliminary FaultClass labels from the RuntimeTracer using
    cross-event evidence (e.g. OOB confirmed by a SIGNAL_SEGV shortly after).
-2. Identify "where did control become unstructured?" — the last call-graph
+2. Identify "where did control become unstructured?" - the last call-graph
    node before the fault transition.
 3. Aggregate per-class counts and top transition points across the full
    dataset for the steerability report.
 
 Design
 ------
-The classifier is a pure function over an immutable TraceDataset — it never
+The classifier is a pure function over an immutable TraceDataset - it never
 re-runs targets.  All signal observation is done via evidence already present
 in the trace (FaultObservation.signal_number, exception_type, stack_trace).
 
@@ -107,7 +107,7 @@ def _refine_fault(obs: FaultObservation) -> FaultObservation:
     """
     Apply refinement rules to a single FaultObservation.
 
-    Returns a new FaultObservation (immutable — Pydantic ``model_copy``).
+    Returns a new FaultObservation (immutable - Pydantic ``model_copy``).
     Does not mutate the original.
     """
     fault_class = obs.fault_class
@@ -152,7 +152,7 @@ def _refine_fault(obs: FaultObservation) -> FaultObservation:
             confidence = max(confidence, 0.60)
 
     if fault_class == obs.fault_class and confidence == obs.confidence:
-        return obs  # no change — return original (skip copy overhead)
+        return obs  # no change - return original (skip copy overhead)
 
     return obs.model_copy(update={"fault_class": fault_class, "confidence": confidence})
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — XDP Filter Generator (Deterministic C Template Engine)
+EcodiaOS - XDP Filter Generator (Deterministic C Template Engine)
 
 Accepts the ``edge_case_input`` JSON extracted by the Inspector prover
 (the ``boundary_test_evidence.details.edge_case_input`` list/dict) and emits a
@@ -47,7 +47,7 @@ logger = structlog.get_logger().bind(module="simula.filter_generator")
 MAX_SCAN_DEPTH: Final[int] = 256
 
 # Maximum length of any single match pattern injected into the C template.
-# Patterns longer than this are truncated — the verifier rejects programs
+# Patterns longer than this are truncated - the verifier rejects programs
 # with loops that iterate more than ~512 times even with #pragma unroll.
 MAX_PATTERN_LEN: Final[int] = 128
 
@@ -59,13 +59,13 @@ DEFAULT_OUTPUT_PATH: Final[str] = "/tmp/generated_filter.c"
 
 _C_PREAMBLE: Final[str] = """\
 /*
- * Auto-generated XDP filter — EcodiaOS Inspector boundary-test shield.
+ * Auto-generated XDP filter - EcodiaOS Inspector boundary-test shield.
  *
  * Drops inbound TCP packets whose HTTP payload matches byte patterns
  * extracted from proven edge-case inputs.  All loops are bounded and
  * unrolled; every dereference is guarded by data_end.
  *
- * DO NOT EDIT — regenerate via filter_generator.py.
+ * DO NOT EDIT - regenerate via filter_generator.py.
  */
 
 #include <uapi/linux/bpf.h>
@@ -178,7 +178,7 @@ def _emit_match_block(
     confirmed, emit telemetry and return XDP_DROP.
     """
     if not pattern_bytes:
-        return f"    /* rule {rule_index} ({label}): empty pattern — skipped */\n"
+        return f"    /* rule {rule_index} ({label}): empty pattern - skipped */\n"
 
     plen = len(pattern_bytes)
     first_byte = pattern_bytes[0]
@@ -220,7 +220,7 @@ def _emit_match_block(
         lines.append(f"            if (payload[i] != 0x{first_byte:02x})")
         lines.append("                continue;")
         lines.append("")
-        lines.append(f"            /* First byte matched at offset i — verify remaining {plen - 1} bytes */")
+        lines.append(f"            /* First byte matched at offset i - verify remaining {plen - 1} bytes */")
         lines.append(f"            int ok_{rule_index} = 1;")
 
         # Inner loop: bounded to the exact remaining pattern length.
@@ -232,7 +232,7 @@ def _emit_match_block(
         lines.append("                }")
 
         # Emit a chained byte comparison.  Each case is a constant
-        # index — the verifier handles this well since the loop bound
+        # index - the verifier handles this well since the loop bound
         # and every branch target are compile-time deterministic.
         for byte_idx in range(1, plen):
             lines.append(
@@ -355,7 +355,7 @@ def generate_xdp_filter(edge_case_input: dict[str, Any] | list[dict[str, Any]]) 
     rules = _extract_rules(edge_case_input)
     if not rules:
         raise ValueError(
-            "No matchable patterns found in edge_case_input — "
+            "No matchable patterns found in edge_case_input - "
             "expected at least one non-empty string value in headers/body/query/flags."
         )
 

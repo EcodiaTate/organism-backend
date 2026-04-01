@@ -88,7 +88,7 @@ class TestHealingGovernor:
             incident = _make_incident()
             gov.register_incident(incident)
 
-        # Now try to diagnose — should enter storm mode
+        # Now try to diagnose - should enter storm mode
         next_incident = _make_incident()
         gov.should_diagnose(next_incident)
         assert gov.healing_mode == HealingMode.STORM

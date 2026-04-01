@@ -1,21 +1,21 @@
 """
-EcodiaOS — Send Telegram Executor (Axon, action_type="send_telegram")
+EcodiaOS - Send Telegram Executor (Axon, action_type="send_telegram")
 
 Sends a Telegram message to a specified chat_id via TelegramConnector.
-Requires COLLABORATOR autonomy (level 2) — sending unsolicited messages to
+Requires COLLABORATOR autonomy (level 2) - sending unsolicited messages to
 an external channel is not reversible and has real-world effect.
 
 Constitutional gating:
   - Equor gates every execution via the normal Axon pipeline (Stage 0).
   - Honesty drive: Voxis personality rendering recommended but not enforced
-    here — this executor emits raw text; callers should pass rendered content.
+    here - this executor emits raw text; callers should pass rendered content.
 
 RE training:
   - Emits RE_TRAINING_EXAMPLE on every send with outcome_quality and
     constitutional_alignment scores.
 
 Env vars:
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID — default chat_id fallback
+  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - default chat_id fallback
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ class SendTelegramExecutor(Executor):
     Emits:
       RE_TRAINING_EXAMPLE on each send.
 
-    Level 2 (COLLABORATOR) — sending messages is not reversible.
+    Level 2 (COLLABORATOR) - sending messages is not reversible.
     Rate limit: 30 / hour.
     """
 
@@ -104,7 +104,7 @@ class SendTelegramExecutor(Executor):
                 f"'parse_mode' must be one of {sorted(_VALID_PARSE_MODES)!r}"
             )
 
-        # chat_id is optional — validated at execution time when connector resolves default
+        # chat_id is optional - validated at execution time when connector resolves default
         chat_id = params.get("chat_id")
         if chat_id is not None and not isinstance(chat_id, (int, str)):
             return ValidationResult.fail("'chat_id' must be an int or string if provided")
@@ -123,7 +123,7 @@ class SendTelegramExecutor(Executor):
         message: str = params["message"]
         parse_mode: str = params.get("parse_mode", "Markdown")
 
-        # Resolve chat_id — param → env fallback → error
+        # Resolve chat_id - param → env fallback → error
         chat_id = params.get("chat_id")
         if chat_id is None:
             env_chat_id = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
@@ -141,7 +141,7 @@ class SendTelegramExecutor(Executor):
             await self._emit_re_training(context, success=False, error="no_connector")
             return ExecutionResult(
                 success=False,
-                error="TelegramConnector not configured — set ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN",
+                error="TelegramConnector not configured - set ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN",
             )
 
         t0 = time.monotonic()

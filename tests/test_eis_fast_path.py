@@ -1,5 +1,5 @@
 """
-EIS Fast Path — Comprehensive Test Suite
+EIS Fast Path - Comprehensive Test Suite
 
 Tests all components of the Epistemic Immune System fast path:
   - models.py: Dataclass construction and defaults

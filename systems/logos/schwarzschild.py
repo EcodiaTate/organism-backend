@@ -277,7 +277,7 @@ class SchwarzchildCognitionDetector:
         domain-invariant structure synthesised from compression, not direct
         observation of a repeated pattern.
 
-        Note: instance_count == 0 cannot occur in practice — every schema is
+        Note: instance_count == 0 cannot occur in practice - every schema is
         created with instance_count=1 from its first observation.
         """
         novel: list[str] = []

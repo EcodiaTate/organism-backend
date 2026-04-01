@@ -1,12 +1,12 @@
 """
-EcodiaOS — Oikos Snapshot Writer (Revenue Timeseries Persistence)
+EcodiaOS - Oikos Snapshot Writer (Revenue Timeseries Persistence)
 
 Persists EconomicState snapshots to a Redis-backed ring buffer every 5 minutes
 so the dashboard can render net worth, burn rate, and runway trends over time.
 
 Also writes each snapshot to TimescaleDB (table: oikos_economic_state, hypertable
 on recorded_at) for long-term time-series queries. TimescaleDB writes are
-non-fatal — a failure logs and continues.
+non-fatal - a failure logs and continues.
 
 Architecture:
   - SnapshotWriter subscribes to a periodic asyncio task
@@ -49,7 +49,7 @@ class SnapshotWriter:
 
     Usage:
         writer = SnapshotWriter(oikos=oikos_service, redis=redis_client)
-        writer.set_timescale(pool)    # optional — enables TimescaleDB writes
+        writer.set_timescale(pool)    # optional - enables TimescaleDB writes
         await writer.start()          # begin background loop
         await writer.stop()           # graceful shutdown
         history = await writer.get_history(days=7)
@@ -135,10 +135,10 @@ class SnapshotWriter:
         except Exception as exc:
             self._logger.warning("snapshot_redis_write_failed", error=str(exc))
 
-        # TimescaleDB persistence — non-fatal
+        # TimescaleDB persistence - non-fatal
         await self._write_timescale(state, now)
 
-        # Hourly Neo4j CostSnapshot — enables trend analysis (costs increasing 5%/wk?)
+        # Hourly Neo4j CostSnapshot - enables trend analysis (costs increasing 5%/wk?)
         import time as _time
         elapsed_since_cost_snap = _time.monotonic() - self._last_cost_snapshot_time
         if elapsed_since_cost_snap >= _COST_SNAPSHOT_INTERVAL_S:
@@ -196,7 +196,7 @@ class SnapshotWriter:
           })
 
         Enables trend queries: "are costs increasing by 5% per week?"
-        Non-fatal — any failure is logged and swallowed.
+        Non-fatal - any failure is logged and swallowed.
         """
         if self._neo4j is None:
             return

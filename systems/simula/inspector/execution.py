@@ -1,16 +1,16 @@
 """
-EcodiaOS — Inspector Live Execution Test Chamber
+EcodiaOS - Inspector Live Execution Test Chamber
 
 Manages Docker containers for dynamic concolic execution of target repositories.
 Autonomously detects the build system, constructs (or generates) a Dockerfile,
-builds the image, starts the container, and health-checks the mapped ports —
+builds the image, starts the container, and health-checks the mapped ports -
 providing a live, running target for the VulnerabilityProver and ConcurrencyProver
 to fire HTTP requests against during inspection.
 
 Iron Rules:
   - Containers are ALWAYS terminated and removed on exit (no zombie processes).
   - Build and boot are strictly time-bounded (configurable, default 120s each).
-  - If the container fails to build or boot, the chamber returns None — the
+  - If the container fails to build or boot, the chamber returns None - the
     caller must fall back to purely static analysis.
   - Port mappings use random available high ports on the host.
   - The chamber never modifies the workspace filesystem beyond writing a
@@ -57,7 +57,7 @@ _BUILD_FILE_SIGNATURES: dict[str, str] = {
     "composer.json": "php",
 }
 
-# Ports commonly exposed by frameworks — used for health-check polling.
+# Ports commonly exposed by frameworks - used for health-check polling.
 _DEFAULT_PORTS_BY_LANGUAGE: dict[str, list[int]] = {
     "node": [3000, 8080, 5000],
     "python": [8000, 5000, 8080],
@@ -92,7 +92,7 @@ Rules:
   `uvicorn main:app --host 0.0.0.0` or `python -m flask run --host 0.0.0.0`
   depending on framework detected.
 - For Node: `npm ci --production` then `npm start`.
-- Keep it minimal — no multi-stage builds, no test dependencies.
+- Keep it minimal - no multi-stage builds, no test dependencies.
 
 Respond with ONLY the Dockerfile content. No markdown fences, no explanations."""
 
@@ -125,7 +125,7 @@ def _detect_build_context(workspace_root: Path) -> tuple[str | None, list[str]]:
             if language == "docker" or language == "docker-compose":
                 detected_language = language
             elif detected_language is None or detected_language in ("docker", "docker-compose"):
-                # Don't overwrite a docker detection with a language detection —
+                # Don't overwrite a docker detection with a language detection -
                 # but DO overwrite if we haven't found a language yet.
                 if detected_language is None:
                     detected_language = language
@@ -220,7 +220,7 @@ class ExecutionTestChamber:
             await self.teardown()
 
     async def teardown(self) -> None:
-        """Terminate and remove the container. Idempotent — safe to call multiple times."""
+        """Terminate and remove the container. Idempotent - safe to call multiple times."""
         if self._container is None:
             return
 
@@ -234,7 +234,7 @@ class ExecutionTestChamber:
             await loop.run_in_executor(None, lambda: container.terminate())
             self._log.info("container_terminated", container_id=container_id)
         except Exception as exc:
-            # Container may have already exited — log but don't raise.
+            # Container may have already exited - log but don't raise.
             self._log.debug(
                 "container_termination_ignored",
                 container_id=container_id,
@@ -362,7 +362,7 @@ class ExecutionTestChamber:
                     mem_limit="512m",
                     cpu_period=100_000,
                     cpu_quota=50_000,  # 50% of one CPU
-                    # Network isolation — the container can serve requests but
+                    # Network isolation - the container can serve requests but
                     # cannot reach arbitrary external hosts.
                     network_mode="bridge",
                 ),
@@ -378,7 +378,7 @@ class ExecutionTestChamber:
         container_id = self._container.id[:12] if self._container.id else "unknown"
         log.info("container_started", container_id=container_id)
 
-        # Step 5: Health-check — poll mapped ports until we get a valid HTTP response
+        # Step 5: Health-check - poll mapped ports until we get a valid HTTP response
         primary_host_port = mapped_ports[internal_ports[0]]
         healthy = await self._wait_for_healthy(primary_host_port, log)
 
@@ -491,7 +491,7 @@ class ExecutionTestChamber:
         """
         Poll the mapped port until the container returns a valid HTTP response.
 
-        A "valid" response is any status code in _HEALTHY_STATUS_CODES —
+        A "valid" response is any status code in _HEALTHY_STATUS_CODES -
         we just need to know the server process is listening and responding.
 
         Returns True if healthy within boot_timeout_s, False otherwise.
@@ -513,7 +513,7 @@ class ExecutionTestChamber:
                         )
                         return True
                 except (httpx.ConnectError, httpx.ReadError, httpx.TimeoutException):
-                    pass  # Server not ready yet — keep polling
+                    pass  # Server not ready yet - keep polling
                 except Exception as exc:
                     log.debug(
                         "healthcheck_poll_error",

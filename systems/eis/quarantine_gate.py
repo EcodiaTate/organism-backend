@@ -1,13 +1,13 @@
 """
-EcodiaOS — EIS Quarantine Gate (Pre-Action Validation Layer)
+EcodiaOS - EIS Quarantine Gate (Pre-Action Validation Layer)
 
 The quarantine gate is a gating layer that Simula (mutations) and
 Federation (incoming knowledge) must check before acting on received
 content. It combines three threat signals:
 
-  1. **Taint analysis** — constitutional path safety (existing)
-  2. **Threat library** — known-bad pattern matching (new)
-  3. **Anomaly context** — whether the instance is under elevated threat
+  1. **Taint analysis** - constitutional path safety (existing)
+  2. **Threat library** - known-bad pattern matching (new)
+  3. **Anomaly context** - whether the instance is under elevated threat
 
 The gate produces a ``QuarantineDecision`` with one of four verdicts:
 
@@ -19,7 +19,7 @@ The gate produces a ``QuarantineDecision`` with one of four verdicts:
 
 Design constraints:
   - Synchronous for mutations (must gate before application)
-  - The gate never applies mutations itself — it only advises
+  - The gate never applies mutations itself - it only advises
   - The gate is composable: callers can override the decision with
     appropriate governance escalation
 """
@@ -114,7 +114,7 @@ class QuarantineGate:
     context into a single gating decision. This is the checkpoint
     that Simula and Federation call before acting on content.
 
-    The gate is stateless — it queries TaintEngine, ThreatLibrary,
+    The gate is stateless - it queries TaintEngine, ThreatLibrary,
     and AnomalyDetector for their assessments and combines them.
 
     Usage:
@@ -237,7 +237,7 @@ class QuarantineGate:
             elif verdict == GateVerdict.HOLD and anomaly_posture == "critical":
                 verdict = GateVerdict.BLOCK
                 reasons.append(
-                    "Anomaly context: critical posture — escalating hold to block"
+                    "Anomaly context: critical posture - escalating hold to block"
                 )
                 requires_human = True
 
@@ -342,7 +342,7 @@ class QuarantineGate:
         if anomaly_posture in ("critical", "high") and verdict == GateVerdict.ALLOW:
             verdict = GateVerdict.HOLD
             reasons.append(
-                f"Elevated {anomaly_posture} threat posture — "
+                f"Elevated {anomaly_posture} threat posture - "
                 f"holding federated knowledge for review"
             )
             requires_equor = True

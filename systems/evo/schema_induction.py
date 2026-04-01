@@ -1,23 +1,23 @@
 """
-EcodiaOS — Schema Induction Engine
+EcodiaOS - Schema Induction Engine
 
 Genuine structure learning from the organism's accumulated experience.
-This is NOT a simple label creator — it discovers latent relational structure
+This is NOT a simple label creator - it discovers latent relational structure
 in the knowledge graph and proposes typed entity categories, relation types,
 and compositional schemas that compress the organism's world model.
 
 Three induction strategies, each progressively deeper:
 
 1. **Graph Motif Mining** (statistical)
-   Scans the Neo4j graph for recurring subgraph patterns — entity clusters,
-   hub-spoke structures, chain patterns — and proposes entity types that
+   Scans the Neo4j graph for recurring subgraph patterns - entity clusters,
+   hub-spoke structures, chain patterns - and proposes entity types that
    capture the regularity. Uses community detection + betweenness centrality.
 
 2. **Analogical Structure Mapping** (relational)
    Identifies isomorphic subgraphs: if (A)-[R1]->(B) and (C)-[R1]->(D)
    share structural properties, propose an abstract schema that captures
    the common structure. This is the computational analog of analogical
-   reasoning — discovering that "planets orbit stars" and "electrons orbit
+   reasoning - discovering that "planets orbit stars" and "electrons orbit
    nuclei" share the same relational structure.
 
 3. **Compression-Driven Schema Discovery** (information-theoretic)
@@ -27,7 +27,7 @@ Three induction strategies, each progressively deeper:
    and only accepts schemas that genuinely compress the knowledge graph.
 
 Performance budget: Phase 3 of consolidation, ≤10s total.
-Safety: schemas are proposals — they go to Equor/Simula for approval before
+Safety: schemas are proposals - they go to Equor/Simula for approval before
 modifying the canonical graph structure.
 """
 
@@ -388,7 +388,7 @@ class SchemaInductionEngine:
         Group by the property overlap between A and B across instances.
         If multiple distinct (A, B) pairs share the same structural role
         (same outgoing/incoming edge types), they instantiate the same abstract
-        schema — propose it.
+        schema - propose it.
 
         This is computational analogy: discovering that structurally different
         entities participate in the same relational pattern.
@@ -459,7 +459,7 @@ class SchemaInductionEngine:
         Mine Kairos-discovered causal invariants from the graph.
 
         Kairos stores invariants as :CausalInvariant nodes with cause, effect,
-        confidence, and tier fields. High-tier invariants (especially Tier 3 —
+        confidence, and tier fields. High-tier invariants (especially Tier 3 -
         substrate-independent) represent deep structural relationships that
         should be encoded as schema elements.
 
@@ -548,7 +548,7 @@ class SchemaInductionEngine:
                 candidate.mdl_gain_bits = round(net_gain, 2)
                 filtered.append(candidate)
 
-        # Sort by MDL gain descending — most compressive first
+        # Sort by MDL gain descending - most compressive first
         filtered.sort(key=lambda e: e.mdl_gain_bits, reverse=True)
 
         return filtered
@@ -813,7 +813,7 @@ class SchemaAlgebra:
 
         Returns None if composition would not reduce MDL.
         """
-        # Check for overlap — shared elements give composition bonus
+        # Check for overlap - shared elements give composition bonus
         a_names = {e.name for e in schema_a.elements}
         b_names = {e.name for e in schema_b.elements}
         shared = a_names & b_names
@@ -885,7 +885,7 @@ class SchemaAlgebra:
         Like OOP inheritance for knowledge structure: the child inherits all
         parent elements and adds new constraints that narrow its scope.
 
-        Specialization preserves parent MDL gain — the child can only ADD value.
+        Specialization preserves parent MDL gain - the child can only ADD value.
         Returns None if the added constraints don't provide enough MDL gain.
         """
         if not added_constraints:
@@ -1099,7 +1099,7 @@ class SchemaAlgebra:
         """
         Track schema version and fitness. Returns the new version number.
 
-        Schemas evolve — this tracks lineage and measures fitness (how much
+        Schemas evolve - this tracks lineage and measures fitness (how much
         compression each version provides). Dead branches are pruned.
         """
         self._schema_versions[schema_name] += 1

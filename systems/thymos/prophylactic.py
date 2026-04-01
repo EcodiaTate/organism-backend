@@ -1,11 +1,11 @@
 """
-EcodiaOS — Thymos Prophylactic Layer (Prevention)
+EcodiaOS - Thymos Prophylactic Layer (Prevention)
 
-Thymos doesn't just react to errors — it prevents them.
+Thymos doesn't just react to errors - it prevents them.
 
 Two components:
-  1. ProphylacticScanner    — scans new code against the antibody library
-  2. HomeostasisController  — maintains optimal operating ranges proactively
+  1. ProphylacticScanner    - scans new code against the antibody library
+  2. HomeostasisController  - maintains optimal operating ranges proactively
 """
 
 from __future__ import annotations
@@ -111,7 +111,7 @@ class ProphylacticScanner:
                 if antibody.source_system not in filepath:
                     continue
 
-                # Embedding-based similarity (P2) — preferred path
+                # Embedding-based similarity (P2) - preferred path
                 if self._embedder is not None:
                     similarity = await self._embedding_similarity(
                         content, antibody, filepath
@@ -189,10 +189,10 @@ class ProphylacticScanner:
         fingerprint store.  Called by the Oneiros consolidation handler (SG8).
 
         Each procedure dict is expected to contain:
-          - id:          str  — Neo4j node ID
-          - name:        str  — human-readable procedure name
-          - description: str  — textual summary of the repair pattern
-          - fingerprint: str  — (optional) hex fingerprint if known
+          - id:          str  - Neo4j node ID
+          - name:        str  - human-readable procedure name
+          - description: str  - textual summary of the repair pattern
+          - fingerprint: str  - (optional) hex fingerprint if known
 
         Returns the number of new fingerprints added.
         """
@@ -410,7 +410,7 @@ class HomeostasisController:
     range is computed as rolling median ± 25%. Before that, static
     DEFAULT_HOMEOSTATIC_RANGES are used.
 
-    This runs on the MAINTAIN step of the cognitive cycle — always-on
+    This runs on the MAINTAIN step of the cognitive cycle - always-on
     background processing, not triggered by incidents.
     """
 
@@ -434,7 +434,7 @@ class HomeostasisController:
 
     @property
     def _ranges(self) -> dict[str, tuple[float, float, str]]:
-        """Return current effective ranges — adaptive when data is sufficient."""
+        """Return current effective ranges - adaptive when data is sufficient."""
         result: dict[str, tuple[float, float, str]] = {}
         for name, (static_min, static_max, unit) in self._static_ranges.items():
             baseline = self._baselines.get(name)
@@ -463,7 +463,7 @@ class HomeostasisController:
         Check all homeostatic ranges and propose micro-adjustments
         for any metric trending toward the edge.
 
-        Returns parameter adjustments (if any). These are Tier 1 —
+        Returns parameter adjustments (if any). These are Tier 1 -
         no governance required, just config nudges.
         """
         adjustments: list[ParameterAdjustment] = []

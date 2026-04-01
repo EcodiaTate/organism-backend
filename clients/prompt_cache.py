@@ -1,5 +1,5 @@
 """
-EcodiaOS — Prompt Caching Layer
+EcodiaOS - Prompt Caching Layer
 
 Semantic cache for LLM prompts using Redis.
 Deduplicates repeated evaluations to reduce token spend.
@@ -234,25 +234,25 @@ class PromptCache:
 class TTLConfig:
     """TTL presets for each system."""
 
-    # Nova systems — beliefs change fairly slowly
+    # Nova systems - beliefs change fairly slowly
     NOVA_EFE_PRAGMATIC_S = 300      # 5 minutes
     NOVA_EFE_EPISTEMIC_S = 300
     NOVA_POLICY_S = 600              # 10 minutes
 
-    # Voxis — personality/affect shift frequently in conversations
+    # Voxis - personality/affect shift frequently in conversations
     VOXIS_EXPRESSION_S = 60           # 1 minute
     VOXIS_OUTLINE_S = 120             # 2 minutes
 
-    # Evo — schema rarely changes mid-session
+    # Evo - schema rarely changes mid-session
     EVO_HYPOTHESIS_S = 3600           # 1 hour
     EVO_INDUCTION_S = 3600
 
-    # Thread — identity quite stable
+    # Thread - identity quite stable
     THREAD_SYNTHESIS_S = 21600        # 6 hours
     THREAD_COHERENCE_S = 21600
 
-    # Equor — constitutional checks stable
+    # Equor - constitutional checks stable
     EQUOR_INVARIANT_S = 1800          # 30 minutes
 
-    # Oneiros — sleep processing off-cycle
+    # Oneiros - sleep processing off-cycle
     ONEIROS_REFLECTION_S = 86400      # 24 hours

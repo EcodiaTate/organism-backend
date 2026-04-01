@@ -1,5 +1,5 @@
 """
-Fovea — Type Definitions
+Fovea - Type Definitions
 
 The fundamental data structures for prediction-error-based attention,
 input normalisation, and workspace broadcast.
@@ -15,14 +15,14 @@ from __future__ import annotations
 
 import enum
 import hashlib
-from datetime import datetime  # noqa: TC003 — Pydantic needs runtime access
+from datetime import datetime  # noqa: TC003 - Pydantic needs runtime access
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from primitives.affect import AffectState  # noqa: TC001 — Pydantic needs at runtime
+from primitives.affect import AffectState  # noqa: TC001 - Pydantic needs at runtime
 from primitives.common import EOSBaseModel, new_id, utc_now
-from primitives.memory_trace import MemoryTrace  # noqa: TC001 — Pydantic needs at runtime
+from primitives.memory_trace import MemoryTrace  # noqa: TC001 - Pydantic needs at runtime
 
 # ---------------------------------------------------------------------------
 # Error type taxonomy
@@ -74,14 +74,14 @@ DEFAULT_ERROR_WEIGHTS: dict[str, float] = {
     ErrorType.TEMPORAL: 0.09,
     ErrorType.MAGNITUDE: 0.13,
     ErrorType.SOURCE: 0.13,
-    ErrorType.CATEGORY: 0.27,   # Weighted highest — wrong ontology is most alarming
+    ErrorType.CATEGORY: 0.27,   # Weighted highest - wrong ontology is most alarming
     ErrorType.CAUSAL: 0.08,
-    ErrorType.ECONOMIC: 0.12,   # Revenue/cost divergence — pre-crisis early warning
+    ErrorType.ECONOMIC: 0.12,   # Revenue/cost divergence - pre-crisis early warning
 }
 
 
 # ---------------------------------------------------------------------------
-# Prediction context — what the world model was asked about
+# Prediction context - what the world model was asked about
 # ---------------------------------------------------------------------------
 
 
@@ -98,7 +98,7 @@ class PerceptContext(EOSBaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Active prediction — what the world model expects
+# Active prediction - what the world model expects
 # ---------------------------------------------------------------------------
 
 
@@ -122,12 +122,12 @@ class ActivePrediction(EOSBaseModel):
     expected_category: str = ""                                       # Expected type
     expected_causal_context: dict[str, Any] = Field(default_factory=dict)
 
-    # Confidence in this prediction — low confidence -> low precision weight
+    # Confidence in this prediction - low confidence -> low precision weight
     prediction_confidence: float = 0.5
 
 
 # ---------------------------------------------------------------------------
-# Prediction error — the fundamental unit of Fovea output
+# Prediction error - the fundamental unit of Fovea output
 # ---------------------------------------------------------------------------
 
 
@@ -166,7 +166,7 @@ class FoveaPredictionError(EOSBaseModel):
         default_factory=lambda: dict(DEFAULT_ERROR_WEIGHTS)
     )
 
-    # Composite salience — this IS the attention weight
+    # Composite salience - this IS the attention weight
     # sum(component × precision × learned_weight) across all six
     precision_weighted_salience: float = 0.0
 
@@ -212,7 +212,7 @@ class FoveaPredictionError(EOSBaseModel):
 
         Args:
             workspace_threshold: Dynamic ignition threshold from
-                DynamicIgnitionThreshold.current — adjusted by Evo + Soma.
+                DynamicIgnitionThreshold.current - adjusted by Evo + Soma.
             constitutional_equor_threshold: Mismatch level above which
                 EQUOR routing fires. Default 0.3. Adjustable via
                 FOVEA_PARAMETER_ADJUSTMENT (routing_threshold_equor).
@@ -249,7 +249,7 @@ class FoveaPredictionError(EOSBaseModel):
         if self.constitutional_mismatch > constitutional_oneiros_threshold:
             self.routes.append(ErrorRoute.ONEIROS)
         # Economic errors route to Oikos (metabolic system) and Evo (hypothesis
-        # generation) — Oikos needs to know Fovea has detected a revenue divergence
+        # generation) - Oikos needs to know Fovea has detected a revenue divergence
         # before it escalates to starvation.
         if self.economic_error > economic_route_threshold:
             if ErrorRoute.OIKOS not in self.routes:
@@ -299,7 +299,7 @@ class FoveaPredictionError(EOSBaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Internal prediction error — self-model violations (Phase D, defined here
+# Internal prediction error - self-model violations (Phase D, defined here
 # for type completeness; handler deferred)
 # ---------------------------------------------------------------------------
 
@@ -340,7 +340,7 @@ class InternalPredictionError(FoveaPredictionError):
 
         A CONSTITUTIONAL self-model violation means EOS predicted its own behaviour
         would align with a constitutional drive (e.g. Care), but the actual outcome
-        diverged.  That is not just a learning signal — it is a governance event.
+        diverged.  That is not just a learning signal - it is a governance event.
         Equor must evaluate whether the constitutional floor was breached.
         Oneiros receives it for consolidation into the sleep-cycle pattern backlog.
         """
@@ -362,7 +362,7 @@ class InternalPredictionError(FoveaPredictionError):
 
 
 # ---------------------------------------------------------------------------
-# World model update feedback — for weight learning (Phase C, type defined
+# World model update feedback - for weight learning (Phase C, type defined
 # here for completeness)
 # ---------------------------------------------------------------------------
 
@@ -500,7 +500,7 @@ class GradientAttentionVector(BaseModel):
     Token-level salience attribution via embedding gradient analysis.
 
     For a given salience head that uses embedding similarity, this captures
-    *which tokens* in the percept are driving the similarity score —
+    *which tokens* in the percept are driving the similarity score -
     essentially a Jacobian-based saliency map over the input tokens.
     """
 
@@ -511,7 +511,7 @@ class GradientAttentionVector(BaseModel):
     """Indices of the top-K tokens driving the salience decision."""
 
     gradient_magnitude: float = 0.0
-    """Overall gradient norm — higher means a sharper, more decisive similarity signal."""
+    """Overall gradient norm - higher means a sharper, more decisive similarity signal."""
 
     gradient_direction_conflicts: list[int] = Field(default_factory=list)
     """Token indices whose gradient direction opposes the reference embedding (contradiction)."""
@@ -533,10 +533,10 @@ class HeadMomentum(BaseModel):
     """Momentum summary for a single salience head."""
 
     first_derivative: float = 0.0
-    """dv/dt — rate of change of the head's score (units per second)."""
+    """dv/dt - rate of change of the head's score (units per second)."""
 
     second_derivative: float = 0.0
-    """d²v/dt² — acceleration of the head's score (units per second²)."""
+    """d²v/dt² - acceleration of the head's score (units per second²)."""
 
     trajectory: ThreatTrajectory = ThreatTrajectory.STEADY
     """Qualitative trajectory label derived from derivatives."""
@@ -562,7 +562,7 @@ class SalienceVector(BaseModel):
     """Per-head momentum (first/second derivatives) when momentum tracking is active."""
 
     threat_trajectory: ThreatTrajectory = ThreatTrajectory.STEADY
-    """Overall threat trajectory — worst-case across all heads."""
+    """Overall threat trajectory - worst-case across all heads."""
 
 
 # ---------------------------------------------------------------------------
@@ -597,7 +597,7 @@ class WorkspaceContext(BaseModel):
 
 
 class WorkspaceBroadcast(BaseModel):
-    """The output of a workspace cycle — broadcast to all systems."""
+    """The output of a workspace cycle - broadcast to all systems."""
 
     broadcast_id: str = Field(default_factory=lambda: new_id())
     timestamp: datetime = Field(default_factory=utc_now)
@@ -670,7 +670,7 @@ class AttentionContext(BaseModel):
 
     DEAD CODE (Spec 20 D1, 2026-03-07): This type was used to pass context
     to the old head-scoring pipeline. The Fovea pipeline now uses
-    ``PerceptContext`` instead. No construction sites exist — the fields
+    ``PerceptContext`` instead. No construction sites exist - the fields
     (active_goals, risk_categories, etc.) are populated individually from
     ``FoveaCache`` by PerceptionGateway.
 

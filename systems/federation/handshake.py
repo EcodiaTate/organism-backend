@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Handshake Protocol
+EcodiaOS - Federation Handshake Protocol
 
 The handshake is the prerequisite for all multi-instance communication:
 shared learning, economic cooperation, mitosis. Two instances must complete
@@ -7,24 +7,24 @@ a full handshake before any federation link becomes ACTIVE.
 
 Protocol (4 phases, single HTTP round-trip):
 
-  Phase 1 — HELLO (initiator → responder)
+  Phase 1 - HELLO (initiator → responder)
     Initiator sends its identity card + certificate + nonce.
 
-  Phase 2 — CHALLENGE (responder processes)
+  Phase 2 - CHALLENGE (responder processes)
     Responder verifies:
       a. Certificate is valid (signature, expiry, required fields)
       b. Constitutional hash matches (instances with different invariants
-         cannot federate — this is the alignment gate)
+         cannot federate - this is the alignment gate)
       c. Protocol version is compatible
       d. Identity card is well-formed
     If all pass, responder signs the initiator's nonce to prove possession
     of its own private key.
 
-  Phase 3 — ACCEPT (responder → initiator)
+  Phase 3 - ACCEPT (responder → initiator)
     Responder returns its own identity card + certificate + nonce + signed
     challenge. The initiator then verifies the responder symmetrically.
 
-  Phase 4 — CONFIRM (initiator verifies response)
+  Phase 4 - CONFIRM (initiator verifies response)
     Initiator verifies the responder's certificate, constitutional hash,
     and signed challenge. If valid, the handshake is complete on both sides.
 
@@ -33,7 +33,7 @@ Failure modes:
   - Expired/invalid certificate: reject with specific error
   - Modified constitution (tampered hash): reject, cannot federate
   - Network partition mid-handshake: timeout after 10s, initiator cleans up
-  - Duplicate handshake: idempotent — returns existing link if already linked
+  - Duplicate handshake: idempotent - returns existing link if already linked
   - Nonce replay: each handshake generates a fresh nonce; signatures are
     bound to the specific nonce so replays are detectable
 
@@ -82,7 +82,7 @@ class HandshakeRequest(EOSBaseModel):
     # Identity card (full public identity)
     identity_card: dict[str, Any] = Field(default_factory=dict)
 
-    # EcodianCertificate (serialized) — proof of alignment
+    # EcodianCertificate (serialized) - proof of alignment
     certificate: dict[str, Any] | None = None
 
     # Cryptographic challenge: random nonce that responder must sign
@@ -150,7 +150,7 @@ class HandshakeConfirmation(EOSBaseModel):
     """
     Phase 4: Initiator sends back its signed response to the responder's nonce.
 
-    This completes the mutual authentication — both sides have now proven
+    This completes the mutual authentication - both sides have now proven
     they possess their claimed private keys.
     """
 
@@ -160,7 +160,7 @@ class HandshakeConfirmation(EOSBaseModel):
 
 
 class HandshakeResult:
-    """Internal result of handshake processing — not sent over the wire."""
+    """Internal result of handshake processing - not sent over the wire."""
 
     __slots__ = (
         "success",
@@ -196,7 +196,7 @@ class HandshakeProcessor:
     """
     Processes federation handshakes from either side (initiator or responder).
 
-    Stateless — all state lives in the FederationService. This class
+    Stateless - all state lives in the FederationService. This class
     encapsulates the verification logic so it can be tested independently.
     """
 
@@ -241,11 +241,11 @@ class HandshakeProcessor:
 
         # ── Gate 2: Constitutional alignment ──
         # This is the fundamental alignment check. Instances with different
-        # constitutional invariant hashes CANNOT federate — they have
+        # constitutional invariant hashes CANNOT federate - they have
         # divergent values and federation would be unsafe.
         if request.constitutional_hash != local_card.constitutional_hash:
             reject.reject_reason = (
-                "Constitutional invariant mismatch — federation requires "
+                "Constitutional invariant mismatch - federation requires "
                 "shared constitutional alignment. Remote hash "
                 f"{request.constitutional_hash!r} does not match local "
                 f"{local_card.constitutional_hash!r}"
@@ -431,7 +431,7 @@ class HandshakeProcessor:
             return HandshakeResult(
                 success=False,
                 error=(
-                    "Nonce signature verification failed — responder cannot "
+                    "Nonce signature verification failed - responder cannot "
                     "prove possession of the claimed private key"
                 ),
                 handshake_id=response.handshake_id,
@@ -521,11 +521,11 @@ class HandshakeProcessor:
         validation is skipped (returns None).
         """
         if self._certificate_manager is None:
-            # Pre-Phase 16g: no certificate infrastructure — allow
+            # Pre-Phase 16g: no certificate infrastructure - allow
             return None
 
         if certificate_data is None:
-            return "No certificate provided — federation requires a valid EcodianCertificate"
+            return "No certificate provided - federation requires a valid EcodianCertificate"
 
         from systems.identity.certificate import EcodianCertificate
 

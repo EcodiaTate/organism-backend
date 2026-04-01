@@ -1,4 +1,4 @@
-"""Tests for Semantic Lossy Compression — PCA-based embedding compression."""
+"""Tests for Semantic Lossy Compression - PCA-based embedding compression."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def _make_neo4j_mock(
 
 class TestAdaptiveKSelection:
     def test_selects_k_for_target_variance(self):
-        # Singular values that drop off — first 10 explain ~80% variance
+        # Singular values that drop off - first 10 explain ~80% variance
         svs = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1] + [0.1] * 90, dtype=np.float64)
         k = _select_adaptive_k(svs, variance_target=0.80)
         # Should pick relatively few components
@@ -79,7 +79,7 @@ class TestAdaptiveKSelection:
         assert k >= MIN_K
 
     def test_clamps_to_max_k(self):
-        # Flat spectrum — all components equally important
+        # Flat spectrum - all components equally important
         svs = np.ones(500)
         k = _select_adaptive_k(svs, variance_target=0.99)
         assert k <= MAX_K
@@ -101,7 +101,7 @@ class TestQualityScore:
         centered = embeddings - mean
         _U, _S, Vt = np.linalg.svd(centered, full_matrices=False)
         # Use all components
-        basis = Vt  # (10, 10) — full rank
+        basis = Vt  # (10, 10) - full rank
         quality = _compute_quality_score(embeddings, mean, basis, sample_size=20)
         assert quality > 0.99
 

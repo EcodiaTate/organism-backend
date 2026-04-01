@@ -1,1 +1,1 @@
-"""EcodiaOS — Nova LLM prompts."""
+"""EcodiaOS - Nova LLM prompts."""

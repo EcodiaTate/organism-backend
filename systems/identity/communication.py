@@ -252,7 +252,7 @@ async def twilio_inbound_sms(
 
 
 # ---------------------------------------------------------------------------
-# IMAP background task — class wrapper for supervised_task scheduling
+# IMAP background task - class wrapper for supervised_task scheduling
 # ---------------------------------------------------------------------------
 
 
@@ -329,13 +329,13 @@ async def _do_imap_scan(comm: "IdentityCommConfig", event_bus: "EventBus") -> No
             code = item["code"]
             subject = item.get("subject", "")
             log.info("imap_verification_code_found", sender=sender, code_length=len(code))
-            # Generic event — existing 2FA flow subscribers listen here
+            # Generic event - existing 2FA flow subscribers listen here
             await event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.IDENTITY_VERIFICATION_RECEIVED,
                 source_system="identity",
                 data={"source": sender, "code": code, "channel": "email"},
             ))
-            # Channel-specific event — cleaner filtering without payload inspection
+            # Channel-specific event - cleaner filtering without payload inspection
             await event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.EMAIL_OTP_RECEIVED,
                 source_system="identity",
@@ -602,7 +602,7 @@ async def provision_new_phone_number(
     log = logger.bind(area_code=area_code, country=twilio_country, account_sid=account_sid[:8] + "…")
     auth = (account_sid, auth_token)
 
-    # Build search params — area code semantics differ by country
+    # Build search params - area code semantics differ by country
     search_params: dict[str, Any] = {"Limit": 1}
     if area_code:
         # AU uses AreaCode for 2-digit prefixes (02, 03, 07, 08) or InRegion.
@@ -624,7 +624,7 @@ async def provision_new_phone_number(
                 "Verify TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN."
             )
         if search_resp.status_code == 400:
-            # Twilio rejects invalid area codes for the country — retry without it
+            # Twilio rejects invalid area codes for the country - retry without it
             log.warning(
                 "twilio_area_code_rejected_by_api",
                 area_code=area_code,
@@ -800,9 +800,9 @@ class OTPCoordinator:
         code = await coordinator.wait_for_otp("github", source="email", timeout=300)
 
     Subscriptions (set up via set_event_bus):
-        IDENTITY_VERIFICATION_RECEIVED  — Twilio SMS path (existing)
-        TELEGRAM_OTP_RECEIVED           — Telegram bot path (I-1)
-        EMAIL_OTP_RECEIVED              — IMAP email path (I-2)
+        IDENTITY_VERIFICATION_RECEIVED  - Twilio SMS path (existing)
+        TELEGRAM_OTP_RECEIVED           - Telegram bot path (I-1)
+        EMAIL_OTP_RECEIVED              - IMAP email path (I-2)
     """
 
     def __init__(self) -> None:
@@ -839,7 +839,7 @@ class OTPCoordinator:
 
         Args:
             platform: Lowercase platform key (e.g. "github", "google").
-            source:   Expected channel — "sms", "telegram", "email", or "any".
+            source:   Expected channel - "sms", "telegram", "email", or "any".
             timeout:  Seconds before asyncio.TimeoutError is raised.
 
         Returns:
@@ -1029,8 +1029,8 @@ async def telegram_inbound_webhook(
       2. Parse the Telegram Update JSON body.
       3. Extract OTP codes (6-digit numeric, 4-8 char alphanumeric).
       4. Publish events on Synapse bus:
-         - TELEGRAM_MESSAGE_RECEIVED — all text messages from authorized chats
-         - TELEGRAM_OTP_RECEIVED     — additionally emitted when an OTP is found
+         - TELEGRAM_MESSAGE_RECEIVED - all text messages from authorized chats
+         - TELEGRAM_OTP_RECEIVED     - additionally emitted when an OTP is found
 
     Returns HTTP 200 immediately; publication runs in a background task.
     Invalid secret token → HTTP 403.
@@ -1176,9 +1176,9 @@ _TELEGRAM_COMMANDS: dict[str, str] = {
 
 _COMMAND_HELP_TEXT = (
     "*EcodiaOS Bot Commands*\n\n"
-    "/ping — liveness check\n"
-    "/status — organism health summary\n"
-    "/help — show this message\n"
+    "/ping - liveness check\n"
+    "/status - organism health summary\n"
+    "/help - show this message\n"
 )
 
 
@@ -1302,7 +1302,7 @@ class TelegramPollingLoop:
         poller = TelegramPollingLoop(connector=tg_connector, event_bus=bus)
         supervised_task(poller.run(), name="telegram_polling", ...)
 
-    Do NOT start this when a webhook is already registered — Telegram does
+    Do NOT start this when a webhook is already registered - Telegram does
     not allow simultaneous webhook + polling.
     """
 
@@ -1434,7 +1434,7 @@ async def send_telegram_status(
     """
     Send a plain-text status message to a Telegram chat via TelegramConnector.
 
-    Best-effort — never raises; silently no-ops when the connector is unavailable.
+    Best-effort - never raises; silently no-ops when the connector is unavailable.
     """
     if connector is None:
         return

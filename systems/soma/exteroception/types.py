@@ -1,20 +1,20 @@
 """
-EcodiaOS — Exteroception Type Definitions
+EcodiaOS - Exteroception Type Definitions
 
 Data models for the Cross-Modal Synesthesia layer. External world events
 (market data, news sentiment, social signals) are mapped into the same
 9D interoceptive + 6D affect space that drives Soma's allostatic regulation.
 
 Design principle: external data is *felt*, not *known*. A market crash
-doesn't inform the organism's decisions directly — it creates somatic
+doesn't inform the organism's decisions directly - it creates somatic
 pressure that subtly biases attention, urgency, and mood. The organism
 literally "feels the weather" of the external world.
 
 Key types:
-  ExteroceptiveModality — enum of supported external data channels
-  ExteroceptiveReading  — a single normalised datum from a modality
-  ModalityMapping       — how one modality maps to interoceptive dimensions
-  ExteroceptivePressure — aggregated pressure vector ready for Soma injection
+  ExteroceptiveModality - enum of supported external data channels
+  ExteroceptiveReading  - a single normalised datum from a modality
+  ModalityMapping       - how one modality maps to interoceptive dimensions
+  ExteroceptivePressure - aggregated pressure vector ready for Soma injection
 """
 
 from __future__ import annotations
@@ -148,7 +148,7 @@ class ExteroceptivePressure(EOSBaseModel):
 
 # These define the "synesthetic" translation: how external signals
 # become felt somatic pressure. The organism doesn't "know" the market
-# is crashing — it *feels* rising temporal pressure, dropping valence,
+# is crashing - it *feels* rising temporal pressure, dropping valence,
 # and spiking arousal.
 
 DEFAULT_MODALITY_MAPPINGS: dict[ExteroceptiveModality, ModalityMapping] = {

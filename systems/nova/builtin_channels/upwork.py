@@ -1,5 +1,5 @@
 """
-UpworkChannel — freelance software development / writing / design opportunities.
+UpworkChannel - freelance software development / writing / design opportunities.
 
 Upwork's public search endpoint is used without OAuth so only public job postings
 are accessible.  For richer data an OAuth token can be provided via environment
@@ -64,7 +64,7 @@ class UpworkChannel(InputChannel):
             async with httpx.AsyncClient(timeout=_FETCH_TIMEOUT, headers=headers) as client:
                 resp = await client.get(_BASE_URL, params=params)
                 if resp.status_code in (401, 403, 404):
-                    # Not authenticated or endpoint unavailable — return synthetic placeholder
+                    # Not authenticated or endpoint unavailable - return synthetic placeholder
                     return [self._synthetic_placeholder(skill)]
                 resp.raise_for_status()
                 data: dict[str, Any] = resp.json()
@@ -106,7 +106,7 @@ class UpworkChannel(InputChannel):
             title=f"[Upwork] Freelance {skill} demand detected",
             description=(
                 f"Upwork has active demand for {skill} contractors. "
-                "API access limited — estimate based on historical trend."
+                "API access limited - estimate based on historical trend."
             ),
             reward_estimate=Decimal("300"),
             effort_estimate=EffortLevel.MEDIUM,

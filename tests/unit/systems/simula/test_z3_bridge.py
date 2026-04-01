@@ -235,7 +235,7 @@ Here are the invariants:
 
     @pytest.mark.asyncio
     async def test_discovery_loop_handles_llm_error(self):
-        """LLM raises exception — loop should handle gracefully."""
+        """LLM raises exception - loop should handle gracefully."""
         bridge = Z3Bridge(check_timeout_ms=5000, max_rounds=1)
 
         mock_llm = AsyncMock()

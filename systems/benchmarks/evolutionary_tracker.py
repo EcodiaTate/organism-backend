@@ -1,11 +1,11 @@
 """
-EcodiaOS — Evolutionary Tracker
+EcodiaOS - Evolutionary Tracker
 
 Subscribes to EVOLUTIONARY_OBSERVABLE events and computes Bedau-Packard
 population-level statistics. Persists observable history to Redis for
 restart survival.
 
-Reference: Bedau & Packard (1992) — "Measurement of Evolutionary Activity,
+Reference: Bedau & Packard (1992) - "Measurement of Evolutionary Activity,
 Teleology, and Life"
 """
 
@@ -309,7 +309,7 @@ class EvolutionaryTracker:
         for i in range(n):
             for j in range(i + 1, n):
                 if distances[i][j] <= threshold:
-                    # Merge clusters — single-linkage: any link below threshold joins them
+                    # Merge clusters - single-linkage: any link below threshold joins them
                     ci, cj = cluster_of[i], cluster_of[j]
                     if ci != cj:
                         _merge(min(ci, cj), max(ci, cj))

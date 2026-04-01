@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos: Community Reputation Tracker
+EcodiaOS - Oikos: Community Reputation Tracker
 
 Tracks the organism's growing reputation as a quantifiable economic asset
 across GitHub and X (Twitter). Distinct from the EAS-based ReputationEngine
@@ -8,16 +8,16 @@ credit scoring). This module tracks social presence metrics that unlock
 higher-value work and consulting rates.
 
 Metrics:
-    github_stars_received     — Stars accumulated on organism's repos/gists
-    github_prs_merged         — Total merged PRs across all repos
-    github_issues_resolved    — Issues closed by organism's PRs
-    x_followers               — X follower count
-    x_impressions_30d         — Monthly X impressions
-    devto_followers           — Dev.to follower count
-    devto_views_30d           — Dev.to views in rolling 30 days
-    bounties_solved           — Lifetime bounty count (cross-indexed with Oikos)
-    bounties_solved_value_usdc — Lifetime bounty value in USDC
-    reputation_score          — Composite 0–100 (PR merges weighted highest)
+    github_stars_received     - Stars accumulated on organism's repos/gists
+    github_prs_merged         - Total merged PRs across all repos
+    github_issues_resolved    - Issues closed by organism's PRs
+    x_followers               - X follower count
+    x_impressions_30d         - Monthly X impressions
+    devto_followers           - Dev.to follower count
+    devto_views_30d           - Dev.to views in rolling 30 days
+    bounties_solved           - Lifetime bounty count (cross-indexed with Oikos)
+    bounties_solved_value_usdc - Lifetime bounty value in USDC
+    reputation_score          - Composite 0–100 (PR merges weighted highest)
 
 reputation_multiplier = 1.0 + (reputation_score / 200)
 Applied by Oikos to bounty acceptance confidence and consulting rate.
@@ -33,10 +33,10 @@ Event subscriptions:
     CONTENT_ENGAGEMENT_REPORT → update x_followers / x_impressions
 
 Events emitted:
-    REPUTATION_SNAPSHOT     — hourly broadcast
-    REPUTATION_DAMAGED      — score drop ≥5 pts (Nova recovery + Thread CRISIS)
-    REPUTATION_MILESTONE    — score crosses 25/50/70/90 (Thread GROWTH)
-    SOCIAL_GRAPH_UPDATED    — Neo4j relationship written
+    REPUTATION_SNAPSHOT     - hourly broadcast
+    REPUTATION_DAMAGED      - score drop ≥5 pts (Nova recovery + Thread CRISIS)
+    REPUTATION_MILESTONE    - score crosses 25/50/70/90 (Thread GROWTH)
+    SOCIAL_GRAPH_UPDATED    - Neo4j relationship written
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ _W_ISSUES = 0.07
 
 
 class ReputationMetrics(EOSBaseModel):
-    """Live reputation metrics — the organism's social presence scorecard."""
+    """Live reputation metrics - the organism's social presence scorecard."""
 
     # GitHub
     github_stars_received: int = 0
@@ -603,8 +603,8 @@ def _recovery_recommendation(cause: str) -> str:
             "Review why the PR was rejected and address feedback before resubmitting."
         ),
         "negative_engagement": (
-            "Generate substantive technical content — a deep-dive blog post or "
-            "a useful open-source tool — to rebuild community goodwill."
+            "Generate substantive technical content - a deep-dive blog post or "
+            "a useful open-source tool - to rebuild community goodwill."
         ),
         "no_activity": (
             "Increase community engagement: answer GitHub Discussion questions, "

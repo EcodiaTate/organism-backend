@@ -115,7 +115,7 @@ class TestInitialization:
             llm=make_llm(),
             memory=None,
         )
-        # Not initialized — get_parameter should return None
+        # Not initialized - get_parameter should return None
         assert service.get_parameter("nova.efe.pragmatic") is None
 
 
@@ -184,7 +184,7 @@ class TestReceiveBroadcast:
         service._detectors = [broken]
 
         await service.receive_broadcast(make_broadcast())
-        # Counter still incremented — no exception propagated
+        # Counter still incremented - no exception propagated
         assert service.stats["total_broadcasts"] == 1
 
 

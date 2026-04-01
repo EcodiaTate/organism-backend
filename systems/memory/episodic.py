@@ -1,5 +1,5 @@
 """
-EcodiaOS — Episodic Memory
+EcodiaOS - Episodic Memory
 
 Storage and retrieval of discrete experience records (Episodes).
 This is the "what happened" layer of memory.

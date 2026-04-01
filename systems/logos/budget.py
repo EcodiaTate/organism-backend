@@ -1,5 +1,5 @@
 """
-EcodiaOS — Logos: Cognitive Budget Manager
+EcodiaOS - Logos: Cognitive Budget Manager
 
 Maintains the hard capacity limit on total stored knowledge.
 The pressure of this limit is the primary driver of abstraction.

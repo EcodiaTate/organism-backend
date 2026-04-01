@@ -1,10 +1,10 @@
 """
-EcodiaOS — Simula Repair Memory  (Tasks 2, 4, 5)
+EcodiaOS - Simula Repair Memory  (Tasks 2, 4, 5)
 
 Structured learning from every proposal outcome.
 
 ────────────────────────────────────────────────────────────────────────────
-Task 2 — RepairMemory
+Task 2 - RepairMemory
 ────────────────────────────────────────────────────────────────────────────
 After every proposal completes (APPLIED, ROLLED_BACK, or REJECTED):
   • Store an outcome record in Neo4j as (:RepairOutcome) node.
@@ -16,20 +16,20 @@ After every proposal completes (APPLIED, ROLLED_BACK, or REJECTED):
 
 Neo4j schema
   (:RepairOutcome {
-      proposal_id:          str   — ID of the EvolutionProposal
-      change_category:      str   — ChangeCategory.value
-      target_system:        str   — primary affected system name (may be "")
-      risk_level_predicted: str   — RiskLevel.value from simulation
-      risk_level_actual:    str   — "low"|"moderate"|"high" inferred from outcome
-      systems_affected:     list  — all affected system names
-      verification_passed:  bool  — whether post-apply health check passed
-      rollback_needed:      bool  — whether automatic rollback was triggered
-      time_to_verify_ms:    int   — wall-clock ms from apply-start to verify-end
-      recorded_at:          str   — ISO-8601 UTC
+      proposal_id:          str   - ID of the EvolutionProposal
+      change_category:      str   - ChangeCategory.value
+      target_system:        str   - primary affected system name (may be "")
+      risk_level_predicted: str   - RiskLevel.value from simulation
+      risk_level_actual:    str   - "low"|"moderate"|"high" inferred from outcome
+      systems_affected:     list  - all affected system names
+      verification_passed:  bool  - whether post-apply health check passed
+      rollback_needed:      bool  - whether automatic rollback was triggered
+      time_to_verify_ms:    int   - wall-clock ms from apply-start to verify-end
+      recorded_at:          str   - ISO-8601 UTC
   })
 
 ────────────────────────────────────────────────────────────────────────────
-Task 4 — PostMortemHypothesis
+Task 4 - PostMortemHypothesis
 ────────────────────────────────────────────────────────────────────────────
 After every rollback, analyse the failure and write a structured hypothesis
 into Neo4j as (:PostMortemHypothesis) node, then emit EVO_REPAIR_POSTMORTEM
@@ -37,22 +37,22 @@ on the Synapse bus so Evo can treat it as high-confidence negative evidence.
 
 Neo4j schema
   (:PostMortemHypothesis {
-      id:                str   — new_id()
+      id:                str   - new_id()
       proposal_id:       str
       change_category:   str
       target_system:     str
-      failure_mode:      str   — "health_check_failed"|"wrong_category"|
+      failure_mode:      str   - "health_check_failed"|"wrong_category"|
                                  "risk_prediction_inaccurate"|"unknown"
-      what_was_tried:    str   — brief description of the attempted change
-      why_it_failed:     str   — structured diagnosis
-      next_time_do:      str   — corrective recommendation
-      rollback_reason:   str   — raw reason string from rollback
-      confidence:        float — 0.0-1.0, how certain the diagnosis is
+      what_was_tried:    str   - brief description of the attempted change
+      why_it_failed:     str   - structured diagnosis
+      next_time_do:      str   - corrective recommendation
+      rollback_reason:   str   - raw reason string from rollback
+      confidence:        float - 0.0-1.0, how certain the diagnosis is
       recorded_at:       str
   })
 
 ────────────────────────────────────────────────────────────────────────────
-Task 5 — Simulation Confidence Calibration
+Task 5 - Simulation Confidence Calibration
 ────────────────────────────────────────────────────────────────────────────
 After verification completes, compare predicted_risk vs actual_outcome.
 Track a calibration score over the last 20 proposals.
@@ -100,7 +100,7 @@ def _sanitize(value: str, max_len: int = 500) -> str:
 
 logger = structlog.get_logger("simula.repair_memory")
 
-# Calibration window — last N proposals considered
+# Calibration window - last N proposals considered
 _CALIBRATION_WINDOW = 20
 
 # Dynamic threshold control (see SimulaConfig for tunable versions)
@@ -117,7 +117,7 @@ class RepairMemory:
     Learns from every proposal outcome.
 
     Thread-safe: all mutable state is protected by self._lock.
-    Neo4j is optional — degrades gracefully when unavailable.
+    Neo4j is optional - degrades gracefully when unavailable.
     """
 
     def __init__(
@@ -135,7 +135,7 @@ class RepairMemory:
         from systems.synapse.sentinel import ErrorSentinel
         self._sentinel = ErrorSentinel("simula.repair_memory")
 
-        # In-memory caches — rebuilt on first access or after each record
+        # In-memory caches - rebuilt on first access or after each record
         # Key: (change_category, target_system) → [bool]  (True = success)
         self._outcome_cache: dict[tuple[str, str], list[bool]] = {}
 
@@ -152,7 +152,7 @@ class RepairMemory:
     async def ensure_indexes(self) -> None:
         """Create Neo4j indexes for O(log n) lookups on (category, target_system).
 
-        Idempotent — uses CREATE INDEX IF NOT EXISTS so safe to call repeatedly.
+        Idempotent - uses CREATE INDEX IF NOT EXISTS so safe to call repeatedly.
         """
         if self._neo4j is None:
             return
@@ -325,7 +325,7 @@ class RepairMemory:
             try:
                 from systems.synapse.types import SynapseEvent, SynapseEventType
 
-                # EVO_REPAIR_POSTMORTEM is a new event type — add it to the
+                # EVO_REPAIR_POSTMORTEM is a new event type - add it to the
                 # SynapseEventType enum in synapse/types.py (see wiring section).
                 await self._event_bus.emit(
                     SynapseEvent(
@@ -397,7 +397,7 @@ class RepairMemory:
         key = (category, target_system)
         outcomes = self._outcome_cache.get(key, [])
         if len(outcomes) < 5:
-            # Not enough data — baseline
+            # Not enough data - baseline
             return 1.0
 
         success_rate = sum(outcomes) / len(outcomes)
@@ -493,7 +493,7 @@ class RepairMemory:
         HIGH/UNACCEPTABLE predicted + rollback → accurate (correct caution).
         LOW predicted + rollback → inaccurate (under-predicted risk).
         HIGH predicted + no rollback → inaccurate (over-predicted risk).
-        MODERATE is flexible — accurate either way.
+        MODERATE is flexible - accurate either way.
         """
         if predicted_risk == RiskLevel.MODERATE.value:
             return True  # Moderate is always "acceptable" prediction
@@ -504,7 +504,7 @@ class RepairMemory:
     def _compute_calibration_score(self) -> float:
         """Fraction of accurate predictions in the calibration window."""
         if not self._calibration_window:
-            return 1.0  # No data — assume calibrated
+            return 1.0  # No data - assume calibrated
         return sum(self._calibration_window) / len(self._calibration_window)
 
     @staticmethod
@@ -685,7 +685,7 @@ class RepairMemory:
             if not successes and not postmortems:
                 return ""
 
-            lines.append("## Repair Memory — Lessons from Past Proposals")
+            lines.append("## Repair Memory - Lessons from Past Proposals")
             lines.append("")
 
             # Scrutiny factor
@@ -693,12 +693,12 @@ class RepairMemory:
             if scrutiny != 1.0:
                 direction = "elevated" if scrutiny > 1.0 else "reduced"
                 lines.append(
-                    f"**Scrutiny level**: {direction} ({scrutiny:.2f}x) — "
+                    f"**Scrutiny level**: {direction} ({scrutiny:.2f}x) - "
                     f"{'be extra careful, past repairs have failed often' if scrutiny > 1.0 else 'this category has a good track record'}."
                 )
                 lines.append("")
 
-            # Success context — category/target_system already validated above
+            # Success context - category/target_system already validated above
             if successes:
                 lines.append(
                     f"**{len(successes)} recent successful repairs** for "
@@ -707,9 +707,9 @@ class RepairMemory:
                 )
                 lines.append("")
 
-            # Postmortem lessons — sanitize all Neo4j-sourced strings (#56)
+            # Postmortem lessons - sanitize all Neo4j-sourced strings (#56)
             if postmortems:
-                lines.append("**Past failures — DO NOT repeat these mistakes:**")
+                lines.append("**Past failures - DO NOT repeat these mistakes:**")
                 for pm in postmortems:
                     tried = _sanitize(pm.get("tried") or "unknown", max_len=120)
                     failed = _sanitize(pm.get("failed") or "unknown", max_len=120)
@@ -747,7 +747,7 @@ class RepairMemory:
         time_to_verify_ms: int,
     ) -> None:
         """
-        Neo4j write — (:RepairOutcome) node.
+        Neo4j write - (:RepairOutcome) node.
 
         Schema:
           (:RepairOutcome {
@@ -806,7 +806,7 @@ class RepairMemory:
         recorded_at: str,
     ) -> None:
         """
-        Neo4j write — (:PostMortemHypothesis) node.
+        Neo4j write - (:PostMortemHypothesis) node.
 
         Schema:
           (:PostMortemHypothesis {

@@ -1,13 +1,13 @@
 """
-EcodiaOS — Simula Phase 2 Invariant Discovery Types
+EcodiaOS - Simula Phase 2 Invariant Discovery Types
 
-Four invariant classes targeting what cannot easily be hidden or transformed —
+Four invariant classes targeting what cannot easily be hidden or transformed -
 the "physics" of digital systems:
 
-  1. Semantic Invariants   — output stability and decision boundary preservation
-  2. State Invariants      — structural data relationships that must always hold
-  3. Trust Invariants      — identity authority relationships and delegation chains
-  4. Physical Invariants   — conservation laws, process bounds, feasibility constraints
+  1. Semantic Invariants   - output stability and decision boundary preservation
+  2. State Invariants      - structural data relationships that must always hold
+  3. Trust Invariants      - identity authority relationships and delegation chains
+  4. Physical Invariants   - conservation laws, process bounds, feasibility constraints
 
 Each class extends DiscoveredInvariant with domain-specific evidence fields.
 All are Z3-checkable where possible; where not (physical feasibility), they
@@ -151,7 +151,7 @@ class SemanticEquivalenceInvariant(PhaseInvariant):
 
 class CounterMonotonicityInvariant(PhaseInvariant):
     """
-    Counters must progress logically — they cannot decrease without an explicit reset.
+    Counters must progress logically - they cannot decrease without an explicit reset.
 
     Concrete mechanisms:
       - config_version: strictly monotonically increasing (never rolls back)
@@ -175,7 +175,7 @@ class CounterMonotonicityInvariant(PhaseInvariant):
 
 class SessionConsistencyInvariant(PhaseInvariant):
     """
-    Sessions must evolve consistently — each transition must be valid per the FSM.
+    Sessions must evolve consistently - each transition must be valid per the FSM.
 
     A session (proposal lifecycle, auth session, tool session) has a defined
     state machine. Valid transitions are explicitly enumerated; any other
@@ -203,7 +203,7 @@ class SessionConsistencyInvariant(PhaseInvariant):
 
 class CacheCoherenceInvariant(PhaseInvariant):
     """
-    Caches must match their authority source — stale reads are bounded in time.
+    Caches must match their authority source - stale reads are bounded in time.
 
     For every cached value there is an authoritative source. The cache invariant
     has two parts:
@@ -264,7 +264,7 @@ class RelationalIntegrityInvariant(PhaseInvariant):
 
 class DelegationChainInvariant(PhaseInvariant):
     """
-    Delegated trust must reflect origin authority — the chain cannot be forged.
+    Delegated trust must reflect origin authority - the chain cannot be forged.
 
     If principal A delegates to principal B, B's trust level cannot exceed A's.
     The chain is acyclic: no principal can be its own authority ancestor.
@@ -438,7 +438,7 @@ class ProcessBoundInvariant(PhaseInvariant):
 
 class PhysicalFeasibilityInvariant(PhaseInvariant):
     """
-    Operations must be physically feasible — they cannot claim impossible outcomes.
+    Operations must be physically feasible - they cannot claim impossible outcomes.
 
     Reality-based truths that cannot be digitally altered:
       - Rollback time ≤ snapshot_size / disk_write_bandwidth  (cannot be faster than physics)
@@ -446,7 +446,7 @@ class PhysicalFeasibilityInvariant(PhaseInvariant):
       - Verification time ≥ program_complexity / compute_speed  (no oracle exists)
       - Timing measurements satisfy triangle inequality (A→C ≤ A→B + B→C)
 
-    These are not about what the software says — they are about what hardware permits.
+    These are not about what the software says - they are about what hardware permits.
 
     Z3-checkable: where bounds are numeric (linear arithmetic)
     Evidence: STATISTICAL_BOUND from profiling data

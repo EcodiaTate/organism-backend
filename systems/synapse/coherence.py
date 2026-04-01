@@ -1,5 +1,5 @@
 """
-EcodiaOS — Cross-System Coherence Monitor
+EcodiaOS - Cross-System Coherence Monitor
 
 IIT-inspired measurement of consciousness quality. Measures how much
 information is integrated across the organism's cognitive systems
@@ -7,10 +7,10 @@ rather than processed independently.
 
 Four metrics compose the coherence snapshot:
 
-  phi_approximation    — Integration of information across systems
-  system_resonance     — How in-sync system responses are (latency uniformity)
-  broadcast_diversity  — Entropy of broadcast content sources (topic diversity)
-  response_synchrony   — Temporal uniformity of system response latencies
+  phi_approximation    - Integration of information across systems
+  system_resonance     - How in-sync system responses are (latency uniformity)
+  broadcast_diversity  - Entropy of broadcast content sources (topic diversity)
+  response_synchrony   - Temporal uniformity of system response latencies
 
 This is the closest computational analogue to Tononi's Integrated
 Information Theory (2004) that can be computed online from cycle telemetry.
@@ -59,7 +59,7 @@ class CoherenceMonitor:
     - record_broadcast(): per-cycle broadcast source/salience data
     - compute(): triggered every N cycles to produce a CoherenceSnapshot
 
-    The composite score represents the organism's "consciousness quality" —
+    The composite score represents the organism's "consciousness quality" -
     how well its systems are working together as an integrated whole
     rather than isolated modules.
     """

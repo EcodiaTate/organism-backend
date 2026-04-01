@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 4: Steerability Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 4: Steerability Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 4 pipeline:
 
@@ -71,7 +71,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.steerability_analy
 
 class SteerabilityAnalyzer:
     """
-    Phase 4 orchestrator — builds a Phase4Result for a target.
+    Phase 4 orchestrator - builds a Phase4Result for a target.
 
     The result combines:
     - A SteerabilityModel (state variables, invariants, constraints, regions, condition sets)
@@ -80,7 +80,7 @@ class SteerabilityAnalyzer:
 
     Parameters
     ----------
-    None — stateless; instantiate once and call analyze() per target.
+    None - stateless; instantiate once and call analyze() per target.
     """
 
     def __init__(self) -> None:
@@ -197,14 +197,14 @@ class SteerabilityAnalyzer:
         Produce a TransitionExplanation for a specific trace segment.
 
         ``trace_context`` is a dict with any of:
-            func_names: list[str]   — function names from the trace
-            bb_ids:     list[str]   — basic block IDs from the trace
-            run_id:     str         — Phase 2 run ID (optional)
-            fault_class: str        — FaultClass value (optional)
+            func_names: list[str]   - function names from the trace
+            bb_ids:     list[str]   - basic block IDs from the trace
+            run_id:     str         - Phase 2 run ID (optional)
+            fault_class: str        - FaultClass value (optional)
 
         Returns
         -------
-        TransitionExplanation — structured three-step analysis.
+        TransitionExplanation - structured three-step analysis.
         """
         model     = result.model
         run_id    = trace_context.get("run_id", "")

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Platform Connector Implementations
+EcodiaOS - Platform Connector Implementations
 
 Concrete connectors for LinkedIn, X (Twitter), GitHub App,
 Instagram (Graph API), Canva (Connect API), and Telegram Bot.

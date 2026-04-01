@@ -1,8 +1,8 @@
 """
-EcodiaOS — Observatory API Router
+EcodiaOS - Observatory API Router
 
 Diagnostic endpoints for organism observability.
-All endpoints are read-only — no side effects on the organism.
+All endpoints are read-only - no side effects on the organism.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def _get_observatory(request: Request) -> dict[str, Any]:
 
 @router.get("/snapshot")
 async def observatory_snapshot(request: Request) -> dict[str, Any]:
-    """Full diagnostic snapshot — the one-stop overview."""
+    """Full diagnostic snapshot - the one-stop overview."""
     obs = _get_observatory(request)
     tracer = obs["tracer"]
     closures = obs["closures"]

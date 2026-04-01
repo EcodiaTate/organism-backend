@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector eBPF Program Definitions
+EcodiaOS - Inspector eBPF Program Definitions
 
 BPF C programs stored as Python string constants for runtime compilation via BCC.
 Each program attaches to kernel tracepoints/kprobes for cross-service taint
@@ -7,11 +7,11 @@ observation. Programs are read-only by design: they observe data flows without
 modifying kernel state.
 
 Iron Rules:
-  - All BPF programs are BPF_PROG_TYPE_TRACEPOINT or kprobe — never modify
+  - All BPF programs are BPF_PROG_TYPE_TRACEPOINT or kprobe - never modify
     kernel memory or override function returns.
   - Ring buffer (not perf buffer) for zero-copy userspace reading.
   - Taint tags include timestamp_ns, source_pid, dest_pid, payload_hash.
-  - No kernel writes — read-only observation only.
+  - No kernel writes - read-only observation only.
   - FNV-1a hash on first 64 bytes of payload for correlation across send/recv.
 """
 
@@ -67,14 +67,14 @@ struct taint_event {
     __u32 source_ip;       // IPv4 only (network byte order)
     __u32 dest_ip;
     char  comm[16];
-    // Inbound payload byte prefix — populated by sys_exit_read only.
+    // Inbound payload byte prefix - populated by sys_exit_read only.
     // Other probes leave this zeroed to keep ring-buffer entries small.
     __u32 captured_len;    // actual bytes stored in payload_bytes (0..256)
     char  payload_bytes[256];
 };
 """
 
-# FNV-1a hash — inline C function for hashing first N bytes of payload.
+# FNV-1a hash - inline C function for hashing first N bytes of payload.
 FNV1A_HASH_C: Final[str] = """
 static __always_inline __u32 fnv1a_hash(const void *data, int len) {
     __u32 hash = 2166136261u;  // FNV offset basis
@@ -112,7 +112,7 @@ BPF_RINGBUF_OUTPUT(taint_events, """ + str(RING_BUFFER_PAGE_CNT) + """);
 BPF_TCP_SENDMSG: Final[str] = _COMMON_PREAMBLE + """
 /*
  * kprobe: tcp_sendmsg
- * Captures outgoing TCP data — source PID, dest socket, payload hash.
+ * Captures outgoing TCP data - source PID, dest socket, payload hash.
  * flow_type = 0
  */
 int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk,
@@ -170,7 +170,7 @@ int kprobe__tcp_sendmsg(struct pt_regs *ctx, struct sock *sk,
 BPF_TCP_RECVMSG: Final[str] = _COMMON_PREAMBLE + """
 /*
  * kprobe: tcp_recvmsg
- * Captures incoming TCP data — receiver PID, source socket, payload hash.
+ * Captures incoming TCP data - receiver PID, source socket, payload hash.
  * flow_type = 1
  *
  * We hook the entry to capture the socket info; the actual payload hash
@@ -220,7 +220,7 @@ int kprobe__tcp_recvmsg(struct pt_regs *ctx, struct sock *sk,
 BPF_SECURITY_SOCKET_CONNECT: Final[str] = _COMMON_PREAMBLE + """
 /*
  * kprobe: security_socket_connect
- * Captures connection establishment — PID, target address.
+ * Captures connection establishment - PID, target address.
  * flow_type = 2
  *
  * Maps the connection graph between services before data flows.
@@ -315,7 +315,7 @@ BPF_SYS_READ: Final[str] = _COMMON_PREAMBLE + """
  * flow_type = 4
  *
  * Filters out stdin/stdout/stderr (fd 0/1/2) and tiny reads (< 4 bytes).
- * Note: we capture the read request, not the result — the buffer address
+ * Note: we capture the read request, not the result - the buffer address
  * is recorded for potential kretprobe correlation.
  */
 TRACEPOINT_PROBE(syscalls, sys_enter_read) {
@@ -360,7 +360,7 @@ TRACEPOINT_PROBE(syscalls, sys_enter_read) {
 # BPF object compiled together so they share the same map.
 #
 # payload_bytes field in taint_event is only populated here (flow_type=5).
-# All other probes leave it zeroed — the ring-buffer entry size is the same
+# All other probes leave it zeroed - the ring-buffer entry size is the same
 # regardless (struct layout is fixed), but captured_len=0 signals "no sample".
 
 _SYS_EXIT_READ_PREAMBLE: Final[str] = _COMMON_PREAMBLE + """
@@ -398,7 +398,7 @@ TRACEPOINT_PROBE(syscalls, sys_enter_read) {
 
 /*
  * tracepoint: syscalls:sys_exit_read  (exit-side capture)
- * flow_type = 5 — inbound payload bytes.
+ * flow_type = 5 - inbound payload bytes.
  *
  * Fires after the kernel has filled the user buffer.  We look up the
  * stashed enter-side context, read up to 256 bytes from the user buffer
@@ -439,7 +439,7 @@ TRACEPOINT_PROBE(syscalls, sys_exit_read) {
 
     bpf_get_current_comm(evt->comm, sizeof(evt->comm));
 
-    // Read the filled user buffer — this is safe post-return
+    // Read the filled user buffer - this is safe post-return
     void *ubuf = (void *)(uintptr_t)ctx->buf;
     if (ubuf) {
         // bpf_probe_read_user requires a compile-time-constant length.

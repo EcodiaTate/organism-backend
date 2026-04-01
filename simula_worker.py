@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Worker
+EcodiaOS - Simula Worker
 
 Standalone process that consumes both evolution proposals and inspector
 hunt requests from Redis Streams, runs them through the real pipelines,
@@ -35,7 +35,7 @@ import structlog
 from dotenv import load_dotenv
 
 # Explicitly resolve .env relative to the backend/ directory so it works
-# regardless of cwd — critical on WSL where case-insensitive path resolution
+# regardless of cwd - critical on WSL where case-insensitive path resolution
 # can cause bare load_dotenv() to miss the file.
 _BACKEND_DIR = Path(__file__).resolve().parent
 load_dotenv(dotenv_path=_BACKEND_DIR / ".env", override=True)
@@ -139,7 +139,7 @@ async def run_worker(config_path: str | None = None) -> None:
             err_msg = str(exc)
             if "BUSYGROUP" in err_msg:
                 log.info("xgroup_already_exists", stream=stream, group=group)
-                # Do NOT reset the cursor — resetting to "0" causes every
+                # Do NOT reset the cursor - resetting to "0" causes every
                 # previously-ACKed message to be re-delivered as new,
                 # which is the "ghost memories" bug.  The group's cursor
                 # is already at the right position from the last run.
@@ -184,7 +184,7 @@ async def run_worker(config_path: str | None = None) -> None:
                         if msg_ids:
                             # XCLAIM transfers ownership to this worker so they
                             # appear in our PEL and are re-delivered via id="0".
-                            # Never XACK here — ACK removes messages from the PEL
+                            # Never XACK here - ACK removes messages from the PEL
                             # permanently; they are already past last-delivered-id
                             # so ">" would never see them again (the ghost-PEL bug).
                             await raw.xclaim(
@@ -215,7 +215,7 @@ async def run_worker(config_path: str | None = None) -> None:
     def _signal_handler() -> None:
         log.info("shutdown_signal_received")
         # Use call_soon_threadsafe so the event is set from within the event
-        # loop thread — asyncio.Event is not thread-safe on Windows where
+        # loop thread - asyncio.Event is not thread-safe on Windows where
         # signal handlers fire on the main thread outside the loop.
         loop.call_soon_threadsafe(shutdown_event.set)
 
@@ -263,7 +263,7 @@ async def run_worker(config_path: str | None = None) -> None:
                 await asyncio.sleep(2.0)
                 continue
 
-            # Periodic diagnostics — log stream state every ~5s (10 iterations × 500ms block)
+            # Periodic diagnostics - log stream state every ~5s (10 iterations × 500ms block)
             _diag_counter += 1
             if _diag_counter % 10 == 1:
                 try:
@@ -326,7 +326,7 @@ async def run_worker(config_path: str | None = None) -> None:
                         consumername=consumer_name,
                         streams={GOVERNANCE_STREAM: ">"},
                         count=10,
-                        block=500,  # 500ms poll — block=0 means block forever in Redis
+                        block=500,  # 500ms poll - block=0 means block forever in Redis
                     ),
                     timeout=2.0,
                 )
@@ -731,7 +731,7 @@ async def _process_inspector_hunt(
 
     hlog.info("processing_hunt", target=github_url)
 
-    # Dynamically authorize the target URL for this hunt — the proxy sends
+    # Dynamically authorize the target URL for this hunt - the proxy sends
     # ephemeral file:///tmp/phantom_workspace_* paths that can't be in the
     # static config.  This mirrors what run_inspector.py does: it constructs
     # a fresh InspectorConfig(authorized_targets=[target_url]).
@@ -821,7 +821,7 @@ def main() -> None:
     try:
         asyncio.run(run_worker(args.config))
     except KeyboardInterrupt:
-        pass  # clean exit — teardown already ran inside run_worker's finally block
+        pass  # clean exit - teardown already ran inside run_worker's finally block
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Unit tests for ContentRenderer — EFE policy selection and temperature calibration."""
+"""Unit tests for ContentRenderer - EFE policy selection and temperature calibration."""
 
 from __future__ import annotations
 

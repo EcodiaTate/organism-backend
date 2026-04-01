@@ -1,10 +1,10 @@
 """
-EcodiaOS — Thread Narrative Retriever
+EcodiaOS - Thread Narrative Retriever
 
 Provides autobiographical recall for other systems. When Nova needs to
 understand "what kind of decisions have I made in situations like this?",
 when Voxis needs to express "who I am", when a user asks "tell me about
-yourself" — NarrativeRetriever resolves the query against the narrative graph.
+yourself" - NarrativeRetriever resolves the query against the narrative graph.
 
 Performance:
 - "Who am I?" resolution: ≤500ms (Neo4j reads + assembly, no LLM)
@@ -410,7 +410,7 @@ class NarrativeRetriever:
             if c.tests_faced >= self._config.commitment_min_tests_for_fidelity
         ]
         if not tested:
-            return 1.0  # Default — untested commitments are not broken
+            return 1.0  # Default - untested commitments are not broken
         return float(sum(c.fidelity for c in tested) / len(tested))
 
     def _assess_coherence(

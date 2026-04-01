@@ -152,7 +152,7 @@ Given a precise fault diagnosis and location, generate a minimal, correct fix.
 2. Do NOT refactor surrounding code
 3. Preserve all existing functionality
 4. Follow EOS conventions: type hints, structlog, async/await
-5. Output the COMPLETE fixed file — no omissions, no placeholders
+5. Output the COMPLETE fixed file - no omissions, no placeholders
 
 ## Output Format
 ```python
@@ -316,7 +316,7 @@ class RepairAgent:
                         files_repaired=fix_gen.files_modified,
                     )
 
-                # VERIFY failed — update error output for next attempt
+                # VERIFY failed - update error output for next attempt
                 attempt.phase = RepairPhase.REJECT
                 attempts.append(attempt)
 

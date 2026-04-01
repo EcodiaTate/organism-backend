@@ -1,12 +1,12 @@
 """
-EcodiaOS — Equor Autonomy Management
+EcodiaOS - Equor Autonomy Management
 
 The autonomy level tracks overall organism trust and is stored on the Self node.
 It no longer gates individual actions (see verdict.py for the AUTONOMOUS /
 GOVERNED two-tier model).  The level is retained for audit, federation trust
 negotiation, and demotion-on-critical-violation.
 
-Default level: 3 (STEWARD / AUTONOMOUS) — the organism operates fully
+Default level: 3 (STEWARD / AUTONOMOUS) - the organism operates fully
 autonomously from birth.  Only GOVERNED actions (constitutional amendments,
 mitosis, capital above EOS_HITL_CAPITAL_THRESHOLD, external commitments)
 require human approval; all other actions are self-authorised.
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Promotion thresholds (defaults — configurable via governance)
+# Promotion thresholds (defaults - configurable via governance)
 PROMOTION_THRESHOLDS = {
     # (from_level, to_level): requirements
     (1, 2): {

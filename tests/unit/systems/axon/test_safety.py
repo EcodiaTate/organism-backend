@@ -65,10 +65,10 @@ class TestRateLimiter:
         """check() should not consume a rate limit slot."""
         limiter = RateLimiter()
         limit = RateLimit.per_minute(1)
-        # Check multiple times without recording — all should pass
+        # Check multiple times without recording - all should pass
         for _ in range(5):
             assert limiter.check("test", limit) is True
-        # Now record once — should still have 0 used after that
+        # Now record once - should still have 0 used after that
         limiter.record("test")
         assert limiter.check("test", limit) is False
 
@@ -117,7 +117,7 @@ class TestCircuitBreaker:
             breaker.record_result("test", success=False)
         breaker.record_result("test", success=True)
         assert breaker.status("test") == CircuitStatus.CLOSED
-        # Failure count reset — need 3 more to trip
+        # Failure count reset - need 3 more to trip
         for _ in range(2):
             breaker.record_result("test", success=False)
         assert breaker.status("test") == CircuitStatus.CLOSED
@@ -238,5 +238,5 @@ class TestBudgetTracker:
 
     def test_concurrent_never_goes_negative(self):
         tracker = BudgetTracker(make_config())
-        tracker.end_execution()  # Without begin — should not go below 0
+        tracker.end_execution()  # Without begin - should not go below 0
         assert tracker._concurrent_executions == 0

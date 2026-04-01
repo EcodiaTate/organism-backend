@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Channel Management
+EcodiaOS - Federation Channel Management
 
 Manages mutual TLS channels for federation communication. Each
 federation link has a dedicated channel authenticated by mutual

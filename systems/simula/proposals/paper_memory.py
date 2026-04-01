@@ -1,16 +1,16 @@
 """
-EcodiaOS — Simula ArXiv Paper Memory
+EcodiaOS - Simula ArXiv Paper Memory
 
 Writes arXiv papers and their extracted techniques into the Neo4j knowledge
 graph so that downstream consumers (e.g. SimulaCodeAgent) can retrieve the
 source theory before writing code.
 
 Graph schema added here:
-  (p:Entity {type: "paper"})  — PaperNode carrying abstract + URL
-  (c:Entity {type: "concept"}) — ConceptNode for the extracted technique
+  (p:Entity {type: "paper"})  - PaperNode carrying abstract + URL
+  (c:Entity {type: "concept"}) - ConceptNode for the extracted technique
   (p)-[:RELATES_TO {type: "source_of"}]->(c)
 
-All operations are async and raise no exceptions — callers receive
+All operations are async and raise no exceptions - callers receive
 ``None`` on failure so the proposal-dispatch path degrades gracefully.
 """
 
@@ -52,7 +52,7 @@ async def upsert_paper_and_concept(
     ``source_of`` SemanticRelation.
 
     Returns ``(paper_entity_id, concept_entity_id)`` on success, ``None``
-    on any error (graceful degradation — caller must not crash on None).
+    on any error (graceful degradation - caller must not crash on None).
 
     Deduplication: uses the existing ``find_similar_entity`` name-match so
     the same paper is never written twice (embedding-free, fast path).
@@ -187,7 +187,7 @@ async def get_paper_by_arxiv_id(
 
 
 def _paper_node_name(paper_id: str) -> str:
-    """Canonical name for a PaperNode — stable across duplicate runs."""
+    """Canonical name for a PaperNode - stable across duplicate runs."""
     return f"arxiv:{paper_id}"
 
 
@@ -209,7 +209,7 @@ async def _upsert_paper_node(
         id=new_id(),
         name=name,
         type=EntityType.CONCEPT,          # closest fit in existing enum
-        description=f"{title} — arXiv:{paper_id}",
+        description=f"{title} - arXiv:{paper_id}",
         salience_score=0.7,
         confidence=0.95,
         metadata={
@@ -221,7 +221,7 @@ async def _upsert_paper_node(
         },
     )
     # Patch type string directly so the graph stores "paper" even though
-    # EntityType has no PAPER variant — stored as the raw string value.
+    # EntityType has no PAPER variant - stored as the raw string value.
     await neo4j.execute_write(
         """
         CREATE (e:Entity {

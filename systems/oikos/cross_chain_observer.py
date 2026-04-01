@@ -1,12 +1,12 @@
 """
-EcodiaOS — Cross-Chain Yield Observer (Phase 16d: DeFi Intelligence Expansion)
+EcodiaOS - Cross-Chain Yield Observer (Phase 16d: DeFi Intelligence Expansion)
 
 Observation-only module: tracks yield rates on Arbitrum, Optimism, and Polygon
 via DeFiLlama and flags opportunities that are ≥2× Base rates for >72 hours.
 
 Design constraints:
   - NEVER deploys capital cross-chain (bridge risk in Phase 16d)
-  - Observation only — feeds intelligence to Nova and Equor for deliberation
+  - Observation only - feeds intelligence to Nova and Equor for deliberation
   - When opportunity exceeds threshold AND organism has >$500 capital:
     surfaces as a goal for Equor review via CROSS_CHAIN_OPPORTUNITY event
   - Uses only official DeFiLlama data (no unaudited sources)
@@ -41,7 +41,7 @@ logger = structlog.get_logger("oikos.cross_chain_observer")
 _DEFILLAMA_YIELDS_URL = "https://yields.llama.fi/pools"
 _API_TIMEOUT_S = 10.0
 
-# Chains to monitor (observation only — NOT deployment targets in Phase 16d)
+# Chains to monitor (observation only - NOT deployment targets in Phase 16d)
 _MONITORED_CHAINS = frozenset({"Arbitrum", "Optimism", "Polygon"})
 
 # Same protocol/symbol safety filter as Base yield strategy
@@ -166,7 +166,7 @@ class CrossChainYieldObserver:
         """
         Fetch DeFiLlama data, compare against Base rates, track opportunities.
 
-        liquid_balance_usd — passed from OikosService to determine if organism
+        liquid_balance_usd - passed from OikosService to determine if organism
         has enough capital to surface an opportunity goal ($500 threshold).
 
         Returns list of currently sustained opportunities.

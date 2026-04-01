@@ -1,12 +1,12 @@
 """
-EcodiaOS — Oikos Treasury Manager (Phase 16d: DeFi Intelligence Expansion)
+EcodiaOS - Oikos Treasury Manager (Phase 16d: DeFi Intelligence Expansion)
 
 Manages the organism's liquid_balance according to target allocation buckets:
 
-  40% yield bucket        — actively deployed in DeFi (income-generating)
-  30% survival reserve    — NEVER deployed, sacrosanct emergency buffer
-  20% working capital     — bounty compute costs, substrate fees, active operations
-  10% opportunity fund    — new opportunities, account provisioning, exploratory deploys
+  40% yield bucket        - actively deployed in DeFi (income-generating)
+  30% survival reserve    - NEVER deployed, sacrosanct emergency buffer
+  20% working capital     - bounty compute costs, substrate fees, active operations
+  10% opportunity fund    - new opportunities, account provisioning, exploratory deploys
 
 When ratios drift beyond ±5% tolerance, auto-rebalances by deploying to or
 withdrawing from the yield bucket. The survival reserve is hard-enforced and
@@ -17,7 +17,7 @@ Integration:
   - Reads liquid_balance from EconomicState snapshot
   - Emits YIELD_DEPLOYMENT_REQUEST (deposit/withdraw) via Synapse bus
   - Emits TREASURY_REBALANCED on bucket rebalance
-  - Never raises — all failures log and return
+  - Never raises - all failures log and return
 
 All USD math uses Decimal.
 """
@@ -147,9 +147,9 @@ class TreasuryManager:
         """
         Compute the current treasury bucket state from known values.
 
-        liquid_balance   — total USDC in wallet (not including DeFi positions)
-        deployed_yield   — USDC currently earning yield in DeFi
-        survival_reserve — the configured sacrosanct buffer
+        liquid_balance   - total USDC in wallet (not including DeFi positions)
+        deployed_yield   - USDC currently earning yield in DeFi
+        survival_reserve - the configured sacrosanct buffer
 
         The liquid balance is split proportionally into survival, working, and
         opportunity buckets. The actual split is inferred from targets because
@@ -157,7 +157,7 @@ class TreasuryManager:
         """
         total = liquid_balance + deployed_yield
 
-        # Survival reserve is hard-configured — it always has its full amount
+        # Survival reserve is hard-configured - it always has its full amount
         survival = survival_reserve
 
         # Remainder after survival is the operationally available balance
@@ -212,7 +212,7 @@ class TreasuryManager:
         action_taken = False
 
         if delta > MIN_REBALANCE_AMOUNT_USD:
-            # Under-deployed — deploy more
+            # Under-deployed - deploy more
             # But never touch survival reserve: cap deploy at available liquid
             max_deployable = max(
                 Decimal("0"),
@@ -230,7 +230,7 @@ class TreasuryManager:
                 )
 
         elif delta < -MIN_REBALANCE_AMOUNT_USD:
-            # Over-deployed — withdraw excess
+            # Over-deployed - withdraw excess
             withdraw_amount = abs(delta)
             if withdraw_amount >= MIN_REBALANCE_AMOUNT_USD:
                 await self._request_withdraw(withdraw_amount)

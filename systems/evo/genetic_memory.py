@@ -1,5 +1,5 @@
 """
-EcodiaOS — Genetic Memory: Compressed Belief Inheritance
+EcodiaOS - Genetic Memory: Compressed Belief Inheritance
 
 Implements belief genome extraction, compression, and seeding for parent→child
 instance knowledge transfer.
@@ -61,7 +61,7 @@ _MIN_EPISODES_FOR_GENOME: int = 10_000
 # Instance must have confirmed at least this many hypotheses
 _MIN_CONFIRMED_HYPOTHESES: int = 100
 
-# Inherited confidence discount — children start slightly below parent
+# Inherited confidence discount - children start slightly below parent
 _INHERITED_CONFIDENCE_FACTOR: float = 0.95  # parent 0.98 → child 0.931
 
 # ─── Compression ─────────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ def compress_genome(records: list[InheritedHypothesisRecord]) -> tuple[str, str,
 
 
 # ── Known genome schema versions ────────────────────────────────────────────
-# v1: list[InheritedHypothesisRecord] — current format (March 2026)
+# v1: list[InheritedHypothesisRecord] - current format (March 2026)
 _CURRENT_GENOME_VERSION: int = 1
 
 
@@ -114,9 +114,9 @@ def _migrate_genome_item(item: dict) -> dict:
 
     When new fields are added to InheritedHypothesisRecord, add a migration
     step here that fills in a sensible default so older genomes can be loaded
-    without crashing.  Migrations are additive only — never remove fields.
+    without crashing.  Migrations are additive only - never remove fields.
     """
-    # v1 baseline — ensure all required fields present with defaults
+    # v1 baseline - ensure all required fields present with defaults
     item.setdefault("category", "world_model")
     item.setdefault("statement", "")
     item.setdefault("confidence", 0.5)
@@ -170,7 +170,7 @@ def decompress_genome(
         try:
             records.append(InheritedHypothesisRecord(**item))
         except Exception:
-            # Unknown future fields — strip and retry with known keys only
+            # Unknown future fields - strip and retry with known keys only
             known = {k: item[k] for k in InheritedHypothesisRecord.model_fields if k in item}
             try:
                 records.append(InheritedHypothesisRecord(**known))

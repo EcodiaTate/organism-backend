@@ -1,5 +1,5 @@
 """
-EcodiaOS — Closure Loop Contracts
+EcodiaOS - Closure Loop Contracts
 
 Declares the feedback loops that make the organism a closed causal system.
 Each loop defines a trigger event, a response event, and the systems
@@ -17,7 +17,7 @@ from primitives.common import EOSBaseModel, SystemID
 
 # Import will be available after synapse/types.py is updated with new event types.
 # Using string literals for SynapseEventType references to avoid circular imports
-# at definition time — the actual enum values are validated at runtime by the
+# at definition time - the actual enum values are validated at runtime by the
 # systems that consume these constants.
 
 
@@ -82,7 +82,7 @@ SIMULA_STAKES = ClosureLoopDefinition(
     name="Rollback → Metabolic Penalty",
     description=(
         "When Simula rolls back a mutation, the rollback must carry genuine "
-        "metabolic cost — not just a log entry. SIMULA_ROLLBACK_PENALTY is "
+        "metabolic cost - not just a log entry. SIMULA_ROLLBACK_PENALTY is "
         "emitted to Oikos, which deducts a configurable penalty from the "
         "organism's liquid balance. This makes evolution genuinely risky."
     ),

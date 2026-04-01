@@ -1,15 +1,15 @@
 """
-EcodiaOS — Simula ConstraintSatisfactionChecker
+EcodiaOS - Simula ConstraintSatisfactionChecker
 
 Programmatic enforcement of Simula's Iron Rules and constitutional invariants
 against any proposed mutation before it enters the simulation pipeline.
 
 The inline `_run_pipeline` FORBIDDEN-category check gates the proposal at the
 earliest possible moment for known-bad categories. This class provides the
-*reusable* constraint layer the spec describes in Section 8 — it is also called
+*reusable* constraint layer the spec describes in Section 8 - it is also called
 from the triage path, the governance approval path, and tests.
 
-Spec ref: Section 8 — Constraint Satisfaction in Imagined Scenarios.
+Spec ref: Section 8 - Constraint Satisfaction in Imagined Scenarios.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ logger = structlog.get_logger()
 class ConstraintSatisfactionChecker:
     """Check Iron Rules and constitutional invariants against proposals.
 
-    Spec ref: Section 8 — Constraint Satisfaction in Imagined Scenarios.
+    Spec ref: Section 8 - Constraint Satisfaction in Imagined Scenarios.
 
     Constraints split into two tiers:
       - HARD: any violation returns immediately, proposal must be rejected
@@ -99,10 +99,10 @@ class ConstraintSatisfactionChecker:
         """Check domain invariants across a set of counterfactual outcomes.
 
         Validates that each simulated outcome does not violate known invariants
-        (risk score range, drive normalisation). Returns soft violations only —
+        (risk score range, drive normalisation). Returns soft violations only -
         these are surfaced in simulation metadata, not proposal rejection.
 
-        Spec ref: Section 8 — Invariant Checking.
+        Spec ref: Section 8 - Invariant Checking.
         """
         violations: list[ConstraintViolation] = []
 
@@ -270,7 +270,7 @@ class ConstraintSatisfactionChecker:
     ) -> list[ConstraintViolation]:
         """Validate domain invariants within a single counterfactual result.
 
-        Spec ref: §8 — Invariant Checking.
+        Spec ref: §8 - Invariant Checking.
         """
         violations: list[ConstraintViolation] = []
 

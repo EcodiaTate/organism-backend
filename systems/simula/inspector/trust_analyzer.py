@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 5: Trust Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 5: Trust Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 5 trust-graph influence expansion pipeline:
 
@@ -53,7 +53,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.trust_analyzer")
 
 class TrustAnalyzer:
     """
-    Phase 5 orchestrator — builds a Phase5Result for a target.
+    Phase 5 orchestrator - builds a Phase5Result for a target.
 
     The result combines:
     - A TrustGraph (principal, service, resource, role, credential, session nodes
@@ -65,9 +65,9 @@ class TrustAnalyzer:
 
     Parameters
     ----------
-    max_depth       — BFS hop limit per simulation (default 6)
-    strict_gradient — only report monotonically increasing privilege paths (default True)
-    high_threshold  — minimum privilege_value for a node to be a corridor terminal (default 50)
+    max_depth       - BFS hop limit per simulation (default 6)
+    strict_gradient - only report monotonically increasing privilege paths (default True)
+    high_threshold  - minimum privilege_value for a node to be a corridor terminal (default 50)
     """
 
     def __init__(

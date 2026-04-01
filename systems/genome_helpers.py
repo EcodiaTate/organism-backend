@@ -1,5 +1,5 @@
 """
-EcodiaOS — Genome Extraction Helpers
+EcodiaOS - Genome Extraction Helpers
 
 Shared utilities for systems implementing GenomeExtractionProtocol.
 Handles SHA-256 hashing, size computation, segment construction,

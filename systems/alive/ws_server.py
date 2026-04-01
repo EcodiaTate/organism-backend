@@ -1,12 +1,12 @@
 """
-EcodiaOS — Alive WebSocket Server
+EcodiaOS - Alive WebSocket Server
 
 Standalone WebSocket server on port 8001 that bridges multiple data streams
 to connected browser clients:
 
-1. synapse events (via Redis pub/sub) — forwarded as-is
+1. synapse events (via Redis pub/sub) - forwarded as-is
 2. affect state snapshots (polled from Soma at ~10Hz)
-3. system_state snapshots (polled at ~1Hz) — aggregated real-time state:
+3. system_state snapshots (polled at ~1Hz) - aggregated real-time state:
    - Cognitive cycle number and rhythm phase (Synapse) → ``cycle``
    - Drive topology: multipliers from Telos, rejections from Thymos → ``drives``
    - Soma full 9D interoceptive state + urgency + attractor → ``interoceptive``
@@ -28,11 +28,11 @@ RE Training: every system_state snapshot is written to the Redis Stream
 ``{prefix}:stream:alive_snapshots`` (maxlen=10_000) for the RE training
 pipeline (Spec 11 §21 Path 1).
 
-─── Protocol Note — Two Distinct Alive Endpoints ──────────────────────────
+─── Protocol Note - Two Distinct Alive Endpoints ──────────────────────────
 This standalone server (port 8001) and the FastAPI ``/ws/alive`` route in
 ``main.py`` (port 8000) are **intentionally different protocols**:
 
-  Standalone (port 8001) — ``AliveWebSocketServer``
+  Standalone (port 8001) - ``AliveWebSocketServer``
     Streams: ``synapse``, ``affect`` (9D Soma + dominance), ``system_state``
     Affect payload keys: valence, arousal, dominance, curiosity,
                          care_activation, coherence_stress, energy,
@@ -40,7 +40,7 @@ This standalone server (port 8001) and the FastAPI ``/ws/alive`` route in
                          dominant_error, ts
     Audience: Three.js dashboard, monitoring systems, RE pipeline
 
-  FastAPI (port 8000) — ``/ws/alive``
+  FastAPI (port 8000) - ``/ws/alive``
     Streams: ``affect`` (6D AffectState), ``synapse``, ``workspace``, ``outcomes``
     Affect payload keys: valence, arousal, dominance, curiosity,
                          care_activation, coherence_stress, ts
@@ -62,7 +62,7 @@ import websockets
 
 from utils.asyncio_helpers import cancel_and_wait_tasks
 
-# Import at module level — avoids repeated import cache lookups inside 10Hz polling hot path
+# Import at module level - avoids repeated import cache lookups inside 10Hz polling hot path
 from primitives.affect import InteroceptiveDimension
 
 if TYPE_CHECKING:
@@ -86,14 +86,14 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.alive.ws_server")
 
-# Affect polling interval (seconds) — ~10 Hz (default; runtime-adjustable via RESOURCE_PRESSURE)
+# Affect polling interval (seconds) - ~10 Hz (default; runtime-adjustable via RESOURCE_PRESSURE)
 _AFFECT_POLL_INTERVAL: float = 0.1
 
-# System state polling interval (seconds) — ~1 Hz (default; runtime-adjustable via RESOURCE_PRESSURE)
+# System state polling interval (seconds) - ~1 Hz (default; runtime-adjustable via RESOURCE_PRESSURE)
 _STATE_POLL_INTERVAL: float = 1.0
 
 # Minimum / maximum bounds for runtime poll interval adjustment
-_AFFECT_POLL_INTERVAL_MIN: float = 0.05   # 20 Hz cap — prevents runaway load
+_AFFECT_POLL_INTERVAL_MIN: float = 0.05   # 20 Hz cap - prevents runaway load
 _AFFECT_POLL_INTERVAL_MAX: float = 0.5    # 2 Hz floor under extreme pressure
 _STATE_POLL_INTERVAL_MIN: float = 0.5     # 2 Hz cap
 _STATE_POLL_INTERVAL_MAX: float = 5.0     # 0.2 Hz floor under extreme pressure
@@ -101,17 +101,17 @@ _STATE_POLL_INTERVAL_MAX: float = 5.0     # 0.2 Hz floor under extreme pressure
 # How many recent Axon outcomes to include in each snapshot
 _AXON_RECENT_COUNT: int = 10
 
-# Per-subsystem timeout for async gathers — spec §13.2 Strategy 3
+# Per-subsystem timeout for async gathers - spec §13.2 Strategy 3
 # A hung Nova/Oikos/Thymos call must not stall the entire 1Hz poller
 _GATHER_TIMEOUT: float = 0.8
 
-# Redis Stream key suffix for RE training snapshots — spec §21 Path 1
+# Redis Stream key suffix for RE training snapshots - spec §21 Path 1
 _ALIVE_SNAPSHOTS_STREAM: str = "stream:alive_snapshots"
 
 # Maximum retained snapshots in the Redis Stream (rolling window ~2.7h at 1Hz)
 _ALIVE_SNAPSHOTS_MAXLEN: int = 10_000
 
-# WebSocket authentication — query-param key name for bearer token (Spec 11 §14.3)
+# WebSocket authentication - query-param key name for bearer token (Spec 11 §14.3)
 # Token is validated against AliveWebSocketServer._auth_tokens at handshake time.
 # No token configured → open access (dev/internal LAN mode).
 _AUTH_TOKEN_PARAM: str = "token"
@@ -149,9 +149,9 @@ class AliveWebSocketServer:
 
     Multiplexes three data streams over a single WebSocket connection:
 
-    - ``synapse`` — raw Synapse telemetry events from Redis pub/sub
-    - ``affect`` — Soma interoceptive state at ~10 Hz (9D)
-    - ``system_state`` — aggregated snapshot of all subsystems at ~1 Hz
+    - ``synapse`` - raw Synapse telemetry events from Redis pub/sub
+    - ``affect`` - Soma interoceptive state at ~10 Hz (9D)
+    - ``system_state`` - aggregated snapshot of all subsystems at ~1 Hz
     """
 
     system_id: str = "alive"
@@ -354,7 +354,7 @@ class AliveWebSocketServer:
             state = self._soma.get_current_state()
             sensed = state.sensed
 
-            # dominance — from Atune's AffectState if wired (authoritative),
+            # dominance - from Atune's AffectState if wired (authoritative),
             # else approximated from Soma's SOCIAL_CHARGE (0→1 proxy).
             # Spec §4.3 requires this field in the affect stream.
             dominance: float = 0.5
@@ -434,20 +434,20 @@ class AliveWebSocketServer:
         hung subsystem cannot stall the entire 1Hz poller (Spec 11 §13.2 Strategy 3).
 
         Key layout:
-          cycle         — Synapse clock + rhythm phase
-          drives        — Telos topology multipliers + Thymos rejection counters
-          interoceptive — Soma full 9D state + urgency + nearest attractor
-          attention     — Fovea prediction-error decomposition (6D)
-          immune        — Thymos incident/repair/antibody data only
-          goals         — Nova active goal queue
-          actions       — Axon last N outcomes
-          economics     — Oikos balance/runway/burn
-          mutations     — Simula proposal stats
-          benchmarks    — 7 KPI snapshot
-          causal        — Kairos invariant hierarchy stats
-          compression   — Logos world model + Schwarzschild state
-          sleep         — Oneiros stage + cycle health
-          re_status     — RE routing: Thompson weights, circuit state, Claude/RE fraction
+          cycle         - Synapse clock + rhythm phase
+          drives        - Telos topology multipliers + Thymos rejection counters
+          interoceptive - Soma full 9D state + urgency + nearest attractor
+          attention     - Fovea prediction-error decomposition (6D)
+          immune        - Thymos incident/repair/antibody data only
+          goals         - Nova active goal queue
+          actions       - Axon last N outcomes
+          economics     - Oikos balance/runway/burn
+          mutations     - Simula proposal stats
+          benchmarks    - 7 KPI snapshot
+          causal        - Kairos invariant hierarchy stats
+          compression   - Logos world model + Schwarzschild state
+          sleep         - Oneiros stage + cycle health
+          re_status     - RE routing: Thompson weights, circuit state, Claude/RE fraction
         """
         return {
             "cycle": self._gather_cycle(),
@@ -538,7 +538,7 @@ class AliveWebSocketServer:
             self._logger.debug("alive_gather_interoceptive_error", error=str(exc))
             return {"available": False, "error": str(exc)}
 
-    # ── immune (Thymos immune system — incidents, repairs, antibodies) ──
+    # ── immune (Thymos immune system - incidents, repairs, antibodies) ──
 
     async def _gather_immune(self) -> dict[str, Any]:
         """Immune system status from Thymos (incident/repair/antibody data only)."""
@@ -795,7 +795,7 @@ class AliveWebSocketServer:
     async def _gather_causal(self) -> dict[str, Any]:
         """Causal invariant mining state from Kairos.
 
-        Ref: Spec 11 §22 gap 4 — Kairos absent from Alive telemetry.
+        Ref: Spec 11 §22 gap 4 - Kairos absent from Alive telemetry.
         Exposes the organism's most scientifically interesting signal:
         how many causal rules it has discovered and at what tier.
         """
@@ -829,7 +829,7 @@ class AliveWebSocketServer:
     async def _gather_compression(self) -> dict[str, Any]:
         """Compression and world model state from Logos.
 
-        Ref: Spec 11 §22 gap 4 — Logos absent from Alive telemetry.
+        Ref: Spec 11 §22 gap 4 - Logos absent from Alive telemetry.
         Exposes cognitive pressure, intelligence ratio, and Schwarzschild proximity.
         """
         if self._logos is None:
@@ -855,7 +855,7 @@ class AliveWebSocketServer:
     def _gather_sleep(self) -> dict[str, Any]:
         """Current sleep stage and cycle health from Oneiros.
 
-        Ref: Spec 11 §22 gap 4 — Oneiros absent from Alive telemetry.
+        Ref: Spec 11 §22 gap 4 - Oneiros absent from Alive telemetry.
         Exposes sleep pressure, current stage, and cumulative cycle metrics.
         """
         if self._oneiros is None:
@@ -890,11 +890,11 @@ class AliveWebSocketServer:
           path instead of hard-blocking the event loop at fixed rates regardless
           of system load.
         - ``CONSERVATION_MODE_ENTERED``: extreme throttle to minimum-viable rates
-          (grid/metabolic conservation mode — organism is starving).
+          (grid/metabolic conservation mode - organism is starving).
         - ``CONSERVATION_MODE_EXITED``: restore nominal poll rates.
 
         Must be called after ``start()`` so that the event bus is live.
-        Non-fatal — if subscription fails, polling continues at default rates.
+        Non-fatal - if subscription fails, polling continues at default rates.
         """
         try:
             from systems.synapse.types import SynapseEventType
@@ -911,7 +911,7 @@ class AliveWebSocketServer:
                 SynapseEventType.CONSERVATION_MODE_EXITED,
                 self._on_conservation_mode_exited,
             )
-            # Spec 09 / Spec 29: VitalityCoordinator austerity — drop to minimum
+            # Spec 09 / Spec 29: VitalityCoordinator austerity - drop to minimum
             # viable rates if Alive is in halt_systems, or recover on nominal.
             event_bus.subscribe(
                 SynapseEventType.SYSTEM_MODULATION,
@@ -971,7 +971,7 @@ class AliveWebSocketServer:
     def _on_conservation_mode_entered(self, event: Any) -> None:
         """Drop to minimum-viable poll rates when the organism enters grid conservation mode.
 
-        Conservation mode means severe metabolic stress — every CPU cycle counts.
+        Conservation mode means severe metabolic stress - every CPU cycle counts.
         Alive drops to 2 Hz affect and 0.2 Hz state (the defined _MAX bounds).
         """
         try:
@@ -996,7 +996,7 @@ class AliveWebSocketServer:
         safe_mode/emergency, drop to minimum-viable poll rates (same as
         CONSERVATION_MODE_ENTERED). Recovery on nominal level with empty halt list.
 
-        Alive does NOT emit SYSTEM_MODULATION_ACK — it is a passive telemetry bridge
+        Alive does NOT emit SYSTEM_MODULATION_ACK - it is a passive telemetry bridge
         and ACK would require an async event bus reference during a sync callback.
         The poll-rate change is the observable compliance signal.
         """
@@ -1047,7 +1047,7 @@ class AliveWebSocketServer:
     def _gather_re_status(self) -> dict[str, Any]:
         """RE routing health: availability, circuit state, Thompson sampling weights.
 
-        Spec §22 gap 3 — RE status is currently invisible.  This section makes
+        Spec §22 gap 3 - RE status is currently invisible.  This section makes
         Thompson sampling weights, Claude-vs-RE routing, and circuit-breaker state
         observable alongside the rest of organism health.
         """

@@ -1,8 +1,8 @@
 """
-EcodiaOS — Axon Audit Logger
+EcodiaOS - Axon Audit Logger
 
 Every action Axon takes is permanently recorded. This is the Honesty drive
-at the action layer — the community can always trace what EOS did, when, why,
+at the action layer - the community can always trace what EOS did, when, why,
 and what happened.
 
 Audit records are stored in the Memory graph as GovernanceRecord nodes, making
@@ -12,10 +12,10 @@ them available for:
   - Human oversight and governance review
   - Debugging and incident investigation
 
-The audit logger is async and fire-and-forget from the pipeline's perspective —
+The audit logger is async and fire-and-forget from the pipeline's perspective -
 it runs concurrently with outcome delivery, adding ≤20ms to total execution time.
 
-Parameters are NEVER logged raw — only their SHA-256 hash is stored.
+Parameters are NEVER logged raw - only their SHA-256 hash is stored.
 This protects sensitive data while still enabling deduplication and correlation.
 """
 
@@ -69,9 +69,9 @@ class AuditLogger:
 
     Records are written to Memory as GovernanceRecord nodes. If Memory is
     unavailable, the record is emitted to the structured log (structlog)
-    as a fallback — it will not be silently dropped.
+    as a fallback - it will not be silently dropped.
 
-    RE Stream 2 — rollback → success pairing:
+    RE Stream 2 - rollback → success pairing:
     When a rollback record is written, its governance_id is cached keyed by
     intent_id. If a later success record arrives for the same intent_id, a
     [:ROLLBACK_OF] relationship is written from the failure record to the
@@ -204,7 +204,7 @@ class AuditLogger:
         if hasattr(self._memory, "store_governance_record"):
             await self._memory.store_governance_record(record_data)  # type: ignore[union-attr]
             # Wire [:REVIEWED] → Intent and Episode so RE Stream 1 can join.
-            # Uses optional MATCH so missing nodes are silently skipped —
+            # Uses optional MATCH so missing nodes are silently skipped -
             # the GovernanceRecord is always written even if the Intent/Episode
             # nodes don't exist yet (e.g. fast-fail before Memory write).
             await self._link_governance_to_episode(
@@ -227,7 +227,7 @@ class AuditLogger:
         Create [:REVIEWED] relationships from the GovernanceRecord to its
         originating Intent node and (via GENERATED) the Episode that produced it.
 
-        Both MATCHes are OPTIONAL — silently a no-op when nodes don't exist.
+        Both MATCHes are OPTIONAL - silently a no-op when nodes don't exist.
         This is safe to call concurrently with Memory writes.
         """
         if not hasattr(self._memory, "_neo4j") or self._memory._neo4j is None:  # type: ignore[union-attr]
@@ -241,7 +241,7 @@ class AuditLogger:
                 },
             )
         except Exception as exc:
-            # Non-fatal — the GovernanceRecord node was already written;
+            # Non-fatal - the GovernanceRecord node was already written;
             # the link is a training-data enhancement, not a hard requirement.
             self._logger.warning(
                 "governance_episode_link_failed",

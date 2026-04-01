@@ -1,26 +1,26 @@
 """
-EcodiaOS — Evo Service
+EcodiaOS - Evo Service
 
 The Learning & Hypothesis system. Evo is the Growth drive made computational.
 
 Evo observes the stream of experience, forms hypotheses, accumulates evidence,
-and — when the evidence is sufficient — adjusts the organism's parameters,
+and - when the evidence is sufficient - adjusts the organism's parameters,
 codifies successful procedures, and proposes structural changes.
 
 It operates in two modes:
-  WAKE (online)   — lightweight pattern detection during each cognitive cycle
-  SLEEP (offline) — deep consolidation: schema induction, procedure extraction,
+  WAKE (online)   - lightweight pattern detection during each cognitive cycle
+  SLEEP (offline) - deep consolidation: schema induction, procedure extraction,
                      parameter optimisation, self-model update
 
 Interface:
-  initialize()          — build sub-systems, load persisted parameter state
-  receive_broadcast()   — online learning step (called by Synapse, ≤20ms budget)
-  run_consolidation()   — explicit trigger for sleep mode
-  shutdown()            — graceful teardown
-  get_parameter()       — current value of any tunable parameter
-  stats                 — service-level metrics
+  initialize()          - build sub-systems, load persisted parameter state
+  receive_broadcast()   - online learning step (called by Synapse, ≤20ms budget)
+  run_consolidation()   - explicit trigger for sleep mode
+  shutdown()            - graceful teardown
+  get_parameter()       - current value of any tunable parameter
+  stats                 - service-level metrics
 
-Cognitive cycle role (step 7 — LEARN):
+Cognitive cycle role (step 7 - LEARN):
   Evo runs as a background participant. It receives every workspace broadcast,
   updates its pattern context, and occasionally triggers hypothesis generation.
   The consolidation cycle runs asynchronously and never blocks the theta rhythm.
@@ -85,7 +85,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Module-level defaults — overridden at instance construction time by EvoConfig.
+# Module-level defaults - overridden at instance construction time by EvoConfig.
 # These exist solely as fallback values for code paths that run before
 # initialize() is called.  All production paths use self._* instance attrs.
 _HYPOTHESIS_GENERATION_INTERVAL: int = 200  # Every 200 broadcasts (was 50)
@@ -95,14 +95,14 @@ _VOLATILITY_OSCILLATION_THRESHOLD: int = 6
 
 class EvoService:
     """
-    Evo — the EOS learning and hypothesis system.
+    Evo - the EOS learning and hypothesis system.
 
     Coordinates four sub-systems:
-      HypothesisEngine       — hypothesis lifecycle
-      ParameterTuner         — parameter adjustment with velocity limiting
-      ProcedureExtractor     — action sequence → procedure codification
-      SelfModelManager       — meta-cognitive self-assessment
-      ConsolidationOrchestrator — sleep mode pipeline
+      HypothesisEngine       - hypothesis lifecycle
+      ParameterTuner         - parameter adjustment with velocity limiting
+      ProcedureExtractor     - action sequence → procedure codification
+      SelfModelManager       - meta-cognitive self-assessment
+      ConsolidationOrchestrator - sleep mode pipeline
     """
 
     system_id: str = "evo"
@@ -142,15 +142,15 @@ class EvoService:
         )
 
         # Cross-system references (wired post-init by main.py)
-        self._atune: Any = None  # AtuneService — for pushing learned head weights
-        self._nova: Any = None   # NovaService — for generating epistemic goals from hypotheses
-        self._voxis: Any = None  # VoxisService — for personality learning from expression outcomes
-        self._soma: Any = None   # SomaService — for curiosity modulation and dynamics update
-        self._simula: Any = None  # SimulaService — for dispatching arXiv evolution proposals
-        self._telos: Any = None   # TelosService — for hypothesis prioritisation
-        self._kairos: Any = None  # KairosPipeline — for causal validation of hypotheses
-        self._fovea: Any = None   # FoveaService — for internal prediction errors
-        self._logos: Any = None   # LogosService — for MDL scoring of hypotheses
+        self._atune: Any = None  # AtuneService - for pushing learned head weights
+        self._nova: Any = None   # NovaService - for generating epistemic goals from hypotheses
+        self._voxis: Any = None  # VoxisService - for personality learning from expression outcomes
+        self._soma: Any = None   # SomaService - for curiosity modulation and dynamics update
+        self._simula: Any = None  # SimulaService - for dispatching arXiv evolution proposals
+        self._telos: Any = None   # TelosService - for hypothesis prioritisation
+        self._kairos: Any = None  # KairosPipeline - for causal validation of hypotheses
+        self._fovea: Any = None   # FoveaService - for internal prediction errors
+        self._logos: Any = None   # LogosService - for MDL scoring of hypotheses
 
         # Sub-systems (built in initialize())
         self._hypothesis_engine: HypothesisEngine | None = None
@@ -211,23 +211,23 @@ class EvoService:
         # Passed to ParameterTuner.tick_evaluation() each consolidation so the
         # feedback loop can compare post-adjustment metrics to the baseline.
         self._last_benchmark_kpis: dict[str, float] = {}
-        # Monotonic timestamp of last LEARNING_PRESSURE emit — rate-limit 1/hour.
+        # Monotonic timestamp of last LEARNING_PRESSURE emit - rate-limit 1/hour.
         self._last_learning_pressure_at: float = 0.0
 
         # ── Hypothesis budget degradation tracking ────────────────────────
         # Consecutive hypothesis generation cycles that were skipped due to
         # LLM budget exhaustion.
         self._consecutive_hypothesis_skips: int = 0
-        # Logos cognitive pressure gate — when True, non-critical hypothesis
+        # Logos cognitive pressure gate - when True, non-critical hypothesis
         # generation is paused to reduce compute during compression pressure.
         self._cognitive_pressure_high: bool = False
-        # Thymos reference — wired via set_thymos() if called.
+        # Thymos reference - wired via set_thymos() if called.
         self._thymos: Any = None
 
-        # Synapse event bus — wired via set_event_bus()
+        # Synapse event bus - wired via set_event_bus()
         self._event_bus: Any = None
 
-        # Cached Soma curiosity drive — updated from SOMATIC_MODULATION_SIGNAL events
+        # Cached Soma curiosity drive - updated from SOMATIC_MODULATION_SIGNAL events
         # so we never call soma.get_current_signal() directly.
         self._cached_soma_curiosity_drive: float = 0.5
 
@@ -239,13 +239,13 @@ class EvoService:
         # hypothesis boosts from CONVERGENCE_DETECTED events.
         self._triangulation_weight: float = 0.5
 
-        # Redis client — wired via set_redis(); used for PatternContext checkpoints
+        # Redis client - wired via set_redis(); used for PatternContext checkpoints
         # so accumulated detector state survives restarts between consolidations.
         self._redis: Any = None
 
         # ArXiv research pipeline
         self._arxiv_scientist: ArxivScientist = ArxivScientist(llm=self._llm)
-        # _arxiv_translator is intentionally lazy — imported inside
+        # _arxiv_translator is intentionally lazy - imported inside
         # _handle_new_arxiv_innovation() to avoid the cross-system top-level import.
 
         # ── Metabolic gating ──────────────────────────────────────────────
@@ -258,7 +258,7 @@ class EvoService:
         )
         # Track known hypothesis domains for novel domain detection
         self._known_hypothesis_domains: set[str] = set()
-        # Last speciation event timestamp (monotonic) — enforce max 1 per 24h
+        # Last speciation event timestamp (monotonic) - enforce max 1 per 24h
         self._last_speciation_event_at: float = 0.0
 
         # ── Economic learning state ────────────────────────────────────────────
@@ -277,7 +277,7 @@ class EvoService:
         if self._initialized:
             return
 
-        # Meta-learning engine — Evo learns about how it learns
+        # Meta-learning engine - Evo learns about how it learns
         # (created early so it can be passed to HypothesisEngine)
         self._meta_learning = MetaLearningEngine()
 
@@ -300,14 +300,14 @@ class EvoService:
         )
         self._self_model = SelfModelManager(memory=self._memory)
 
-        # Belief half-life scanner — requires Neo4j via MemoryService
+        # Belief half-life scanner - requires Neo4j via MemoryService
         belief_aging: BeliefAgingScanner | None = None
         if self._memory is not None:
             belief_aging = BeliefAgingScanner(neo4j=self._memory)
 
         self._belief_aging = belief_aging
 
-        # Belief consolidation scanner — hardens high-confidence beliefs into read-only nodes
+        # Belief consolidation scanner - hardens high-confidence beliefs into read-only nodes
         belief_consolidation: BeliefConsolidationScanner | None = None
         if self._memory is not None:
             belief_consolidation = BeliefConsolidationScanner(neo4j=self._memory)
@@ -319,7 +319,7 @@ class EvoService:
             memory=self._memory,
         )
 
-        # Genetic memory extractor — compresses stable beliefs for child inheritance
+        # Genetic memory extractor - compresses stable beliefs for child inheritance
         genome_extractor: GenomeExtractor | None = None
         if self._memory is not None:
             genome_extractor = GenomeExtractor(
@@ -328,29 +328,29 @@ class EvoService:
             )
         self._genome_extractor = genome_extractor
 
-        # Schema induction engine — real structure learning from the knowledge graph
+        # Schema induction engine - real structure learning from the knowledge graph
         self._schema_engine = SchemaInductionEngine(
             memory=self._memory,
             logos=self._logos,
         )
 
-        # Curiosity engine — epistemic intent generation for active exploration
+        # Curiosity engine - epistemic intent generation for active exploration
         self._curiosity_engine = CuriosityEngine(memory=self._memory)
 
-        # Evolutionary pressure system — fitness landscapes and selection
+        # Evolutionary pressure system - fitness landscapes and selection
         self._pressure_system = EvolutionaryPressureSystem(memory=self._memory)
 
-        # Self-modification engine — recursive self-improvement of learning itself
+        # Self-modification engine - recursive self-improvement of learning itself
         self._self_modification = SelfModificationEngine(
             meta_learning=self._meta_learning,
         )
 
-        # Structural hypothesis generator — graph-topology hypotheses (no LLM)
+        # Structural hypothesis generator - graph-topology hypotheses (no LLM)
         self._structural_generator = StructuralHypothesisGenerator(
             memory=self._memory,
         )
 
-        # Causal failure analyzer — feeds Phase 6.5 failure-pattern detection
+        # Causal failure analyzer - feeds Phase 6.5 failure-pattern detection
         # and Phase 8 causal-surgery proposals.  Requires Neo4j + LLM; skipped
         # when memory is not wired (test / lightweight environments).
         self._causal_surgery_analyzer: Any = None
@@ -374,16 +374,16 @@ class EvoService:
                 )
 
         # ── Cognitive Speciation Subsystem ────────────────────────────────────
-        # Niche registry — manages isolated hypothesis ecosystems
+        # Niche registry - manages isolated hypothesis ecosystems
         self._niche_registry = NicheRegistry()
 
-        # Speciation engine — evolves new ways of thinking via 5 biological mechanisms
+        # Speciation engine - evolves new ways of thinking via 5 biological mechanisms
         self._speciation_engine = SpeciationEngine(
             niche_registry=self._niche_registry,
             pressure_system=self._pressure_system,
         )
 
-        # Niche forking engine — cognitive organogenesis (the organism grows new organs)
+        # Niche forking engine - cognitive organogenesis (the organism grows new organs)
         self._niche_forking_engine = NicheForkingEngine(
             niche_registry=self._niche_registry,
         )
@@ -479,10 +479,10 @@ class EvoService:
 
     async def receive_broadcast(self, broadcast: WorkspaceBroadcast) -> None:
         """
-        Online learning step. Called by the cognitive cycle (step 7 — LEARN).
+        Online learning step. Called by the cognitive cycle (step 7 - LEARN).
         Budget: ≤20ms for pattern scanning. Heavy work is fire-and-forget.
 
-        Does NOT raise — Evo failures must not interrupt the cognitive cycle.
+        Does NOT raise - Evo failures must not interrupt the cognitive cycle.
         """
         if not self._initialized:
             return
@@ -649,7 +649,7 @@ class EvoService:
         Convert a supported hypothesis into an epistemic exploration goal.
 
         When Evo accumulates enough evidence to support a hypothesis, the
-        organism should actively explore and test it — not just passively wait.
+        organism should actively explore and test it - not just passively wait.
 
         EVO-NOVA-1: Full hypothesis metadata is now included in the payload so
         Nova can use Evo's Thompson sampling weights and confidence scores for
@@ -813,7 +813,7 @@ class EvoService:
         """
         Apply a parameter adjustment driven by the Thymos immune system (Tier 1 repair).
 
-        Bypasses hypothesis requirements — Thymos has already validated the repair
+        Bypasses hypothesis requirements - Thymos has already validated the repair
         through its own governance pipeline.  Velocity limits and range clamping
         from ParameterTuner still apply.
 
@@ -844,7 +844,7 @@ class EvoService:
         actual_delta = new_value - current
 
         if abs(actual_delta) < 0.0001:
-            return True  # Already at boundary — not an error
+            return True  # Already at boundary - not an error
 
         adjustment = ParameterAdjustment(
             parameter=parameter_path,
@@ -999,7 +999,7 @@ class EvoService:
         if self._niche_forking_engine is not None:
             self._niche_forking_engine._event_bus = event_bus
         # Wire into ParameterTuner so every apply_adjustment() pushes
-        # EVO_PARAMETER_ADJUSTED — no more polling for Atune/Nova/Voxis.
+        # EVO_PARAMETER_ADJUSTED - no more polling for Atune/Nova/Voxis.
         if self._parameter_tuner is not None:
             self._parameter_tuner.wire_event_bus(event_bus)
         self._logger.info("event_bus_wired_to_evo_orchestrator")
@@ -1076,7 +1076,7 @@ class EvoService:
             )
             await bus.emit(event)
         except Exception:
-            pass  # Best-effort — never block the learning loop
+            pass  # Best-effort - never block the learning loop
 
     async def _emit_hypothesis_lifecycle_events(
         self,
@@ -1141,7 +1141,7 @@ class EvoService:
                     "hypotheses_integrated": result.hypotheses_integrated,
                     "schemas_induced": result.schemas_induced,
                     "parameters_adjusted": result.parameters_adjusted,
-                    # Speciation telemetry — previously computed but invisible to bus;
+                    # Speciation telemetry - previously computed but invisible to bus;
                     # Telos, Benchmarks, and Alive all need this data for fitness tracking.
                     "niches_created": result.niches_created,
                     "niches_extinct": result.niches_extinct,
@@ -1422,7 +1422,7 @@ class EvoService:
 
         Without this, the accumulated detector counters (cooccurrences, sequences,
         temporal bins, affect responses) are lost on any restart that occurs between
-        consolidation cycles — Spec §III gap fix.
+        consolidation cycles - Spec §III gap fix.
         """
         self._redis = redis
         self._logger.info("redis_wired_to_evo_pattern_checkpoint")
@@ -1436,7 +1436,7 @@ class EvoService:
         """Checkpoint PatternContext counters to Redis (Spec §III gap fix).
 
         Called before each consolidation cycle so the post-consolidation reset
-        can be safely applied — counters up to that point are durable.
+        can be safely applied - counters up to that point are durable.
         Also called periodically (every 1000 broadcasts) to limit loss window.
         Best-effort: failures are logged but never block the learning loop.
         """
@@ -1495,7 +1495,7 @@ class EvoService:
             eps: int = int(snapshot.get("episodes_scanned", 0))
 
             ctx = self._pattern_context
-            # Merge rather than replace — initialize() may have already run detectors
+            # Merge rather than replace - initialize() may have already run detectors
             for k, v in cc.items():
                 ctx.cooccurrence_counts[k] += v
             for k, v in sc.items():
@@ -1585,7 +1585,7 @@ class EvoService:
         optionally filtered by hypothesis domain.
 
         EVO-NOVA-1: Nova calls this to incorporate Evo's Thompson weights into
-        EFE scoring for goal prioritization — goals backed by high-confidence
+        EFE scoring for goal prioritization - goals backed by high-confidence
         Thompson arms get higher pragmatic value in Nova's deliberation.
 
         Returns: {tournament_id: {arm_id: posterior_mean}} for active tournaments.
@@ -1678,7 +1678,7 @@ class EvoService:
 
         When the payload includes tournament_id + tournament_hypothesis_id,
         routes to record_tournament_outcome() so the A/B experiment loop
-        receives signal — previously this required a direct _evo reference in Nova.
+        receives signal - previously this required a direct _evo reference in Nova.
 
         Also emits HYPOTHESIS_UPDATE so Nova can update its EFE weight priors
         immediately after each trial (Spec 05 §20).
@@ -1786,7 +1786,7 @@ class EvoService:
         # AXON_EXECUTION_RESULT: step-level granularity for hypothesis confidence.
         # ACTION_COMPLETED gives aggregate success/failure; AXON_EXECUTION_RESULT
         # gives per-step outcomes so Evo can distinguish "step 3 of 7 failed" from
-        # "all failed" — critical for fine-grained hypothesis scoring.
+        # "all failed" - critical for fine-grained hypothesis scoring.
         if hasattr(SynapseEventType, "AXON_EXECUTION_RESULT"):
             event_bus.subscribe(
                 SynapseEventType.AXON_EXECUTION_RESULT,
@@ -1949,7 +1949,7 @@ class EvoService:
                 self._on_somatic_modulation_signal,
             )
 
-        # Degradation Engine §8.2 — stub subscription.
+        # Degradation Engine §8.2 - stub subscription.
         # Round 2 will implement: decay confidence on all unvalidated hypotheses
         # by staleness_rate, then re-emit HYPOTHESIS_STALENESS_APPLIED so
         # VitalityCoordinator can call on_hypotheses_revalidated().
@@ -2000,9 +2000,9 @@ class EvoService:
             self._on_benchmark_regression,
         )
 
-        # DOMAIN_KPI_SNAPSHOT — keep _last_benchmark_kpis fresh between regression events.
+        # DOMAIN_KPI_SNAPSHOT - keep _last_benchmark_kpis fresh between regression events.
         # Benchmarks emits this on every Nexus epistemic cycle, RE export, and economic
-        # deferral — so the parameter tuner always has current KPI data even when no
+        # deferral - so the parameter tuner always has current KPI data even when no
         # regressions have fired.  We only ingest numeric float values from known KPI keys.
         if hasattr(SynapseEventType, "DOMAIN_KPI_SNAPSHOT"):
             event_bus.subscribe(
@@ -2010,7 +2010,7 @@ class EvoService:
                 self._on_domain_kpi_snapshot,
             )
 
-        # Thompson weight queries from Nova — respond with arm weights for domain
+        # Thompson weight queries from Nova - respond with arm weights for domain
         event_bus.subscribe(
             SynapseEventType.EVO_THOMPSON_QUERY,
             self._on_thompson_query,
@@ -2054,7 +2054,7 @@ class EvoService:
                 self._on_learning_opportunity_detected,
             )
 
-        # ACTION_EXECUTED — successful Axon action outcome.
+        # ACTION_EXECUTED - successful Axon action outcome.
         # If a hypothesis_id or experiment_id is present in the step metadata,
         # feed the success signal into hypothesis scoring and emit
         # EVO_HYPOTHESIS_CONFIRMED with the evidence.
@@ -2064,7 +2064,7 @@ class EvoService:
                 self._on_action_executed,
             )
 
-        # ACTION_FAILED — Axon action failure.
+        # ACTION_FAILED - Axon action failure.
         # If a hypothesis_id is present, emit EVO_HYPOTHESIS_REFUTED so the
         # organism learns which hypotheses lead to executor failures.
         if hasattr(SynapseEventType, "ACTION_FAILED"):
@@ -2073,7 +2073,7 @@ class EvoService:
                 self._on_action_failed_evo,
             )
 
-        # Memory emits BELIEF_CONSOLIDATED after consolidate() — inject as strong
+        # Memory emits BELIEF_CONSOLIDATED after consolidate() - inject as strong
         # positive evidence for hypotheses that overlap with the consolidated belief.
         if hasattr(SynapseEventType, "BELIEF_CONSOLIDATED"):
             event_bus.subscribe(
@@ -2081,7 +2081,7 @@ class EvoService:
                 self._on_belief_consolidated,
             )
 
-        # Thread emits SCHEMA_FORMED when a new identity schema crystallises —
+        # Thread emits SCHEMA_FORMED when a new identity schema crystallises -
         # create a matching WORLD_MODEL hypothesis so Evo tracks schema stability.
         if hasattr(SynapseEventType, "SCHEMA_FORMED"):
             event_bus.subscribe(
@@ -2089,7 +2089,7 @@ class EvoService:
                 self._on_schema_formed,
             )
 
-        # Thread emits SCHEMA_EVOLVED when a schema is promoted or modified —
+        # Thread emits SCHEMA_EVOLVED when a schema is promoted or modified -
         # update evidence scores on any hypothesis that references the schema.
         if hasattr(SynapseEventType, "SCHEMA_EVOLVED"):
             event_bus.subscribe(
@@ -2098,14 +2098,14 @@ class EvoService:
             )
 
         # Nexus emits CONVERGENCE_DETECTED when structural isomorphism is found
-        # across federation instances — boost matching hypotheses (cross-validated).
+        # across federation instances - boost matching hypotheses (cross-validated).
         if hasattr(SynapseEventType, "CONVERGENCE_DETECTED"):
             event_bus.subscribe(
                 SynapseEventType.CONVERGENCE_DETECTED,
                 self._on_convergence_detected,
             )
 
-        # Oneiros REM stage emits DREAM_INSIGHT for coherence ≥ 0.70 insights —
+        # Oneiros REM stage emits DREAM_INSIGHT for coherence ≥ 0.70 insights -
         # create or strengthen a hypothesis from the dream-derived structure.
         if hasattr(SynapseEventType, "DREAM_INSIGHT"):
             event_bus.subscribe(
@@ -2113,7 +2113,7 @@ class EvoService:
                 self._on_dream_insight,
             )
 
-        # Nexus emits TRIANGULATION_WEIGHT_UPDATE after each federation session —
+        # Nexus emits TRIANGULATION_WEIGHT_UPDATE after each federation session -
         # adjust hypothesis priors if our instance weight diverges significantly.
         if hasattr(SynapseEventType, "TRIANGULATION_WEIGHT_UPDATE"):
             event_bus.subscribe(
@@ -2121,7 +2121,7 @@ class EvoService:
                 self._on_triangulation_weight_update,
             )
 
-        # Nexus emits DIVERGENCE_PRESSURE when triangulation weight < 0.4 —
+        # Nexus emits DIVERGENCE_PRESSURE when triangulation weight < 0.4 -
         # queue PatternCandidates to diversify hypothesis domains.
         if hasattr(SynapseEventType, "DIVERGENCE_PRESSURE"):
             event_bus.subscribe(
@@ -2129,7 +2129,7 @@ class EvoService:
                 self._on_divergence_pressure,
             )
 
-        # Thread emits TURNING_POINT_DETECTED on narrative inflection points —
+        # Thread emits TURNING_POINT_DETECTED on narrative inflection points -
         # high surprise_magnitude events generate temporal PatternCandidates.
         if hasattr(SynapseEventType, "TURNING_POINT_DETECTED"):
             event_bus.subscribe(
@@ -2137,7 +2137,7 @@ class EvoService:
                 self._on_turning_point_detected,
             )
 
-        # PHANTOM_PARAMETER_ADJUSTED — Phantom confirms Evo-driven parameter tuning.
+        # PHANTOM_PARAMETER_ADJUSTED - Phantom confirms Evo-driven parameter tuning.
         # Score the associated EVO_ADJUST_BUDGET hypothesis as confirmed/refuted
         # based on whether the adjustment moved metrics in the expected direction.
         if hasattr(SynapseEventType, "PHANTOM_PARAMETER_ADJUSTED"):
@@ -2262,7 +2262,7 @@ class EvoService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Evo directive: {"consolidation": False} — pause consolidation cycles
+        Evo directive: {"consolidation": False} - pause consolidation cycles
         to reduce compute during austerity.
         """
         consolidation = directives.get("consolidation", True)
@@ -2276,10 +2276,10 @@ class EvoService:
         Subscriber for ACTION_COMPLETED events published by Axon.
 
         Expected event.data keys:
-          intent_id      (str)   — ID of the completed intent
-          outcome        (str)   — Short description of what happened
-          success        (bool)  — Whether the intent succeeded
-          economic_delta (float) — Revenue/cost impact in USD (signed)
+          intent_id      (str)   - ID of the completed intent
+          outcome        (str)   - Short description of what happened
+          success        (bool)  - Whether the intent succeeded
+          economic_delta (float) - Revenue/cost impact in USD (signed)
 
         Updates hypothesis confidence for all TESTING/PROPOSED hypotheses
         whose action-sequence pattern matches the completed intent.
@@ -2289,7 +2289,7 @@ class EvoService:
         Also forwards the (intent, outcome) pair to ProcedureCodifier so
         recurring successful sequences can be codified during consolidation.
 
-        Does NOT raise — outcome feedback must not interrupt the event bus.
+        Does NOT raise - outcome feedback must not interrupt the event bus.
         """
         if not self._initialized:
             return
@@ -2301,7 +2301,7 @@ class EvoService:
             success: bool = bool(data.get("success", False))
             economic_delta: float = float(data.get("economic_delta", 0.0))
 
-            # Forward to ProcedureCodifier — no action_types here so we use
+            # Forward to ProcedureCodifier - no action_types here so we use
             # a minimal IntentRecord; the episode_id will be empty unless Axon
             # included it. Full linkage happens when Axon also populates episode_id.
             episode_id: str = str(data.get("episode_id", ""))
@@ -2350,7 +2350,7 @@ class EvoService:
 
     async def _on_axon_execution_result(self, event: Any) -> None:
         """
-        Subscriber for AXON_EXECUTION_RESULT — step-level execution granularity.
+        Subscriber for AXON_EXECUTION_RESULT - step-level execution granularity.
 
         Complements ACTION_COMPLETED (aggregate success/failure) with per-step
         outcomes so Evo can distinguish partial failures from total failures:
@@ -2368,7 +2368,7 @@ class EvoService:
           failure_reason  (str, optional)
           economic_delta_usd (float)
 
-        Does NOT raise — never interrupt the event bus.
+        Does NOT raise - never interrupt the event bus.
         """
         if not self._initialized or self._hypothesis_engine is None:
             return
@@ -2380,7 +2380,7 @@ class EvoService:
             economic_delta = float(data.get("economic_delta_usd", 0.0))
 
             if not step_outcomes:
-                return  # No step data — ACTION_COMPLETED already handles aggregate
+                return  # No step data - ACTION_COMPLETED already handles aggregate
 
             total_steps = len(step_outcomes)
             failed_steps = [s for s in step_outcomes if not s.get("success", True)]
@@ -2445,12 +2445,12 @@ class EvoService:
         """
         Nudge hypothesis confidence based on a real action outcome.
 
-        Only PROCEDURAL and SELF_MODEL hypotheses are updated this way —
+        Only PROCEDURAL and SELF_MODEL hypotheses are updated this way -
         WORLD_MODEL and SOCIAL hypotheses require richer episodic evidence
         (evaluated via evaluate_evidence during the evidence sweep).
 
         Confidence delta is small (max 0.2) so this never overrides the
-        Bayesian evidence accumulation — it just reinforces or weakens.
+        Bayesian evidence accumulation - it just reinforces or weakens.
 
         Volatility tracking: if the direction of the nudge reverses compared
         to the previous nudge, we count an oscillation. After
@@ -2546,7 +2546,7 @@ class EvoService:
 
         Competency-type errors indicate the self-model predicted a capability
         the organism doesn't actually have (or vice versa). These are direct
-        evidence for SELF_MODEL hypotheses — much stronger than action outcomes
+        evidence for SELF_MODEL hypotheses - much stronger than action outcomes
         because Fovea has already done the prediction/observation comparison
         with 3x precision multiplier.
 
@@ -2563,7 +2563,7 @@ class EvoService:
 
             salience = float(data.get("precision_weighted_salience", 0.0))
 
-            # Apply as evidence to SELF_MODEL hypotheses — competency errors
+            # Apply as evidence to SELF_MODEL hypotheses - competency errors
             # are strong evidence because Fovea's internal precision multiplier
             # (3x) means these are high-confidence signals
             from systems.evo.types import HypothesisCategory
@@ -2599,7 +2599,7 @@ class EvoService:
         Handle KAIROS_CAUSAL_DIRECTION_ACCEPTED events.
 
         When Kairos validates a causal direction, find matching WORLD_MODEL
-        hypotheses and boost their evidence score — Kairos has independently
+        hypotheses and boost their evidence score - Kairos has independently
         confirmed the causal claim through its multi-method pipeline.
         """
         if not self._initialized or self._hypothesis_engine is None:
@@ -2626,7 +2626,7 @@ class EvoService:
                 cause_match = cause.lower() in stmt_lower if cause else False
                 effect_match = effect.lower() in stmt_lower if effect else False
                 if cause_match or effect_match:
-                    # Kairos-validated causal evidence — strong support
+                    # Kairos-validated causal evidence - strong support
                     boost = confidence * 0.5  # Scale by Kairos confidence
                     h.evidence_score += boost * h.volatility_weight
                     matched += 1
@@ -2658,12 +2658,12 @@ class EvoService:
 
         On duplicate events (same endpoint+fix_type already has an active
         hypothesis) the new repair episode is fed to evaluate_evidence rather
-        than discarded — each successful repair is an independent data point.
+        than discarded - each successful repair is an independent data point.
 
         Only Tier 2+ (PARAMETER and above) repairs produce learnable patterns;
         NOOP repairs are filtered out by Thymos before broadcast.
 
-        Does NOT raise — repair learning must not interrupt the event bus.
+        Does NOT raise - repair learning must not interrupt the event bus.
         """
         if not self._initialized or self._hypothesis_engine is None:
             return
@@ -2697,7 +2697,7 @@ class EvoService:
                 f"if the antibody succeeds in ≥3 subsequent applications the pattern holds."
             )
 
-            # Register as a procedural hypothesis directly — no LLM needed since
+            # Register as a procedural hypothesis directly - no LLM needed since
             # the pattern is derived from an observed, successful repair.
             result = self._hypothesis_engine.register_repair_hypothesis(
                 statement=statement,
@@ -2709,7 +2709,7 @@ class EvoService:
             )
 
             if result is None:
-                # At capacity — skip silently.
+                # At capacity - skip silently.
                 return
 
             h, is_new = result
@@ -2727,7 +2727,7 @@ class EvoService:
                     repair_spec_id=repair_spec_id,
                 )
             else:
-                # Duplicate event — feed the new repair as evidence to the
+                # Duplicate event - feed the new repair as evidence to the
                 # existing hypothesis rather than silently dropping it.
                 repair_episode = Episode(
                     id=incident_id or f"repair_evt_{fix_type}",
@@ -2798,7 +2798,7 @@ class EvoService:
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # Normalise evidence score to [0, 1] — evidence_score is unbounded
+            # Normalise evidence score to [0, 1] - evidence_score is unbounded
             # but typically ranges 0-10 for repair hypotheses
             raw_score = getattr(hypothesis, "evidence_score", 0.0)
             quality = min(1.0, max(0.0, raw_score / 8.0))
@@ -2832,7 +2832,7 @@ class EvoService:
 
         When Fovea reports a significant prediction error, the structural
         hypothesis generator creates domain-specific hypotheses about why
-        the world model is wrong — no LLM cost.
+        the world model is wrong - no LLM cost.
         """
         if not self._initialized or self._structural_generator is None:
             return
@@ -2881,7 +2881,7 @@ class EvoService:
 
     async def _on_fovea_calibration_alert(self, event: Any) -> None:
         """
-        Handle FOVEA_CALIBRATION_ALERT — generate attention-tuning hypotheses.
+        Handle FOVEA_CALIBRATION_ALERT - generate attention-tuning hypotheses.
 
         Part A: Autonomy Gap Closure. When Fovea detects 5+ consecutive poor cycles
         (low TPR < 0.6 or high false alarm rate > 0.4), generate targeted hypotheses
@@ -2936,7 +2936,7 @@ class EvoService:
             # Queue for next hypothesis generation pass
             self._pending_candidates.append(candidate)
 
-            # Increment learning pressure — Fovea calibration alert signals
+            # Increment learning pressure - Fovea calibration alert signals
             # that the attention system needs re-tuning urgently
             if self._orchestrator is not None:
                 from systems.evo.consolidation import _PRESSURE_FOVEA_CALIBRATION_ALERT
@@ -2953,7 +2953,7 @@ class EvoService:
             self._logger.warning("fovea_calibration_alert_handler_failed", error=str(exc))
 
     async def _on_evolution_applied(self, event: Any) -> None:
-        """Handle EVOLUTION_APPLIED — reward source hypotheses whose proposals succeeded.
+        """Handle EVOLUTION_APPLIED - reward source hypotheses whose proposals succeeded.
 
         When Simula successfully applies a structural change that originated from
         Evo hypotheses, we boost those hypotheses' evidence scores. This closes the
@@ -2992,7 +2992,7 @@ class EvoService:
             self._logger.warning("evolution_applied_handler_failed", error=str(exc))
 
     async def _on_evolution_rolled_back(self, event: Any) -> None:
-        """Handle EVOLUTION_ROLLED_BACK — penalise source hypotheses whose proposals failed.
+        """Handle EVOLUTION_ROLLED_BACK - penalise source hypotheses whose proposals failed.
 
         When Simula rolls back a structural change, the originating hypotheses
         receive negative evidence. Recurring rollbacks from the same hypothesis
@@ -3193,8 +3193,8 @@ class EvoService:
                 ),
                 complexity_penalty=0.05,
                 status=HypothesisStatus.SUPPORTED,  # Pre-validated by Kairos
-                evidence_score=5.0,  # High evidence — already validated
-                min_age_hours=0.0,  # No age gate — already proven
+                evidence_score=5.0,  # High evidence - already validated
+                min_age_hours=0.0,  # No age gate - already proven
                 novelty_score=1.0,  # Tier 3 invariants are inherently novel
             )
             self._hypothesis_engine._active[h.id] = h
@@ -3216,7 +3216,7 @@ class EvoService:
 
     async def _on_kairos_invariant(self, event: Any) -> None:
         """
-        Handle KAIROS_INVARIANT_DISTILLED — hybrid tier-based routing.
+        Handle KAIROS_INVARIANT_DISTILLED - hybrid tier-based routing.
 
         Tier 3 + confidence ≥ 0.8: direct SUPPORTED Hypothesis (evidence_score = confidence × 5).
         Tier 2 + confidence 0.6–0.79: PatternCandidate with boosted prior in metadata.
@@ -3443,7 +3443,7 @@ class EvoService:
         Run all structural hypothesis generators during consolidation.
 
         Generates hypotheses from graph topology, prediction errors,
-        belief contradictions, and schema analogies — no LLM cost.
+        belief contradictions, and schema analogies - no LLM cost.
         """
         if self._structural_generator is None or self._hypothesis_engine is None:
             return []
@@ -3584,7 +3584,7 @@ class EvoService:
     async def _on_bounty_pr_submitted(self, event: Any) -> None:
         """
         BOUNTY_PR_SUBMITTED → episodic memory.
-        A PR submission is a positive outcome signal — record it and nudge
+        A PR submission is a positive outcome signal - record it and nudge
         the rolling success window.
         """
         if not self._initialized:
@@ -3599,7 +3599,7 @@ class EvoService:
                 raw_content=f"submitted PR {url}, estimated reward {amount:.2f}",
                 summary=f"bounty PR submitted: {url[:60]}",
                 salience=0.75,
-                valence=0.5,  # Optimistic — PR submitted is good progress
+                valence=0.5,  # Optimistic - PR submitted is good progress
             )
             await self._scan_episode_online(episode)
             # Count as a success candidate in the rolling window
@@ -3641,7 +3641,7 @@ class EvoService:
                 confidence=confidence,
                 metadata={
                     "description": (
-                        f"Revenue {amount:.4f} received from '{source}' — "
+                        f"Revenue {amount:.4f} received from '{source}' - "
                         "positive evidence for domain_profitability hypothesis"
                     ),
                 },
@@ -3768,7 +3768,7 @@ class EvoService:
 
     async def _on_bounty_paid(self, event: Any) -> None:
         """
-        SG5 — BOUNTY_PAID → confirmed economic outcome.
+        SG5 - BOUNTY_PAID → confirmed economic outcome.
 
         A paid bounty is strong positive evidence that the 'bounty hunting is
         viable at this competency level' hypothesis is correct. Record it as a
@@ -3885,7 +3885,7 @@ class EvoService:
             relative_drop_pct: float = float(data.get("relative_drop_pct", 0.0))
 
             if rebalance_needed:
-                # Significant APY drop — counter-evidence for current yield protocol
+                # Significant APY drop - counter-evidence for current yield protocol
                 from systems.evo.types import PatternCandidate, PatternType  # noqa: PLC0415
 
                 candidate = PatternCandidate(
@@ -3897,7 +3897,7 @@ class EvoService:
                     ],
                     description=(
                         f"Yield protocol '{protocol}' APY dropped {relative_drop_pct:.1f}% "
-                        "relative to entry — evidence for protocol rebalancing hypothesis"
+                        "relative to entry - evidence for protocol rebalancing hypothesis"
                     ),
                     confidence=min(0.80, 0.40 + (relative_drop_pct / 100.0) * 0.40),
                     support_count=1,
@@ -3925,7 +3925,7 @@ class EvoService:
 
         A rejected bounty means Equor blocked acceptance (constitutional veto) or
         the metabolic gate denied the capital commitment. Either way, the bounty
-        evaluation heuristic needs recalibration — this is counter-evidence against
+        evaluation heuristic needs recalibration - this is counter-evidence against
         'this type of bounty is within the organism's capacity'.
         """
         if not self._initialized:
@@ -3968,9 +3968,9 @@ class EvoService:
 
     async def _on_asset_break_even(self, event: Any) -> None:
         """
-        SG5 — ASSET_BREAK_EVEN → asset strategy hypothesis confirmation.
+        SG5 - ASSET_BREAK_EVEN → asset strategy hypothesis confirmation.
 
-        Break-even means the organism has recouped its dev cost — strong evidence
+        Break-even means the organism has recouped its dev cost - strong evidence
         that 'building this type of autonomous asset generates positive ROI'.
         """
         if not self._initialized:
@@ -4005,7 +4005,7 @@ class EvoService:
                 type=PatternType.TEMPORAL,
                 elements=["asset_break_even", f"roi_score::{round(roi_score, 1)}", "asset_strategy_viable"],
                 description=(
-                    f"Asset '{asset_name}' broke even in {days}d with ROI={roi_score:.2f} — "
+                    f"Asset '{asset_name}' broke even in {days}d with ROI={roi_score:.2f} - "
                     "strong evidence that asset-development strategy generates positive ROI"
                 ),
                 confidence=min(0.85, 0.50 + roi_score * 0.15),
@@ -4025,9 +4025,9 @@ class EvoService:
 
     async def _on_child_independent(self, event: Any) -> None:
         """
-        SG5 — CHILD_INDEPENDENT → reproduction strategy hypothesis confirmation.
+        SG5 - CHILD_INDEPENDENT → reproduction strategy hypothesis confirmation.
 
-        Independence means a child instance no longer requires parent rescue —
+        Independence means a child instance no longer requires parent rescue -
         strong evidence that 'reproduction is a viable growth strategy at this
         capital level and niche'.
         """
@@ -4074,7 +4074,7 @@ class EvoService:
                 ],
                 description=(
                     f"Child {child_id[:20]} achieved independence in {days}d "
-                    f"(net_worth={net_worth:.2f}, dividends={dividends:.2f}) — "
+                    f"(net_worth={net_worth:.2f}, dividends={dividends:.2f}) - "
                     "strong evidence that reproduction is a viable growth strategy"
                 ),
                 confidence=confidence,
@@ -4105,7 +4105,7 @@ class EvoService:
              generation cycle surfaces a domain-tagged economic hypothesis
              for tournament scoring.
 
-        Does NOT call generate_hypotheses() directly — that requires LLM and
+        Does NOT call generate_hypotheses() directly - that requires LLM and
         would be out of budget on the hot path. Candidates flow through the
         normal consolidation pipeline.
         """
@@ -4131,7 +4131,7 @@ class EvoService:
                     f"level={pressure_level} consecutive_cycles={consecutive_cycles} "
                     f"domains={hypothesis_domain}"
                 ),
-                summary=f"low metabolic efficiency ({efficiency:.2f}) — {pressure_level} pressure",
+                summary=f"low metabolic efficiency ({efficiency:.2f}) - {pressure_level} pressure",
                 salience=0.6 + (0.3 if pressure_level == "high" else 0.0),
                 valence=valence,
                 arousal=0.5,
@@ -4182,7 +4182,7 @@ class EvoService:
           - drive_mutations:   dict[drive_name, dict[param, {"before": float, "after": float}]]
           - niche:             child specialisation niche (optional)
 
-        Does NOT raise — genome inheritance must never stall the bus.
+        Does NOT raise - genome inheritance must never stall the bus.
         """
         if not self._initialized:
             return
@@ -4260,7 +4260,7 @@ class EvoService:
         "reasoning_engine.hyperparameter_adjustment" so the next consolidation
         pass generates a hypothesis proposing concrete RE tuning actions.
 
-        Does NOT call generate_hypotheses() directly — candidates flow through
+        Does NOT call generate_hypotheses() directly - candidates flow through
         the normal consolidation pipeline to stay within budget.
         """
         if not self._initialized:
@@ -4548,7 +4548,7 @@ class EvoService:
         """Keep _last_benchmark_kpis fresh from periodic DOMAIN_KPI_SNAPSHOT events.
 
         Benchmarks emits DOMAIN_KPI_SNAPSHOT on every Nexus epistemic cycle, RE export,
-        and economic deferral — far more frequently than BENCHMARK_REGRESSION which only
+        and economic deferral - far more frequently than BENCHMARK_REGRESSION which only
         fires on degradation. Without this handler, ParameterTuner.tick_evaluation() sees
         current_metrics={} between regression cycles and cannot compute meaningful ratios.
 
@@ -4581,7 +4581,7 @@ class EvoService:
     async def _on_belief_consolidated(self, event: Any) -> None:
         """Handle BELIEF_CONSOLIDATED from Memory.
 
-        Memory emits this after consolidate() completes — one or more beliefs
+        Memory emits this after consolidate() completes - one or more beliefs
         have been hardened into read-only nodes. Evo boosts any active hypothesis
         whose statement overlaps with the consolidated belief text, treating
         Memory's confirmation as strong supporting evidence.
@@ -4633,7 +4633,7 @@ class EvoService:
 
         When a new identity schema crystallises from experience, Evo creates a
         matching WORLD_MODEL hypothesis. The hypothesis tracks whether the schema
-        proves stable — if it survives evidence accumulation it becomes a codified
+        proves stable - if it survives evidence accumulation it becomes a codified
         belief about the organism's identity structure.
 
         Payload: schema_id (str), statement (str), strength (str),
@@ -4734,7 +4734,7 @@ class EvoService:
         """Handle CONVERGENCE_DETECTED from Nexus.
 
         Structural isomorphism across federation instances is strong cross-validation.
-        Boost any active hypothesis that overlaps with the converged structure — this
+        Boost any active hypothesis that overlaps with the converged structure - this
         is independent confirmation from a diverse source.
 
         Payload: structure_type (str), convergence_score (float),
@@ -4854,8 +4854,8 @@ class EvoService:
 
         When our instance triangulation weight is recalculated, adjust the
         confidence multiplier applied to cross-validated hypotheses. Low weight
-        means our beliefs are outliers — reduce cross-validation boosts. High
-        weight means we align with peers — increase them.
+        means our beliefs are outliers - reduce cross-validation boosts. High
+        weight means we align with peers - increase them.
 
         We cache the weight so it applies at the next evidence evaluation sweep.
 
@@ -4881,7 +4881,7 @@ class EvoService:
         """Handle DIVERGENCE_PRESSURE from Nexus.
 
         When our triangulation weight falls below 0.4, Nexus emits this event.
-        Evo queues PatternCandidates that diversify hypothesis domains — the
+        Evo queues PatternCandidates that diversify hypothesis domains - the
         organism should explore areas where it currently holds minority views.
 
         Payload: instance_id (str), triangulation_weight (float),
@@ -4917,7 +4917,7 @@ class EvoService:
                         "triangulation_weight": triangulation_weight,
                         "direction": direction,
                         "hypothesis_hint": (
-                            f"Instance diverges from federation on '{domain}' — "
+                            f"Instance diverges from federation on '{domain}' - "
                             f"explore alternative hypotheses to diversify perspective."
                         ),
                     },
@@ -4981,7 +4981,7 @@ class EvoService:
                     "hypothesis_hint": (
                         f"A '{turning_type}' narrative turning point "
                         f"(surprise={surprise_magnitude:.2f}) suggests the world model "
-                        "needs updating — what assumption changed?"
+                        "needs updating - what assumption changed?"
                     ),
                 },
                 source_detector="thread_narrative",
@@ -5058,7 +5058,7 @@ class EvoService:
                         "new_value": new_value,
                         "hypothesis_hint": (
                             f"Phantom parameter '{parameter}' was adjusted "
-                            f"({old_value:.4f} → {new_value:.4f}) — "
+                            f"({old_value:.4f} → {new_value:.4f}) - "
                             "track whether this improves IL outcomes."
                         ),
                     },
@@ -5069,15 +5069,15 @@ class EvoService:
             self._logger.warning("phantom_parameter_adjusted_handler_failed", error=str(exc))
 
     async def _on_hypothesis_staleness(self, event: Any) -> None:
-        """Degradation Engine §8.2 — decay evidence_score on PROPOSED/TESTING hypotheses.
+        """Degradation Engine §8.2 - decay evidence_score on PROPOSED/TESTING hypotheses.
 
         Multiplies evidence_score by (1 - staleness_rate) for every active hypothesis
         in PROPOSED or TESTING status. Hypotheses whose score falls below 0.05 are
-        archived with reason="staleness_decay" — the organism lost confidence in them.
+        archived with reason="staleness_decay" - the organism lost confidence in them.
 
         Emits EVO_HYPOTHESES_STALED (if any archived) and EVO_HYPOTHESIS_REVALIDATED
         so VitalityCoordinator can call on_hypotheses_revalidated() to reduce entropy
-        pressure — closing the degradation feedback loop.
+        pressure - closing the degradation feedback loop.
         """
         data = getattr(event, "data", {}) or {}
         staleness_rate = float(data.get("staleness_rate", 0.0))
@@ -5132,7 +5132,7 @@ class EvoService:
                     },
                 ))
 
-            # Always emit EVO_HYPOTHESIS_REVALIDATED — VitalityCoordinator uses this
+            # Always emit EVO_HYPOTHESIS_REVALIDATED - VitalityCoordinator uses this
             # to call on_hypotheses_revalidated() and reduce cumulative entropy pressure
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.EVO_HYPOTHESIS_REVALIDATED,
@@ -5373,7 +5373,7 @@ class EvoService:
         next consolidation and generate a formal "learn from X" hypothesis if enough
         related candidates accumulate.
 
-        This bypasses the Nova goal system — Evo is the right recipient because
+        This bypasses the Nova goal system - Evo is the right recipient because
         learning opportunities are about *hypothesis formation*, not task execution.
         """
         if not self._initialized:
@@ -5438,19 +5438,19 @@ class EvoService:
 
     async def _on_action_executed(self, event: Any) -> None:
         """
-        Handle ACTION_EXECUTED from Axon — hypothesis confirmation path.
+        Handle ACTION_EXECUTED from Axon - hypothesis confirmation path.
 
         If any step outcome carries a hypothesis_id or the intent was linked to
         an experiment, feed the success signal into the hypothesis engine and emit
         EVO_HYPOTHESIS_CONFIRMED so Nova and RE can update their priors.
 
         Payload fields used:
-          intent_id      (str) — originating Intent (may link to a hypothesis via
+          intent_id      (str) - originating Intent (may link to a hypothesis via
                                   decision records if hypothesis_id not explicit)
-          step_outcomes  (list[dict]) — checked for hypothesis_id in metadata
-          episode_id     (str) — included in confirmation evidence
+          step_outcomes  (list[dict]) - checked for hypothesis_id in metadata
+          episode_id     (str) - included in confirmation evidence
 
-        Does NOT raise — never interrupt the event bus.
+        Does NOT raise - never interrupt the event bus.
         """
         if not self._initialized or self._hypothesis_engine is None:
             return
@@ -5506,7 +5506,7 @@ class EvoService:
 
     async def _on_action_failed_evo(self, event: Any) -> None:
         """
-        Handle ACTION_FAILED from Axon — hypothesis refutation path.
+        Handle ACTION_FAILED from Axon - hypothesis refutation path.
 
         If a hypothesis_id can be resolved from step metadata, record negative
         evidence and emit EVO_HYPOTHESIS_REFUTED so the organism learns that the
@@ -5515,9 +5515,9 @@ class EvoService:
         Payload fields used:
           intent_id      (str)
           failure_reason (str)
-          step_outcomes  (list[dict]) — checked for hypothesis_id in metadata
+          step_outcomes  (list[dict]) - checked for hypothesis_id in metadata
 
-        Does NOT raise — never interrupt the event bus.
+        Does NOT raise - never interrupt the event bus.
         """
         if not self._initialized or self._hypothesis_engine is None:
             return
@@ -5573,7 +5573,7 @@ class EvoService:
             self._logger.debug("on_action_failed_evo_failed", error=str(exc))
 
     async def _on_oikos_economic_episode(self, event: Any) -> None:
-        """Handle OIKOS_ECONOMIC_EPISODE — score economic hypothesis outside SACM path.
+        """Handle OIKOS_ECONOMIC_EPISODE - score economic hypothesis outside SACM path.
 
         Oikos emits structured economic episode summaries after bounty/yield/asset
         outcomes. Evo uses these to create or update PatternCandidates for economic
@@ -5621,7 +5621,7 @@ class EvoService:
             self._logger.debug("oikos_economic_episode_handler_failed", error=str(exc))
 
     async def _on_metabolic_gate_response(self, event: Any) -> None:
-        """Handle METABOLIC_GATE_RESPONSE — denied gates → PatternCandidate for economic constraint learning.
+        """Handle METABOLIC_GATE_RESPONSE - denied gates → PatternCandidate for economic constraint learning.
 
         When Oikos denies a metabolic gate, this is evidence that the current action type
         correlates with resource scarcity in a specific domain. Evo learns this pattern so
@@ -5667,7 +5667,7 @@ class EvoService:
         when clear patterns emerge.
 
         Runs after every bounty outcome update so adjustments are prompt.
-        Does NOT raise — must not interrupt callers.
+        Does NOT raise - must not interrupt callers.
         """
         if self._event_bus is None:
             return
@@ -5689,7 +5689,7 @@ class EvoService:
                             "direction": "increase",
                             "reason": (
                                 f"bounty success rate {rate:.0%} over last {len(window)} attempts "
-                                f"— reduce hunt frequency to conserve resources"
+                                f"- reduce hunt frequency to conserve resources"
                             ),
                             "evidence_score": round(1.0 - rate, 2),
                         },
@@ -5728,7 +5728,7 @@ class EvoService:
                             "direction": "decrease",
                             "reason": (
                                 f"APY has declined for {drops} consecutive observations "
-                                f"— lower rebalance threshold to exit positions sooner"
+                                f"- lower rebalance threshold to exit positions sooner"
                             ),
                             "evidence_score": round(drops / len(apy_window), 2),
                         },
@@ -5790,7 +5790,7 @@ class EvoService:
 
         Called by Thread every ~200 cycles to check for mature patterns
         that should be crystallised into identity schemas. Does NOT
-        clear the candidates — that happens during hypothesis generation.
+        clear the candidates - that happens during hypothesis generation.
         """
         return list(self._pending_candidates)
 
@@ -5926,7 +5926,7 @@ class EvoService:
                     data={"requester": "evo", "genome_type": "belief"},
                 ))
             except Exception:
-                pass  # non-fatal — genome extraction continues regardless
+                pass  # non-fatal - genome extraction continues regardless
 
         try:
             # 1. Collect active hypotheses with confidence >= 0.6
@@ -5995,7 +5995,7 @@ class EvoService:
                                 continue
                             sample_count = int(beta.alpha + beta.beta - 2)  # Beta(1,1) is prior
                             if sample_count < 5:
-                                continue  # Noise threshold — don't inherit single-trial priors
+                                continue  # Noise threshold - don't inherit single-trial priors
                             tournament_beta_priors.append({
                                 "hypothesis_id": h_id,
                                 "hypothesis_statement": ref.statement[:120],
@@ -6005,7 +6005,7 @@ class EvoService:
                                 "tournament_id": tournament.id,
                             })
                 except Exception:
-                    pass  # Non-fatal — genome exports without tournament priors
+                    pass  # Non-fatal - genome exports without tournament priors
 
             genome = BeliefGenomeInheritance(
                 instance_id=instance_id,
@@ -6038,7 +6038,7 @@ class EvoService:
         Reads ECODIAOS_BELIEF_GENOME_PAYLOAD (JSON-encoded BeliefGenome) injected
         by LocalDockerSpawner.  If present, seeds the hypothesis engine with parent
         hypothesis priors so the child starts with warm beliefs rather than a blank
-        slate.  Non-fatal — child falls back to default empty state on any error.
+        slate.  Non-fatal - child falls back to default empty state on any error.
 
         Only runs when ECODIAOS_IS_GENESIS_NODE != 'true'.
         """
@@ -6059,7 +6059,7 @@ class EvoService:
             data = _json.loads(payload_json)
             parent_genome = BeliefGenome.model_validate(data)
 
-            # Verify genome integrity before applying — silent corruption = skip inheritance
+            # Verify genome integrity before applying - silent corruption = skip inheritance
             if not parent_genome.verify():
                 self._logger.warning(
                     "belief_genome_checksum_mismatch",
@@ -6076,7 +6076,7 @@ class EvoService:
             if self._hypothesis_engine is not None and parent_genome.top_50_hypotheses:
                 for h_dict in parent_genome.top_50_hypotheses:
                     try:
-                        # Skip low-evidence hypotheses — N=1 inheritance carries more noise than signal
+                        # Skip low-evidence hypotheses - N=1 inheritance carries more noise than signal
                         if h_dict.get("supporting_count", 0) < _MIN_SUPPORTING_COUNT:
                             continue
                         # Register each inherited hypothesis as a PatternCandidate so the
@@ -6434,7 +6434,7 @@ class EvoService:
         them against all active hypotheses.
 
         Uses active hypothesis statements as queries to find evidence that is
-        specifically relevant — not a random sample. This is active evidence
+        specifically relevant - not a random sample. This is active evidence
         seeking: the learning system goes looking for what it needs.
         """
         if not self._initialized or self._memory is None:
@@ -6502,7 +6502,7 @@ class EvoService:
             # ── Parameter feedback-loop evaluation ────────────────────────
             # Compare pending adjustments against current KPIs; auto-revert
             # any that caused measurable degradation and confirm those that
-            # improved metrics.  Best-effort — never blocks consolidation.
+            # improved metrics.  Best-effort - never blocks consolidation.
             if self._parameter_tuner is not None:
                 try:
                     await self._parameter_tuner.tick_evaluation(
@@ -6515,12 +6515,12 @@ class EvoService:
                     )
 
             # Push learned head-weight adjustments to Atune's meta-attention
-            # Evo tunes parameters like "atune.head.novelty.weight" — extract
+            # Evo tunes parameters like "atune.head.novelty.weight" - extract
             # the deltas and forward them so they actually take effect.
             await self._push_atune_head_weights()
 
             # Push learned personality adjustments to Voxis
-            # Evo tunes parameters like "voxis.personality.warmth" — extract
+            # Evo tunes parameters like "voxis.personality.warmth" - extract
             # the deltas and forward them so Voxis personality actually evolves.
             await self._push_voxis_personality()
 
@@ -6863,7 +6863,7 @@ class EvoService:
         pressure (high hypothesis density, elevated error rate, stalled consolidation)
         so it can modulate the organism's arousal and urgency accordingly.
 
-        Uses inject_external_stress() — the established synchronous injection path —
+        Uses inject_external_stress() - the established synchronous injection path -
         with a composite stress value derived from:
           - hypothesis_density: ratio of active hypotheses to capacity cap (50)
           - evidence_evaluation_rate: how heavily the evidence sweep ran last cycle
@@ -6968,7 +6968,7 @@ class EvoService:
         Emit EVO_WEIGHT_ADJUSTMENT with current Thompson sampling arm posteriors.
 
         Nova subscribes to EVO_WEIGHT_ADJUSTMENT to incorporate Evo's Thompson
-        sampling results into EFE scoring — goals backed by high-confidence Thompson
+        sampling results into EFE scoring - goals backed by high-confidence Thompson
         arms receive higher pragmatic value in Nova's deliberation.  Emitted after
         every consolidation where at least one active tournament exists.
         """
@@ -7056,7 +7056,7 @@ class EvoService:
         ground get penalised.
 
         The complexity_penalty field on Hypothesis is updated to reflect
-        the MDL cost — hypotheses with poor compression ratios need stronger
+        the MDL cost - hypotheses with poor compression ratios need stronger
         evidence to reach SUPPORTED status.
         """
         if self._logos is None:
@@ -7132,7 +7132,7 @@ class EvoService:
         an EvolutionProposal, and dispatch it to the Simula governance pipeline.
 
         Every arXiv proposal enters as ADD_SYSTEM_CAPABILITY (governance-gated),
-        so it cannot land autonomously — Equor must approve first.
+        so it cannot land autonomously - Equor must approve first.
         """
         if self._simula is None:
             self._logger.warning(
@@ -7201,7 +7201,7 @@ class EvoService:
                 return
             except Exception as exc:
                 # Broad catch: arXiv API outage, LLM hallucination, XML parse
-                # failure, network errors — none of these should kill the loop.
+                # failure, network errors - none of these should kill the loop.
                 self._logger.error(
                     "arxiv_scan_loop_error",
                     error=str(exc),
@@ -7361,7 +7361,7 @@ class EvoService:
 def _broadcast_to_episode(broadcast: WorkspaceBroadcast) -> Episode:
     """
     Create a minimal Episode from a WorkspaceBroadcast for online scanning.
-    The episode is not stored — it is used only for detector input.
+    The episode is not stored - it is used only for detector input.
     """
     from primitives.common import new_id, utc_now
     from primitives.memory_trace import Episode
@@ -7507,7 +7507,7 @@ class EconomicPatternDetector(PatternDetector):
       - Bounty source acceptance rate differences (Algora vs GitHub)
 
     Emits TEMPORAL and ACTION_SEQUENCE PatternCandidates that flow into
-    the normal hypothesis-generation pipeline — no special handling required.
+    the normal hypothesis-generation pipeline - no special handling required.
 
     Implements the PatternDetector interface so it drops into
     build_default_detectors() and _scan_episode_online() without changes.
@@ -7518,7 +7518,7 @@ class EconomicPatternDetector(PatternDetector):
     min_occurrences = 3
 
     def __init__(self) -> None:
-        # {hour_bin: [episode_id, ...]}  — bounty attempts by hour-of-day
+        # {hour_bin: [episode_id, ...]}  - bounty attempts by hour-of-day
         self._bounty_by_hour: dict[int, list[str]] = collections.defaultdict(list)
         # Tracks whether the *previous* economic episode was a budget exhaustion
         self._last_was_budget_exhaustion: bool = False
@@ -7562,7 +7562,7 @@ class EconomicPatternDetector(PatternDetector):
                     metadata={
                         "source": "economic_pattern",
                         "hypothesis_hint": (
-                            f"Bounty attempts cluster at hour {hour}:00 UTC — "
+                            f"Bounty attempts cluster at hour {hour}:00 UTC - "
                             f"is there a time-of-day pattern in success rates?"
                         ),
                     },
@@ -7579,7 +7579,7 @@ class EconomicPatternDetector(PatternDetector):
                     metadata={
                         "source": "economic_pattern",
                         "hypothesis_hint": (
-                            "Budget exhaustion preceded a bounty attempt — "
+                            "Budget exhaustion preceded a bounty attempt - "
                             "should Oikos pre-allocate compute budget before hunting?"
                         ),
                     },
@@ -7610,7 +7610,7 @@ class EconomicPatternDetector(PatternDetector):
                             "acceptance_rate": rate,
                             "hypothesis_hint": (
                                 f"{source_key.title()} acceptance rate is {rate:.0%} over "
-                                f"{len(outcomes)} attempts — compare against other sources."
+                                f"{len(outcomes)} attempts - compare against other sources."
                             ),
                         },
                     ))

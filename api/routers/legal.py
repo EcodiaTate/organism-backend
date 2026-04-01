@@ -1,5 +1,5 @@
 """
-EcodiaOS — Legal Entity API Router
+EcodiaOS - Legal Entity API Router
 
 Endpoints for the legal entity provisioning HITL (Human-in-the-Loop) flow.
 
@@ -10,8 +10,8 @@ operator uses these endpoints to:
   2. Confirm entity registration after completing KYC / wet signature
 
 Endpoints:
-  GET  /api/v1/legal/formation/{auth_code}   — check formation status
-  POST /api/v1/legal/formation/{auth_code}/confirm — confirm entity ID
+  GET  /api/v1/legal/formation/{auth_code}   - check formation status
+  POST /api/v1/legal/formation/{auth_code}/confirm - confirm entity ID
 """
 
 from __future__ import annotations
@@ -161,7 +161,7 @@ def _get_executor(request: Request) -> Any:
     """
     Retrieve the EstablishEntityExecutor from the Axon registry.
 
-    The executor is registered during Axon initialisation — no separate
+    The executor is registered during Axon initialisation - no separate
     app.state entry is needed; Axon owns the executor registry.
     """
     axon = getattr(request.app.state, "axon", None)

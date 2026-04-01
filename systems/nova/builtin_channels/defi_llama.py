@@ -1,11 +1,11 @@
 """
-DeFiLlamaChannel — formalises the existing yield-opportunity data that Oikos/YieldStrategy
+DeFiLlamaChannel - formalises the existing yield-opportunity data that Oikos/YieldStrategy
 already fetches from DeFiLlama, exposing it through the InputChannel abstraction.
 
 Fetches Aave / Morpho / Compound / Spark pools with APY > threshold and maps them to
 Opportunity objects so Nova can inject them into Evo as hypothesis candidates.
 
-No authentication required — DeFiLlama has a public API.
+No authentication required - DeFiLlama has a public API.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from systems.nova.input_channels import EffortLevel, InputChannel, Opportunity, 
 _BASE_URL = "https://yields.llama.fi"
 _POOLS_ENDPOINT = "/pools"
 _PROTOCOLS = {"aave-v3", "morpho", "compound-v3", "spark"}
-_MIN_APY = 1.0  # % — ignore dust-yield pools
+_MIN_APY = 1.0  # % - ignore dust-yield pools
 _FETCH_TIMEOUT = 20.0
 
 

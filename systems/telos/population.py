@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: Population-Level Intelligence Aggregator (M3)
+EcodiaOS - Telos: Population-Level Intelligence Aggregator (M3)
 
 Subscribes to CHILD_HEALTH_REPORT events and aggregates drive alignment scores
 across the fleet to compute population-level effective intelligence.
@@ -102,11 +102,11 @@ class PopulationIntelligenceAggregator:
 
         Expected fields (all optional; missing fields default to 0.5):
           child_instance_id (str)
-          drive_care (float)       — child's care multiplier [0, 1]
-          drive_coherence (float)  — child's coherence multiplier [0, 1]
-          drive_growth (float)     — child's growth score [-1, 1]
-          drive_honesty (float)    — child's honesty coefficient [0, 1]
-          effective_I (float)      — child's effective intelligence
+          drive_care (float)       - child's care multiplier [0, 1]
+          drive_coherence (float)  - child's coherence multiplier [0, 1]
+          drive_growth (float)     - child's growth score [-1, 1]
+          drive_honesty (float)    - child's honesty coefficient [0, 1]
+          effective_I (float)      - child's effective intelligence
         """
         child_id = str(event_data.get("child_instance_id", ""))
         if not child_id:
@@ -236,7 +236,7 @@ def _detect_phenotype_clusters(
     Detect constitutional phenotype clusters using a lightweight 2-centroid
     k-means pass over the 4D drive-weight space.
 
-    With small fleets (< 4 instances), grouping is less meaningful —
+    With small fleets (< 4 instances), grouping is less meaningful -
     we return a single "fleet" cluster.
 
     Growth drive range is [-1, 1] while others are [0, 1], so we normalise

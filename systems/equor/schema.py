@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Schema Additions
+EcodiaOS - Equor Schema Additions
 
 Additional Neo4j indexes and constraints for governance records and invariants.
 Must be called after the base Memory schema.

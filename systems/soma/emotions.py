@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma Emergent Emotion Detector
+EcodiaOS - Soma Emergent Emotion Detector
 
 Detects emergent emotions as regions in allostatic error space.
-Emotions are NOT classified — they are regions that the organism's
+Emotions are NOT classified - they are regions that the organism's
 current error state overlaps with. Multiple emotions can be active
 simultaneously, each with its own intensity.
 
@@ -10,7 +10,7 @@ The 9 canonical emotion regions are defined in types.EMOTION_REGIONS.
 Evo can refine boundaries via SomaService.update_emotion_regions().
 
 The Voxis integration interface returns raw interoceptive state plus
-detected emotion regions. Voxis learns its own expression mapping —
+detected emotion regions. Voxis learns its own expression mapping -
 the mapping from felt state to voice/style is never hardcoded here.
 
 Budget: <=0.2ms per cycle (simple pattern matching on 9D vectors).
@@ -74,7 +74,7 @@ class EmotionDetector:
     errors against these patterns and returns a ranked list of active
     emotions with intensity scores.
 
-    NOT a classifier — multiple emotions can be simultaneously active.
+    NOT a classifier - multiple emotions can be simultaneously active.
     The organism can feel anxious AND curious at the same time if both
     region patterns match.
 
@@ -106,7 +106,7 @@ class EmotionDetector:
         self._emotion_hypothesis_ids[emotion_name] = hypothesis_id
 
     def on_hypothesis_confirmed(self, hypothesis_id: str, updated_pattern: dict[str, str] | None = None) -> None:
-        """An Evo hypothesis was confirmed — reinforce the linked emotion region.
+        """An Evo hypothesis was confirmed - reinforce the linked emotion region.
 
         If updated_pattern is provided, apply it to the linked region.
         Otherwise keep the current pattern (confirmation = current is good).
@@ -117,7 +117,7 @@ class EmotionDetector:
                 logger.info("emotion_region_confirmed", emotion=emotion_name, hypothesis_id=hypothesis_id)
 
     def on_hypothesis_refuted(self, hypothesis_id: str) -> None:
-        """An Evo hypothesis was refuted — revert to hardcoded default for the linked region."""
+        """An Evo hypothesis was refuted - revert to hardcoded default for the linked region."""
         for emotion_name, hyp_id in self._emotion_hypothesis_ids.items():
             if hyp_id == hypothesis_id and emotion_name in self._default_regions:
                 self._regions[emotion_name] = dict(self._default_regions[emotion_name])
@@ -303,7 +303,7 @@ class VoxisInteroceptiveInterface:
       - Phase-space context (attractor, trajectory)
 
     Voxis then learns its own mapping from this report to vocal expression.
-    The mapping is NEVER hardcoded here — Soma provides the raw felt state,
+    The mapping is NEVER hardcoded here - Soma provides the raw felt state,
     Voxis decides how to express it.
     """
 
@@ -322,7 +322,7 @@ class VoxisInteroceptiveInterface:
         Build a report of the organism's felt state for Voxis consumption.
 
         Returns a dict with all the raw interoceptive data Voxis needs
-        to shape its vocal expression. No interpretation, no style mapping —
+        to shape its vocal expression. No interpretation, no style mapping -
         just the felt reality.
         """
         emotions = self._detector.detect(state)

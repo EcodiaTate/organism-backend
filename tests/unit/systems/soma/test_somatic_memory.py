@@ -1,4 +1,4 @@
-"""Tests for Soma Somatic Memory — marker creation and embodied reranking."""
+"""Tests for Soma Somatic Memory - marker creation and embodied reranking."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Adjust Config Executor
+EcodiaOS - Adjust Config Executor
 
 Adjusts system configuration parameters at runtime via Synapse events.
 Used by Evo/Simula for parameter tuning without direct cross-system imports.
@@ -123,19 +123,19 @@ class AdjustConfigExecutor(Executor):
             new_value = params.get("new_value", "")
             reason = params.get("reason", "")
 
-            # Config adjustments are reversible — prior value stored in _last_adjustments
+            # Config adjustments are reversible - prior value stored in _last_adjustments
             prior_stored = context.execution_id in self._last_adjustments
 
             reasoning_trace = "\n".join([
                 f"1. VALIDATE: target_system={target_system!r}, config_key={config_key!r}, new_value={str(new_value)[:80]!r}",
                 f"2. ROLLBACK READINESS: prior value {'stored' if prior_stored else 'NOT stored'} (execution_id={context.execution_id})",
                 f"3. REASON: {reason!r}" if reason else "3. REASON: (none provided)",
-                f"4. EMIT: ACTION_EXECUTED event via Synapse — target system receives CONFIG_ADJUSTED signal",
+                f"4. EMIT: ACTION_EXECUTED event via Synapse - target system receives CONFIG_ADJUSTED signal",
                 f"5. OUTCOME: success={success}" + (f", error={error[:120]!r}" if error else ""),
             ])
 
             alternatives = [
-                f"Alternative: use EQUOR amendment process for permanent parameter changes (adjust_config is ephemeral — resets on restart unless persisted)",
+                f"Alternative: use EQUOR amendment process for permanent parameter changes (adjust_config is ephemeral - resets on restart unless persisted)",
                 f"Alternative: batch multiple config adjustments into one intent to reduce Synapse event traffic",
             ]
             if not success:
@@ -147,7 +147,7 @@ class AdjustConfigExecutor(Executor):
             if success:
                 counterfactual = (
                     f"If '{target_system}.{config_key}' had not been adjusted to {str(new_value)[:60]!r}, "
-                    f"the system would continue operating with the prior parameter value — potentially "
+                    f"the system would continue operating with the prior parameter value - potentially "
                     f"limiting the performance improvement or behavior change this adjustment was designed to achieve."
                 )
             else:

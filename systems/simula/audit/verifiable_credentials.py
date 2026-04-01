@@ -1,7 +1,7 @@
 """
 EcodiaOS -- Simula Governance Verifiable Credentials (Stage 6A.3)
 
-Verifiable Credentials for governance decisions — tamper-evident
+Verifiable Credentials for governance decisions - tamper-evident
 approval chains.
 
 Each governance decision (approve/reject/defer) is signed with Ed25519

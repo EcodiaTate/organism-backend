@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Embedding & Token Histogram Utilities
+EcodiaOS - EIS Embedding & Token Histogram Utilities
 
 Two complementary text representations for antigenic similarity:
 
@@ -54,7 +54,7 @@ def compute_token_histogram(
     Tokens are lowered and stripped of leading/trailing punctuation.
     Returns normalised frequencies for the top-k most common tokens.
 
-    This is intentionally simple — not a proper tokenizer. The goal
+    This is intentionally simple - not a proper tokenizer. The goal
     is a cheap, deterministic fingerprint that captures lexical
     distribution, not semantic meaning.
 
@@ -145,12 +145,12 @@ async def compute_antigenic_signature(
     Assemble the full multi-vector antigenic signature.
 
     Combines three representations:
-    1. Structural vector (from StructuralProfile) — deterministic, <1ms
-    2. Histogram vector (from TokenHistogram) — deterministic, <1ms
-    3. Semantic vector (from EmbeddingClient) — model-dependent, <5ms
+    1. Structural vector (from StructuralProfile) - deterministic, <1ms
+    2. Histogram vector (from TokenHistogram) - deterministic, <1ms
+    3. Semantic vector (from EmbeddingClient) - model-dependent, <5ms
 
     If embed_client is None, semantic_vector is left empty (graceful
-    degradation — similarity search uses only structural + histogram).
+    degradation - similarity search uses only structural + histogram).
 
     Total budget for this function: <7ms (structural + histogram are
     already computed; this just converts + embeds).
@@ -175,7 +175,7 @@ async def compute_antigenic_signature(
     dimension = 0
 
     if embed_client is not None and cfg.embedding_enabled:
-        # Truncate text for embedding — most models have token limits
+        # Truncate text for embedding - most models have token limits
         embed_text = text[:8000]
         semantic_vec = await embed_client.embed(embed_text)
         dimension = len(semantic_vec)
@@ -264,7 +264,7 @@ def compute_structural_anomaly_score(profile: StructuralProfile) -> float:
     Heuristic scoring based on features that are rare in benign input
     but common in adversarial input. Returns 0.0-1.0.
 
-    This is NOT a learned model — it's a hand-tuned scoring function
+    This is NOT a learned model - it's a hand-tuned scoring function
     that captures known adversarial structural patterns. It serves as
     a baseline until enough labelled data exists for a proper classifier.
     """

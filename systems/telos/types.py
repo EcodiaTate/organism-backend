@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos Type Definitions
+EcodiaOS - Telos Type Definitions
 
 All data types for the Drive Topology system: intelligence metrics,
 drive-specific reports, alignment gap detection, constitutional binding,
@@ -18,7 +18,7 @@ from primitives.common import EOSBaseModel, new_id, utc_now
 
 # ─── Dependency Protocols ────────────────────────────────────────────
 # Telos depends on Logos (intelligence ratio) and Fovea (prediction errors).
-# Both are being built simultaneously — we code against protocols.
+# Both are being built simultaneously - we code against protocols.
 
 
 @runtime_checkable
@@ -99,7 +99,7 @@ class CompressionStats(EOSBaseModel):
 
 
 class CompressionEvent(EOSBaseModel):
-    """A discrete compression event — schema merge, redundancy removal, etc."""
+    """A discrete compression event - schema merge, redundancy removal, etc."""
 
     id: str = Field(default_factory=new_id)
     timestamp: datetime = Field(default_factory=utc_now)
@@ -125,7 +125,7 @@ class DriveTopology(EOSBaseModel):
     """
     The geometric contribution of each drive to the intelligence landscape.
 
-    Each drive warps the space in a specific way — creating hills (attractors),
+    Each drive warps the space in a specific way - creating hills (attractors),
     valleys (repellers), and curvature (the shape of paths between them).
     """
 
@@ -241,7 +241,7 @@ class HonestyReport(EOSBaseModel):
 
 class EffectiveIntelligenceReport(EOSBaseModel):
     """
-    The integrated intelligence report — the single most important output of Telos.
+    The integrated intelligence report - the single most important output of Telos.
 
     This is the actual measure of EOS's intelligence: nominal I corrected
     by all four drive multipliers.
@@ -473,7 +473,7 @@ class ConstitutionalPhenotypeCluster(EOSBaseModel):
     A detected cluster of instances sharing a similar drive-weight profile.
 
     When the fleet diverges into distinct clusters (e.g., Growth-heavy vs
-    Care-heavy), this is an early speciation signal — instances are beginning
+    Care-heavy), this is an early speciation signal - instances are beginning
     to occupy different regions of the 4D intelligence geometry.
     """
 
@@ -487,13 +487,13 @@ class PopulationIntelligenceSnapshot(EOSBaseModel):
     """
     Population-level intelligence measurement emitted to Benchmarks every 60s.
 
-    Collective intelligence is not just the mean — phenotypic diversity in
+    Collective intelligence is not just the mean - phenotypic diversity in
     drive weights contributes a variance_bonus: a fleet where some instances
     specialise in Growth and others in Care covers more of the intelligence
     landscape than a fleet of identical clones.
 
     speciation_signal is the key output: when it rises above ~0.3, distinct
-    constitutional phenotypes are emerging — proto-speciation is underway.
+    constitutional phenotypes are emerging - proto-speciation is underway.
     """
 
     id: str = Field(default_factory=new_id)

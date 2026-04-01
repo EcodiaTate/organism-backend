@@ -334,7 +334,7 @@ class TestEconomicDivergenceMeasurement:
     """
 
     def test_zero_divergence_for_single_profile(self) -> None:
-        """Single profile cannot diverge — score is 0.0."""
+        """Single profile cannot diverge - score is 0.0."""
         profile = InstanceDivergenceProfile(
             instance_id="a",
             strategy_revenue_rates={"bounty": 5.0, "yield": 2.0},

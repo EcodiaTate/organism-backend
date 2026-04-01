@@ -1,7 +1,7 @@
 """
-EcodiaOS — Nova Goal Manager
+EcodiaOS - Nova Goal Manager
 
-Goals are not tasks — they are desires. They have dynamic priorities that
+Goals are not tasks - they are desires. They have dynamic priorities that
 shift with context, dependencies that create sequencing, and progress
 tracking that knows when to celebrate or abandon.
 
@@ -278,16 +278,16 @@ class GoalManager:
         Returns a list of (goal_a, goal_b, conflict_description) tuples.
         Three heuristics are applied in order:
 
-        1. Opposing drive resonance — one goal strongly boosts a drive dimension
+        1. Opposing drive resonance - one goal strongly boosts a drive dimension
            (+0.4) while the other strongly penalises it (−0.4 or low < 0.1 when
            the other is high).
-        2. Same-domain success-criteria contradiction — goals with overlapping
+        2. Same-domain success-criteria contradiction - goals with overlapping
            keywords that appear in mutually exclusive phrases (increase/decrease,
            expand/reduce, etc.).
-        3. Direct resource/target opposition — one goal targets a resource the
+        3. Direct resource/target opposition - one goal targets a resource the
            other is trying to conserve or eliminate.
 
-        Gap 5 — multi-goal conflict detection (2026-03-07).
+        Gap 5 - multi-goal conflict detection (2026-03-07).
         """
         conflicts: list[tuple[Goal, Goal, str]] = []
         active = [g for g in goals if g.status == GoalStatus.ACTIVE]
@@ -313,13 +313,13 @@ class GoalManager:
                 val_b = getattr(db, dim, 0.0)
                 if val_a > 0.4 and val_b < 0.1:
                     return (
-                        f"drive_opposition:{dim} — "
+                        f"drive_opposition:{dim} - "
                         f"'{a.description[:40]}' boosts {dim}={round(val_a, 2)} "
                         f"while '{b.description[:40]}' suppresses it ({round(val_b, 2)})"
                     )
                 if val_b > 0.4 and val_a < 0.1:
                     return (
-                        f"drive_opposition:{dim} — "
+                        f"drive_opposition:{dim} - "
                         f"'{b.description[:40]}' boosts {dim}={round(val_b, 2)} "
                         f"while '{a.description[:40]}' suppresses it ({round(val_a, 2)})"
                     )
@@ -486,7 +486,7 @@ def compute_drive_resonance(
     Care-aligned goals are boosted when care_activation is high.
     Growth-aligned goals are boosted when curiosity is high.
     Coherence-aligned goals are boosted when coherence_stress is high.
-    Honesty is ambient — always provides a moderate baseline.
+    Honesty is ambient - always provides a moderate baseline.
     """
     w_coherence = drive_weights.get("coherence", 1.0)
     w_care = drive_weights.get("care", 1.0)
@@ -619,4 +619,3 @@ def _initial_urgency(broadcast: WorkspaceBroadcast) -> float:
         0.0,
         1.0,
     )
-

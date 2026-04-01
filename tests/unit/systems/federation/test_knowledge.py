@@ -65,7 +65,7 @@ class TestTrustGatedSharing:
         request = make_request(knowledge_type=KnowledgeType.PUBLIC_ENTITIES)
 
         response, interaction = await manager.handle_request(request, link)
-        # Should be granted (even if no data comes back — trust level is correct)
+        # Should be granted (even if no data comes back - trust level is correct)
         assert response.granted
 
     @pytest.mark.asyncio

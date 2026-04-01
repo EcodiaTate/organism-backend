@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thread Self-Evidencing Loop
+EcodiaOS - Thread Self-Evidencing Loop
 
 The active inference core of Thread. The organism generates predictions
 from its identity schemas about how it SHOULD behave, compares with actual
@@ -11,7 +11,7 @@ own behaviour patterns.
 
 What makes this genuinely novel: existing active inference implementations
 model perceptual inference and action selection. They do not model
-*identity inference* — the inference that "I am the kind of entity that..."
+*identity inference* - the inference that "I am the kind of entity that..."
 This is self-evidencing at a level of abstraction Friston described
 theoretically but never operationalized.
 
@@ -232,7 +232,7 @@ class SelfEvidencingLoop:
         episode_words = set(episode_summary.lower().split())
 
         if not pred_words or not episode_words:
-            return 0.5  # Unknown — moderate surprise
+            return 0.5  # Unknown - moderate surprise
 
         # Jaccard similarity as a proxy for behavioral consistency
         overlap = len(pred_words & episode_words)
@@ -242,7 +242,7 @@ class SelfEvidencingLoop:
         # Invert to get prediction error
         prediction_error = 1.0 - keyword_similarity
 
-        # Clamp to reasonable range — pure keyword match is noisy
+        # Clamp to reasonable range - pure keyword match is noisy
         return max(0.1, min(0.9, prediction_error))
 
     def tick(self) -> bool:

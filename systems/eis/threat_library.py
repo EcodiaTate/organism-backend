@@ -1,24 +1,24 @@
 """
-EcodiaOS — EIS Threat Library (Immune Memory)
+EcodiaOS - EIS Threat Library (Immune Memory)
 
 The threat library is the immune system's long-term memory. It maintains a
-catalogue of known-bad patterns — mutations that were rolled back, knowledge
+catalogue of known-bad patterns - mutations that were rolled back, knowledge
 rejected by governance, behavioral signatures that preceded constitutional
-drift — and scans new inputs against them.
+drift - and scans new inputs against them.
 
 Three pattern categories:
 
-  1. **Mutation patterns** — diffs, file paths, and function-level signatures
+  1. **Mutation patterns** - diffs, file paths, and function-level signatures
      from mutations that were blocked, rolled back, or required escalation.
-  2. **Knowledge patterns** — federated knowledge payloads that were rejected
+  2. **Knowledge patterns** - federated knowledge payloads that were rejected
      by Equor or flagged by the quarantine evaluator.
-  3. **Behavioral patterns** — sequences of Synapse events that preceded a
+  3. **Behavioral patterns** - sequences of Synapse events that preceded a
      negative outcome (drift, crash, degradation).
 
 The library is self-maintaining: it learns from every rejection and rollback
 automatically via Synapse event subscriptions. No manual curation required.
 
-Analogous to B-cell memory in biological immunity — the system remembers
+Analogous to B-cell memory in biological immunity - the system remembers
 what hurt it before so it can mount a faster response next time.
 """
 
@@ -221,7 +221,7 @@ class ThreatLibrary:
                 )
                 return False
 
-        # Capacity check — evict oldest decayed pattern if full
+        # Capacity check - evict oldest decayed pattern if full
         if len(self._patterns) >= self._max_patterns:
             evicted = self._evict_one()
             if not evicted:
@@ -561,7 +561,7 @@ class ThreatLibrary:
         """
         Learn from a confirmed quarantine verdict (BLOCK or QUARANTINE).
 
-        Supplements the antibody system — while antibodies use vector
+        Supplements the antibody system - while antibodies use vector
         similarity, threat patterns use exact/lexical matching for
         known-bad content that may evade embedding similarity.
         """

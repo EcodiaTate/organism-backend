@@ -1,6 +1,6 @@
 """DPO fine-tuning script for constitutional alignment.
 
-Runs as a subprocess invoked by DPOTrainer.run_dpo_pass() — same pattern
+Runs as a subprocess invoked by DPOTrainer.run_dpo_pass() - same pattern
 as train_lora.py. Do NOT import this module directly; run it via subprocess.
 
 Reads from environment:
@@ -37,7 +37,7 @@ DPO_BETA = float(os.getenv("DPO_BETA", "0.1"))
 TRAINING_MODE = os.getenv("TRAINING_MODE", "dpo")
 TRAINING_DATA = os.getenv("TRAINING_DATA", DPO_DATA)  # KTO data path
 
-# ── LoRA config — identical to train_lora.py ──────────────────────────────────
+# ── LoRA config - identical to train_lora.py ──────────────────────────────────
 
 LORA_CONFIG = LoraConfig(
     r=32,
@@ -76,7 +76,7 @@ def _load_model_and_tokenizer() -> tuple:
         print(f"[train_dpo] Loading base adapter from {BASE_ADAPTER}", flush=True)
         model = PeftModel.from_pretrained(model, BASE_ADAPTER, is_trainable=True)
     else:
-        print("[train_dpo] No base adapter — applying fresh LoRA", flush=True)
+        print("[train_dpo] No base adapter - applying fresh LoRA", flush=True)
         model = get_peft_model(model, LORA_CONFIG)
 
     model.print_trainable_parameters()
@@ -101,7 +101,7 @@ def _train_dpo() -> None:
 
     model, tokenizer = _load_model_and_tokenizer()
 
-    # ── Dataset — expects {"prompt", "chosen", "rejected"} ────────────────────
+    # ── Dataset - expects {"prompt", "chosen", "rejected"} ────────────────────
     raw_dataset = load_dataset("json", data_files=DPO_DATA, split="train")
 
     required = {"prompt", "chosen", "rejected"}
@@ -117,7 +117,7 @@ def _train_dpo() -> None:
         num_train_epochs=1,
         per_device_train_batch_size=1,
         gradient_accumulation_steps=8,
-        learning_rate=1e-5,          # Lower than SFT — DPO is sensitive to LR
+        learning_rate=1e-5,          # Lower than SFT - DPO is sensitive to LR
         beta=DPO_BETA,
         max_length=2048,
         max_prompt_length=1024,

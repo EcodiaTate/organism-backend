@@ -1,8 +1,8 @@
 """
-EcodiaOS — Nova Intent Router
+EcodiaOS - Nova Intent Router
 
 Once Equor approves an Intent, Nova routes it to the appropriate executor
-via Synapse events — no direct cross-system references are held.
+via Synapse events - no direct cross-system references are held.
 
 Current routing:
   - Expression intents → NOVA_EXPRESSION_REQUEST event → Voxis subscribes
@@ -17,7 +17,7 @@ Routing classification is based on the executor field of the first action step:
   executor.store     → internal (memory write)
   executor.*         → Axon
 
-Intent routing must complete in ≤20ms (per spec) — the dispatch is async
+Intent routing must complete in ≤20ms (per spec) - the dispatch is async
 but the routing classification is synchronous and fast.
 """
 
@@ -52,7 +52,7 @@ class IntentRouter:
 
     Voxis subscribes to NOVA_EXPRESSION_REQUEST.
     Axon subscribes to AXON_EXECUTION_REQUEST.
-    No live service references are held — all routing is bus-mediated.
+    No live service references are held - all routing is bus-mediated.
     """
 
     def __init__(self, event_bus: EventBus) -> None:
@@ -87,13 +87,13 @@ class IntentRouter:
             await self._route_to_axon(intent, equor_check)
             self._routed_to_axon += 1
         elif route == "hybrid":
-            # Axon first, then Voxis — both via bus events
+            # Axon first, then Voxis - both via bus events
             await self._route_to_axon(intent, equor_check)
             self._routed_to_axon += 1
             await self._route_to_voxis(intent, affect, conversation_id)
             self._routed_to_voxis += 1
         else:
-            # Internal / observe / wait — no delivery needed
+            # Internal / observe / wait - no delivery needed
             self._routed_internal += 1
             self._logger.debug("intent_internal_route", intent_id=intent.id, route=route)
 
@@ -121,7 +121,7 @@ class IntentRouter:
         affect: AffectState,
         conversation_id: str | None,
     ) -> None:
-        """Emit NOVA_EXPRESSION_REQUEST — Voxis subscribes and handles expression."""
+        """Emit NOVA_EXPRESSION_REQUEST - Voxis subscribes and handles expression."""
         content = intent.goal.description
         for step in intent.plan.steps:
             if "description" in step.parameters:
@@ -155,7 +155,7 @@ class IntentRouter:
         equor_check: ConstitutionalCheck | None,
     ) -> None:
         """
-        Emit AXON_EXECUTION_REQUEST — Axon subscribes and executes.
+        Emit AXON_EXECUTION_REQUEST - Axon subscribes and executes.
 
         Security default: if no equor_check is provided, embeds a BLOCKED
         verdict so Axon's Stage 0 gate rejects the request.
@@ -166,7 +166,7 @@ class IntentRouter:
         check = equor_check or ConstitutionalCheck(
             intent_id=intent.id,
             verdict=Verdict.BLOCKED,
-            reasoning="No Equor check provided — blocked by security default.",
+            reasoning="No Equor check provided - blocked by security default.",
         )
 
         try:

@@ -5,8 +5,8 @@ Decomposes multi-file proposals into parallel sub-tasks with
 dependency-aware DAGs. Based on MetaGPT structured artifacts +
 CodePlan adaptive DAG decomposition.
 
-  TaskPlanner             — AST import analysis → dependency DAG
-  MultiAgentOrchestrator  — MetaGPT pipeline: SPEC → DESIGN → CODE → TEST → REVIEW
+  TaskPlanner             - AST import analysis → dependency DAG
+  MultiAgentOrchestrator  - MetaGPT pipeline: SPEC → DESIGN → CODE → TEST → REVIEW
 """
 
 from systems.simula.orchestration.orchestrator import (

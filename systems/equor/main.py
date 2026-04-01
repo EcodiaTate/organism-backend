@@ -1,5 +1,5 @@
 """
-EcodiaOS — Application Entry Point
+EcodiaOS - Application Entry Point
 
 FastAPI application with the startup sequence defined in the
 Infrastructure Architecture specification.
@@ -162,7 +162,7 @@ def _resolve_governance_config(config: Any) -> Any:
 
 app = FastAPI(
     title="EcodiaOS",
-    description="A living digital organism — API surface",
+    description="A living digital organism - API surface",
     version="0.2.0",
     lifespan=lifespan,
 )

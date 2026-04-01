@@ -1,16 +1,16 @@
 """
-EcodiaOS — Thread Internal Types
+EcodiaOS - Thread Internal Types
 
 The data structures that constitute the organism's narrative identity.
-These model commitments, schemas, fingerprints, and life chapters —
+These model commitments, schemas, fingerprints, and life chapters -
 the building blocks of autobiographical selfhood.
 
 Fingerprint dimensions (29D):
-  Personality        9D  — from Voxis PersonalityVector
-  Drive alignment    4D  — from Equor DriftTracker mean alignment
-  Affect             6D  — from Atune current_affect
-  Goal profile       5D  — estimated from episode/goal counts
-  Interaction        5D  — estimated from conversation/expression metrics
+  Personality        9D  - from Voxis PersonalityVector
+  Drive alignment    4D  - from Equor DriftTracker mean alignment
+  Affect             6D  - from Atune current_affect
+  Goal profile       5D  - estimated from episode/goal counts
+  Interaction        5D  - estimated from conversation/expression metrics
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ class CommitmentStrength(enum.StrEnum):
     NASCENT = "nascent"          # Just formed, untested
     DEVELOPING = "developing"    # Tested in a few situations
     ESTABLISHED = "established"  # Consistently held across contexts
-    CORE = "core"                # Foundational to identity — change triggers crisis
+    CORE = "core"                # Foundational to identity - change triggers crisis
 
 
 class SchemaStatus(enum.StrEnum):
@@ -265,7 +265,7 @@ class IdentityFingerprint(Identified, Timestamped):
     """
     A 29-dimensional snapshot of who the organism is right now.
 
-    Comparing fingerprints over time reveals identity drift — not
+    Comparing fingerprints over time reveals identity drift - not
     constitutional drift (Equor handles that) but the slower shift
     in who the organism is becoming.
     """
@@ -350,7 +350,7 @@ class NarrativeChapter(Identified, Timestamped):
     """
     A recognised phase in the organism's life story.
 
-    Chapters emerge from significant identity shifts — a new community,
+    Chapters emerge from significant identity shifts - a new community,
     a constitutional crisis, a period of rapid growth.
     """
 

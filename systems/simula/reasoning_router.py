@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Reasoning Router
+EcodiaOS - Simula Reasoning Router
 
 Thompson sampling router for selecting proof strategies (Z3, Lean, Dafny,
 static analysis) based on historical success rates. Persists arm weights

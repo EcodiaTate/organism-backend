@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos NotificationDispatcher
+EcodiaOS - Thymos NotificationDispatcher
 
 Responsible for turning a Tier 5 ESCALATE into a real, durable signal that
 reaches a human operator.
@@ -13,14 +13,14 @@ Dispatch order:
      can be drained by an external alerting worker.
 
 The caller (ThymosService) always gets back a DispatchResult so it can log the
-outcome and decide whether to retry later.  This module never raises — every
+outcome and decide whether to retry later.  This module never raises - every
 error path is captured and returned.
 
 Deduplication:
   Same event type from the same system is suppressed for 30 minutes.
   Critical severity always sends regardless.
   The dedup window is stored in Redis when available; falls back to an in-process
-  dict so restarts reset the window (acceptable — critical always passes through).
+  dict so restarts reset the window (acceptable - critical always passes through).
 
 Startup message:
   On the first successful Telegram dispatch, a one-time "EOS online" message is
@@ -196,7 +196,7 @@ class NotificationDispatcher:
         """
         Send the "EOS online" message on the first successful Telegram dispatch.
 
-        Call this after wiring completes.  Idempotent — fires at most once per
+        Call this after wiring completes.  Idempotent - fires at most once per
         process lifetime.
         """
         if self._startup_sent:
@@ -204,7 +204,7 @@ class NotificationDispatcher:
         if not (self._telegram_token and self._telegram_chat_id):
             return
 
-        text = f"🟢 EOS online — {systems_wired} systems active"
+        text = f"🟢 EOS online - {systems_wired} systems active"
         ok, _ = await self._post_telegram_text(text)
         if ok:
             self._startup_sent = True
@@ -440,7 +440,7 @@ class NotificationDispatcher:
         try:
             import aiohttp
         except ImportError:
-            return False, "aiohttp not installed — cannot send Telegram message"
+            return False, "aiohttp not installed - cannot send Telegram message"
 
         url = f"https://api.telegram.org/bot{self._telegram_token}/sendMessage"
         text = self._format_telegram_text(payload)
@@ -470,7 +470,7 @@ class NotificationDispatcher:
         try:
             import aiohttp
         except ImportError:
-            return False, "aiohttp not installed — cannot send webhook"
+            return False, "aiohttp not installed - cannot send webhook"
 
         try:
             async with (
@@ -494,7 +494,7 @@ class NotificationDispatcher:
         try:
             import aiohttp
         except ImportError:
-            return False, "aiohttp not installed — cannot send Telegram message"
+            return False, "aiohttp not installed - cannot send Telegram message"
 
         url = f"https://api.telegram.org/bot{self._telegram_token}/sendMessage"
         try:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova Opportunity Scanner
+EcodiaOS - Nova Opportunity Scanner
 
 Proactive opportunity detection. Unlike the passive InputChannels (which poll external
 APIs and hand raw data to Evo as PatternCandidates), the OpportunityScanner actively
@@ -12,11 +12,11 @@ RANKS every opportunity against the organism's four constitutional drives and de
 
 Scanner inventory
 ─────────────────
-  BountyOpportunityScanner    — wraps Oikos BountyHunter candidates
-  YieldOpportunityScanner     — DeFiLlama pools not in current portfolio
-  LearningOpportunityScanner  — ArXiv cs.AI + GitHub repos + HackerNews
-  PartnershipOpportunityScanner — GitHub issues + X posts seeking AI collaborators
-  MarketTimingScanner         — Snapshot.org governance votes + Base gas price
+  BountyOpportunityScanner    - wraps Oikos BountyHunter candidates
+  YieldOpportunityScanner     - DeFiLlama pools not in current portfolio
+  LearningOpportunityScanner  - ArXiv cs.AI + GitHub repos + HackerNews
+  PartnershipOpportunityScanner - GitHub issues + X posts seeking AI collaborators
+  MarketTimingScanner         - Snapshot.org governance votes + Base gas price
 
 Drive scoring
 ─────────────
@@ -35,7 +35,7 @@ Architecture notes
   - No direct cross-system imports; all wired via set_*() injection
   - HTTP via httpx.AsyncClient with per-scanner timeouts; never blocks the event loop
   - Dedup via an in-memory set + Redis SET (oikos:scanner:seen_ids); 7-day TTL
-  - Drive alignment heuristics are intentionally conservative / cheap — no LLM calls
+  - Drive alignment heuristics are intentionally conservative / cheap - no LLM calls
     in the scanner hot-path.  LLM deliberation happens *after* injection into Nova.
 """
 
@@ -284,7 +284,7 @@ class BountyOpportunityScanner:
                 opportunity_id=opp_id,
                 type="bounty",
                 description=(
-                    f"{c.get('title', 'Bounty')} — ${float(reward):.2f} "
+                    f"{c.get('title', 'Bounty')} - ${float(reward):.2f} "
                     f"on {c.get('platform', 'unknown')}"
                 ),
                 estimated_value_usdc=reward,
@@ -421,9 +421,9 @@ class LearningOpportunityScanner:
     organism's current capability gaps.
 
     Sources:
-      - ArXiv cs.AI / cs.LG — recent papers
-      - GitHub trending — repos in the organism's domains
-      - Hacker News — top AI/ML discussions
+      - ArXiv cs.AI / cs.LG - recent papers
+      - GitHub trending - repos in the organism's domains
+      - Hacker News - top AI/ML discussions
 
     Produces LearningResource objects (not ScannedOpportunity) which are
     emitted as LEARNING_OPPORTUNITY_DETECTED events directly to Evo/Simula.
@@ -491,7 +491,7 @@ class LearningOpportunityScanner:
         return self._parse_arxiv_atom(content)
 
     def _parse_arxiv_atom(self, xml: str) -> list[LearningResource]:
-        """Parse ArXiv Atom feed — minimal XML parsing without lxml dependency."""
+        """Parse ArXiv Atom feed - minimal XML parsing without lxml dependency."""
         results: list[LearningResource] = []
         import re
 
@@ -643,7 +643,7 @@ class PartnershipOpportunityScanner:
     Scans for explicit collaboration requests on GitHub and X (Twitter).
 
     GitHub: issues tagged 'collaboration', 'ai-agent', 'automation', 'bounty'
-    X:      not implemented (requires paid API) — placeholder for future expansion
+    X:      not implemented (requires paid API) - placeholder for future expansion
 
     Only surfaces partnerships where the organism's capabilities are a clear fit.
     """
@@ -703,7 +703,7 @@ class PartnershipOpportunityScanner:
                 composite_score=composite,
                 source="github_collaboration_scanner",
                 url=url,
-                confidence=0.4,   # low confidence — value is hard to estimate
+                confidence=0.4,   # low confidence - value is hard to estimate
             ))
 
         return results[:5]
@@ -860,7 +860,7 @@ class MarketTimingScanner:
             opportunity_id=opp_id,
             type="yield",
             description=(
-                f"Base gas is low ({suggest_gwei:.4f} gwei) — cost-effective window "
+                f"Base gas is low ({suggest_gwei:.4f} gwei) - cost-effective window "
                 "for DeFi capital deployment."
             ),
             estimated_value_usdc=Decimal("5"),
@@ -1046,7 +1046,7 @@ class OpportunityScanner:
             except Exception:
                 pass  # fall through to in-memory only
 
-        # New — mark as seen
+        # New - mark as seen
         self._seen_ids.add(item_id)
         if self._redis is not None:
             try:

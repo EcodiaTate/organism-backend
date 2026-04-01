@@ -1,5 +1,5 @@
 """
-EcodiaOS — Cognitive Stall Pattern Detector
+EcodiaOS - Cognitive Stall Pattern Detector
 
 Specialized detector for identifying cognitive stall conditions
 in the Synapse system, with focus on simula_codegen scenarios.

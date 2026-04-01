@@ -1,5 +1,5 @@
 """
-EcodiaOS — Infrastructure Client Initialization
+EcodiaOS - Infrastructure Client Initialization
 
 Creates and connects all shared infrastructure clients (data stores,
 LLM, embedding, caches) that cognitive systems depend on.

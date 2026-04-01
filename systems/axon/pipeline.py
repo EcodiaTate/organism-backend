@@ -1,26 +1,26 @@
 """
-EcodiaOS — Axon Execution Pipeline
+EcodiaOS - Axon Execution Pipeline
 
-The pipeline is the core of Axon — it takes an Intent and executes it, but ONLY
+The pipeline is the core of Axon - it takes an Intent and executes it, but ONLY
 after verifying Equor's constitutional verdict.
 
 Pipeline stages:
-  0. Equor gate — MANDATORY: reject intents that Equor did not approve
-  1. Budget check — verify the per-cycle execution budget allows another action
-  2. Validation — validate parameters for all steps against their executors
-  3. Rate limit check — verify each executor is within its rate limit
-  4. Circuit breaker check — verify no executor has a tripped circuit
-  5. Context assembly — gather credentials, build ExecutionContext
-  6. Step execution — execute each step with timeout, progress tracking, and rollback
-  7. Outcome assembly — collect results, compute success/partial/failure
-  8. Outcome delivery — async: audit log + deliver to Nova
+  0. Equor gate - MANDATORY: reject intents that Equor did not approve
+  1. Budget check - verify the per-cycle execution budget allows another action
+  2. Validation - validate parameters for all steps against their executors
+  3. Rate limit check - verify each executor is within its rate limit
+  4. Circuit breaker check - verify no executor has a tripped circuit
+  5. Context assembly - gather credentials, build ExecutionContext
+  6. Step execution - execute each step with timeout, progress tracking, and rollback
+  7. Outcome assembly - collect results, compute success/partial/failure
+  8. Outcome delivery - async: audit log + deliver to Nova
 
 All stages must complete within the total_timeout_per_cycle_ms budget.
 Steps that exceed their per-executor timeout are cancelled and reported as failures.
 
 If Equor's verdict is anything other than APPROVED or MODIFIED, the pipeline halts
-immediately — no steps are executed, no credentials are issued.
-If a step fails, the pipeline rolls back reversible steps and reports the failure —
+immediately - no steps are executed, no credentials are issued.
+If a step fails, the pipeline rolls back reversible steps and reports the failure -
 it does not re-evaluate whether the intent was correct.
 """
 
@@ -102,7 +102,7 @@ class ExecutionPipeline:
         """
         Execute an approved Intent through all pipeline stages.
 
-        Returns an AxonOutcome regardless of whether execution succeeded —
+        Returns an AxonOutcome regardless of whether execution succeeded -
         failures are reported, not raised.
         """
         intent = request.intent
@@ -148,9 +148,9 @@ class ExecutionPipeline:
 
         # ── STAGE 1: Budget check ──────────────────────────────────
         # Internal executors (store_insight, observe, wait, store) are exempt
-        # from budget consumption — the budget exists to throttle external
+        # from budget consumption - the budget exists to throttle external
         # actions and should never starve them.
-        # An empty plan has no steps at all — treat as non-exempt so the budget
+        # An empty plan has no steps at all - treat as non-exempt so the budget
         # check still runs. `all()` of an empty iterable returns True, which
         # would silently bypass the budget for empty plans.
         all_exempt = bool(intent.plan.steps) and all(
@@ -677,7 +677,7 @@ class ExecutionPipeline:
 
         Emits ACTION_EXECUTED or ACTION_FAILED so Nova can update beliefs
         without requiring a direct import of nova.types. All consumers
-        (Nova, Evo, Fovea) subscribe to these events — no direct call needed.
+        (Nova, Evo, Fovea) subscribe to these events - no direct call needed.
 
         If the event bus is not wired, logs a warning. The direct Nova fallback
         has been removed to enforce bus-first architecture (AV2 resolved).
@@ -733,7 +733,7 @@ class ExecutionPipeline:
         failures are salient and demand attention.
 
         Internal executors (store_insight, update_goal, trigger_consolidation) are
-        excluded — broadcasting their outcomes creates a tight feedback loop where
+        excluded - broadcasting their outcomes creates a tight feedback loop where
         every store_insight triggers a new workspace broadcast → deliberation →
         store_insight ad infinitum.
         """
@@ -755,10 +755,10 @@ class ExecutionPipeline:
                 f"Action completed: {outcome.execution_id} "
                 f"({len(outcome.step_outcomes)} steps)"
             )
-            priority = 0.25  # Routine — success is expected
+            priority = 0.25  # Routine - success is expected
         else:
             content = (
-                f"Action failed: {outcome.execution_id} — "
+                f"Action failed: {outcome.execution_id} - "
                 f"{outcome.failure_reason or 'unknown'}"
             )
             priority = 0.55  # Failure is salient and demands attention
@@ -829,7 +829,7 @@ class ExecutionPipeline:
                 )
 
             reasoning_trace = "\n".join([
-                f"1. TRIGGER: {trigger} — step '{failed_step.action_type}' failed: {(failed_step.result.error or 'unknown')[:200]}",
+                f"1. TRIGGER: {trigger} - step '{failed_step.action_type}' failed: {(failed_step.result.error or 'unknown')[:200]}",
                 f"2. ROLLBACK DECISION: {len(rolled_back_steps)} prior step(s) completed with side-effects that must be reversed",
                 f"3. REVERSIBILITY SCAN: {reversible_count} reversible, {non_reversible_count} non-reversible (financial/external ops cannot be undone)",
                 f"4. ROLLBACK EXECUTION (LIFO order):\n{rollback_detail}",
@@ -838,12 +838,12 @@ class ExecutionPipeline:
             ])
 
             alternatives = [
-                f"Alternative: continue_on_failure=True would skip rollback and let downstream steps proceed with partial state — risks downstream incoherence",
+                f"Alternative: continue_on_failure=True would skip rollback and let downstream steps proceed with partial state - risks downstream incoherence",
                 f"Alternative: re-queue the intent with a patched plan after root cause of '{failed_step.action_type}' failure is diagnosed",
             ]
             if non_reversible_count > 0:
                 alternatives.append(
-                    f"WARNING: {non_reversible_count} non-reversible step(s) cannot be undone — "
+                    f"WARNING: {non_reversible_count} non-reversible step(s) cannot be undone - "
                     f"manual compensation (refund, notification, record correction) may be required"
                 )
 
@@ -858,7 +858,7 @@ class ExecutionPipeline:
                 counterfactual = (
                     f"If rollback had not been triggered, {reversible_count} completed step(s) would "
                     f"have left dangling state changes (records created, tasks scheduled) with no "
-                    f"corresponding completion — requiring manual cleanup or producing silent inconsistencies."
+                    f"corresponding completion - requiring manual cleanup or producing silent inconsistencies."
                 )
             else:
                 counterfactual = (
@@ -874,7 +874,7 @@ class ExecutionPipeline:
                 "rollback_attempted": len(rollback_results),
                 "rollback_succeeded": reversible_count,
                 "rollback_failed_non_reversible": non_reversible_count,
-                "rollback_correct": True,  # Axon always rolls back on failure — this is curriculum for why
+                "rollback_correct": True,  # Axon always rolls back on failure - this is curriculum for why
             })
 
             example = RETrainingExample(
@@ -895,7 +895,7 @@ class ExecutionPipeline:
                     f"trigger={trigger}"
                 ),
                 output=structured_output,
-                outcome_quality=1.0,  # Rollback itself is always the correct decision — quality measures the decision, not the failure
+                outcome_quality=1.0,  # Rollback itself is always the correct decision - quality measures the decision, not the failure
                 reasoning_trace=reasoning_trace,
                 alternatives_considered=alternatives,
                 constitutional_alignment=equor_alignment or DriveAlignmentVector(),
@@ -1040,7 +1040,7 @@ async def _rollback_completed(
 ) -> list[RollbackResult]:
     """
     Attempt to rollback completed steps in reverse order (most recent first).
-    Best-effort — non-reversible steps are reported as not-supported.
+    Best-effort - non-reversible steps are reported as not-supported.
     """
     results: list[RollbackResult] = []
 

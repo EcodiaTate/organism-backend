@@ -1,5 +1,5 @@
 """
-EcodiaOS — Governance Tracker (Phase 16d: DeFi Intelligence Expansion)
+EcodiaOS - Governance Tracker (Phase 16d: DeFi Intelligence Expansion)
 
 Tracks governance token balances earned from DeFi yield protocols (AERO from
 Aerodrome, WELL from Moonwell, COMP from Compound) and participates in protocol
@@ -118,9 +118,9 @@ class GovernanceTokenTracker:
     casts votes that align with the organism's genuine interests.
 
     Lifecycle:
-      1. initialize() — load persisted vote history
-      2. monitor_loop() — supervised background task (hourly poll)
-      3. check_and_vote() — called from consolidation cycle
+      1. initialize() - load persisted vote history
+      2. monitor_loop() - supervised background task (hourly poll)
+      3. check_and_vote() - called from consolidation cycle
 
     Nova integration: each proposal is passed to Nova for deliberation via
     EQUOR_ECONOMIC_INTENT so the decision is constitutionally reviewed.
@@ -164,7 +164,7 @@ class GovernanceTokenTracker:
         """
         Supervised background loop: poll for new proposals hourly.
 
-        Designed for supervised_task() — has internal while True.
+        Designed for supervised_task() - has internal while True.
         """
         while True:
             try:
@@ -359,7 +359,7 @@ class GovernanceTokenTracker:
         """
         Request constitutional deliberation via EQUOR_ECONOMIC_INTENT.
 
-        This is a governance mutation — it represents the organism's public
+        This is a governance mutation - it represents the organism's public
         stance on a protocol's direction. It must pass Equor review.
 
         Returns {choice, rationale} dict or None if denied/timeout.
@@ -369,7 +369,7 @@ class GovernanceTokenTracker:
 
         if self._event_bus is None:
             # No bus: default to abstain (safe choice)
-            return {"choice": "abstain", "rationale": "No event bus — safe abstain."}
+            return {"choice": "abstain", "rationale": "No event bus - safe abstain."}
 
         request_id = str(_uuid.uuid4())
         result_future: asyncio.Future[dict[str, Any]] = (
@@ -430,7 +430,7 @@ class GovernanceTokenTracker:
                 proposal_id=proposal.id,
                 hint="Defaulting to abstain",
             )
-            return {"choice": "abstain", "rationale": "Deliberation timeout — safe abstain."}
+            return {"choice": "abstain", "rationale": "Deliberation timeout - safe abstain."}
         except Exception as exc:
             self._log.error("governance_deliberation_failed", error=str(exc))
             return None
@@ -457,7 +457,7 @@ class GovernanceTokenTracker:
             return 0
         if label_lower in ("against", "no", "nay", "oppose"):
             return 1 if len(choices) > 1 else 0
-        # Abstain — prefer a labelled abstain or last choice
+        # Abstain - prefer a labelled abstain or last choice
         for i, c in enumerate(choices_lower):
             if "abstain" in c:
                 return i

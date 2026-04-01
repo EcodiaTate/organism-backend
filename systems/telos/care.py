@@ -1,9 +1,9 @@
 """
-EcodiaOS — Telos: Care Topology Engine
+EcodiaOS - Telos: Care Topology Engine
 
 Care is not "be nice." Care is a structural commitment to modeling the
 welfare of others as part of reality. A world model that excludes welfare
-consequences has a coverage gap — it can't predict relationship dynamics,
+consequences has a coverage gap - it can't predict relationship dynamics,
 trust cascades, or harm propagation. That gap costs effective I.
 
 The Care engine measures how much of reality the world model fails to

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Scheduler Types
+EcodiaOS - Axon Scheduler Types
 
 Data types for the energy-aware task scheduling interceptor.
 
@@ -11,7 +11,7 @@ ComputeIntensity: classification of how energy-hungry a task is.
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — Pydantic requires at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic requires at runtime
 from typing import Any
 
 from pydantic import Field
@@ -61,7 +61,7 @@ class GridReading(EOSBaseModel):
     """Carbon intensity in gCO2eq/kWh."""
 
     energy_cost_usd_kwh: float | None = None
-    """Spot energy price in USD/kWh (optional — not all providers supply this)."""
+    """Spot energy price in USD/kWh (optional - not all providers supply this)."""
 
     zone: str = ""
     """Grid zone identifier (e.g. 'AU-NSW', 'US-CAL-CISO')."""
@@ -98,7 +98,7 @@ class DeferredTask(EOSBaseModel):
     """The original Intent ID that spawned this execution."""
 
     execution_request_json: dict[str, Any] = Field(default_factory=dict)
-    """Serialised ExecutionRequest — restored when the task is released."""
+    """Serialised ExecutionRequest - restored when the task is released."""
 
     compute_intensity: ComputeIntensity = ComputeIntensity.HIGH
     deferral_reason: DeferralReason = DeferralReason.CARBON_INTENSITY

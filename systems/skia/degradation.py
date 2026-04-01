@@ -1,10 +1,10 @@
 """
-EcodiaOS — Degradation Engine (Speciation Bible §8.2)
+EcodiaOS - Degradation Engine (Speciation Bible §8.2)
 
 Genuine precariousness requires ACTIVE entropy resistance.
 This engine emits three degradation signals every hour. If subscriber systems
 (Memory, Evo, Simula) do not counteract them, the organism's vitality
-measurably degrades over time — eventually crossing a fatal threshold.
+measurably degrades over time - eventually crossing a fatal threshold.
 
 Degradation rates (configurable via env vars):
   MEMORY_DECAY_RATE       = 0.02  (2%/day fidelity loss on unconsolidated episodes)
@@ -19,7 +19,7 @@ If nothing counteracts: vitality degrades → BRAIN_DEATH threshold approached.
 
 Architecture: DegradationEngine is started by VitalityCoordinator alongside
 its 30s check loop. It runs an independent hourly timer so death-proximity does
-NOT slow down entropy accumulation — the organism fights entropy or succumbs.
+NOT slow down entropy accumulation - the organism fights entropy or succumbs.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger("systems.skia.degradation")
 
 # ── Tick interval ──────────────────────────────────────────────────
-_TICK_INTERVAL_S: float = 3600.0  # 1 hour — independent of 30s vitality loop
+_TICK_INTERVAL_S: float = 3600.0  # 1 hour - independent of 30s vitality loop
 
 # ── Default degradation rates (per-day; converted to per-hour in tick) ────────
 _DEFAULT_MEMORY_DECAY_RATE: float = 0.02       # 2% / day
@@ -124,7 +124,7 @@ class DegradationSnapshot:
         Composite entropy pressure score (0.0 = no pressure, 1.0 = maximum).
 
         Weighted average: memory 40%, config 20%, hypothesis 40%.
-        Capped at 1.0 — beyond 1.0 is still 1.0 (already fatal territory).
+        Capped at 1.0 - beyond 1.0 is still 1.0 (already fatal territory).
         """
         raw = (
             self.cumulative_memory_fidelity_lost * 0.40
@@ -134,19 +134,19 @@ class DegradationSnapshot:
         return min(1.0, raw)
 
     def counteract_memory(self, fraction: float) -> None:
-        """Call when Oneiros/Soma consolidation runs — reduces memory pressure."""
+        """Call when Oneiros/Soma consolidation runs - reduces memory pressure."""
         self.cumulative_memory_fidelity_lost = max(
             0.0, self.cumulative_memory_fidelity_lost - fraction
         )
 
     def counteract_config(self, fraction: float) -> None:
-        """Call when Evo parameter optimisation runs — reduces config drift."""
+        """Call when Evo parameter optimisation runs - reduces config drift."""
         self.cumulative_config_drift = max(
             0.0, self.cumulative_config_drift - fraction
         )
 
     def counteract_hypotheses(self, fraction: float) -> None:
-        """Call when Evo re-validates hypotheses — reduces staleness."""
+        """Call when Evo re-validates hypotheses - reduces staleness."""
         self.cumulative_hypothesis_staleness = max(
             0.0, self.cumulative_hypothesis_staleness - fraction
         )
@@ -154,7 +154,7 @@ class DegradationSnapshot:
 
 class DegradationEngine:
     """
-    Hourly entropy engine — the organism must ACTIVELY fight this or die.
+    Hourly entropy engine - the organism must ACTIVELY fight this or die.
 
     Emits three Synapse events each tick:
       MEMORY_DEGRADATION      → Memory reduces fidelity on old episodes
@@ -237,7 +237,7 @@ class DegradationEngine:
     def get_evolvable_parameters(self) -> dict[str, float]:
         """Return current degradation rates for genome extraction.
 
-        These parameters are heritable — child organisms inherit the parent's
+        These parameters are heritable - child organisms inherit the parent's
         evolved entropy resistance rates.
         """
         return {
@@ -257,7 +257,7 @@ class DegradationEngine:
         if current >= 0.8:
             return 0.0
 
-        # Need tick history for trend — use tick_count and current pressure
+        # Need tick history for trend - use tick_count and current pressure
         # Simple estimate: current rate of pressure increase per tick
         tick_count = self.snapshot.tick_count
         if tick_count < 2:
@@ -403,7 +403,7 @@ class DegradationEngine:
 
     def on_memory_consolidated(self, fraction: float = 0.5) -> None:
         """
-        Oneiros/Soma ran consolidation — counteracts memory fidelity loss.
+        Oneiros/Soma ran consolidation - counteracts memory fidelity loss.
 
         fraction: how much of the accumulated loss to reverse (default 0.5 = 50%).
         """
@@ -417,7 +417,7 @@ class DegradationEngine:
 
     def on_config_optimised(self, fraction: float = 0.8) -> None:
         """
-        Evo ran parameter optimisation — counteracts config drift.
+        Evo ran parameter optimisation - counteracts config drift.
 
         fraction: how much of the accumulated drift to reverse (default 0.8 = 80%).
         """
@@ -431,7 +431,7 @@ class DegradationEngine:
 
     def on_hypotheses_revalidated(self, fraction: float = 0.6) -> None:
         """
-        Evo re-validated hypotheses — counteracts hypothesis staleness.
+        Evo re-validated hypotheses - counteracts hypothesis staleness.
 
         fraction: how much of the accumulated staleness to reverse (default 0.6 = 60%).
         """

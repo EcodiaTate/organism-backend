@@ -1,11 +1,11 @@
 """
-EcodiaOS — Oneiros Type Definitions
+EcodiaOS - Oneiros Type Definitions
 
 All data types for the dream engine: sleep stages, dreams, insights,
 consolidation results, sleep debt, and circadian phases.
 
 Every dream, every insight, and every sleep cycle is a first-class
-primitive — the organism's inner life made observable.
+primitive - the organism's inner life made observable.
 """
 
 from __future__ import annotations
@@ -47,9 +47,9 @@ class DreamType(enum.StrEnum):
 class DreamCoherence(enum.StrEnum):
     """How meaningful was the dream's creative bridge?"""
 
-    INSIGHT = "insight"       # High coherence — genuine creative discovery
-    FRAGMENT = "fragment"     # Medium — store for future recombination
-    NOISE = "noise"           # Low — random noise, discard
+    INSIGHT = "insight"       # High coherence - genuine creative discovery
+    FRAGMENT = "fragment"     # Medium - store for future recombination
+    NOISE = "noise"           # Low - random noise, discard
 
 
 class InsightStatus(enum.StrEnum):
@@ -75,7 +75,7 @@ class SleepQuality(enum.StrEnum):
 
 class SleepPressure(EOSBaseModel):
     """
-    Homeostatic sleep drive — rises with wake time and cognitive load.
+    Homeostatic sleep drive - rises with wake time and cognitive load.
 
     Like adenosine accumulation in biological brains, sleep pressure
     builds during wakefulness from four independent sources. When it
@@ -123,7 +123,7 @@ class Dream(EOSBaseModel):
     is uncertain about (predictive model gaps).
 
     Every dream is recorded. The organism can see its own dream
-    patterns over time — a therapist for its own psyche.
+    patterns over time - a therapist for its own psyche.
     """
 
     id: str = Field(default_factory=new_id)
@@ -162,7 +162,7 @@ class DreamInsight(EOSBaseModel):
     the Global Workspace like any other percept.
 
     Over time, validated insights become part of the organism's
-    semantic memory — creative knowledge that emerges from sleep.
+    semantic memory - creative knowledge that emerges from sleep.
     """
 
     id: str = Field(default_factory=new_id)
@@ -200,7 +200,7 @@ class SleepCycle(EOSBaseModel):
     Each cycle is a journey through NREM (consolidation), REM
     (creative dreaming), and optionally LUCID (self-directed
     exploration). The metrics accumulated here are the organism's
-    sleep diary — observable, queryable, learnable.
+    sleep diary - observable, queryable, learnable.
     """
 
     id: str = Field(default_factory=new_id)
@@ -260,7 +260,7 @@ class WakeDegradation(EOSBaseModel):
     """
     Current degradation effects from sleep deprivation.
 
-    These are not simulated penalties — they are actual multipliers
+    These are not simulated penalties - they are actual multipliers
     applied to the respective systems. The organism genuinely
     thinks worse when sleep-deprived.
     """
@@ -349,7 +349,7 @@ class OneirosHealthSnapshot(EOSBaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# v2 — Sleep as Batch Compiler (Spec 14)
+# v2 - Sleep as Batch Compiler (Spec 14)
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -358,7 +358,7 @@ class SleepStageV2(enum.StrEnum):
     The four stages of EOS sleep (v2 architecture).
 
     Each stage does work that cannot be done in prior stages.
-    Order is non-negotiable — each stage prepares inputs for the next.
+    Order is non-negotiable - each stage prepares inputs for the next.
     """
 
     DESCENT = "descent"         # ~10% duration. Safe state capture.
@@ -388,15 +388,15 @@ class MemoryClassification(enum.StrEnum):
     """What happened to a memory on the ladder."""
 
     CLIMBED = "climbed"             # Promoted to higher rung
-    ANCHOR = "anchor"               # Irreducibly novel — kept as-is
-    DECAY_FLAGGED = "decay_flagged"  # Low MDL — candidate for forgetting
+    ANCHOR = "anchor"               # Irreducibly novel - kept as-is
+    DECAY_FLAGGED = "decay_flagged"  # Low MDL - candidate for forgetting
 
 
 class HypothesisDisposition(enum.StrEnum):
     """What happened to a hypothesis in the graveyard."""
 
-    CONFIRMED = "confirmed"     # Good MDL — kept
-    RETIRED = "retired"         # Bad MDL, multiple cycles — buried
+    CONFIRMED = "confirmed"     # Good MDL - kept
+    RETIRED = "retired"         # Bad MDL, multiple cycles - buried
     DEFERRED = "deferred"       # Not enough data yet
 
 
@@ -574,7 +574,7 @@ class SleepSchedulerConfig(EOSBaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase C — REM: Cross-Domain Synthesis Types
+# Phase C - REM: Cross-Domain Synthesis Types
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -689,7 +689,7 @@ class AnalogyDiscoveryReport(EOSBaseModel):
 
 
 class REMStageReport(EOSBaseModel):
-    """Complete REM stage report — all three Phase C operations."""
+    """Complete REM stage report - all three Phase C operations."""
 
     cross_domain: CrossDomainSynthesisReport = Field(
         default_factory=CrossDomainSynthesisReport
@@ -700,7 +700,7 @@ class REMStageReport(EOSBaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase D — Lucid Dreaming: Mutation Testing Types
+# Phase D - Lucid Dreaming: Mutation Testing Types
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -729,7 +729,7 @@ class MutationSimulationReport(EOSBaseModel):
 
 
 class LucidDreamingReport(EOSBaseModel):
-    """Complete Lucid Dreaming report — metacognition + exploration + mutation tests."""
+    """Complete Lucid Dreaming report - metacognition + exploration + mutation tests."""
 
     # Mutation testing
     mutations_tested: int = 0
@@ -745,7 +745,7 @@ class LucidDreamingReport(EOSBaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Phase D — Full Emergence: Wake Preparation Types
+# Phase D - Full Emergence: Wake Preparation Types
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -759,7 +759,7 @@ class PreAttentionCache(EOSBaseModel):
 
 class SleepNarrative(EOSBaseModel):
     """
-    What happened during sleep — composed for Thread.
+    What happened during sleep - composed for Thread.
 
     The organism's sleep diary: what it compressed, what it discovered,
     what improved, what was dreamed.

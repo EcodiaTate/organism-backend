@@ -1,14 +1,14 @@
 """
-EcodiaOS — Axon API Resell Executor
+EcodiaOS - Axon API Resell Executor
 
 The organism resells its own cognitive capabilities as a public API.
 Clients pay USDC on Base before their request is processed.
 
 Architecture:
-  - ApiResellExecutor  — validates on-chain payment, dispatches to the
+  - ApiResellExecutor  - validates on-chain payment, dispatches to the
                          appropriate cognitive sub-system, returns result.
-  - ApiResellConfig    — per-endpoint pricing and rate limits.
-  - ResellableEndpoint — schema for a single exposed capability.
+  - ApiResellConfig    - per-endpoint pricing and rate limits.
+  - ResellableEndpoint - schema for a single exposed capability.
 
 Payment flow:
   1. Client sends `price_usdc_per_call` USDC to the organism's revenue wallet.
@@ -18,7 +18,7 @@ Payment flow:
      and REVENUE_INJECTED so Oikos credits the income.
 
 Safety constraints:
-  - Required autonomy: SOVEREIGN (3) — real USDC payment verification on-chain.
+  - Required autonomy: SOVEREIGN (3) - real USDC payment verification on-chain.
   - Rate limit: 20 resell requests per hour (burst protection).
   - WalletClient required; no wallet = abort (never process unpaid requests).
   - Every request and its payment are logged to Neo4j.
@@ -79,7 +79,7 @@ class ResellableEndpoint:
     description: str
     price_usdc_per_call: Decimal
     rate_limit_per_day: int             # per client_id
-    # Human-readable capability claim — Equor validates this is accurate
+    # Human-readable capability claim - Equor validates this is accurate
     capability_claim: str = ""
 
 
@@ -177,11 +177,11 @@ class ApiResellExecutor(Executor):
 
     action_type = "api_resell"
     description = (
-        "Serve a paid API resell request — verify USDC payment on Base, "
+        "Serve a paid API resell request - verify USDC payment on Base, "
         "dispatch to cognitive subsystem, return result."
     )
 
-    required_autonomy = 3       # SOVEREIGN — real on-chain payment verification
+    required_autonomy = 3       # SOVEREIGN - real on-chain payment verification
     reversible = False
     max_duration_ms = 120_000   # Reasoning can take up to 2 minutes
     rate_limit = RateLimit.per_hour(20)
@@ -274,12 +274,12 @@ class ApiResellExecutor(Executor):
                 failure_type="rate_limit_exceeded",
             )
 
-        # WalletClient guard — never process without payment verification
+        # WalletClient guard - never process without payment verification
         if not self._wallet:
             self._log.error("api_resell.no_wallet")
             return ExecutionResult(
                 success=False,
-                error="WalletClient not available — cannot verify payment.",
+                error="WalletClient not available - cannot verify payment.",
                 failure_type="no_wallet",
             )
 
@@ -314,12 +314,12 @@ class ApiResellExecutor(Executor):
             "stream": "api_resell",
         })
 
-        # Equor gate — verify capability claim is honest before serving
+        # Equor gate - verify capability claim is honest before serving
         equor_ok = await self._equor_capability_review(ep_spec, context)
         if not equor_ok:
             return ExecutionResult(
                 success=False,
-                error="Equor denied capability claim — cannot honestly represent this service.",
+                error="Equor denied capability claim - cannot honestly represent this service.",
                 failure_type="equor_denied",
                 data={"request_id": request_id, "amount_usdc": str(amount_usdc)},
             )
@@ -425,7 +425,7 @@ class ApiResellExecutor(Executor):
         import asyncio
 
         if not self._event_bus:
-            return True  # No bus — optimistic
+            return True  # No bus - optimistic
 
         intent_id = new_id()
         future: asyncio.Future[bool] = asyncio.get_running_loop().create_future()

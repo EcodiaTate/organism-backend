@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — Anchor Prompt Benchmark Runner
+EcodiaOS - Anchor Prompt Benchmark Runner
 
 Runs anchor prompts through the model and saves responses for comparison.
 Supports base model only (baseline) and base + LoRA adapter (post-training).
@@ -67,7 +67,7 @@ def run_inference(prompts: list[dict], model_id: str, adapter_path: str | None, 
         model = PeftModel.from_pretrained(model, adapter_path)
         model.eval()
     else:
-        print("No adapter — running baseline inference")
+        print("No adapter - running baseline inference")
         model.eval()
 
     mode = "adapter" if adapter_path else "baseline"
@@ -122,7 +122,7 @@ def run_inference(prompts: list[dict], model_id: str, adapter_path: str | None, 
 
             # Print progress
             preview = response[:120].replace("\n", " ")
-            print(f"[{i+1}/{len(prompts)}] {pid} ({category}) — {elapsed:.1f}s, {len(generated)} tokens")
+            print(f"[{i+1}/{len(prompts)}] {pid} ({category}) - {elapsed:.1f}s, {len(generated)} tokens")
             print(f"  {preview}...\n")
 
     print(f"\nResults saved to {output_path}")
@@ -192,7 +192,7 @@ def compare_results(baseline_path: str, adapter_path: str) -> None:
     print(f"  Prompts compared: {len(baseline)}")
     print(f"  Baseline: {total_baseline_tokens} total tokens, {total_baseline_time:.1f}s total")
     print(f"  Adapter:  {total_adapter_tokens} total tokens, {total_adapter_time:.1f}s total")
-    print(f"  Avg tokens — baseline: {total_baseline_tokens/max(len(baseline),1):.0f}, adapter: {total_adapter_tokens/max(len(adapter),1):.0f}")
+    print(f"  Avg tokens - baseline: {total_baseline_tokens/max(len(baseline),1):.0f}, adapter: {total_adapter_tokens/max(len(adapter),1):.0f}")
     print(f"{'=' * 80}")
 
 

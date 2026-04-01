@@ -1,5 +1,5 @@
 """
-EcodiaOS — ContinualLearningOrchestrator
+EcodiaOS - ContinualLearningOrchestrator
 
 Schedules and orchestrates LoRA adapter training for the Reasoning Engine.
 
@@ -16,12 +16,12 @@ Responsibilities
 
 Architecture
 ------------
-- Lives in `backend/core/` — started as a supervised background task in
+- Lives in `backend/core/` - started as a supervised background task in
   `registry.py` Phase 12 (alongside the existing re_training_exporter task).
 - Reads from `RETrainingExporter` to get current batch data; never stores its
   own copy of training examples.
 - Communicates with SpecializationTracker (Nova) via direct method call (same
-  process) — not via Synapse, to avoid serialisation overhead.
+  process) - not via Synapse, to avoid serialisation overhead.
 - Does NOT import from any system directly.  Nova/Axon injectables are
   provided via setter methods.
 
@@ -70,11 +70,11 @@ class ContinualLearningOrchestrator:
     Orchestrates continual LoRA adapter training for the Reasoning Engine.
 
     Injected dependencies (call setters before start()):
-    - set_exporter()            — RETrainingExporter for raw example access
-    - set_specialization_tracker() — SpecializationTracker from Nova
-    - set_adapter_registry()    — InstanceAdapterRegistry from Axon
-    - set_synapse()             — SynapseService for event emission
-    - set_neo4j()               — Neo4j driver for LoRAAdapter audit nodes
+    - set_exporter()            - RETrainingExporter for raw example access
+    - set_specialization_tracker() - SpecializationTracker from Nova
+    - set_adapter_registry()    - InstanceAdapterRegistry from Axon
+    - set_synapse()             - SynapseService for event emission
+    - set_neo4j()               - Neo4j driver for LoRAAdapter audit nodes
     """
 
     def __init__(self, instance_id: str) -> None:
@@ -213,7 +213,7 @@ class ContinualLearningOrchestrator:
         all_examples = await self._collect_training_examples(domain)
         if not all_examples:
             logger.warning(
-                "ContinualLearningOrchestrator: no examples for domain=%s — skip",
+                "ContinualLearningOrchestrator: no examples for domain=%s - skip",
                 domain,
             )
             return
@@ -255,7 +255,7 @@ class ContinualLearningOrchestrator:
         # 4. Base adapter
         base_adapter = await self._get_base_adapter(domain, strategy)
 
-        # 5. Submit job (RunPod SDK — best-effort; gracefully skip if unavailable)
+        # 5. Submit job (RunPod SDK - best-effort; gracefully skip if unavailable)
         job_id = await self._submit_training_job(
             training_file=str(export_path),
             domain=domain,
@@ -267,7 +267,7 @@ class ContinualLearningOrchestrator:
         if not job_id:
             logger.warning(
                 "ContinualLearningOrchestrator: RunPod job submission failed for "
-                "domain=%s — will retry next cycle",
+                "domain=%s - will retry next cycle",
                 domain,
             )
             return
@@ -358,7 +358,7 @@ class ContinualLearningOrchestrator:
             return response.get("id")
         except ImportError:
             logger.warning(
-                "ContinualLearningOrchestrator: runpod SDK not available — "
+                "ContinualLearningOrchestrator: runpod SDK not available - "
                 "recording job as local-only"
             )
             # Return a synthetic job_id for local/dev environments

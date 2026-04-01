@@ -1,5 +1,5 @@
 """
-EcodiaOS — Token Budget System
+EcodiaOS - Token Budget System
 
 Tracks LLM token consumption per cycle and per hour.
 Implements three-tier degradation: Green (normal) → Yellow (careful) → Red (critical).
@@ -71,7 +71,7 @@ class TokenBudget:
         self._lock = asyncio.Lock()
         self._last_warning_tier: BudgetTier | None = None
 
-        # Last known status snapshot — updated by charge() and get_status().
+        # Last known status snapshot - updated by charge() and get_status().
         # Allows synchronous callers (e.g. Soma interoceptor) to read tier
         # without awaiting the lock.
         self._last_status: BudgetStatus | None = None
@@ -154,7 +154,7 @@ class TokenBudget:
                 self._last_warning_tier = tier
 
             # Keep cached_status fresh so synchronous callers don't read stale data.
-            # A lightweight snapshot suffices here — burn-rate fields are omitted for speed.
+            # A lightweight snapshot suffices here - burn-rate fields are omitted for speed.
             self._last_status = BudgetStatus(
                 tokens_used=tokens_used,
                 calls_made=calls_used,
@@ -276,7 +276,7 @@ class TokenBudget:
         Returns None before the first ``get_status()`` or ``charge()`` call.
         Intended for synchronous callers (e.g. Soma interoceptor) that run
         inside a tight theta-cycle budget and cannot await the async lock.
-        The value is at most one charge() call stale — acceptable for
+        The value is at most one charge() call stale - acceptable for
         interoceptive sensing, which is already an approximation.
         """
         return self._last_status

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Taint-Aware Types
+EcodiaOS - Inspector Taint-Aware Types
 
 Data models for cross-service taint tracking. These types bridge the gap
 between kernel-level eBPF observations and the Z3 formal verification engine.
@@ -9,9 +9,9 @@ The pipeline flow:
   TaintGraph → VulnerabilityProver (cross-service Z3 encoding)
 
 Phase 1 Observability additions (Cross-Layer Observability Substrate):
-  CorrelationContext — UUID threading through all observability phases
-  KernelEventType / KernelEvent — typed kernel/syscall events from eBPF
-  InteractionGraph — per-proposal process-to-service interaction topology
+  CorrelationContext - UUID threading through all observability phases
+  KernelEventType / KernelEvent - typed kernel/syscall events from eBPF
+  InteractionGraph - per-proposal process-to-service interaction topology
 
 All models extend EOSBaseModel for consistency with the rest of EOS.
 """
@@ -300,16 +300,16 @@ class KernelEvent(EOSBaseModel):
     ppid: int = 0
     comm: str = ""
 
-    # Syscall details — populated for SYSCALL_ENTER / SYSCALL_EXIT
+    # Syscall details - populated for SYSCALL_ENTER / SYSCALL_EXIT
     syscall_name: str | None = None
     syscall_args: dict[str, Any] | None = None
     syscall_retval: int | None = None
 
-    # File details — populated for FILE_* events
+    # File details - populated for FILE_* events
     fd: int | None = None
     path: str | None = None
 
-    # Network details — populated for SOCKET_* events
+    # Network details - populated for SOCKET_* events
     remote_ip: str | None = None
     remote_port: int | None = None
     local_port: int | None = None

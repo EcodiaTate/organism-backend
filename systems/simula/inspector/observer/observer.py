@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simula Observer — Standalone eBPF Network Event Printer
+Simula Observer - Standalone eBPF Network Event Printer
 
 Attaches BPF kprobes to tcp_sendmsg, tcp_recvmsg, and
 security_socket_connect, polls the ring buffer, and prints
@@ -409,7 +409,7 @@ TRACEPOINT_PROBE(syscalls, sys_exit_write) {
 """
 
 
-# Program registry — maps probe name to BPF C source.
+# Program registry - maps probe name to BPF C source.
 _BPF_PROGRAMS: dict[str, str] = {
     "tcp_sendmsg": BPF_TCP_SENDMSG,
     "tcp_recvmsg": BPF_TCP_RECVMSG,
@@ -444,7 +444,7 @@ class ObserverEvent:
     # Populated only for flow_type=5 (read_exit inbound capture)
     captured_len: int
     payload_bytes: bytes
-    # Container attribution — populated by PidServiceMapper
+    # Container attribution - populated by PidServiceMapper
     service_name: str = ""   # e.g. "api-service", "postgres"
     container_id: str = ""   # 12-char hex prefix, or "" for non-containerised
 
@@ -632,7 +632,7 @@ def _format_event(evt: ObserverEvent) -> str:
     if evt.flow_type in (5, 6) and evt.captured_len > 0:
         # Print hex prefix + safe-ASCII snippet so TAINT= tokens are visible
         # flow_type=5: inbound read bytes (RINB)
-        # flow_type=6: outbound write bytes (WOUT) — same format, direction differs
+        # flow_type=6: outbound write bytes (WOUT) - same format, direction differs
         hex_prefix = evt.payload_bytes[:32].hex(" ")
         ascii_snip = _safe_ascii(evt.payload_bytes, 64)
         base += f"\n    cap={evt.captured_len} fd={evt.source_port} hex=[{hex_prefix}] ascii=[{ascii_snip}]"
@@ -664,7 +664,7 @@ class ObserverBpfLoader:
 
             self._bcc_available = True
         except ImportError:
-            log.warning("bcc not available — running in degraded mode (no eBPF)")
+            log.warning("bcc not available - running in degraded mode (no eBPF)")
             for name in self._probe_names:
                 self._loaded[name] = False
                 self._errors[name] = "bcc not installed"
@@ -739,7 +739,7 @@ class ObserverBpfLoader:
 
             if not ports:
                 # Open mode: empty map → all ports accepted
-                log.info("monitored_ports cleared — open mode (all ports)")
+                log.info("monitored_ports cleared - open mode (all ports)")
                 return True
 
             # Write sentinel key=0 so BPF knows filter mode is active
@@ -823,7 +823,7 @@ class _EventPrinter:
         self._lock = threading.Lock()
 
     def handle_event(self, ctx: Any, data: Any, size: int) -> None:
-        """Ring buffer callback — called from the poll thread."""
+        """Ring buffer callback - called from the poll thread."""
         try:
             evt = _parse_event(data, self._mapper)
             with self._lock:
@@ -1143,7 +1143,7 @@ def _poll_loop(
 
 
 class _HealthHandler(BaseHTTPRequestHandler):
-    """Minimal HTTP handler — serves /health and /graph."""
+    """Minimal HTTP handler - serves /health and /graph."""
 
     loader: ObserverBpfLoader
     printer: _EventPrinter
@@ -1198,7 +1198,7 @@ class _HealthHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Simula Observer — eBPF Network Event Printer")
+    parser = argparse.ArgumentParser(description="Simula Observer - eBPF Network Event Printer")
     parser.add_argument("--port", type=int, default=9472, help="Health endpoint port (default: 9472)")
     parser.add_argument(
         "--probes",
@@ -1240,7 +1240,7 @@ def main() -> None:
     if loaded > 0:
         log.info("Loaded %d/%d BPF programs", loaded, len(probe_names))
     else:
-        log.warning("No BPF programs loaded — running in degraded mode")
+        log.warning("No BPF programs loaded - running in degraded mode")
 
     # 1b. Populate port filter map.
     #     Default: HTTP + HTTPS + common alt-HTTP + known sensitive sinks.
@@ -1304,7 +1304,7 @@ def main() -> None:
         loader.setup_ring_buffer(_handle_event_with_graph)
 
     # Print header
-    print("=== Simula Observer — BCC mode ===", flush=True)
+    print("=== Simula Observer - BCC mode ===", flush=True)
     print(f"Probes loaded: {loaded}/{len(probe_names)}", flush=True)
     print(
         f"{'TYPE':<6s} {'PID':<6s} {'SERVICE':<20s} {'COMM':<16s} "
@@ -1333,7 +1333,7 @@ def main() -> None:
     server = HTTPServer(("0.0.0.0", args.port), _HealthHandler)
 
     def _shutdown(signum: int, frame: Any) -> None:
-        log.info("Received signal %d — shutting down", signum)
+        log.info("Received signal %d - shutting down", signum)
         stop_event.set()
         if lifecycle_monitor is not None:
             lifecycle_monitor.stop()

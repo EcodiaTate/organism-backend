@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos Healing Governor (Cytokine Storm Prevention)
+EcodiaOS - Thymos Healing Governor (Cytokine Storm Prevention)
 
 The immune system itself can be the problem. If 50 errors fire
 simultaneously, Thymos must not try to diagnose and fix all 50.
@@ -87,7 +87,7 @@ class HealingGovernor:
         self._storm_exit_candidate_since: float = 0.0  # hysteresis: when rate first dropped below exit threshold
 
         self._logger = logger.bind(system="thymos", component="healing_governor")
-        # Optional event callback — set by ThymosService for lifecycle events
+        # Optional event callback - set by ThymosService for lifecycle events
         self._on_event: Callable[[str, dict[str, Any]], None] | None = None
 
     def set_causal_analyzer(self, analyzer: CausalAnalyzer) -> None:
@@ -248,7 +248,7 @@ class HealingGovernor:
         return "; ".join(reasons) or "budget limits reached"
 
     def _enter_degraded_mode(self) -> None:
-        """Enter degraded healing mode — repair budget exhausted."""
+        """Enter degraded healing mode - repair budget exhausted."""
         self._healing_mode = HealingMode.DEGRADED
         self._logger.warning(
             "degraded_healing_mode_entered",
@@ -280,7 +280,7 @@ class HealingGovernor:
         current_rate = self._current_incident_rate()
 
         if current_rate < exit_threshold:
-            # Below exit threshold — start or continue the hysteresis timer
+            # Below exit threshold - start or continue the hysteresis timer
             if self._storm_exit_candidate_since == 0.0:
                 self._storm_exit_candidate_since = now
                 self._logger.debug(
@@ -289,12 +289,12 @@ class HealingGovernor:
                     exit_threshold=exit_threshold,
                 )
             elif now - self._storm_exit_candidate_since >= self.STORM_EXIT_SUSTAINED_S:
-                # Sustained below exit threshold for required duration — safe to exit
+                # Sustained below exit threshold for required duration - safe to exit
                 self._storm_exit_candidate_since = 0.0
                 self._exit_storm_mode()
                 return True
         else:
-            # Rate spiked above exit threshold — reset the hysteresis timer
+            # Rate spiked above exit threshold - reset the hysteresis timer
             if self._storm_exit_candidate_since > 0.0:
                 self._logger.debug(
                     "storm_exit_candidate_reset",
@@ -366,7 +366,7 @@ class HealingGovernor:
         self._fire_storm_event("healing_storm_entered")
 
     def _exit_storm_mode(self) -> None:
-        """Exit storm mode — return to normal healing."""
+        """Exit storm mode - return to normal healing."""
         now = utc_now().timestamp()
         duration_s = now - self._storm_entered_at if self._storm_entered_at > 0 else 0.0
         exit_rate = self._current_incident_rate()

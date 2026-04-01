@@ -1,8 +1,8 @@
 """
-EcodiaOS — Oikos Protocol Scanner
+EcodiaOS - Oikos Protocol Scanner
 
 Periodically scans DeFiLlama (and optionally bounty aggregators) for protocols
-the organism cannot yet act on — i.e., protocols above an APY threshold for
+the organism cannot yet act on - i.e., protocols above an APY threshold for
 which no Axon executor is registered.
 
 When a gap is found, emits OPPORTUNITY_DISCOVERED on the Synapse bus.
@@ -11,7 +11,7 @@ Evo subscribes and generates an exploration hypothesis → EVOLUTION_CANDIDATE
 
 Design:
   - O(n) per-scan, no database writes (stateless discovery)
-  - Respects metabolic gate — skips scan if Oikos in SURVIVAL/STARVATION
+  - Respects metabolic gate - skips scan if Oikos in SURVIVAL/STARVATION
   - Deduplication via in-memory set of discovered opportunity_ids (TTL: 7 days)
   - DeFiLlama: public API, no auth required (rate limit: 30 req/min)
   - Bounty aggregator: Immunefi REST API (unauthenticated, paginated)
@@ -35,8 +35,8 @@ logger = structlog.get_logger().bind(system="oikos.protocol_scanner")
 _DEFILLAMA_POOLS_URL = "https://yields.llama.fi/pools"
 _IMMUNEFI_BOUNTIES_URL = "https://immunefi.com/api/bounties/"
 
-_DEFAULT_APY_THRESHOLD = 5.0        # % — protocols below this are ignored
-_DEFAULT_BOUNTY_MIN_USD = 10_000    # USD — bounties below this are ignored
+_DEFAULT_APY_THRESHOLD = 5.0        # % - protocols below this are ignored
+_DEFAULT_BOUNTY_MIN_USD = 10_000    # USD - bounties below this are ignored
 _DEFAULT_SCAN_INTERVAL_S = 3600     # 1 hour
 _DEDUP_TTL_S = 7 * 24 * 3600       # 7 days
 _HTTP_TIMEOUT_S = 20.0
@@ -66,10 +66,10 @@ class ProtocolScanner:
     already has a registered action type before emitting OPPORTUNITY_DISCOVERED.
 
     Lifecycle:
-      1. `start()` — launches background scan loop
+      1. `start()` - launches background scan loop
       2. Every `scan_interval_s`: scan DeFiLlama pools + Immunefi bounties
       3. For each unknown protocol above threshold: emit OPPORTUNITY_DISCOVERED
-      4. `stop()` — cancels background loop
+      4. `stop()` - cancels background loop
     """
 
     def __init__(

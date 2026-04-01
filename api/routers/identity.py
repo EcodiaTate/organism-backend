@@ -1,29 +1,29 @@
 """
-EcodiaOS — Identity API Router
+EcodiaOS - Identity API Router
 
 Admin endpoints for managing SealedEnvelope credential records and
 querying vault, certificate, and connector health.
 
 Envelope endpoints:
-  POST   /api/v1/identity/envelopes              — insert a new envelope
-  GET    /api/v1/identity/envelopes/{id}          — fetch envelope by ID
-  GET    /api/v1/identity/envelopes               — list (all or by platform_id)
-  PUT    /api/v1/identity/envelopes/{id}          — replace ciphertext / key_version
-  DELETE /api/v1/identity/envelopes/{id}          — hard-delete a single envelope
-  DELETE /api/v1/identity/envelopes/platform/{id} — bulk-delete all for a platform
+  POST   /api/v1/identity/envelopes              - insert a new envelope
+  GET    /api/v1/identity/envelopes/{id}          - fetch envelope by ID
+  GET    /api/v1/identity/envelopes               - list (all or by platform_id)
+  PUT    /api/v1/identity/envelopes/{id}          - replace ciphertext / key_version
+  DELETE /api/v1/identity/envelopes/{id}          - hard-delete a single envelope
+  DELETE /api/v1/identity/envelopes/platform/{id} - bulk-delete all for a platform
 
 Identity dashboard endpoints:
-  GET    /api/v1/identity/health                        — overall system health
-  GET    /api/v1/identity/certificate                   — current EcodianCertificate
-  GET    /api/v1/identity/connectors                    — all connector credential records
-  POST   /api/v1/identity/connectors/{id}/refresh       — trigger token refresh
-  POST   /api/v1/identity/connectors/{id}/revoke        — revoke OAuth token
-  GET    /api/v1/identity/vault/status                  — vault metadata (no ciphertext)
+  GET    /api/v1/identity/health                        - overall system health
+  GET    /api/v1/identity/certificate                   - current EcodianCertificate
+  GET    /api/v1/identity/connectors                    - all connector credential records
+  POST   /api/v1/identity/connectors/{id}/refresh       - trigger token refresh
+  POST   /api/v1/identity/connectors/{id}/revoke        - revoke OAuth token
+  GET    /api/v1/identity/vault/status                  - vault metadata (no ciphertext)
 """
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Pydantic needs at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs at runtime
 from typing import Any
 
 import structlog
@@ -81,7 +81,7 @@ def _to_response(env: SealedEnvelope) -> dict[str, Any]:
 
 
 def _to_envelope_item(env: SealedEnvelope) -> dict[str, Any]:
-    """Envelope summary for dashboard — omits ciphertext."""
+    """Envelope summary for dashboard - omits ciphertext."""
     return {
         "id": env.id,
         "platform_id": env.platform_id,
@@ -108,7 +108,7 @@ async def create_envelope(body: EnvelopeCreateRequest, request: Request) -> JSON
     """
     Inject an initial SealedEnvelope.
 
-    The ciphertext must already be encrypted by IdentityVault — this endpoint
+    The ciphertext must already be encrypted by IdentityVault - this endpoint
     does not handle plaintext secrets.
     """
     pool = _pool(request)
@@ -188,7 +188,7 @@ async def update_envelope(
     """
     Replace the ciphertext of an existing envelope.
 
-    Intended for use after vault key rotation — the caller re-encrypts
+    Intended for use after vault key rotation - the caller re-encrypts
     the secret under the new key and pushes the new ciphertext here.
     """
     pool = _pool(request)
@@ -482,7 +482,7 @@ async def refresh_connector(connector_id: str, request: Request) -> JSONResponse
 
     Requires the connector to be available in the in-process connector
     registry (app.state). In the current architecture connectors run in
-    the standalone skia_worker — this endpoint returns 404 when not found.
+    the standalone skia_worker - this endpoint returns 404 when not found.
     """
     # Attempt to locate connector in app.state (future extensibility)
     connectors_map: dict[str, Any] = getattr(request.app.state, "connectors", {}) or {}
@@ -497,7 +497,7 @@ async def refresh_connector(connector_id: str, request: Request) -> JSONResponse
     try:
         token = await connector.get_access_token()
         success = token is not None
-        message = "Token refreshed successfully" if success else "Refresh failed — no token returned"
+        message = "Token refreshed successfully" if success else "Refresh failed - no token returned"
     except Exception as exc:
         logger.error("connector_refresh_failed", connector_id=connector_id, error=str(exc))
         raise HTTPException(status_code=500, detail=f"Refresh failed: {exc}") from exc
@@ -546,7 +546,7 @@ async def vault_status(request: Request) -> JSONResponse:
     """
     Return vault metadata.
 
-    Never returns ciphertext or decrypted secrets — metadata only.
+    Never returns ciphertext or decrypted secrets - metadata only.
     """
     pool = _pool(request)
     passphrase_ok = _passphrase_configured()

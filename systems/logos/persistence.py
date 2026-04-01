@@ -1,5 +1,5 @@
 """
-EcodiaOS — Logos: Neo4j Persistence Layer
+EcodiaOS - Logos: Neo4j Persistence Layer
 
 Persists world model state (generative schemas, causal edges, domain priors,
 MDL scores) to Neo4j so intelligence survives restarts.
@@ -32,7 +32,7 @@ class LogosPersistence:
     """
     Neo4j persistence for the Logos world model.
 
-    All writes are batched — call persist_world_model() after each
+    All writes are batched - call persist_world_model() after each
     WORLD_MODEL_UPDATED emission, not per-schema change.
     """
 
@@ -315,7 +315,7 @@ class LogosPersistence:
     ) -> None:
         """Append an immutable fitness snapshot to the time-series.
 
-        Each call creates a new (:LogosFitnessTimeSeries) node — records are
+        Each call creates a new (:LogosFitnessTimeSeries) node - records are
         never updated.  This enables Mitosis to rank instances by IR trajectory
         and Benchmarks to compute Bedau-Packard evolutionary activity.
 
@@ -418,7 +418,7 @@ class LogosPersistence:
             MERGE (wm)-[:COMPRESSES {created_at: $now}]->(sn)
             """, {"ids": source_semantic_ids, "wm_id": wm_node_id, "now": now})
 
-        # 4. Upsert the self-prediction index singleton — O(1) read for
+        # 4. Upsert the self-prediction index singleton - O(1) read for
         #    Fovea and Schwarzschild without traversing the full world model.
         await self._neo4j.execute_write("""
         MERGE (idx:LogosSelfPredictionIndex {id: 'singleton'})

@@ -1,10 +1,10 @@
 """
-EcodiaOS — TOTP Generator (Phase 16h: External Identity Layer)
+EcodiaOS - TOTP Generator (Phase 16h: External Identity Layer)
 
 RFC 6238-compliant Time-Based One-Time Password generator for automated
 2FA authentication against external platforms.
 
-This is a native implementation — no dependency on pyotp or similar
+This is a native implementation - no dependency on pyotp or similar
 libraries. The algorithm is straightforward (HMAC-SHA1 over a time-based
 counter, truncated to 6 digits) and small enough to own entirely.
 

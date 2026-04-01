@@ -1,11 +1,11 @@
 """
-EcodiaOS — Evo Hypothesis Engine
+EcodiaOS - Evo Hypothesis Engine
 
 Manages the full lifecycle of hypotheses:
-  1. Generation  — LLM produces testable claims from detected patterns
-  2. Testing     — each new episode is evaluated as evidence
-  3. Integration — supported hypotheses have their mutations applied
-  4. Archival    — refuted or stale hypotheses are stored and closed
+  1. Generation  - LLM produces testable claims from detected patterns
+  2. Testing     - each new episode is evaluated as evidence
+  3. Integration - supported hypotheses have their mutations applied
+  4. Archival    - refuted or stale hypotheses are stored and closed
 
 Implements approximate Bayesian model comparison (spec Section IV.2):
   Evidence(H) = Σ log p(observation_i | H) - complexity(H)
@@ -75,8 +75,8 @@ class HypothesisEngine:
     Manages hypothesis generation, evidence accumulation, and lifecycle.
 
     Dependencies:
-      llm     — LLM provider for generation and evaluation
-      memory  — optional; used to persist hypotheses as :Hypothesis nodes
+      llm     - LLM provider for generation and evaluation
+      memory  - optional; used to persist hypotheses as :Hypothesis nodes
     """
 
     def __init__(
@@ -186,7 +186,7 @@ class HypothesisEngine:
             # Fitness = evidence_score penalised by staleness (days since last evidence).
             evicted = self._evict_lowest_fitness()
             if evicted is None:
-                # All active hypotheses are SUPPORTED/INTEGRATED — nothing to evict.
+                # All active hypotheses are SUPPORTED/INTEGRATED - nothing to evict.
                 self._logger.warning(
                     "hypothesis_capacity_reached_no_eviction",
                     active=len(self._active),
@@ -289,7 +289,7 @@ class HypothesisEngine:
                     episode_id=episode.id,
                     direction=EvidenceDirection.NEUTRAL,
                     strength=0.0,
-                    reasoning="Skipped — budget constraints",
+                    reasoning="Skipped - budget constraints",
                 )
 
         try:
@@ -349,7 +349,7 @@ class HypothesisEngine:
 
         hypothesis.last_evidence_at = utc_now()
 
-        # Status transitions — use adaptive thresholds from meta-learning if available
+        # Status transitions - use adaptive thresholds from meta-learning if available
         score_threshold = _SUPPORT_SCORE_THRESHOLD
         episode_threshold = _SUPPORT_EPISODE_THRESHOLD
         if self._meta_learning is not None:
@@ -408,14 +408,14 @@ class HypothesisEngine:
         """
         Mark a supported hypothesis as INTEGRATED.
         The caller (ConsolidationOrchestrator) is responsible for applying
-        the proposed_mutation — this method only closes the hypothesis lifecycle.
+        the proposed_mutation - this method only closes the hypothesis lifecycle.
 
         Returns True if integration is valid and was applied.
         """
         if hypothesis.status != HypothesisStatus.SUPPORTED:
             return False
 
-        # Age check — each hypothesis carries its own min_age_hours gate.
+        # Age check - each hypothesis carries its own min_age_hours gate.
         # Repair hypotheses use 4 h; standard hypotheses use the spec default (24 h).
         age_hours = (utc_now() - hypothesis.created_at).total_seconds() / 3600
         if age_hours < hypothesis.min_age_hours:
@@ -503,7 +503,7 @@ class HypothesisEngine:
         existing hypothesis matched (caller should call evaluate_evidence on
         it with the new repair episode rather than discarding the observation).
 
-        Returns ``(None, False)`` (as ``None`` cast) only when at capacity —
+        Returns ``(None, False)`` (as ``None`` cast) only when at capacity -
         callers must check for None before unpacking.
         """
         if len(self._active) >= _MAX_ACTIVE:
@@ -520,7 +520,7 @@ class HypothesisEngine:
                 evicted_score=round(evicted.evidence_score, 3),
             )
 
-        # Dedup on structured fields — exact match on normalised endpoint+fix_type pair.
+        # Dedup on structured fields - exact match on normalised endpoint+fix_type pair.
         # Using repair_endpoint/repair_fix_type avoids false matches from statement text.
         endpoint_norm = endpoint.lower().strip()
         fix_type_norm = fix_type.lower().strip()
@@ -638,7 +638,7 @@ class HypothesisEngine:
         Eviction fitness = evidence_score − staleness_penalty, where
         staleness_penalty = days_since_last_evidence × 0.1 (max 2.0).
 
-        Only PROPOSED and TESTING hypotheses are eviction candidates —
+        Only PROPOSED and TESTING hypotheses are eviction candidates -
         SUPPORTED/INTEGRATED ones have already met evidence thresholds.
 
         Spec §IV gap fix: replaces silent rejection at capacity with LRU eviction.
@@ -735,8 +735,8 @@ CURRENT ACTIVE HYPOTHESES (avoid duplicates):
 Generate up to {max_hypotheses} hypotheses that explain the patterns above.
 
 Rules:
-- Each hypothesis must be FALSIFIABLE — state exactly how it could be proven false
-- Prefer SIMPLER explanations (Occam's razor) — penalise unnecessary complexity
+- Each hypothesis must be FALSIFIABLE - state exactly how it could be proven false
+- Prefer SIMPLER explanations (Occam's razor) - penalise unnecessary complexity
 - Do NOT duplicate existing hypotheses
 - Max {max_hypotheses} hypotheses per batch
 
@@ -846,7 +846,7 @@ def _parse_json_safe(text: str) -> dict[str, Any]:
 class StructuralHypothesisGenerator:
     """
     Generates hypotheses purely from graph topology, prediction errors,
-    contradictions, and structural analogy — no LLM calls.
+    contradictions, and structural analogy - no LLM calls.
 
     Four generators:
       1. Graph-structural: betweenness centrality, cluster detection, temporal
@@ -917,7 +917,7 @@ class StructuralHypothesisGenerator:
                     category=HypothesisCategory.WORLD_MODEL,
                     statement=(
                         f"Node '{name}' (type: {record.get('bridge_type', '?')}) bridges "
-                        f"{record.get('reach', 0)} disconnected nodes — there may be a "
+                        f"{record.get('reach', 0)} disconnected nodes - there may be a "
                         f"latent direct relationship between types "
                         f"{record.get('sample_a_types', [])} and {record.get('sample_b_types', [])}"
                     ),
@@ -964,7 +964,7 @@ class StructuralHypothesisGenerator:
                     statement=(
                         f"Dense cluster around '{center}' ({record.get('neighbors', 0)} neighbors, "
                         f"{record.get('triangle_nodes', 0)} triangle participants) has no named "
-                        f"schema — this may represent an undiscovered entity type or concept"
+                        f"schema - this may represent an undiscovered entity type or concept"
                     ),
                     formal_test=(
                         f"If elements in the cluster around '{center}' share >3 common "
@@ -1120,7 +1120,7 @@ class StructuralHypothesisGenerator:
                         f"Context: {context_description[:150]}"
                     ),
                     formal_test=(
-                        f"The existing {domain} model should be replaced or restructured — "
+                        f"The existing {domain} model should be replaced or restructured - "
                         f"incremental parameter adjustment should NOT reduce error below 0.3"
                     ),
                     complexity_penalty=0.20,

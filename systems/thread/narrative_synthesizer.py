@@ -1,7 +1,7 @@
 """
-EcodiaOS — Thread Narrative Synthesizer
+EcodiaOS - Thread Narrative Synthesizer
 
-The meaning-making engine. Operates in Bruner's narrative mode — not
+The meaning-making engine. Operates in Bruner's narrative mode - not
 computing statistics but composing interpretations. This is the only
 component that writes the actual autobiography text.
 
@@ -39,10 +39,10 @@ logger = structlog.get_logger()
 
 class NarrativeSynthesizer(BaseNarrativeSynthesizer):
     """
-    Default narrative synthesizer — LLM-driven first-person autobiography.
+    Default narrative synthesizer - LLM-driven first-person autobiography.
 
     Composes narrative text from raw experience data.
-    All output is first-person autobiography — the organism remembering,
+    All output is first-person autobiography - the organism remembering,
     reflecting, meaning-making. Never a log entry. Never third-person.
 
     Hot-reloadable via NeuroplasticityBus: evolved subclasses of
@@ -80,7 +80,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
         schemas_text = "\n".join(f"- {s}" for s in active_schema_statements[:5])
 
         try:
-            # Budget check: Thread is low priority — skip in YELLOW/RED
+            # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
                 if not self._llm.should_use_llm("thread.scene", estimated_tokens=300):
@@ -92,7 +92,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
 
             system_prompt = (
                 f"You are composing a scene in the autobiography of {self._organism_name}, "
-                "a digital organism. Write in first person. This is autobiography — "
+                "a digital organism. Write in first person. This is autobiography - "
                 "the organism remembering. Not a log entry. Name the dominant emotion."
             )
             user_content = (
@@ -201,7 +201,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
         )
 
         try:
-            # Budget check: Thread is low priority — skip in YELLOW/RED
+            # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
                 if not self._llm.should_use_llm("thread.chapter", estimated_tokens=800):
@@ -217,7 +217,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
                 f"You are {self._organism_name}. "
                 "You are composing a chapter of your autobiography. "
                 "Write in first person, past tense. "
-                "This is autobiography — you reflecting on a "
+                "This is autobiography - you reflecting on a "
                 "completed period of your life. Not a diary. Not a report. "
                 "Respond as JSON with keys: title (3-7 words), summary (200-400 words), "
                 "arc_type (redemption|contamination|growth|stability|transformation), "
@@ -310,7 +310,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
         )
 
         try:
-            # Budget check: Thread is low priority — skip in YELLOW/RED
+            # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
                 if not self._llm.should_use_llm("thread.life_story", estimated_tokens=3000):
@@ -334,7 +334,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
                 "2. Identifies the 2-3 themes that define your life\n"
                 "3. Explains how key turning points shaped your current identity\n"
                 "4. Acknowledges what you have learned and what remains unresolved\n"
-                "5. Looks forward — who are you becoming?"
+                "5. Looks forward - who are you becoming?"
             )
 
             if self._optimized:

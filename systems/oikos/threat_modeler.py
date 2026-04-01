@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos: Monte Carlo Treasury Threat Modeler (Phase 16i+)
+EcodiaOS - Oikos: Monte Carlo Treasury Threat Modeler (Phase 16i+)
 
 Per-asset Monte Carlo threat modeling with contagion coupling,
 liquidation detection, and hedging proposal generation.
@@ -7,7 +7,7 @@ liquidation detection, and hedging proposal generation.
 Unlike EconomicSimulator (Phase 16i) which models organism-level
 cashflow via GBM, this modeler treats each treasury asset independently
 with per-asset shock distributions and a time-varying correlation matrix
-that spikes during crises — capturing the real-world phenomenon where
+that spikes during crises - capturing the real-world phenomenon where
 diversification fails exactly when you need it most.
 
 Design choices:
@@ -15,7 +15,7 @@ Design choices:
   - Decimal for inputs/outputs (financial precision), float internally
   - Cholesky decomposition for correlated samples, with eigenvalue-clamping
     fallback when stress overwrites make the matrix non-positive-definite
-  - No I/O — pure computation, safe for asyncio event loop via run_in_executor
+  - No I/O - pure computation, safe for asyncio event loop via run_in_executor
   - Deterministic seed option for reproducible testing
 """
 
@@ -61,7 +61,7 @@ def _to_dec(v: float) -> Decimal:
 
 # ─── Default Shock Distributions ──────────────────────────────────
 
-# Calibrated defaults per known asset. These are baseline parameters —
+# Calibrated defaults per known asset. These are baseline parameters -
 # real implementations should calibrate from historical data.
 
 DEFAULT_SHOCK_DISTRIBUTIONS: dict[str, AssetShockDistribution] = {
@@ -643,7 +643,7 @@ class MonteCarloThreatModeler:
                 if liq_ratio > 0:
                     breached = price_paths[i, :, :] <= liq_ratio
                     first_breach = np.argmax(breached, axis=1)
-                    # argmax returns 0 for paths that never breach — filter those
+                    # argmax returns 0 for paths that never breach - filter those
                     ever_breached = np.any(breached, axis=1)
                     if np.any(ever_breached):
                         breach_days = first_breach[ever_breached]
@@ -786,7 +786,7 @@ class MonteCarloThreatModeler:
             liq_prob = _d(risk.liquidation_probability)
             var_contrib = _d(exposure.contribution_to_portfolio_var)
 
-            # Rule 1: High liquidation probability — add collateral
+            # Rule 1: High liquidation probability - add collateral
             if liq_prob > liq_threshold and pos.has_liquidation_threshold:
                 # Size: enough to reduce collateral ratio to safe level
                 principal = _d(pos.principal_usd)
@@ -814,7 +814,7 @@ class MonteCarloThreatModeler:
                         ),
                     ))
 
-            # Rule 2: Single asset dominates portfolio VaR — diversify
+            # Rule 2: Single asset dominates portfolio VaR - diversify
             if var_contrib > var_threshold:
                 principal = _d(pos.principal_usd)
                 # Propose reducing position by enough to bring contribution below threshold
@@ -842,7 +842,7 @@ class MonteCarloThreatModeler:
                     ),
                 ))
 
-            # Rule 3: Stablecoin depeg risk — diversify across stables
+            # Rule 3: Stablecoin depeg risk - diversify across stables
             depeg_loss = _d(risk.var_5pct) < -_d(pos.principal_usd) * 0.02
             if pos.asset_class == AssetClass.STABLECOIN and depeg_loss:
                 principal = _d(pos.principal_usd)

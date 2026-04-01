@@ -122,7 +122,7 @@ async def _make_service_with_inspector_loaded() -> SimulaService:
     service._initialized = True
     service._current_version = 0
 
-    # Now attach Inspector — import all modules to ensure they load cleanly
+    # Now attach Inspector - import all modules to ensure they load cleanly
     from systems.simula.inspector.prover import VulnerabilityProver
     from systems.simula.inspector.service import InspectorService
     from systems.simula.inspector.types import InspectorConfig

@@ -1,5 +1,5 @@
 """
-SACM — Substrate Providers
+SACM - Substrate Providers
 
 Pluggable provider backends for the Substrate-Arbitrage Compute Mesh.
 Each provider can quote pricing, accept workloads, and report status.

@@ -1,18 +1,18 @@
 """
-EcodiaOS — Oikos: Interspecies Economy (Phase 16j)
+EcodiaOS - Oikos: Interspecies Economy (Phase 16j)
 
-Inter-Instance Economic Protocol (IIEP) — where individual organisms become an
+Inter-Instance Economic Protocol (IIEP) - where individual organisms become an
 ecosystem. This module implements fleet-scale coordination primitives:
 
-  1. **Capability Marketplace** — instances publish capabilities, request services
+  1. **Capability Marketplace** - instances publish capabilities, request services
      from peers, and settle trades via escrow. Price = marginal cost x markup.
-  2. **Mutual Insurance Pool** — risk-sharing across fleet members. Premium
+  2. **Mutual Insurance Pool** - risk-sharing across fleet members. Premium
      scaled by net worth and metabolic efficiency. Claims require 2+ attestors.
-  3. **Coordinated Reproduction** — niche assignment to the best-positioned
+  3. **Coordinated Reproduction** - niche assignment to the best-positioned
      parent when the federation agrees a new niche should be filled.
-  4. **Collective Liquidity** — placeholder for coordinated LP deployment.
+  4. **Collective Liquidity** - placeholder for coordinated LP deployment.
 
-All inter-instance communication is via Synapse events — no direct cross-system
+All inter-instance communication is via Synapse events - no direct cross-system
 imports. Money values use Decimal throughout.
 """
 
@@ -424,8 +424,8 @@ class InterspeciesEconomy:
             annual_premium = net_worth x base_rate x risk_adjustment
 
         Risk adjustment:
-            0.8  if metabolic_efficiency > 1.5 (healthy — discount)
-            1.5  if metabolic_efficiency < 1.0 (struggling — surcharge)
+            0.8  if metabolic_efficiency > 1.5 (healthy - discount)
+            1.5  if metabolic_efficiency < 1.0 (struggling - surcharge)
             1.0  otherwise (neutral)
         """
         base_rate = _INSURANCE_BASE_RATE
@@ -499,7 +499,7 @@ class InterspeciesEconomy:
         Updates lifetime premiums paid and recalculates max claim (2x lifetime).
         """
         if self._insurance_policy is None:
-            msg = "No active insurance policy — join a pool first"
+            msg = "No active insurance policy - join a pool first"
             raise ValueError(msg)
 
         policy = self._insurance_policy

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Child-Side Health Reporter (Spec 26 §7 / HIGH #2)
+EcodiaOS - Child-Side Health Reporter (Spec 26 §7 / HIGH #2)
 
 When EOS runs as a child instance (IS_GENESIS_NODE=false), this module
 starts a background loop that emits CHILD_HEALTH_REPORT every 10 minutes
@@ -42,7 +42,7 @@ class ChildHealthReporter:
     Emits CHILD_HEALTH_REPORT every 10 minutes when running as a child instance.
 
     Activated only when ECODIAOS_IS_GENESIS_NODE != 'true'. Safe to instantiate
-    on a genesis node — start() will no-op.
+    on a genesis node - start() will no-op.
 
     Parameters
     ----------
@@ -97,7 +97,7 @@ class ChildHealthReporter:
         if self._task is not None:
             return
 
-        # Run cert handshake first — emits CHILD_WALLET_REPORTED (triggers deferred
+        # Run cert handshake first - emits CHILD_WALLET_REPORTED (triggers deferred
         # seed transfer) and FEDERATION_PEER_CONNECTED. Non-fatal: failure is logged
         # but does not prevent the health reporter from starting.
         await self._run_cert_handshake()
@@ -180,7 +180,7 @@ class ChildHealthReporter:
                 break
 
     async def _on_child_health_request(self, event: Any) -> None:
-        """Handle CHILD_HEALTH_REQUEST — emit an immediate CHILD_HEALTH_REPORT.
+        """Handle CHILD_HEALTH_REQUEST - emit an immediate CHILD_HEALTH_REPORT.
 
         Oikos emits CHILD_HEALTH_REQUEST every 10 minutes to probe each live child.
         This handler responds immediately rather than waiting for the next scheduled
@@ -192,7 +192,7 @@ class ChildHealthReporter:
         data = event.data if hasattr(event, "data") else {}
         target_id = str(data.get("child_instance_id", ""))
         if target_id and target_id != self._instance_id:
-            # Request is for a different child — ignore
+            # Request is for a different child - ignore
             return
 
         self._log.debug(

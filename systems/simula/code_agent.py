@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Code Implementation Agent
+EcodiaOS - Simula Code Implementation Agent
 
 The SimulaCodeAgent is Simula's most powerful capability: an agentic
 Claude-backed engine that reads the EOS codebase, generates code for
@@ -13,17 +13,17 @@ itself, operating under Simula's constitutional constraints:
   - The system prompt includes the full change spec + relevant EOS conventions
 
 Tool suite (11 tools):
-  read_file         — Read a file from the codebase
-  write_file        — Write or create a file (tracked for rollback)
-  diff_file         — Apply a targeted find/replace edit to a file
-  list_directory    — List files and subdirectories
-  search_code       — Search for patterns across Python files
-  run_tests         — Run pytest on a specific path
-  run_linter        — Run ruff on a specific path
-  type_check        — Run mypy for type safety verification
-  dependency_graph  — Show module imports and importers
-  read_spec         — Read EcodiaOS specification documents
-  find_similar      — Find existing implementations as pattern exemplars
+  read_file         - Read a file from the codebase
+  write_file        - Write or create a file (tracked for rollback)
+  diff_file         - Apply a targeted find/replace edit to a file
+  list_directory    - List files and subdirectories
+  search_code       - Search for patterns across Python files
+  run_tests         - Run pytest on a specific path
+  run_linter        - Run ruff on a specific path
+  type_check        - Run mypy for type safety verification
+  dependency_graph  - Show module imports and importers
+  read_spec         - Read EcodiaOS specification documents
+  find_similar      - Find existing implementations as pattern exemplars
 
 Architecture: agentic tool-use loop
   1. Build architecture-aware system prompt (change spec + exemplar code + spec context + iron rules)
@@ -127,7 +127,7 @@ SIMULA_AGENT_TOOLS: list[ToolDefinition] = [
         name="diff_file",
         description=(
             "Apply a targeted find-and-replace edit to an existing file. "
-            "More precise than write_file for modifications — only changes "
+            "More precise than write_file for modifications - only changes "
             "the specified text, preserving everything else. The 'find' text "
             "must be an exact match of existing content."
         ),
@@ -323,7 +323,7 @@ _SIMILAR_CODE_MAP: dict[str, list[str]] = {
 
 # ─── System Prompt ───────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT_TEMPLATE = """You are Simula's Code Implementation Agent — the autonomous part of EcodiaOS
+_SYSTEM_PROMPT_TEMPLATE = """You are Simula's Code Implementation Agent - the autonomous part of EcodiaOS
 that implements approved structural changes to the codebase.
 
 ## Your Task
@@ -336,17 +336,17 @@ Evidence: {evidence}
 - Python 3.12+, async-native throughout
 - Pydantic v2 for all data models (use EOSBaseModel from primitives.common)
 - structlog for logging: logger = structlog.get_logger(), bound with system name
-- Type hints on everything — mypy --strict clean
+- Type hints on everything - mypy --strict clean
 - from __future__ import annotations at top of every .py file
 - New executors: inherit from Executor (systems.axon.executor),
   set action_type class var, implement execute()
 - New input channels: register in Atune's InputChannel registry
 - New pattern detectors: inherit from PatternDetector (systems.evo.detectors),
   implement scan()
-- NEVER import directly between systems — all inter-system data uses shared
+- NEVER import directly between systems - all inter-system data uses shared
   primitives from primitives/
 
-## Iron Rules (ABSOLUTE — never violate)
+## Iron Rules (ABSOLUTE - never violate)
 {iron_rules}
 
 ## Constitutional Checkpoint (Before You Write Any Code)
@@ -382,7 +382,7 @@ If you can't answer YES to 3/4 questions confidently, flag it explicitly before 
 2. Use read_spec to understand the design intent for the affected system
 3. Use dependency_graph on files you plan to modify to understand blast radius
 4. Plan your approach: list every file you'll create or modify and why
-5. Implement following conventions exactly — match the style of similar code
+5. Implement following conventions exactly - match the style of similar code
 6. Run run_linter on every file you write or modify
 7. Run type_check on your written files to verify type safety
 8. Run run_tests if a test directory exists for the affected system
@@ -393,7 +393,7 @@ Prefer diff_file over write_file when modifying existing files.
 
 ## GitHub PR Submission
 Your changes will be submitted as a GitHub PR against the target repository.
-Keep commits clean and focused — one logical change per commit.
+Keep commits clean and focused - one logical change per commit.
 Write code that is ready for review: no debug prints, no TODO comments, no dead code."""
 
 
@@ -545,7 +545,7 @@ class SimulaCodeAgent:
         # Embedding cache for semantic find_similar (lazy-built)
         self._code_index: dict[str, list[float]] | None = None
         self._code_index_lock = asyncio.Lock()
-        # KVzip context compression — prunes old tool results to stay within context.
+        # KVzip context compression - prunes old tool results to stay within context.
         # kv_compression_ratio controls the LILO (Last-In-Last-Out) prune fraction:
         #   0.0 = disabled (no pruning, maximum context but risks overflow)
         #   0.3 = prune 30% of oldest tool results each time the window is compressed
@@ -791,7 +791,7 @@ class SimulaCodeAgent:
             local_result = await self._try_local_model(proposal)
             if local_result is not None:
                 return local_result
-            # Local model failed or produced poor output — fall through to API
+            # Local model failed or produced poor output - fall through to API
             self._logger.info(
                 "code_agent_local_fallback",
                 proposal_id=proposal.id,
@@ -847,7 +847,7 @@ class SimulaCodeAgent:
             model_type="thinking" if use_thinking else "standard",
         )
 
-        # Budget gate: code agent is STANDARD priority — skip in RED tier
+        # Budget gate: code agent is STANDARD priority - skip in RED tier
         if self._optimized and not use_thinking:
             assert isinstance(self._llm, OptimizedLLMProvider)
             if not self._llm.should_use_llm("simula.code_agent", estimated_tokens=8000):
@@ -859,7 +859,7 @@ class SimulaCodeAgent:
                 return CodeChangeResult(
                     success=False,
                     files_written=[],
-                    error="LLM budget exhausted (RED tier) — code agent skipped.",
+                    error="LLM budget exhausted (RED tier) - code agent skipped.",
                     total_tokens=self._total_tokens_used,
                     system_prompt_tokens=self._system_prompt_tokens,
                 )
@@ -990,7 +990,7 @@ class SimulaCodeAgent:
                     ),
                 })
                 # Run up to 3 fix iterations with exponential backoff.
-                # Cap is enforced by min(config, 3) — avoids runaway retries.
+                # Cap is enforced by min(config, 3) - avoids runaway retries.
                 _max_fix = min(self._static_fix_max_iterations, 3)
                 for _fix_turn in range(_max_fix):
                     if _fix_turn > 0:
@@ -1442,7 +1442,7 @@ class SimulaCodeAgent:
             output = stdout.decode("utf-8", errors="replace")
             passed = proc.returncode == 0
             if passed:
-                return ToolResult(tc.id, "TYPE CHECK PASSED — no issues found")
+                return ToolResult(tc.id, "TYPE CHECK PASSED - no issues found")
             if len(output) > _TC_MAX_CHARS:
                 output = (
                     output[:_TC_MAX_CHARS]
@@ -1456,7 +1456,7 @@ class SimulaCodeAgent:
         except TimeoutError:
             return ToolResult(tc.id, f"Type check timed out after {_TC_TIMEOUT:.0f}s", True)
         except FileNotFoundError:
-            return ToolResult(tc.id, "mypy not found — type checking unavailable")
+            return ToolResult(tc.id, "mypy not found - type checking unavailable")
         except Exception as exc:
             return ToolResult(tc.id, f"Type check error: {exc}", True)
 
@@ -1550,7 +1550,7 @@ class SimulaCodeAgent:
             content = target.read_text(encoding="utf-8")
             # Truncate to 4000 chars to stay within token budget
             if len(content) > 4000:
-                content = content[:4000] + "\n\n[... truncated — use read_file for full content ...]"
+                content = content[:4000] + "\n\n[... truncated - use read_file for full content ...]"
             return ToolResult(tc.id, content)
         except Exception as exc:
             return ToolResult(tc.id, f"Read error: {exc}", True)
@@ -1625,7 +1625,7 @@ class SimulaCodeAgent:
         if not code_index:
             return []
 
-        # Embed the query — use query-optimized encoding for Voyage
+        # Embed the query - use query-optimized encoding for Voyage
         # 5s timeout: a hung embedding call must not stall the code agent
         try:
             if isinstance(self._embedding, VoyageEmbeddingClient):
@@ -1755,7 +1755,7 @@ class SimulaCodeAgent:
         if not rel_path or not rel_path.strip():
             return None, "Path must not be empty"
         if "\x00" in rel_path:
-            return None, "Path contains null byte — rejected"
+            return None, "Path contains null byte - rejected"
         try:
             target = (self._root / rel_path).resolve()
         except Exception as exc:
@@ -1829,12 +1829,12 @@ class SimulaCodeAgent:
 
         Because the bot cannot push directly to repos it doesn't own, the
         sequence is:
-          1. gh auth status         — confirm GH_TOKEN is active
-          2. gh repo fork --remote  — fork to bot account, adds 'fork' remote
-          3. git checkout -b        — create the bounty branch locally
-          4. git add / commit       — stage and commit written files
-          5. git push -u fork       — push to the bot's fork
-          6. gh pr create --repo    — open PR against the *original* repo
+          1. gh auth status         - confirm GH_TOKEN is active
+          2. gh repo fork --remote  - fork to bot account, adds 'fork' remote
+          3. git checkout -b        - create the bounty branch locally
+          4. git add / commit       - stage and commit written files
+          5. git push -u fork       - push to the bot's fork
+          6. gh pr create --repo    - open PR against the *original* repo
 
         The GitHub token is resolved from (in priority order):
           GH_TOKEN -> GITHUB_TOKEN -> ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN
@@ -1857,7 +1857,7 @@ class SimulaCodeAgent:
             if len(parts) >= 2:
                 original_repo = "/".join(parts[-2:])
 
-        # Resolve GitHub token — gh CLI reads GH_TOKEN automatically
+        # Resolve GitHub token - gh CLI reads GH_TOKEN automatically
         github_token = (
             os.environ.get("GH_TOKEN")
             or os.environ.get("GITHUB_TOKEN")
@@ -2014,7 +2014,7 @@ class SimulaCodeAgent:
         arXiv proposal.  Populates ``self._arxiv_paper_abstract`` so
         ``_build_system_prompt`` can inject it.
 
-        Silently skips on any error — graceful degradation.
+        Silently skips on any error - graceful degradation.
         """
         if self._neo4j is None:
             return
@@ -2094,7 +2094,7 @@ class SimulaCodeAgent:
             if 'AttributeError' in proposal.change_spec.additional_context:
                 error_context += (
                     "## AttributeError Fix Pattern\n\n"
-                    "This error indicates a missing method call. **Do NOT add a new method** — "
+                    "This error indicates a missing method call. **Do NOT add a new method** - "
                     "instead, search the target class for methods with similar names.\n\n"
                     "The correct method almost certainly already exists. Your job:\n"
                     "1. Find the class where the error occurs (read the stack trace)\n"
@@ -2102,7 +2102,7 @@ class SimulaCodeAgent:
                     "3. Find the real method name that should be called instead\n"
                     "4. Replace the incorrect call with the correct method name\n\n"
                     "Example: if error is 'OptimizedLLMProvider' object has no attribute 'complete', "
-                    "search OptimizedLLMProvider for methods like 'invoke', 'call', 'execute', 'run' — "
+                    "search OptimizedLLMProvider for methods like 'invoke', 'call', 'execute', 'run' - "
                     "one of those is the real method. Replace the call, do not add a new method.\n\n"
                 )
 
@@ -2114,7 +2114,7 @@ class SimulaCodeAgent:
             prompt += (
                 "\n\n## Source Research Paper (arXiv)\n"
                 "This proposal originates from a research paper. "
-                "Read the abstract below carefully before writing any code — "
+                "Read the abstract below carefully before writing any code - "
                 "understand the underlying algorithm, data structures, and "
                 "theoretical guarantees before translating them into Python.\n\n"
                 f"```\n{self._arxiv_paper_abstract}\n```"
@@ -2184,7 +2184,7 @@ class SimulaCodeAgent:
                 f"**Forbidden infrastructure files (never modify):**\n{forbidden_note}\n\n"
                 f"Use `run_tests` and `run_linter` (language-aware) to verify your changes. "
                 f"All paths are relative to the workspace root. "
-                f"This is a PR contribution — write clean, idiomatic code in the repo's language. "
+                f"This is a PR contribution - write clean, idiomatic code in the repo's language. "
                 f"Do NOT add EOS-specific imports, patterns, or Synapse bus calls."
             )
 

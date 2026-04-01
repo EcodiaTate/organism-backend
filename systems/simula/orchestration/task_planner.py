@@ -217,7 +217,7 @@ class TaskPlanner:
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
 
-        # If we didn't visit all nodes, there's a cycle — add remaining
+        # If we didn't visit all nodes, there's a cycle - add remaining
         remaining = [nid for nid in node_ids if nid not in result]
         result.extend(sorted(remaining))
 

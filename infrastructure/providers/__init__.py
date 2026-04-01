@@ -1,5 +1,5 @@
 """
-EcodiaOS — Infrastructure Provider Interfaces
+EcodiaOS - Infrastructure Provider Interfaces
 
 Abstractions for querying compute costs and managing deployments
 across cloud and decentralised compute providers.

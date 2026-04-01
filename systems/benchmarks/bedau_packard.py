@@ -113,9 +113,9 @@ class BedauPackardTracker:
         self._seen_fingerprints: set[str] = set()
         # Chronological list of monthly snapshots
         self._activity_history: list[EvolutionaryActivitySnapshot] = []
-        # Neo4j client — injected via set_neo4j(); None = persistence disabled
+        # Neo4j client - injected via set_neo4j(); None = persistence disabled
         self._neo4j: Any | None = None
-        # Instance ID for Neo4j node keying — injected alongside neo4j
+        # Instance ID for Neo4j node keying - injected alongside neo4j
         self._instance_id: str = "eos-default"
 
     def set_neo4j(self, neo4j: Any, instance_id: str = "eos-default") -> None:
@@ -138,7 +138,7 @@ class BedauPackardTracker:
             "equor":  {"amendments": [...], "drive_deltas": {...}},
         }
 
-        All sub-fields are optional — missing keys produce zero/empty output.
+        All sub-fields are optional - missing keys produce zero/empty output.
         """
         components: list[EvolutionaryComponent] = []
 
@@ -238,7 +238,7 @@ class BedauPackardTracker:
         adaptive_count = 0
         for cid, hist in self._component_history.items():
             if cid not in seen_ids:
-                continue  # component absent this month — not counted
+                continue  # component absent this month - not counted
             if len(hist) >= 2:
                 # Check that the most recent entry has a novel fingerprint vs any prior
                 latest_fp = hist[-1].value_fingerprint
@@ -309,7 +309,7 @@ class BedauPackardTracker:
           - "growing_not_shadow_controlled" : A(t) grows but shadow control inconclusive
           - "exceeds_bounded"           : A(t) growing AND consistently exceeds shadow
 
-        IMPORTANT: Does NOT claim "open-ended evolution" — uses "exceeds bounded
+        IMPORTANT: Does NOT claim "open-ended evolution" - uses "exceeds bounded
         classification" per speciation bible §8.5.  OEE is a multi-decade scientific
         debate; these statistics are evidence, not proof.
         """
@@ -342,13 +342,13 @@ class BedauPackardTracker:
             verdict = "growing_not_shadow_controlled"
             paper_claim = (
                 "evolutionary dynamics observed with growing adaptive activity; "
-                "shadow-reset controls inconclusive — fleet size < 5 limits statistical power"
+                "shadow-reset controls inconclusive - fleet size < 5 limits statistical power"
             )
         else:
             verdict = "bounded"
             paper_claim = (
                 "evolutionary dynamics observed; adaptive activity bounded "
-                "— expected in early months before fleet population scales"
+                "- expected in early months before fleet population scales"
             )
 
         return {

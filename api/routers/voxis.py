@@ -1,5 +1,5 @@
 """
-Voxis API Router — Expression / Communication / Personality
+Voxis API Router - Expression / Communication / Personality
 ============================================================
 Exposes observability, control, and configuration endpoints for the
 Voxis expression engine. The backend VoxisService holds all state;
@@ -10,18 +10,18 @@ Existing endpoints (in main.py, not moved):
   GET  /api/v1/voxis/health
 
 New endpoints here:
-  GET  /api/v1/voxis/metrics          — counters, rates, breakdowns
-  GET  /api/v1/voxis/queue            — expression queue state + items
-  GET  /api/v1/voxis/diversity        — diversity tracker state
-  GET  /api/v1/voxis/reception        — reception engine metrics
-  GET  /api/v1/voxis/dynamics         — conversation dynamics metrics
-  GET  /api/v1/voxis/voice            — current voice parameter snapshot
-  GET  /api/v1/voxis/conversations    — active conversation list/summary
-  GET  /api/v1/voxis/config           — current Voxis config values
-  POST /api/v1/voxis/personality      — adjust personality dimension(s)
-  POST /api/v1/voxis/config           — update runtime config thresholds
-  POST /api/v1/voxis/queue/drain      — manually trigger queue drain
-  DELETE /api/v1/voxis/conversations/{id} — close a conversation
+  GET  /api/v1/voxis/metrics          - counters, rates, breakdowns
+  GET  /api/v1/voxis/queue            - expression queue state + items
+  GET  /api/v1/voxis/diversity        - diversity tracker state
+  GET  /api/v1/voxis/reception        - reception engine metrics
+  GET  /api/v1/voxis/dynamics         - conversation dynamics metrics
+  GET  /api/v1/voxis/voice            - current voice parameter snapshot
+  GET  /api/v1/voxis/conversations    - active conversation list/summary
+  GET  /api/v1/voxis/config           - current Voxis config values
+  POST /api/v1/voxis/personality      - adjust personality dimension(s)
+  POST /api/v1/voxis/config           - update runtime config thresholds
+  POST /api/v1/voxis/queue/drain      - manually trigger queue drain
+  DELETE /api/v1/voxis/conversations/{id} - close a conversation
 """
 
 from __future__ import annotations
@@ -289,7 +289,7 @@ async def get_voxis_queue(request: Request) -> VoxisQueueResponse:
 
 @router.get("/diversity", response_model=VoxisDiversityResponse)
 async def get_voxis_diversity(request: Request) -> VoxisDiversityResponse:
-    """Diversity tracker state — repetition detection metrics."""
+    """Diversity tracker state - repetition detection metrics."""
     voxis = getattr(request.app.state, "voxis", None)
     if voxis is None:
         return VoxisDiversityResponse(initialized=False)
@@ -327,7 +327,7 @@ async def get_voxis_diversity(request: Request) -> VoxisDiversityResponse:
 
 @router.get("/reception", response_model=VoxisReceptionResponse)
 async def get_voxis_reception(request: Request) -> VoxisReceptionResponse:
-    """Reception engine metrics — feedback loop quality."""
+    """Reception engine metrics - feedback loop quality."""
     voxis = getattr(request.app.state, "voxis", None)
     if voxis is None:
         return VoxisReceptionResponse(initialized=False)
@@ -353,7 +353,7 @@ async def get_voxis_reception(request: Request) -> VoxisReceptionResponse:
 
 @router.get("/dynamics", response_model=VoxisDynamicsResponse)
 async def get_voxis_dynamics(request: Request) -> VoxisDynamicsResponse:
-    """Conversation dynamics metrics — pacing, repair, emotional trajectory."""
+    """Conversation dynamics metrics - pacing, repair, emotional trajectory."""
     voxis = getattr(request.app.state, "voxis", None)
     if voxis is None:
         return VoxisDynamicsResponse(initialized=False)

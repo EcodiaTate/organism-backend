@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Type Definitions
+EcodiaOS - Kairos Type Definitions
 
 All data types for the Causal Invariant Mining system.
 
@@ -13,12 +13,12 @@ A single Tier 3 invariant can generate predictions across every domain it touche
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — Pydantic needs this at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs this at runtime
 from typing import Any
 
 from pydantic import Field
 
-from primitives.causal import (  # noqa: F401 — re-export for backward compatibility
+from primitives.causal import (  # noqa: F401 - re-export for backward compatibility
     ApplicableDomain,
     CausalInvariant,
     CausalInvariantTier,
@@ -148,14 +148,14 @@ class InterventionEvidence(EOSBaseModel):
 
     @property
     def a_causes_b_score(self) -> float:
-        """P(B changes | do(A)) — high means A→B is supported."""
+        """P(B changes | do(A)) - high means A→B is supported."""
         if self.interventions_on_a == 0:
             return 0.0
         return self.b_changed_after_a_intervention / self.interventions_on_a
 
     @property
     def b_causes_a_score(self) -> float:
-        """P(A changes | do(B)) — high means B→A is supported."""
+        """P(A changes | do(B)) - high means B→A is supported."""
         if self.interventions_on_b == 0:
             return 0.0
         return self.a_changed_after_b_intervention / self.interventions_on_b
@@ -350,7 +350,7 @@ class IntelligenceContribution(EOSBaseModel):
     invariant_length: float = 0.0
     """Description length of the invariant itself (in bits)."""
     intelligence_ratio_contribution: float = 0.0
-    """savings / invariant_length — how much this invariant compresses."""
+    """savings / invariant_length - how much this invariant compresses."""
     intelligence_ratio_without: float = 0.0
     """What the overall I-ratio would be if this invariant were removed."""
     computed_at: datetime = Field(default_factory=utc_now)
@@ -393,7 +393,7 @@ class ConfounderDiscoveredPayload(EOSBaseModel):
 
 
 class Tier3InvariantPayload(EOSBaseModel):
-    """Payload for KAIROS_TIER3_INVARIANT_DISCOVERED — highest-priority Kairos event."""
+    """Payload for KAIROS_TIER3_INVARIANT_DISCOVERED - highest-priority Kairos event."""
 
     invariant_id: str
     abstract_form: str
@@ -418,7 +418,7 @@ class CounterInvariantPayload(EOSBaseModel):
 
 
 class InvariantCandidatePayload(EOSBaseModel):
-    """Payload for KAIROS_INVARIANT_CANDIDATE — Stage 5 strong invariant."""
+    """Payload for KAIROS_INVARIANT_CANDIDATE - Stage 5 strong invariant."""
 
     invariant_id: str
     cause: str
@@ -429,7 +429,7 @@ class InvariantCandidatePayload(EOSBaseModel):
 
 
 class InvariantDistilledPayload(EOSBaseModel):
-    """Payload for KAIROS_INVARIANT_DISTILLED — Stage 6 complete."""
+    """Payload for KAIROS_INVARIANT_DISTILLED - Stage 6 complete."""
 
     invariant_id: str
     abstract_form: str

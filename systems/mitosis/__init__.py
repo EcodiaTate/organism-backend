@@ -1,5 +1,5 @@
 """
-EcodiaOS — Mitosis System (Spec 26)
+EcodiaOS - Mitosis System (Spec 26)
 
 Cellular division and fleet management for child instance spawning.
 The economic logic (fitness, niche selection, seed config) lives in Oikos;

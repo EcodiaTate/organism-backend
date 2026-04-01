@@ -1,10 +1,10 @@
 """
-EcodiaOS — Voxis Silence Engine
+EcodiaOS - Voxis Silence Engine
 
 Determines when the organism should NOT speak.
 
 Silence is a first-class decision, not a fallback. An organism that
-talks constantly is not caring — it is needy. The Silence Engine
+talks constantly is not caring - it is needy. The Silence Engine
 enforces the principle that every expression should serve a real purpose.
 
 The engine tracks time since last expression (stateful) and evaluates
@@ -70,19 +70,19 @@ class SilenceEngine:
         if trigger == ExpressionTrigger.ATUNE_DIRECT_ADDRESS:
             return SilenceDecision(
                 speak=True,
-                reason="Direct address — always respond",
+                reason="Direct address - always respond",
             )
 
         if trigger == ExpressionTrigger.ATUNE_DISTRESS:
             return SilenceDecision(
                 speak=True,
-                reason="Distress detected — Care drive activated",
+                reason="Distress detected - Care drive activated",
             )
 
         if trigger == ExpressionTrigger.NOVA_WARN:
             return SilenceDecision(
                 speak=True,
-                reason="Warning — urgency overrides silence heuristics",
+                reason="Warning - urgency overrides silence heuristics",
             )
 
         # ── Deliberate Nova triggers ──────────────────────────────
@@ -99,11 +99,11 @@ class SilenceEngine:
             )
 
         if trigger == ExpressionTrigger.NOVA_INFORM:
-            # Proactive inform — check rate limit and whether humans are conversing
+            # Proactive inform - check rate limit and whether humans are conversing
             if context.humans_actively_conversing:
                 return SilenceDecision(
                     speak=False,
-                    reason="Humans in active conversation — queue for after",
+                    reason="Humans in active conversation - queue for after",
                     queue=True,
                 )
             if elapsed < context.min_expression_interval:
@@ -114,7 +114,7 @@ class SilenceEngine:
                 )
             return SilenceDecision(
                 speak=True,
-                reason="Proactive inform — conditions clear",
+                reason="Proactive inform - conditions clear",
             )
 
         # ── Ambient / spontaneous triggers ────────────────────────
@@ -122,14 +122,14 @@ class SilenceEngine:
             if context.humans_actively_conversing:
                 return SilenceDecision(
                     speak=False,
-                    reason="Humans in active conversation — insight queued",
+                    reason="Humans in active conversation - insight queued",
                     queue=True,
                 )
             if elapsed < context.min_expression_interval:
                 return SilenceDecision(
                     speak=False,
                     reason=f"Insight rate-limited: {elapsed:.1f}m elapsed",
-                    queue=False,  # Discard — ambient insights have short relevance windows
+                    queue=False,  # Discard - ambient insights have short relevance windows
                 )
             if context.insight_value < 0.6:
                 return SilenceDecision(
@@ -138,20 +138,20 @@ class SilenceEngine:
                 )
             return SilenceDecision(
                 speak=True,
-                reason=f"Ambient insight — value {context.insight_value:.2f} above threshold",
+                reason=f"Ambient insight - value {context.insight_value:.2f} above threshold",
             )
 
         if trigger == ExpressionTrigger.AMBIENT_STATUS:
-            # Status updates are low-priority — only if no recent expression
+            # Status updates are low-priority - only if no recent expression
             if elapsed < max(5.0, context.min_expression_interval * 5):
                 return SilenceDecision(
                     speak=False,
-                    reason="Status update suppressed — recent expression exists",
+                    reason="Status update suppressed - recent expression exists",
                 )
             return SilenceDecision(speak=True, reason="Periodic status update")
 
         # ── Default ───────────────────────────────────────────────
         return SilenceDecision(
             speak=False,
-            reason=f"Unhandled trigger '{trigger.value}' — defaulting to silence",
+            reason=f"Unhandled trigger '{trigger.value}' - defaulting to silence",
         )

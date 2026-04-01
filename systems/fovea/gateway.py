@@ -1,11 +1,11 @@
 """
-Fovea — Perception Gateway & Global Workspace.
+Fovea - Perception Gateway & Global Workspace.
 
 The organism's sensory cortex and consciousness. Receives all input from
 the world and broadcasts selected content to all other systems.
 
     If Memory is the substrate of selfhood and Equor is the conscience,
-    the gateway is the awareness — the part that opens its eyes and sees.
+    the gateway is the awareness - the part that opens its eyes and sees.
 
 Responsibilities:
 * Input normalisation (normalisation.py)
@@ -447,7 +447,7 @@ class PerceptionGateway:
         # SystemLoad → threshold and buffer adaptation (D3 gap closure).
         # High CPU/memory pressure raises the ignition threshold so only the
         # most salient percepts enter the workspace (backpressure protection).
-        # A deep percept queue signals the pipeline is overwhelmed — shrink the
+        # A deep percept queue signals the pipeline is overwhelmed - shrink the
         # buffer by nudging arousal downward so deque maxlen shrinks gracefully.
         if system_load is not None:
             # CPU / memory pressure → raise threshold to shed load
@@ -932,7 +932,7 @@ class PerceptionGateway:
 
     def set_belief_state(self, reader: Any) -> None:
         """
-        Step 1 — Precision modulation from Nova's belief state.
+        Step 1 - Precision modulation from Nova's belief state.
 
         High-confidence beliefs → lower precision for confirming percepts
         (already expected, less surprising).
@@ -945,7 +945,7 @@ class PerceptionGateway:
         try:
             if reader is None:
                 return
-            # reader is a BeliefStateReader / Nova service — query average confidence
+            # reader is a BeliefStateReader / Nova service - query average confidence
             beliefs = None
             if hasattr(reader, "get_current_beliefs"):
                 beliefs = reader.get_current_beliefs()
@@ -997,7 +997,7 @@ class PerceptionGateway:
 
     def set_community_size(self, size: int) -> None:
         """
-        Step 6 — Social scaling.
+        Step 6 - Social scaling.
 
         Larger community → boost federation-convergence percepts (more
         social signal is worth attending to).
@@ -1049,11 +1049,11 @@ class PerceptionGateway:
 
     def set_rhythm_state(self, state: str) -> None:
         """
-        Step 2 — Processing mode adaptation from Synapse rhythm.
+        Step 2 - Processing mode adaptation from Synapse rhythm.
 
-        FLOW: narrow attention window — boost top percept, suppress distractors
+        FLOW: narrow attention window - boost top percept, suppress distractors
               → lower dynamic ignition threshold (only high-salience percepts pass)
-        STRESS: widen attention window — everything gets through, lower threshold
+        STRESS: widen attention window - everything gets through, lower threshold
               → raise ignition threshold floor, expand workspace buffer
         BOREDOM: boost novelty weight, increase spontaneous recall probability
         DEEP_PROCESSING: suppress new percepts, let workspace contents dominate
@@ -1112,7 +1112,7 @@ class PerceptionGateway:
 
     def nudge_dominance(self, delta: float) -> None:
         """
-        Step 3a — Affect-coupled attention: dominance axis.
+        Step 3a - Affect-coupled attention: dominance axis.
 
         High dominance (> 0.7): boost agency-related percepts
             → reinforce ECONOMIC and CAUSAL error weights (action/outcome)
@@ -1150,11 +1150,11 @@ class PerceptionGateway:
 
     def nudge_valence(self, delta: float) -> None:
         """
-        Step 3b — Affect-coupled attention: valence axis.
+        Step 3b - Affect-coupled attention: valence axis.
 
-        High valence (> 0.7): reduce threat sensitivity — things are going well
+        High valence (> 0.7): reduce threat sensitivity - things are going well
             → attenuate CAUSAL and CATEGORY weights slightly
-        Low valence (< 0.3): boost threat sensitivity — something is wrong
+        Low valence (< 0.3): boost threat sensitivity - something is wrong
             → amplify CAUSAL and CATEGORY weights, lower ignition threshold
         """
         try:
@@ -1195,7 +1195,7 @@ class PerceptionGateway:
         self, adjustments: dict[str, float],
     ) -> None:
         """
-        Step 4 — Feed Evo parameter adjustments to the learner.
+        Step 4 - Feed Evo parameter adjustments to the learner.
 
         Keys prefixed with ``atune.*`` or ``fovea.*`` are forwarded to the
         appropriate subsystem. Unknown keys are silently ignored.
@@ -1254,7 +1254,7 @@ class PerceptionGateway:
 
     def receive_belief_feedback(self, feedback: Any) -> None:
         """
-        Step 5 — Attention learning signal from Nova.
+        Step 5 - Attention learning signal from Nova.
 
         When Nova reports that a percept led to a good/bad decision:
         - good outcome → reinforce the salience weights that promoted it

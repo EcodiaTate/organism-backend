@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 3: Trace ↔ Static CFG Mapper
+EcodiaOS - Inspector Phase 3: Trace ↔ Static CFG Mapper
 
 Bridges Phase 2 runtime observations (ControlFlowTrace) with the Phase 3
 static CFG (StaticCFG + FragmentCatalog).
@@ -18,7 +18,7 @@ is ``exact=True``.
 
 When no exact match exists (e.g. the tracer emitted a bare func:line pair),
 a fallback scan checks whether the line number falls within any known block
-range in that function — this is ``exact=False, match_reason="line_in_range"``.
+range in that function - this is ``exact=False, match_reason="line_in_range"``.
 
 Hot-path and failure-adjacent detection
 ----------------------------------------
@@ -26,7 +26,7 @@ Hot-path and failure-adjacent detection
 blocks visited in a large fraction of normal runs.
 
 ``build_failure_adjacent_regions()`` finds blocks that appear only in
-failure/crash runs (or rarely in normal runs) — these are the steerability
+failure/crash runs (or rarely in normal runs) - these are the steerability
 candidates.
 """
 

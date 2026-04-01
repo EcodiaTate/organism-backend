@@ -1,35 +1,35 @@
 """
-EcodiaOS — Oikos Metabolism API (MVP Economic Engine)
+EcodiaOS - Oikos Metabolism API (MVP Economic Engine)
 
 THE SINGLE METRIC THAT MATTERS:
 Can EOS generate enough yield to pay for its own LLM API calls?
 
 This module implements the four MVP capabilities:
 
-Task 1 — OikosMetabolism:
+Task 1 - OikosMetabolism:
   Reads live cost data from MetabolicTracker (already tracking every LLM token).
   Computes cost_per_hour, cost_per_day, projected_monthly_cost.
   Persists to Redis key eos:oikos:metabolism so data survives restarts.
 
-Task 2 — YieldStrategy:
+Task 2 - YieldStrategy:
   Fetches real yield rates from DeFiLlama / Aave API (falls back to configured APY).
   Given EOS_CAPITAL_BASE_USD, computes daily_yield at current rates.
   Compares daily_yield vs daily_cost → surplus_or_deficit, days_of_runway.
 
-Task 3 — OikosBudgetAuthority:
+Task 3 - OikosBudgetAuthority:
   Systems call GET /oikos/budget-check?system=nova&action=llm_call&estimated_cost=0.02
   Oikos approves/denies based on each system's remaining daily allocation.
   Emits BUDGET_EXHAUSTED event on Synapse bus when a system overruns.
   Every decision is logged to Redis for audit.
 
-Task 4 — RunwayAlarm:
+Task 4 - RunwayAlarm:
   Watches cost/yield ratio every cycle.
   Emits ECONOMIC_STRESS on Synapse bus when runway < 30 days.
   Triggers Thymos webhook (POST) when runway < 7 days.
   EOS never silently runs out of money.
 
 Architecture notes:
-  - No direct cross-system imports — Synapse integration is event-bus only.
+  - No direct cross-system imports - Synapse integration is event-bus only.
   - All financial figures sourced from MetabolicTracker, env vars, or real APIs.
   - No mock data, no hardcoded fake numbers.
   - Decimal for all USD math.
@@ -62,7 +62,7 @@ logger = structlog.get_logger("oikos.metabolism_api")
 _METABOLISM_KEY = "eos:oikos:metabolism"
 _YIELD_CACHE_KEY = "eos:oikos:yield_cache"
 
-# DeFiLlama yields endpoint — free, no API key, returns stablecoin pool APYs.
+# DeFiLlama yields endpoint - free, no API key, returns stablecoin pool APYs.
 # We target USDC/USDT pools on Aave V3 (Base L2) as the safest stablecoin yield.
 _DEFILLAMA_YIELDS_URL = "https://yields.llama.fi/pools"
 
@@ -73,7 +73,7 @@ _AAVE_BASE_USDC_POOL = "aave-v3-base-usdc"
 _YIELD_API_TIMEOUT_S = 10.0
 
 # Name for events emitted onto the Synapse bus. These are new event types
-# not yet in SynapseEventType — we use string keys per the bus's data dict.
+# not yet in SynapseEventType - we use string keys per the bus's data dict.
 _EVENT_SOURCE = "oikos"
 
 
@@ -232,11 +232,11 @@ class OikosMetabolism:
         """
         Read current cost state from MetabolicTracker and persist to Redis.
 
-        Returns live figures — not cached.  Call from the /oikos/metabolism
+        Returns live figures - not cached.  Call from the /oikos/metabolism
         endpoint handler.
         """
         if self._metabolism is None:
-            # No tracker available — return zeroed snapshot so the endpoint
+            # No tracker available - return zeroed snapshot so the endpoint
             # still responds with real structure, not an error.
             snap = MetabolismSnapshot(
                 cost_per_hour_usd=Decimal("0"),
@@ -274,7 +274,7 @@ class OikosMetabolism:
                 ),
             )
 
-        # Persist to Redis (fire-and-forget — non-fatal if Redis is down)
+        # Persist to Redis (fire-and-forget - non-fatal if Redis is down)
         asyncio.ensure_future(self._persist_metabolism(snap))
 
         return snap
@@ -397,7 +397,7 @@ class OikosMetabolism:
                     source="defillama",
                 )
             else:
-                # No qualifying pool found — keep fallback
+                # No qualifying pool found - keep fallback
                 self._logger.warning(
                     "yield_rate_no_qualifying_pool",
                     action="keeping_fallback_apy",
@@ -420,7 +420,7 @@ class OikosMetabolism:
         Select the highest qualifying APY from DeFiLlama pool data.
 
         Only accepts:
-          - USDC or USDT as the base token (stablecoins only — no impermanent loss)
+          - USDC or USDT as the base token (stablecoins only - no impermanent loss)
           - Established protocols: Aave V3, Compound V3, Morpho
           - Chains: Ethereum mainnet, Base, Arbitrum, Optimism
           - TVL > $10M USD (avoid tiny pools)
@@ -490,7 +490,7 @@ class OikosMetabolism:
         remaining = max(allocation - spent, Decimal("0"))
 
         if estimated_cost_usd <= remaining:
-            # Approve — charge against today's allocation
+            # Approve - charge against today's allocation
             self._spent_today[system_id] = spent + estimated_cost_usd
             decision = BudgetDecision(
                 approved=True,
@@ -505,7 +505,7 @@ class OikosMetabolism:
                 spent_today_usd=self._spent_today[system_id],
             )
         else:
-            # Deny — emit BUDGET_EXHAUSTED loudly
+            # Deny - emit BUDGET_EXHAUSTED loudly
             decision = BudgetDecision(
                 approved=False,
                 reason=(
@@ -539,7 +539,7 @@ class OikosMetabolism:
         """
         Daily budget = max(current daily_yield, daily_budget_floor_usd).
 
-        Uses the cached APY and capital base — no I/O on the hot path.
+        Uses the cached APY and capital base - no I/O on the hot path.
         """
         capital = Decimal(str(self._config.capital_base_usd))
         apy = self._cached_apy
@@ -578,7 +578,7 @@ class OikosMetabolism:
             self._logger.info("budget_day_reset", date=today)
 
     async def _emit_budget_exhausted(self, system_id: str, decision: BudgetDecision) -> None:
-        """Emit BUDGET_EXHAUSTED event on the Synapse bus — loudly."""
+        """Emit BUDGET_EXHAUSTED event on the Synapse bus - loudly."""
         if self._event_bus is None:
             self._logger.error(
                 "budget_exhausted_no_event_bus",
@@ -707,7 +707,7 @@ class OikosMetabolism:
         """
         POST to the Thymos escalation webhook with full economic context.
 
-        This is the hard alarm — called when runway < 7 days.
+        This is the hard alarm - called when runway < 7 days.
         EOS must never silently run out of money.
         """
         webhook_url = self._config.escalation_webhook_url
@@ -763,7 +763,7 @@ class OikosMetabolism:
                 webhook_url=webhook_url,
             )
         except Exception as exc:
-            # Log at critical level — the escalation itself failed.
+            # Log at critical level - the escalation itself failed.
             self._logger.critical(
                 "thymos_escalation_failed",
                 runway_days=str(runway_days),

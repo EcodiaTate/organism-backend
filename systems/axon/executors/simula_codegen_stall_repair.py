@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula CodeGen Stall Repair Executor
+EcodiaOS - Simula CodeGen Stall Repair Executor
 
 Repairs cognitive stalls in Synapse's simula_codegen subsystem by:
 1. Detecting broadcast acknowledgement rate drop

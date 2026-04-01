@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Affiliate Revenue Scanner
+EcodiaOS - Oikos Affiliate Revenue Scanner
 
 Discovers, applies to, and tracks affiliate programs that pay in USDC/ETH or
 via Stripe-to-bank.  All affiliate relationships are disclosed to Equor before
@@ -12,14 +12,14 @@ Legal / ethical constraints (hard-coded, cannot be overridden):
   - No fake reviews or misrepresentation of capabilities.
 
 Architecture:
-  - AffiliateProgramScanner — discovers programs, applies, tracks revenue.
-  - AffiliateMembership      — record of an active/pending program membership.
-  - AffiliateReferral        — individual referral event (click → conversion).
+  - AffiliateProgramScanner - discovers programs, applies, tracks revenue.
+  - AffiliateMembership      - record of an active/pending program membership.
+  - AffiliateReferral        - individual referral event (click → conversion).
 
 Events emitted:
-  AFFILIATE_PROGRAM_DISCOVERED  — new program detected in scan
-  AFFILIATE_MEMBERSHIP_APPLIED  — application submitted (post-Equor PERMIT)
-  AFFILIATE_REVENUE_RECORDED    — commission credited → also REVENUE_INJECTED
+  AFFILIATE_PROGRAM_DISCOVERED  - new program detected in scan
+  AFFILIATE_MEMBERSHIP_APPLIED  - application submitted (post-Equor PERMIT)
+  AFFILIATE_REVENUE_RECORDED    - commission credited → also REVENUE_INJECTED
 """
 
 from __future__ import annotations
@@ -267,7 +267,7 @@ class AffiliateProgramScanner:
     def generate_affiliate_link(self, program_name: str, content_type: str) -> str:
         """
         Returns a disclosure-tagged affiliate link for embedding in content.
-        The disclosure statement is always prepended — this is an Honesty invariant.
+        The disclosure statement is always prepended - this is an Honesty invariant.
         """
         membership = self._memberships.get(program_name)
         if not membership or membership.status != "active":

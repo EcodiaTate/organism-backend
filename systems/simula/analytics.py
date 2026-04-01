@@ -197,7 +197,7 @@ class EvolutionAnalyticsEngine:
         analytics = await self.compute_analytics()
         rate = analytics.category_rates.get(category.value)
         if rate is None or rate.total == 0:
-            return None  # no_history_available — caller must decide default
+            return None  # no_history_available - caller must decide default
         return rate.success_rate
 
     async def get_recent_rollback_rate(self, category: ChangeCategory) -> float:

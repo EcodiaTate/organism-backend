@@ -87,26 +87,26 @@ class MitosisFleetService:
         self._health_check_task: asyncio.Task[None] | None = None
         self._dividend_task: asyncio.Task[None] | None = None
         self._fleet_eval_task: asyncio.Task[None] | None = None
-        # Callable returning current list[ChildPosition] — injected at wire time
+        # Callable returning current list[ChildPosition] - injected at wire time
         self._get_children: Callable[[], list[Any]] | None = None
         # Callable(EconomicState) -> FleetMetrics for monthly evaluation
         self._run_fleet_evaluation: Callable[..., Any] | None = None
         # Callable returning current EconomicState snapshot
         self._get_state: Callable[[], Any] | None = None
-        # Callable(EconomicState) -> None — checks blacklisted children for decommission
+        # Callable(EconomicState) -> None - checks blacklisted children for decommission
         self._check_decommission_fn: Callable[..., Any] | None = None
         # Genome systems registry -- populated by the organism's boot sequence
         self._genome_systems: dict[SystemID, GenomeExtractionProtocol] = {}
-        # Locally mirrored blacklist — populated from CHILD_BLACKLISTED events
+        # Locally mirrored blacklist - populated from CHILD_BLACKLISTED events
         # Used to gate dividends, rescue, and seed transfers
         self._blacklisted_children: set[str] = set()
-        # Last known starvation level — updated by OIKOS_METABOLIC_SNAPSHOT handler
+        # Last known starvation level - updated by OIKOS_METABOLIC_SNAPSHOT handler
         self._last_starvation_level: str = "nominal"
-        # Service start time — used to enforce 24h maturity gate before spawning
+        # Service start time - used to enforce 24h maturity gate before spawning
         self._service_start_time: float = time.monotonic()
         # Reproductive fitness background task
         self._reproductive_fitness_task: asyncio.Task[None] | None = None
-        # AdapterSharer — injected via set_adapter_sharer(); None = sharing disabled
+        # AdapterSharer - injected via set_adapter_sharer(); None = sharing disabled
         self._adapter_sharer: Any | None = None
         # Optional callable returning the current slow adapter path from CLO
         self._get_adapter_path_fn: Any | None = None
@@ -525,7 +525,7 @@ class MitosisFleetService:
             except Exception as exc:
                 self._log.error("death_audit_failed", error=str(exc))
 
-        # Step 6: Post-mortem learning — RE training example + Thymos incident
+        # Step 6: Post-mortem learning - RE training example + Thymos incident
         try:
             from primitives.common import new_id, utc_now as _utcnow
 
@@ -565,7 +565,7 @@ class MitosisFleetService:
         except Exception as exc:
             self._log.debug("death_re_training_failed", error=str(exc))
 
-        # Notify Thymos — child death is a LOW-severity incident for post-mortem analysis
+        # Notify Thymos - child death is a LOW-severity incident for post-mortem analysis
         try:
             from primitives.common import utc_now as _utcnow2
 
@@ -596,7 +596,7 @@ class MitosisFleetService:
             },
         )
 
-        # INSTANCE_RETIRED — Nexus garbage-collects divergence history; Logos drops
+        # INSTANCE_RETIRED - Nexus garbage-collects divergence history; Logos drops
         # the world model snapshot it cloned for this child (Spec 19/21).
         from systems.synapse.types import SynapseEventType as _SET
         await self._emit_event(
@@ -861,7 +861,7 @@ class MitosisFleetService:
             If None, the instances are assumed compatible (fail-open).
         """
         if genome_a is None or genome_b is None:
-            # No genome data available — fail-open (allow exchange)
+            # No genome data available - fail-open (allow exchange)
             self._log.debug(
                 "can_exchange_genetic_material.no_genome_data",
                 a=instance_a_id, b=instance_b_id,
@@ -1008,7 +1008,7 @@ class MitosisFleetService:
 
         Checks whether the organism has the metabolic headroom and fleet
         capacity to spawn a new child instance.  If so, injects a
-        ``spawn_child`` goal into Nova via ``NOVA_GOAL_INJECTED`` — Nova then
+        ``spawn_child`` goal into Nova via ``NOVA_GOAL_INJECTED`` - Nova then
         runs its own EFE minimisation and constitutional review before any
         actual spawn occurs.  This is NOT a direct spawn.
 
@@ -1025,7 +1025,7 @@ class MitosisFleetService:
             try:
                 await asyncio.sleep(_HOUR_S)
 
-                # Gate 1: organism maturity — must have been running ≥ 24 h
+                # Gate 1: organism maturity - must have been running ≥ 24 h
                 uptime_s = time.monotonic() - self._service_start_time
                 if uptime_s < _MATURITY_S:
                     self._log.debug(
@@ -1034,7 +1034,7 @@ class MitosisFleetService:
                     )
                     continue
 
-                # Gate 2: metabolic health — do not spawn under scarcity
+                # Gate 2: metabolic health - do not spawn under scarcity
                 if self._last_starvation_level in ("cautious", "critical"):
                     self._log.debug(
                         "reproductive_fitness_skip_starvation",
@@ -1054,7 +1054,7 @@ class MitosisFleetService:
                     not in ("dead", "independent", "DEAD", "INDEPENDENT")
                 )
 
-                # Dynamic cap: max(5, floor(net_worth / 1000)) — mirrors API router logic
+                # Dynamic cap: max(5, floor(net_worth / 1000)) - mirrors API router logic
                 state = self._get_state() if self._get_state is not None else None
                 if state is not None:
                     net_worth = float(getattr(state, "net_worth_usd", 0) or 0)
@@ -1065,7 +1065,7 @@ class MitosisFleetService:
                 # Adapter sharing: when ≥2 alive instances have cached genomes and
                 # are reproductively compatible, fire an async merge attempt.
                 # This implements genetic recombination at the LoRA level (Share 2025).
-                # Non-blocking — the CLO handles the offer side via Synapse events.
+                # Non-blocking - the CLO handles the offer side via Synapse events.
                 if self._adapter_sharer is not None and len(self._fleet_genome_cache) >= 1:
                     alive_ids = [
                         str(getattr(c, "instance_id", ""))
@@ -1119,7 +1119,7 @@ class MitosisFleetService:
                     )
                     continue
 
-                # All gates passed — feed Nova a spawn_child goal
+                # All gates passed - feed Nova a spawn_child goal
                 self._log.info(
                     "reproductive_fitness_goal_injected",
                     alive_count=alive_count,
@@ -1170,10 +1170,10 @@ class MitosisFleetService:
         for child in children:
             if child.status not in (ChildStatus.ALIVE, ChildStatus.STRUGGLING):
                 continue
-            # Skip INDEPENDENT or DEAD — no more dividends
+            # Skip INDEPENDENT or DEAD - no more dividends
             if getattr(child, "dividend_ceased", False):
                 continue
-            # Skip blacklisted children — no seed capital or dividends (Spec 26 §10)
+            # Skip blacklisted children - no seed capital or dividends (Spec 26 §10)
             if child.instance_id in self._blacklisted_children:
                 self._log.debug(
                     "dividend_skipped_blacklisted", child_id=child.instance_id,
@@ -1218,7 +1218,7 @@ class MitosisFleetService:
                         error=str(exc),
                     )
             else:
-                # No wallet — log for deferred payment
+                # No wallet - log for deferred payment
                 self._log.warning(
                     "dividend_no_wallet",
                     child_id=child.instance_id,
@@ -1258,7 +1258,7 @@ class MitosisFleetService:
             )
 
             # Emit FLEET_EVALUATED so Nova, Evo, and Benchmarks can observe fleet health.
-            # Previously fleet_metrics was computed but never broadcast — it was invisible
+            # Previously fleet_metrics was computed but never broadcast - it was invisible
             # to the LLM and all downstream systems.
             _children = self._get_children() if self._get_children is not None else []
             _alive = sum(
@@ -1295,13 +1295,13 @@ class MitosisFleetService:
         fleet decisions (Spec 26 §25).
 
         Wires:
-        - CHILD_HEALTH_REPORT        — log child liveness
-        - OIKOS_METABOLIC_SNAPSHOT   — reactive fitness snapshot
-        - EVO_HYPOTHESIS_CONFIRMED   — BeliefGenome update available
-        - SIMULA_EVOLUTION_APPLIED   — SimulaGenome ready for distribution
-        - FEDERATION_PEER_CONNECTED  — child liveness via federation layer
-        - FEDERATION_LINK_DROPPED    — peer link teardown (Federation emits this, not FEDERATION_PEER_DISCONNECTED)
-        - CHILD_STRUGGLING           — initiate rescue pipeline
+        - CHILD_HEALTH_REPORT        - log child liveness
+        - OIKOS_METABOLIC_SNAPSHOT   - reactive fitness snapshot
+        - EVO_HYPOTHESIS_CONFIRMED   - BeliefGenome update available
+        - SIMULA_EVOLUTION_APPLIED   - SimulaGenome ready for distribution
+        - FEDERATION_PEER_CONNECTED  - child liveness via federation layer
+        - FEDERATION_LINK_DROPPED    - peer link teardown (Federation emits this, not FEDERATION_PEER_DISCONNECTED)
+        - CHILD_STRUGGLING           - initiate rescue pipeline
         """
         if self._event_bus is None:
             self._log.warning("subscribe_to_events_no_event_bus")
@@ -1339,7 +1339,7 @@ class MitosisFleetService:
         except Exception as exc:
             self._log.debug("evo_hypothesis_subscribe_skipped", error=str(exc))
 
-        # CHILD_SPAWNED — cache fleet genome for adapter sharing compatibility checks
+        # CHILD_SPAWNED - cache fleet genome for adapter sharing compatibility checks
         try:
             self._event_bus.subscribe(
                 SynapseEventType.CHILD_SPAWNED,
@@ -1368,7 +1368,7 @@ class MitosisFleetService:
 
     async def _on_metabolic_snapshot(self, event: Any) -> None:
         """
-        Handle OIKOS_METABOLIC_SNAPSHOT — reactive fitness awareness.
+        Handle OIKOS_METABOLIC_SNAPSHOT - reactive fitness awareness.
 
         When OikosService emits a metabolic snapshot, we log key metrics.
         Also caches the starvation level so the reproductive fitness loop
@@ -1387,7 +1387,7 @@ class MitosisFleetService:
 
     async def _on_evo_hypothesis_confirmed(self, event: Any) -> None:
         """
-        Handle EVO_HYPOTHESIS_CONFIRMED — new BeliefGenome update available.
+        Handle EVO_HYPOTHESIS_CONFIRMED - new BeliefGenome update available.
 
         Logs the trigger; actual genome distribution runs in the monthly cycle.
         """
@@ -1400,7 +1400,7 @@ class MitosisFleetService:
 
     async def _on_simula_evolution_applied(self, event: Any) -> None:
         """
-        Handle SIMULA_EVOLUTION_APPLIED — new SimulaGenome ready.
+        Handle SIMULA_EVOLUTION_APPLIED - new SimulaGenome ready.
 
         Logs the trigger; actual genome distribution runs in the monthly cycle.
         """
@@ -1434,7 +1434,7 @@ class MitosisFleetService:
 
     async def _on_federation_peer_connected(self, event: Any) -> None:
         """
-        Handle FEDERATION_PEER_CONNECTED — child liveness via federation.
+        Handle FEDERATION_PEER_CONNECTED - child liveness via federation.
 
         Does NOT reset health timeout (requires actual metrics in health report).
         Logs so operators can see the child is alive before the first report.
@@ -1450,7 +1450,7 @@ class MitosisFleetService:
 
     async def _on_federation_peer_disconnected(self, event: Any) -> None:
         """
-        Handle FEDERATION_LINK_DROPPED — child link dropped (Federation teardown event).
+        Handle FEDERATION_LINK_DROPPED - child link dropped (Federation teardown event).
 
         Federation emits FEDERATION_LINK_DROPPED (not FEDERATION_PEER_DISCONNECTED) on
         link teardown due to withdrawal or starvation.  The 24h health monitor timeout
@@ -1484,7 +1484,7 @@ class MitosisFleetService:
 
     async def _on_child_struggling(self, event: Any) -> None:
         """
-        Handle CHILD_STRUGGLING — initiate rescue pipeline.
+        Handle CHILD_STRUGGLING - initiate rescue pipeline.
 
         Oikos emits this when a child misses 3+ consecutive health probes.
         We attempt rescue via the existing ``execute_rescue()`` path.  If the
@@ -1596,7 +1596,7 @@ class MitosisFleetService:
 
     async def _on_child_blacklisted(self, event: Any) -> None:
         """
-        Handle CHILD_BLACKLISTED — enforce economic sanctions.
+        Handle CHILD_BLACKLISTED - enforce economic sanctions.
 
         Adds the child to the local blacklist. Subsequent dividend evaluations
         and rescue requests for this child will be blocked.
@@ -1632,10 +1632,10 @@ class MitosisFleetService:
 
     async def _on_child_decommission_proposed(self, event: Any) -> None:
         """
-        Handle CHILD_DECOMMISSION_PROPOSED — initiate autonomous constitutional review.
+        Handle CHILD_DECOMMISSION_PROPOSED - initiate autonomous constitutional review.
 
         The actual decommission (death pipeline) requires governance approval
-        (Equor constitutional review). Previously this handler only logged — the
+        (Equor constitutional review). Previously this handler only logged - the
         organism had no autonomous recourse and decommission proposals silently died.
 
         Now it emits EQUOR_ECONOMIC_INTENT so Equor can evaluate the decommission

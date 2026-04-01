@@ -1,12 +1,12 @@
 """
-EcodiaOS — Equor API Router
+EcodiaOS - Equor API Router
 
-Constitutional ethics engine endpoints. All read-only — no side effects.
+Constitutional ethics engine endpoints. All read-only - no side effects.
 
 Endpoints:
-  GET /api/v1/equor/health   — Full health snapshot (drives, drift, autonomy, safe mode)
-  GET /api/v1/equor/drift    — Drift history and immune response status
-  GET /api/v1/equor/genome   — Constitutional genome snapshot (for CLI + Mitosis inspection)
+  GET /api/v1/equor/health   - Full health snapshot (drives, drift, autonomy, safe mode)
+  GET /api/v1/equor/drift    - Drift history and immune response status
+  GET /api/v1/equor/genome   - Constitutional genome snapshot (for CLI + Mitosis inspection)
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ def _get_equor(request: Request) -> Any | None:
 
 @router.get("/health")
 async def equor_health(request: Request) -> dict[str, Any]:
-    """Full Equor health snapshot — spec §13.1 fields plus extended stats."""
+    """Full Equor health snapshot - spec §13.1 fields plus extended stats."""
     equor = _get_equor(request)
     if equor is None:
         return {"error": "equor not initialized"}
@@ -55,7 +55,7 @@ async def equor_drift(request: Request) -> dict[str, Any]:
 
 @router.get("/genome")
 async def equor_genome(request: Request) -> dict[str, Any]:
-    """Constitutional genome snapshot — drive weights, floor thresholds, amendments, drift history."""
+    """Constitutional genome snapshot - drive weights, floor thresholds, amendments, drift history."""
     equor = _get_equor(request)
     if equor is None:
         return {"error": "equor not initialized"}
@@ -64,7 +64,7 @@ async def equor_genome(request: Request) -> dict[str, Any]:
         fragment = await equor.export_equor_genome()
         if fragment is None:
             return {"genome": {}}
-        # EquorGenomeFragment is a Pydantic model — serialise to dict
+        # EquorGenomeFragment is a Pydantic model - serialise to dict
         genome_dict = fragment.model_dump() if hasattr(fragment, "model_dump") else dict(fragment)
         return {"genome": genome_dict}
     except Exception as exc:

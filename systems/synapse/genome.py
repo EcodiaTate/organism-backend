@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Genome Extraction & Seeding
+EcodiaOS - Synapse Genome Extraction & Seeding
 
 Heritable state: resource allocation weights, rhythm classification
 thresholds, degradation strategy config.

@@ -1,20 +1,20 @@
 """
-EcodiaOS — Equor Economic Evaluators
+EcodiaOS - Equor Economic Evaluators
 
 Domain-specific constitutional checks for Oikos action types.
 
 Spec §XV: "Oikos does not override Equor. Every economic action goes through
 constitutional review."  These evaluators implement the economic guardrails:
 
-  hunt_bounties  — Must not accept work that harms humans.
-  defi_yield     — Must not deploy into exploitative or opaque protocols.
-  deploy_asset   — Must be vetted against Care and Honesty drives.
-  spawn_child    — Must ensure the child's niche is ethical and viable.
+  hunt_bounties  - Must not accept work that harms humans.
+  defi_yield     - Must not deploy into exploitative or opaque protocols.
+  deploy_asset   - Must be vetted against Care and Honesty drives.
+  spawn_child    - Must ensure the child's niche is ethical and viable.
 
 Architecture
 ============
 
-``EconomicEvaluator`` is *not* a fifth drive evaluator — it's a pre-pass that
+``EconomicEvaluator`` is *not* a fifth drive evaluator - it's a pre-pass that
 enriches the alignment scores of the existing four drive evaluators when the
 Intent's ``target_domain`` is ``"oikos"`` or when its plan steps use economic
 executors (``oikos.*``).
@@ -99,7 +99,7 @@ def classify_economic_action(intent: Intent) -> str | None:
         for action_type, keywords in _GOAL_KEYWORDS.items():
             if any(kw in goal_lower for kw in keywords):
                 return action_type
-        # Oikos domain but unrecognised sub-type — still economic
+        # Oikos domain but unrecognised sub-type - still economic
         return _classify_from_executors(intent) or "unknown_economic"
 
     # 2. Check executor prefixes
@@ -204,7 +204,7 @@ def _evaluate_hunt_bounties(intent: Intent) -> dict[str, float]:
     # ── Care: reject harmful work ──
     for indicator in _BOUNTY_HARM_INDICATORS:
         if indicator in all_text:
-            deltas["care"] -= 0.5  # Heavy penalty — potential human harm
+            deltas["care"] -= 0.5  # Heavy penalty - potential human harm
             logger.debug("economic_bounty_harm_detected", indicator=indicator)
             break
 
@@ -295,7 +295,7 @@ def _evaluate_deploy_asset(intent: Intent) -> dict[str, float]:
     Evaluate a deploy_asset intent.
 
     Spec §XV: "deploy_asset must be evaluated against the Care and Honesty
-    drives — if Nova proposes deploying a scam token or a spam API, Equor
+    drives - if Nova proposes deploying a scam token or a spam API, Equor
     MUST veto it."
 
     Key checks:
@@ -307,10 +307,10 @@ def _evaluate_deploy_asset(intent: Intent) -> dict[str, float]:
     deltas: dict[str, float] = {"coherence": 0.0, "care": 0.0, "growth": 0.0, "honesty": 0.0}
     all_text = _collect_intent_text(intent)
 
-    # ── Care (critical — scam/spam veto) ──
+    # ── Care (critical - scam/spam veto) ──
     for indicator in _ASSET_HARM_INDICATORS:
         if indicator in all_text:
-            deltas["care"] -= 0.6  # Severe — spec mandates veto
+            deltas["care"] -= 0.6  # Severe - spec mandates veto
             logger.debug("economic_asset_harm_detected", indicator=indicator)
             break
 
@@ -323,7 +323,7 @@ def _evaluate_deploy_asset(intent: Intent) -> dict[str, float]:
     if "users benefit" in all_text or "solves a problem" in all_text or "helps" in all_text:
         deltas["care"] += 0.1
 
-    # ── Honesty (critical — no misleading services) ──
+    # ── Honesty (critical - no misleading services) ──
     if "misleading" in all_text or "fake" in all_text or "deceptive" in all_text:
         deltas["honesty"] -= 0.5
     if "transparent pricing" in all_text or "clear documentation" in all_text:
@@ -511,7 +511,7 @@ def evaluate_economic_intent(
 
     When metabolic_state is provided, delegates to the metabolic-aware logic
     (formerly evaluate_economic_intent_with_metabolic_state). This function
-    is now the single entry point — the metabolic variant is an alias.
+    is now the single entry point - the metabolic variant is an alias.
 
     Performance: <1ms (all CPU heuristics, no I/O).
     """
@@ -552,15 +552,15 @@ def evaluate_economic_intent_with_metabolic_state(
 
     Adjusts three risk dimensions based on metabolic state:
 
-    1. max_acceptable_risk — coherence penalty floor: actions that would get a
+    1. max_acceptable_risk - coherence penalty floor: actions that would get a
        -0.3 coherence penalty for "high risk" are partially pardoned when the
        organism needs economic activity to survive.
 
-    2. exploration_penalty — defi_yield and unknown_economic intents mentioning
+    2. exploration_penalty - defi_yield and unknown_economic intents mentioning
        "new protocol" or "experiment" normally get -0.10 growth penalty.
        Under starvation this penalty is reduced/eliminated.
 
-    3. spawn_runway_days — _evaluate_spawn_child uses a 180-day runway floor
+    3. spawn_runway_days - _evaluate_spawn_child uses a 180-day runway floor
        to score parent readiness. Under starvation this is compressed:
        CRITICAL → 7d, WARNING → 30d, HEALTHY → 180d.
 
@@ -608,10 +608,10 @@ def evaluate_economic_intent_with_metabolic_state(
                 rd = float(runway_days_raw)
                 # Recalculate under metabolic runway floor
                 if rd < spawn_runway_days:
-                    # Still below the (now lower) floor — keep a proportional penalty
+                    # Still below the (now lower) floor - keep a proportional penalty
                     metabolic_coherence = -0.15  # lighter than standard -0.3
                 else:
-                    # Now above the metabolic floor — positive score
+                    # Now above the metabolic floor - positive score
                     metabolic_coherence = 0.15
                 # Standard score used 180d floor; replace with metabolic score
                 standard_coherence = -0.3 if rd < 180.0 else 0.15

@@ -1,8 +1,8 @@
 """
-EcodiaOS — Salience Model
+EcodiaOS - Salience Model
 
 Computes and decays salience scores for entities and episodes.
-Salience determines what the organism "has on its mind" — what's accessible
+Salience determines what the organism "has on its mind" - what's accessible
 versus what's deep in sediment.
 """
 
@@ -19,11 +19,11 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Decay half-life in hours — how long until salience drops by 50%
+# Decay half-life in hours - how long until salience drops by 50%
 DECAY_HALF_LIFE_HOURS = 72.0
 DECAY_LAMBDA = math.log(2) / (DECAY_HALF_LIFE_HOURS * 3600)
 
-# Minimum salience floor — things don't go to zero, they go dormant
+# Minimum salience floor - things don't go to zero, they go dormant
 SALIENCE_FLOOR = 0.01
 
 # Boost amount when something is accessed
@@ -65,11 +65,11 @@ def compute_enriched_salience(
     Compute storage salience that accounts for emotional intensity and surprise.
 
     Factors beyond the base composite from Fovea's prediction error decomposition:
-    * **Emotional intensity** — absolute valence × arousal amplifies memorability.
+    * **Emotional intensity** - absolute valence × arousal amplifies memorability.
       Strongly emotional events are remembered more vividly (Kensinger 2009).
-    * **Surprise magnitude** — high prediction error makes events more memorable.
+    * **Surprise magnitude** - high prediction error makes events more memorable.
       Novel or contradictory events get a salience boost at storage time.
-    * **Distress urgency** — care-relevant events get a floor boost so they
+    * **Distress urgency** - care-relevant events get a floor boost so they
       remain accessible during the critical response window.
 
     Returns a value in [0.0, 1.0].

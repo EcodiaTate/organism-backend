@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Consensus Verifier
+EcodiaOS - SACM Consensus Verifier
 
 Combines deterministic replay and probabilistic canary auditing
 into a single verification decision with configurable weights.

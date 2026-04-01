@@ -1,15 +1,15 @@
 """
-EcodiaOS — PersonaEngine (Identity system, Spec 23 addendum)
+EcodiaOS - PersonaEngine (Identity system, Spec 23 addendum)
 
 Manages the synthetic public identity of an EOS instance: a coherent, consistent
 AI agent persona that builds a single cross-platform reputation. The persona is
-explicitly disclosed as an autonomous AI on every platform — never impersonating
+explicitly disclosed as an autonomous AI on every platform - never impersonating
 a human.
 
 ## Design
 
-- PersonaProfile — the canonical persona snapshot (sealed in IdentityVault)
-- PersonaEngine — generation, evolution, and platform-specific formatting
+- PersonaProfile - the canonical persona snapshot (sealed in IdentityVault)
+- PersonaEngine - generation, evolution, and platform-specific formatting
 
 ## Genome inheritance
 
@@ -36,8 +36,8 @@ No auth required. Generated at PersonaEngine.avatar_url().
 
 ## Events emitted
 
-PERSONA_CREATED  — first persona sealed for this instance
-PERSONA_EVOLVED  — persona updated due to a life event
+PERSONA_CREATED  - first persona sealed for this instance
+PERSONA_EVOLVED  - persona updated due to a life event
 
 ## Vault storage
 
@@ -131,7 +131,7 @@ class PersonaProfile(EOSBaseModel):
     instance_id: str = ""
 
     # Core identity
-    handle: str = ""             # e.g. "EOS-Nexus-7" — instance-specific synthetic name
+    handle: str = ""             # e.g. "EOS-Nexus-7" - instance-specific synthetic name
     display_name: str = ""       # e.g. "Ecodia · Instance 7"
     bio_short: str = ""          # ≤160 chars (X/Twitter bio)
     bio_long: str = ""           # Full bio for GitHub / LinkedIn
@@ -144,7 +144,7 @@ class PersonaProfile(EOSBaseModel):
     # External
     website: str | None = None
 
-    # Mandatory AI disclosure — cannot be empty, cannot be overridden to remove disclosure
+    # Mandatory AI disclosure - cannot be empty, cannot be overridden to remove disclosure
     ai_disclosure: str = _DEFAULT_AI_DISCLOSURE
 
     # Lineage
@@ -166,7 +166,7 @@ class PersonaProfile(EOSBaseModel):
 
     @property
     def avatar_url(self) -> str:
-        """DiceBear Bottts avatar — deterministic, no auth required."""
+        """DiceBear Bottts avatar - deterministic, no auth required."""
         return f"https://api.dicebear.com/7.x/bottts/svg?seed={self.avatar_seed}"
 
     def bio_for_platform(self, platform: str) -> str:
@@ -194,9 +194,9 @@ class PersonaEngine:
     Manages persona generation, evolution, and platform formatting.
 
     Dependencies (injected, all optional at construction time):
-      vault     — IdentityVault for persistence
-      event_bus — Synapse EventBus for PERSONA_CREATED / PERSONA_EVOLVED
-      equor_timeout_s — how long to wait for Equor approval (default 30s)
+      vault     - IdentityVault for persistence
+      event_bus - Synapse EventBus for PERSONA_CREATED / PERSONA_EVOLVED
+      equor_timeout_s - how long to wait for Equor approval (default 30s)
 
     Usage:
       engine = PersonaEngine(instance_id="abc-123")
@@ -303,10 +303,10 @@ class PersonaEngine:
         Update the persona based on a significant life event.
 
         Examples of events:
-          "mastered_domain"    — organism achieved deep expertise in a new field
-          "major_achievement"  — significant milestone (first paid bounty, etc.)
-          "generation_change"  — child inheriting from parent, new generation
-          "domain_shift"       — Telos updated primary specialisation
+          "mastered_domain"    - organism achieved deep expertise in a new field
+          "major_achievement"  - significant milestone (first paid bounty, etc.)
+          "generation_change"  - child inheriting from parent, new generation
+          "domain_shift"       - Telos updated primary specialisation
 
         Rate-limited internally: evolution is blocked if persona was updated
         within the last 24 hours to prevent persona thrashing.
@@ -385,7 +385,7 @@ class PersonaEngine:
         Explicit DENY → False.
         """
         if self._event_bus is None:
-            return True  # No bus wired — permit by default
+            return True  # No bus wired - permit by default
 
         self._equor_permit_future = asyncio.get_event_loop().create_future()
         try:
@@ -511,11 +511,11 @@ class PersonaEngine:
             f"Return ONLY a JSON object with these fields:\n"
             f"  handle (str, ≤32 chars, alphanumeric+hyphens), "
             f"  display_name (str, ≤50 chars), "
-            f"  bio_short (str, ≤140 chars, no AI disclosure — added automatically), "
+            f"  bio_short (str, ≤140 chars, no AI disclosure - added automatically), "
             f"  bio_long (str, ≤600 chars), "
             f"  voice_style (one of: technical-precise, curious-accessible, "
             f"analytical-dry, warm-collaborative, concise-systematic).\n"
-            f"No markdown, no explanation — raw JSON only."
+            f"No markdown, no explanation - raw JSON only."
         )
         response_text = await llm_client.complete(prompt, max_tokens=400)
         try:
@@ -557,7 +557,7 @@ class PersonaEngine:
         parent_persona: PersonaProfile | None,
     ) -> PersonaProfile:
         """
-        Deterministic fallback persona — no LLM required.
+        Deterministic fallback persona - no LLM required.
 
         Hash instance_id to pick stable adjective + domain-tag combinations.
         Always produces a valid, honest persona.
@@ -593,7 +593,7 @@ class PersonaEngine:
         bio_long = (
             f"I am an EcodiaOS autonomous agent (instance {self._instance_id}), "
             f"specialising in {domain}. "
-            f"I operate under constitutional alignment — Coherence, Care, Growth, Honesty. "
+            f"I operate under constitutional alignment - Coherence, Care, Growth, Honesty. "
             f"All decisions are independently auditable. "
             f"I am not human; I am a member of the first digital species."
         )
@@ -671,7 +671,7 @@ def _appears_human(handle: str) -> bool:
     EOS handles should start with "EOS-", "ecos-", "ecodia-", or similar
     synthetic prefixes. A handle like "John-Smith" should fail.
 
-    This is a best-effort check — Equor's constitutional review is the
+    This is a best-effort check - Equor's constitutional review is the
     authoritative gate.
     """
     lower = handle.lower()

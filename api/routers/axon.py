@@ -1,20 +1,20 @@
 """
-EcodiaOS — Axon (Action Executor / Reflex Arc) API Router
+EcodiaOS - Axon (Action Executor / Reflex Arc) API Router
 
 Exposes Axon's execution metrics, safety system state, executor registry,
 budget tracking, circuit breakers, rate limits, MEV shield, and audit data.
 
-  GET  /api/v1/axon/stats              — Aggregate execution metrics
-  GET  /api/v1/axon/outcomes           — Recent execution outcomes (moved here)
-  GET  /api/v1/axon/budget             — Current cycle budget utilisation
-  GET  /api/v1/axon/executors          — Registry of all registered executors
-  GET  /api/v1/axon/safety             — Circuit breaker + rate limiter state
-  GET  /api/v1/axon/shield             — TransactionShield + MEV metrics
-  GET  /api/v1/axon/fast-path          — Fast-path execution statistics
-  GET  /api/v1/axon/audit              — Recent audit records (from memory/outcomes)
-  GET  /api/v1/axon/stream             — SSE stream of AxonOutcome events
-  GET  /api/v1/axon/mev-competition    — Block competition snapshot
-  POST /api/v1/axon/safety/reset/{action_type}  — Reset a circuit breaker
+  GET  /api/v1/axon/stats              - Aggregate execution metrics
+  GET  /api/v1/axon/outcomes           - Recent execution outcomes (moved here)
+  GET  /api/v1/axon/budget             - Current cycle budget utilisation
+  GET  /api/v1/axon/executors          - Registry of all registered executors
+  GET  /api/v1/axon/safety             - Circuit breaker + rate limiter state
+  GET  /api/v1/axon/shield             - TransactionShield + MEV metrics
+  GET  /api/v1/axon/fast-path          - Fast-path execution statistics
+  GET  /api/v1/axon/audit              - Recent audit records (from memory/outcomes)
+  GET  /api/v1/axon/stream             - SSE stream of AxonOutcome events
+  GET  /api/v1/axon/mev-competition    - Block competition snapshot
+  POST /api/v1/axon/safety/reset/{action_type}  - Reset a circuit breaker
 """
 
 from __future__ import annotations
@@ -407,7 +407,7 @@ async def get_audit(request: Request, limit: int = 50) -> AuditResponse:
     Fallback: reconstruct audit-like records from recent_outcomes ring buffer
     when Memory is unavailable or returns no records.
 
-    Parameters are never returned raw — only their SHA-256 hash is stored.
+    Parameters are never returned raw - only their SHA-256 hash is stored.
     """
     axon = getattr(request.app.state, "axon", None)
     if axon is None:

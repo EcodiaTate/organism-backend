@@ -1,16 +1,16 @@
 """
-EcodiaOS — Identity & Certificate Management (Phase 16g–h)
+EcodiaOS - Identity & Certificate Management (Phase 16g–h)
 
 Phase 16g: Cryptographically signed Certificates of Alignment that govern
 participation in the Federation, access to the Knowledge Commons, and
 human trust.
 
-Phase 16h: External Identity Layer — encrypted credential vault, platform
+Phase 16h: External Identity Layer - encrypted credential vault, platform
 connector ABCs for OAuth2 lifecycle, and native TOTP generation for
 automated 2FA flows.
 
-Every EOS instance must hold a valid EcodianCertificate — issued by its parent
-(birth certificate) or the Genesis Node — to participate in the ecosystem.
+Every EOS instance must hold a valid EcodianCertificate - issued by its parent
+(birth certificate) or the Genesis Node - to participate in the ecosystem.
 """
 
 from systems.identity.certificate import (

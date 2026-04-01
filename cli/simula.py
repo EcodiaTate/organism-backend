@@ -93,7 +93,7 @@ async def cmd_generate_subsystem(args: argparse.Namespace) -> int:
     defined in Speciation Bible §8.3.  The generated module is written to:
         {codebase_root}/systems/{name}/__init__.py
 
-    The module is NOT auto-registered — wire it manually in registry.py
+    The module is NOT auto-registered - wire it manually in registry.py
     before the next incarnation.
     """
     from systems.simula.subsystem_generator import SubsystemGenerator, SubsystemSpec
@@ -182,7 +182,7 @@ async def cmd_generate_subsystem(args: argparse.Namespace) -> int:
             )
             _info("Using Anthropic LLM for code generation")
         except Exception as exc:
-            _warn(f"LLM unavailable ({exc}) — will generate skeleton only")
+            _warn(f"LLM unavailable ({exc}) - will generate skeleton only")
 
     stub_agent = _StubCodeAgent()
     stub_agent._llm = llm  # type: ignore[attr-defined]
@@ -234,7 +234,7 @@ async def cmd_list_generated(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m cli.simula",
-        description="EcodiaOS Simula CLI — self-evolution and organizational closure",
+        description="EcodiaOS Simula CLI - self-evolution and organizational closure",
     )
     parser.add_argument(
         "--codebase-root",

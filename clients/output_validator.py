@@ -1,5 +1,5 @@
 """
-EcodiaOS — Structured Output Validator
+EcodiaOS - Structured Output Validator
 
 Ensures LLM responses conform to expected schemas without rewrites.
 Implements fast validation + auto-correction (no retry loops).

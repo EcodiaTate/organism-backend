@@ -1,5 +1,5 @@
 """
-EcodiaOS — Startup Helper Classes
+EcodiaOS - Startup Helper Classes
 
 Adapter classes and utility functions used during the organism's
 startup sequence.  Extracted from main.py for maintainability.
@@ -24,11 +24,11 @@ class MemoryWorkspaceAdapter:
     Bridge between MemoryService and Atune's WorkspaceMemoryClient protocol.
 
     Enables:
-    * **Spontaneous recall** — high-salience, recently-unaccessed episodes
+    * **Spontaneous recall** - high-salience, recently-unaccessed episodes
       "bubble up" into consciousness (find_bubbling_memory).
-    * **Context enrichment** — each broadcast winner gets contextual memories
+    * **Context enrichment** - each broadcast winner gets contextual memories
       attached (retrieve_context).
-    * **Broadcast-time storage** — winning percepts stored as episodes with
+    * **Broadcast-time storage** - winning percepts stored as episodes with
       full salience and affect metadata (store_percept_with_broadcast).
     """
 
@@ -73,7 +73,7 @@ class MemoryWorkspaceAdapter:
     ) -> Any:
         """
         Find a high-salience episode that hasn't been accessed recently.
-        This powers spontaneous recall — the "I just thought of something"
+        This powers spontaneous recall - the "I just thought of something"
         indicating dormant but important memories ready to surface.
         """
         try:

@@ -1,17 +1,17 @@
 """
-EcodiaOS — Thread Processor ABCs
+EcodiaOS - Thread Processor ABCs
 
 Abstract base classes for the Thread system's hot-reloadable processors.
 The NeuroplasticityBus discovers subclasses of these ABCs in evolved files
 and swaps the live instances on ThreadService atomically.
 
 Two ABCs:
-  BaseNarrativeSynthesizer — first-person autobiography composition
-  BaseChapterDetector      — chapter boundary detection in experience stream
+  BaseNarrativeSynthesizer - first-person autobiography composition
+  BaseChapterDetector      - chapter boundary detection in experience stream
 
 Evolved subclasses must preserve the contracts defined here. State that
 must survive a hot-swap (e.g. the surprise accumulator) is owned by
-ThreadService, not the processor — so swapping the processor never causes
+ThreadService, not the processor - so swapping the processor never causes
 the organism to forget its current narrative chapter.
 """
 
@@ -39,7 +39,7 @@ class BaseNarrativeSynthesizer(ABC):
     Abstract base for Thread narrative synthesis.
 
     Subclasses compose first-person autobiography text from raw experience.
-    All output must be first-person — the organism remembering, not a log
+    All output must be first-person - the organism remembering, not a log
     entry, never third-person.
 
     Iron Rule #2: The autobiography is first-person, never third-person.
@@ -122,7 +122,7 @@ class BaseChapterDetector(ABC):
 
     CRITICAL: The ``NarrativeSurpriseAccumulator`` is passed INTO methods
     rather than owned by the detector. This means a hot-swap never loses
-    the running surprise statistics — ThreadService owns the accumulator
+    the running surprise statistics - ThreadService owns the accumulator
     and hands it to whichever detector is active.
 
     Performance: boundary check must complete in ≤10ms (no LLM calls).
@@ -142,7 +142,7 @@ class BaseChapterDetector(ABC):
         Must complete in ≤10ms (no LLM calls).
 
         The accumulator and config are passed in so the detector is
-        stateless — all mutable state lives in ThreadService.
+        stateless - all mutable state lives in ThreadService.
 
         Returns True if a chapter boundary is detected.
         """

@@ -1,7 +1,7 @@
 """
-EcodiaOS — Oneiros v2: Emergence Stage (Full Wake Preparation)
+EcodiaOS - Oneiros v2: Emergence Stage (Full Wake Preparation)
 
-The transition back to wake state. Not passive awakening — active preparation.
+The transition back to wake state. Not passive awakening - active preparation.
 
 Phase D expansion:
 1. Finalize all world model integration via Logos
@@ -12,7 +12,7 @@ Phase D expansion:
 6. Resume input channels
 7. Broadcast WAKE_INITIATED with full WakeStatePreparation payload
 
-Tracks: average_intelligence_improvement_per_sleep_cycle — the single metric
+Tracks: average_intelligence_improvement_per_sleep_cycle - the single metric
 predicting growth rate. If declining, signals to Telos Growth that new domain
 exposure is needed.
 """
@@ -177,7 +177,7 @@ class EmergenceStage:
 
         await self._broadcast_wake_initiated(wake_prep, sleep_duration_s)
 
-        # Signal if growth rate is declining — emit Synapse event for Telos Growth
+        # Signal if growth rate is declining - emit Synapse event for Telos Growth
         if self.intelligence_improvement_declining:
             self._logger.warning(
                 "intelligence_improvement_declining",
@@ -388,7 +388,7 @@ class EmergenceStage:
             parts.append(f"Intelligence ratio improved by {improvement:.4f}.")
         elif improvement < 0:
             parts.append(
-                f"Intelligence ratio decreased by {abs(improvement):.4f} — "
+                f"Intelligence ratio decreased by {abs(improvement):.4f} - "
                 f"world model may need recalibration."
             )
 
@@ -447,7 +447,7 @@ class EmergenceStage:
         )
         await self._event_bus.emit(event)
 
-        # Wire ORGANISM_WAKE — Axon, Identity, SACM, Simula subscribe to this.
+        # Wire ORGANISM_WAKE - Axon, Identity, SACM, Simula subscribe to this.
         # WAKE_INITIATED is Oneiros-internal; ORGANISM_WAKE is the organism-wide signal.
         organism_wake_event = SynapseEvent(
             event_type=SynapseEventType.ORGANISM_WAKE,

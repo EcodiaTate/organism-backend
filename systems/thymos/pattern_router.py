@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos Pattern-Aware Router
+EcodiaOS - Thymos Pattern-Aware Router
 
 Intercepts every repair request before tier assignment to check whether the
 incoming incident matches a known fatal CrashPattern stored in Redis.
@@ -10,7 +10,7 @@ If a match is found (match_score >= 0.7 AND pattern.confidence >= 0.6):
   3. If ALL tiers up to NOVEL_FIX have failed → skip local repair entirely,
      return ESCALATE with federation_broadcast=True and the pattern_id attached.
 
-The router is pure logic — it does not write to Redis or emit events.
+The router is pure logic - it does not write to Redis or emit events.
 Outcome recording (update_on_success / update_on_failure) is performed by
 ThymosService after it receives the repair result.
 
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.thymos.pattern_router")
 
-# Match thresholds — both conditions must be satisfied for a PATTERN_MATCH
+# Match thresholds - both conditions must be satisfied for a PATTERN_MATCH
 _SCORE_THRESHOLD = 0.7    # fraction of pattern signature overlapping incident features
 _CONFIDENCE_THRESHOLD = 0.6  # pattern.confidence must be >= this
 
@@ -48,17 +48,17 @@ class PatternRouteResult:
     """
     Decision returned by PatternAwareRouter.route().
 
-    ``matched``           — True if a pattern with sufficient score + confidence matched.
-    ``pattern_id``        — ID of the best-matching CrashPattern (None if no match).
-    ``pattern_confidence`` — Confidence of the matched pattern (0 if no match).
-    ``match_score``       — Feature overlap score (0.0–1.0).
-    ``tier_override``     — Suggested RepairTier to use instead of normal routing.
-                           None means no change — proceed with normal tier selection.
-    ``tier_skip_reason``  — Human-readable reason for any tier skip.
-    ``skipped_tiers``     — Tiers that were skipped because the pattern recorded
+    ``matched``           - True if a pattern with sufficient score + confidence matched.
+    ``pattern_id``        - ID of the best-matching CrashPattern (None if no match).
+    ``pattern_confidence`` - Confidence of the matched pattern (0 if no match).
+    ``match_score``       - Feature overlap score (0.0–1.0).
+    ``tier_override``     - Suggested RepairTier to use instead of normal routing.
+                           None means no change - proceed with normal tier selection.
+    ``tier_skip_reason``  - Human-readable reason for any tier skip.
+    ``skipped_tiers``     - Tiers that were skipped because the pattern recorded
                            them as already failed.
-    ``federation_escalate`` — True when all local tiers are exhausted for this
-                              pattern — caller must broadcast to federation immediately.
+    ``federation_escalate`` - True when all local tiers are exhausted for this
+                              pattern - caller must broadcast to federation immediately.
     """
 
     matched: bool = False
@@ -89,7 +89,7 @@ class PatternAwareRouter:
       - Emitting CRASH_PATTERN_RESOLVED / CRASH_PATTERN_REINFORCED.
     """
 
-    # Repair tiers in ascending order (NOOP excluded — it means no action needed)
+    # Repair tiers in ascending order (NOOP excluded - it means no action needed)
     _TIER_ORDER: list[RepairTier] = [
         RepairTier.PARAMETER,
         RepairTier.RESTART,
@@ -193,10 +193,10 @@ class PatternAwareRouter:
         if skipped:
             skip_reason = (
                 f"CrashPattern {best_pattern.id} (confidence={best_pattern.confidence:.2f}): "
-                f"skipping tiers [{', '.join(sorted(skipped))}] — already failed for this pattern"
+                f"skipping tiers [{', '.join(sorted(skipped))}] - already failed for this pattern"
             )
         else:
-            # Pattern matched but no tiers failed yet — suggest the normal first tier
+            # Pattern matched but no tiers failed yet - suggest the normal first tier
             # but stamp the pattern match so the pipeline knows about it
             skip_reason = (
                 f"CrashPattern {best_pattern.id} matched "

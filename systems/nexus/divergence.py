@@ -1,8 +1,8 @@
 """
-EcodiaOS — Nexus: Instance Divergence Measurer
+EcodiaOS - Nexus: Instance Divergence Measurer
 
 Measures how different two EOS instances are across five dimensions.
-Divergence is the fuel of triangulation — the more different the
+Divergence is the fuel of triangulation - the more different the
 compression paths, the more valuable any convergence between them.
 
 Five dimensions (weighted):
@@ -13,10 +13,10 @@ Five dimensions (weighted):
   5. Temporal divergence  (0.10): age/experience gap
 
 Classification thresholds:
-  - SAME_KIND:     < 0.2 — near-duplicate, zero triangulation value
-  - RELATED_KIND:  < 0.5 — same species, different subspecies
-  - DISTINCT_KIND: >= 0.5 — true speciation threshold
-  - ALIEN_KIND:    >= 0.8 — convergence from here is near-proof
+  - SAME_KIND:     < 0.2 - near-duplicate, zero triangulation value
+  - RELATED_KIND:  < 0.5 - same species, different subspecies
+  - DISTINCT_KIND: >= 0.5 - true speciation threshold
+  - ALIEN_KIND:    >= 0.8 - convergence from here is near-proof
 """
 
 from __future__ import annotations

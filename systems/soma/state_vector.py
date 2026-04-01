@@ -1,12 +1,12 @@
 """
-EcodiaOS — Soma State Vector Constructor
+EcodiaOS - Soma State Vector Constructor
 
 Aggregates raw SomaSignals from the SignalBuffer into a fixed-dimensional
 OrganismStateVector at each time window. Each system gets a 7D feature
 slice: call_rate, error_rate, mean_latency, latency_variance, success_ratio,
 resource_rate, and event_entropy (Shannon entropy over event types).
 
-Missing systems produce zero-valued slices — the vector dimension stays
+Missing systems produce zero-valued slices - the vector dimension stays
 consistent for downstream manifold computations.
 
 Pure numerical computation. No I/O.
@@ -36,7 +36,7 @@ class StateVectorConstructor:
     """
 
     def __init__(self) -> None:
-        # Canonical ordering — grows as new systems are discovered,
+        # Canonical ordering - grows as new systems are discovered,
         # never shrinks. Ensures flat vectors are dimensionally consistent.
         self._known_systems: list[str] = []
         self._known_set: set[str] = set()

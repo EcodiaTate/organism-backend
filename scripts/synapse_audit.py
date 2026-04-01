@@ -1,26 +1,26 @@
 """
-EcodiaOS — Synapse Event Bus Audit Scanner
+EcodiaOS - Synapse Event Bus Audit Scanner
 
 Scans the codebase for SynapseEventType usage and reports:
   - WIRED:    events that have at least one emit site AND one subscribe site
   - EMIT_ONLY: events emitted but never subscribed
-  - SUBSCRIBE_ONLY: events subscribed but never emitted (dangling — no data)
+  - SUBSCRIBE_ONLY: events subscribed but never emitted (dangling - no data)
   - DEAD:     events defined in the enum but never referenced anywhere
 
 Usage:
     python scripts/synapse_audit.py [--backend-root PATH] [--json]
 
 Recognised emit patterns (8 patterns):
-  1. SynapseEventType.FOO_BAR              — direct attribute access
-  2. _SET.FOO_BAR / _SynET.FOO_BAR         — module-level alias (alias = SynapseEventType)
-  3. SynapseEventType("foo_bar")           — constructor with string literal
-  4. SynapseEventType(SOME_VAR)            — constructor with string variable
-  5. _emit_equor_event("foo_bar", ...)     — Equor string helper
-  6. _fire_event("FOO_BAR", ...)           — Identity vault string helper
-  7. _emit_safe("foo_bar", ...)            — generic string helper
-  8. String dispatch maps: "FOO_BAR": SynapseEventType.FOO_BAR  — dict key → enum value
-  9. getattr(SynapseEventType, "FOO_BAR")  — dynamic access
- 10. list-based subscribe loops            — subscribe(SET.X) in for loops
+  1. SynapseEventType.FOO_BAR              - direct attribute access
+  2. _SET.FOO_BAR / _SynET.FOO_BAR         - module-level alias (alias = SynapseEventType)
+  3. SynapseEventType("foo_bar")           - constructor with string literal
+  4. SynapseEventType(SOME_VAR)            - constructor with string variable
+  5. _emit_equor_event("foo_bar", ...)     - Equor string helper
+  6. _fire_event("FOO_BAR", ...)           - Identity vault string helper
+  7. _emit_safe("foo_bar", ...)            - generic string helper
+  8. String dispatch maps: "FOO_BAR": SynapseEventType.FOO_BAR  - dict key → enum value
+  9. getattr(SynapseEventType, "FOO_BAR")  - dynamic access
+ 10. list-based subscribe loops            - subscribe(SET.X) in for loops
 
 Recognised subscribe patterns:
   1. bus.subscribe(SynapseEventType.FOO_BAR, handler)
@@ -78,7 +78,7 @@ _RE_SUBSCRIBE = re.compile(
     r"""(?:SynapseEventType\.|_S(?:ET|ynET)\s*\.\s*)([A-Z][A-Z0-9_]*)"""
 )
 
-# hasattr guard: hasattr(SynapseEventType, "FOO_BAR")  — counts as a reference
+# hasattr guard: hasattr(SynapseEventType, "FOO_BAR")  - counts as a reference
 _RE_HASATTR = re.compile(r"""hasattr\s*\(\s*SynapseEventType\s*,\s*['"]([A-Z][A-Z0-9_]*)['"]""")
 
 
@@ -101,7 +101,7 @@ def _extract_all_enum_members(backend_root: Path) -> set[str]:
     for m in _RE_DIRECT.finditer(source):
         members.add(m.group(1))
 
-    # Strategy 2: AST parsing — find the class body assignments
+    # Strategy 2: AST parsing - find the class body assignments
     try:
         tree = ast.parse(source)
         for node in ast.walk(tree):
@@ -159,7 +159,7 @@ def scan_file(
     for m in _RE_CONSTRUCTOR.finditer(source):
         _record_emit(_enum_value_to_name(m.group(1)))
 
-    # Pattern 4: SynapseEventType(VARIABLE) — look up variable in string_constant_map
+    # Pattern 4: SynapseEventType(VARIABLE) - look up variable in string_constant_map
     _re_constructor_var = re.compile(r"\bSynapseEventType\s*\(\s*([A-Z][A-Z0-9_]*)\s*\)")
     for m in _re_constructor_var.finditer(source):
         var = m.group(1)
@@ -179,7 +179,7 @@ def scan_file(
     for m in _RE_GETATTR.finditer(source):
         _record_emit(m.group(1))
 
-    # hasattr guard — counts as a reference (not an emit, but prevents DEAD classification)
+    # hasattr guard - counts as a reference (not an emit, but prevents DEAD classification)
     for m in _RE_HASATTR.finditer(source):
         _record_emit(m.group(1))  # add to emit so it's not flagged as DEAD
 
@@ -275,15 +275,15 @@ def print_report(classification: dict[str, dict], verbose: bool = False) -> None
     print(f"{'='*70}")
     print(f" Total events analysed : {total}")
     print(f" ✅ WIRED              : {wired}  (emit + subscribe)")
-    print(f" ⬆  EMIT_ONLY          : {emit_only}  (no subscriber — fire-and-forget OK)")
-    print(f" ⬇  SUBSCRIBE_ONLY     : {sub_only}  (dangling — no emitter)")
-    print(f" 💀 DEAD               : {dead}  (unreferenced — delete candidates)")
+    print(f" ⬆  EMIT_ONLY          : {emit_only}  (no subscriber - fire-and-forget OK)")
+    print(f" ⬇  SUBSCRIBE_ONLY     : {sub_only}  (dangling - no emitter)")
+    print(f" 💀 DEAD               : {dead}  (unreferenced - delete candidates)")
     print(f"{'='*70}\n")
 
     for status, label in [
-        ("SUBSCRIBE_ONLY", "⬇  SUBSCRIBE_ONLY — dangling (no emitter)"),
-        ("DEAD", "💀 DEAD — unreferenced"),
-        ("EMIT_ONLY", "⬆  EMIT_ONLY — no subscriber"),
+        ("SUBSCRIBE_ONLY", "⬇  SUBSCRIBE_ONLY - dangling (no emitter)"),
+        ("DEAD", "💀 DEAD - unreferenced"),
+        ("EMIT_ONLY", "⬆  EMIT_ONLY - no subscriber"),
     ]:
         names = sorted(by_status[status])
         if not names:

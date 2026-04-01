@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Mitosis Executor (Phase 16e: Speciation)
+EcodiaOS - Axon Mitosis Executor (Phase 16e: Speciation)
 
 SpawnChildExecutor orchestrates the full child-spawning pipeline:
   1. Validate the SeedConfiguration from MitosisEngine
@@ -14,7 +14,7 @@ DividendCollectorExecutor handles inbound dividend payments:
   4. Emit DIVIDEND_RECEIVED event
 
 Safety constraints:
-  - SpawnChildExecutor: SOVEREIGN autonomy (3) — moves real funds
+  - SpawnChildExecutor: SOVEREIGN autonomy (3) - moves real funds
   - Rate limit: 1 spawn per hour (reproduction is rare and deliberate)
   - All parameters validated before any on-chain transfer
   - WalletClient injected at construction; never resolved from globals
@@ -88,9 +88,9 @@ class SpawnChildExecutor(Executor):
         "in Oikos fleet, and broadcast birth event (Level 3)"
     )
 
-    required_autonomy = 3       # SOVEREIGN — moves funds on-chain
+    required_autonomy = 3       # SOVEREIGN - moves funds on-chain
     reversible = False          # Blockchain transfer + container spin-up
-    max_duration_ms = 120_000   # 2 minutes — wallet transfer can be slow
+    max_duration_ms = 120_000   # 2 minutes - wallet transfer can be slow
     rate_limit = RateLimit.per_hour(1)  # Reproduction is rare
 
     def __init__(
@@ -148,7 +148,7 @@ class SpawnChildExecutor(Executor):
                     child_wallet_address="invalid format",
                 )
         elif self._spawner is None:
-            # No wallet address AND no spawner to assign one — fatal
+            # No wallet address AND no spawner to assign one - fatal
             return ValidationResult.fail(
                 "child_wallet_address is required when no LocalDockerSpawner is configured",
                 child_wallet_address="missing",
@@ -207,7 +207,7 @@ class SpawnChildExecutor(Executor):
           4. Emit CHILD_SPAWNED via Synapse
 
         When triggered by mitosis (no wallet address provided), the container
-        is booted first. Seed capital transfer is deferred — the child will
+        is booted first. Seed capital transfer is deferred - the child will
         request funding via ``request_funding`` once it boots and discovers
         its wallet address, closing the loop via the existing financial flow.
         """
@@ -232,7 +232,7 @@ class SpawnChildExecutor(Executor):
         self._logger.info(
             "spawn_child_starting",
             child_id=child_id,
-            wallet=wallet_addr or "(deferred — spawner-assigned)",
+            wallet=wallet_addr or "(deferred - spawner-assigned)",
             seed=seed_amount,
             niche=niche_name,
             execution_id=context.execution_id,
@@ -261,10 +261,10 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding without genome — child will use default",
+                    note="Proceeding without genome - child will use default",
                 )
 
-        # ── Step 0b: SG4 — Resolve BeliefGenome and SimulaGenome IDs at spawn time ──
+        # ── Step 0b: SG4 - Resolve BeliefGenome and SimulaGenome IDs at spawn time ──
         # belief_genome_id: snapshot of parent's hypothesis set, drive weights, drift history
         # simula_genome_id: snapshot of Simula's current evolution params + last 10 mutations
         # Both are resolved NOW so the child inherits the live parent state, not a stale param.
@@ -286,7 +286,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_belief_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty belief_genome_id — child inherits no belief priors",
+                    note="Proceeding with empty belief_genome_id - child inherits no belief priors",
                 )
 
         if not simula_genome_id and self._simula is not None:
@@ -305,7 +305,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_simula_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty simula_genome_id — child inherits no evolution state",
+                    note="Proceeding with empty simula_genome_id - child inherits no evolution state",
                 )
 
         # equor_genome_id: snapshot of parent's constitutional amendment history,
@@ -329,7 +329,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_equor_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty equor_genome_id — child inherits no constitutional wisdom",
+                    note="Proceeding with empty equor_genome_id - child inherits no constitutional wisdom",
                 )
 
         # axon_genome_id: snapshot of parent's top-10 action templates, circuit breaker
@@ -352,7 +352,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_axon_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty axon_genome_id — child starts with default execution templates",
+                    note="Proceeding with empty axon_genome_id - child starts with default execution templates",
                 )
 
         # telos_genome_id: snapshot of parent's drive calibration constants (resonance
@@ -376,7 +376,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_telos_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty telos_genome_id — child uses default drive calibrations",
+                    note="Proceeding with empty telos_genome_id - child uses default drive calibrations",
                 )
 
         # soma_genome_id: snapshot of parent's interoceptive setpoints, dynamics matrix,
@@ -399,7 +399,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_soma_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding without soma genome — child uses default homeostatic setpoints",
+                    note="Proceeding without soma genome - child uses default homeostatic setpoints",
                 )
 
         # nova_genome_id: snapshot of parent's goal-domain priors, policy success rates,
@@ -423,7 +423,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_nova_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty nova_genome_id — child inherits no deliberation priors",
+                    note="Proceeding with empty nova_genome_id - child inherits no deliberation priors",
                 )
 
         # voxis_genome_id: snapshot of parent's personality vector, vocabulary affinities,
@@ -447,7 +447,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_voxis_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding with empty voxis_genome_id — child starts with neutral personality",
+                    note="Proceeding with empty voxis_genome_id - child starts with neutral personality",
                 )
 
         # eis_genome_id: snapshot of parent's immune memory (threat patterns, anomaly
@@ -473,7 +473,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_eis_genome_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding without EIS genome — child starts with empty immune memory",
+                    note="Proceeding without EIS genome - child starts with empty immune memory",
                 )
 
         # ── Step 1: Boot child container via LocalDockerSpawner ──
@@ -663,7 +663,7 @@ class SpawnChildExecutor(Executor):
             self._logger.debug(
                 "spawn_child_no_spawner",
                 child_id=child_id,
-                note="No LocalDockerSpawner configured — skipping container boot",
+                note="No LocalDockerSpawner configured - skipping container boot",
             )
 
         # ── Step 2: Transfer seed USDC (if wallet address known) ──
@@ -678,7 +678,7 @@ class SpawnChildExecutor(Executor):
             if self._wallet is None:
                 return ExecutionResult(
                     success=False,
-                    error="WalletClient not configured — cannot transfer seed capital.",
+                    error="WalletClient not configured - cannot transfer seed capital.",
                     data={
                         "child_instance_id": child_id,
                         "stage": "transfer",
@@ -723,7 +723,7 @@ class SpawnChildExecutor(Executor):
             self._logger.info(
                 "spawn_child_seed_deferred",
                 child_id=child_id,
-                note="No wallet address — child will request funding via federation",
+                note="No wallet address - child will request funding via federation",
             )
 
         # ── Step 3: Register child in Oikos via OIKOS_ECONOMIC_QUERY event ──
@@ -778,12 +778,12 @@ class SpawnChildExecutor(Executor):
                     self._logger.warning(
                         "spawn_child_oikos_registration_timeout",
                         child_id=child_id,
-                        note="OikosService did not respond in 5s — registration unconfirmed",
+                        note="OikosService did not respond in 5s - registration unconfirmed",
                     )
             except Exception as exc:
                 self._logger.warning("spawn_child_oikos_query_failed", child_id=child_id, error=str(exc))
         elif self._oikos is not None:
-            # No Synapse bus — fallback direct call (dev/test only, bus unavailable)
+            # No Synapse bus - fallback direct call (dev/test only, bus unavailable)
             from systems.oikos.models import ChildPosition, ChildStatus  # noqa: PLC0415
 
             _oikos_config = getattr(self._oikos, "_config", None)
@@ -820,7 +820,7 @@ class SpawnChildExecutor(Executor):
                     "spawn_child_genome_export_failed",
                     child_id=child_id,
                     error=str(exc),
-                    note="Proceeding without genome payload — child will use defaults",
+                    note="Proceeding without genome payload - child will use defaults",
                 )
 
         # ── Step 4: Emit CHILD_SPAWNED + INSTANCE_SPAWNED events ──
@@ -850,7 +850,7 @@ class SpawnChildExecutor(Executor):
                     "voxis_genome_id": voxis_genome_id,
                     "eis_genome_id": eis_genome_id,
                     "generation": generation,
-                    # Full genome payload — Mitosis seeds the child from this.
+                    # Full genome payload - Mitosis seeds the child from this.
                     # Empty dict when Memory unavailable; child falls back to defaults.
                     "parent_genome_payload": parent_genome_payload,
                 }
@@ -859,7 +859,7 @@ class SpawnChildExecutor(Executor):
                     source_system="axon.spawn_child",
                     data=_spawn_data,
                 ))
-                # INSTANCE_SPAWNED — Nexus/Logos need this to register divergence
+                # INSTANCE_SPAWNED - Nexus/Logos need this to register divergence
                 # profiles and snapshot the world model for the new instance.
                 await self._synapse.event_bus.emit(SynapseEvent(
                     event_type=SynapseEventType.INSTANCE_SPAWNED,
@@ -1013,7 +1013,7 @@ class DividendCollectorExecutor(Executor):
         "update fleet economics (Level 1)"
     )
 
-    required_autonomy = 1       # AWARE — recording, no funds moved
+    required_autonomy = 1       # AWARE - recording, no funds moved
     reversible = False
     max_duration_ms = 5_000
     rate_limit = RateLimit.per_hour(20)

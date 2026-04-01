@@ -1,9 +1,9 @@
 """
-EcodiaOS — Evo Procedure Codifier
+EcodiaOS - Evo Procedure Codifier
 
 Converts observed (Intent, Outcome) pairs into reusable Procedure objects.
 Where ProcedureExtractor works from raw SequenceDetector pattern hashes,
-ProcedureCodifier works from structured intent/outcome records — the typed
+ProcedureCodifier works from structured intent/outcome records - the typed
 artefacts Axon produces when executing Nova's plans.
 
 Process:
@@ -18,7 +18,7 @@ Process:
 Performance: codification ≤5s per procedure (same budget as ProcedureExtractor).
 Max 3 new procedures per codification call (VELOCITY_LIMITS).
 
-This is the twin of ProcedureExtractor — one reads raw episode hashes,
+This is the twin of ProcedureExtractor - one reads raw episode hashes,
 the other reads typed Intent + Outcome records from Axon's execution path.
 """
 
@@ -138,7 +138,7 @@ class ProcedureCodifier:
 
         # sequence_key (canonical action_types tuple) → _SequenceBucket
         self._buckets: dict[tuple[str, ...], _SequenceBucket] = {}
-        # Procedure IDs already codified — never re-extract the same sequence
+        # Procedure IDs already codified - never re-extract the same sequence
         self._codified_sequences: set[tuple[str, ...]] = set()
 
         # Metrics
@@ -326,7 +326,7 @@ class ProcedureCodifier:
                         {"proc_id": procedure.id, "ep_id": episode_id},
                     )
                 except Exception:
-                    # Episode may not exist in graph yet — non-fatal
+                    # Episode may not exist in graph yet - non-fatal
                     pass
 
         except Exception as exc:
@@ -365,7 +365,7 @@ Observed {total} times total, {bucket.success_count} successes (success rate: {s
 EXAMPLES:
 {example_lines}
 
-Extract the GENERALISED procedure — the common abstract pattern across all examples.
+Extract the GENERALISED procedure - the common abstract pattern across all examples.
 Preconditions should be situation-level (what must be true before this makes sense).
 Postconditions should be outcome-level (what should be true after success).
 Steps should match the action sequence but with generalised descriptions.

@@ -1,5 +1,5 @@
 """
-EcodiaOS — RE Training Export Pipeline
+EcodiaOS - RE Training Export Pipeline
 
 Orchestrates the full batch extraction → quality → formatting → JSONL export
 pipeline for the custom reasoning engine training data.
@@ -177,7 +177,7 @@ async def run_stats(
     lookback_days: int = _DEFAULT_LOOKBACK_DAYS,
 ) -> dict[str, Any]:
     """
-    Run COUNT queries only — much cheaper than full extraction.
+    Run COUNT queries only - much cheaper than full extraction.
     Used by `python -m cli.training_data stats`.
     """
     extractor = TrainingDataExtractor(neo4j)
@@ -217,7 +217,7 @@ def _write_jsonl(records: list[dict[str, Any]], dest: Path) -> None:
     lines = []
     for rec in records:
         # train_lora.py reads either "messages" or "instruction" key;
-        # we use "messages" — include only what the trainer needs.
+        # we use "messages" - include only what the trainer needs.
         out = {"messages": rec["messages"]}
         lines.append(json.dumps(out, ensure_ascii=False))
 

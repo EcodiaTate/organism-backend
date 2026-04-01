@@ -1,12 +1,12 @@
 """
-EcodiaOS — Energy Grid API Client
+EcodiaOS - Energy Grid API Client
 
 Provider-agnostic interface to real-time carbon intensity and energy cost APIs.
 Ships with two concrete implementations:
 
-  1. ElectricityMapsClient — uses the Electricity Maps v3 API (same as
+  1. ElectricityMapsClient - uses the Electricity Maps v3 API (same as
      GridMetabolismSensor in soma/, but decoupled for modular swapability).
-  2. WattTimeClient — uses the WattTime v3 API for MOER-based marginal
+  2. WattTimeClient - uses the WattTime v3 API for MOER-based marginal
      emissions data.
 
 Both conform to the ``EnergyProvider`` protocol so the scheduler interceptor
@@ -14,7 +14,7 @@ never couples to a specific upstream.
 
 Iron Rules (inherited from GridMetabolismSensor contract):
   - All HTTP calls are bounded by a configurable timeout + hard outer cap.
-  - Any exception is caught and returns None — callers degrade gracefully.
+  - Any exception is caught and returns None - callers degrade gracefully.
   - No LLM calls, no DB writes, no side-effects beyond the HTTP fetch.
   - Uses stdlib urllib so there are no extra dependencies.
 """
@@ -179,7 +179,7 @@ class WattTimeClient(EnergyProvider):
         )
 
         if data is None:
-            # Token may have expired — clear so next fetch re-authenticates
+            # Token may have expired - clear so next fetch re-authenticates
             self._bearer_token = None
             return None
 

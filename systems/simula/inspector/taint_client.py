@@ -1,18 +1,18 @@
 """
-EcodiaOS — Inspector Taint Collector Client
+EcodiaOS - Inspector Taint Collector Client
 
 Async HTTP client for querying the eBPF taint collector sidecar API running
 inside the docker-compose topology. All methods catch connection/timeout errors
-and return empty defaults with structlog warnings — the taint client never
+and return empty defaults with structlog warnings - the taint client never
 blocks the pipeline.
 
 Sidecar API endpoints:
-  GET  /health                — readiness probe
-  GET  /taint/flows           — filtered cross-service flows
-  GET  /taint/graph           — full taint propagation graph
-  GET  /taint/connections     — simplified adjacency map
-  GET  /taint/stats           — event/buffer statistics
-  POST /taint/inject          — inject synthetic taint marker
+  GET  /health                - readiness probe
+  GET  /taint/flows           - filtered cross-service flows
+  GET  /taint/graph           - full taint propagation graph
+  GET  /taint/connections     - simplified adjacency map
+  GET  /taint/stats           - event/buffer statistics
+  POST /taint/inject          - inject synthetic taint marker
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ class TaintCollectorClient:
     """
     Async HTTP client for the eBPF taint collector sidecar.
 
-    Never raises — all methods catch connection/timeout errors and return
+    Never raises - all methods catch connection/timeout errors and return
     safe defaults. The caller can always proceed with degraded (or empty)
     taint data without special error handling.
 

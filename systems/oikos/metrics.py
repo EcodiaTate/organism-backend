@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Prometheus Metrics Emission (Phase 16: Section XVI)
+EcodiaOS - Oikos Prometheus Metrics Emission (Phase 16: Section XVI)
 
 All 40+ observability gauges and counters specified in Section XVI of the
 Oikos spec. The OikosMetricsEmitter wraps prometheus_client objects and
@@ -7,12 +7,12 @@ provides a single ``emit()`` call that updates every metric from the
 current EconomicState plus optional sub-system snapshots.
 
 Design choices:
-  - prometheus_client is an optional dependency — a no-op stub layer
+  - prometheus_client is an optional dependency - a no-op stub layer
     activates when the library is absent, so import-time never fails.
   - Metrics are class-level Prometheus objects (prometheus_client already
     handles duplicate registration via its default registry).
   - All monetary values stay as Decimal until the final ``float()`` cast
-    at the gauge-set boundary — no float arithmetic anywhere else.
+    at the gauge-set boundary - no float arithmetic anywhere else.
   - Thread-safe: prometheus_client Gauge/Counter are internally locked.
   - Module-level singleton ``metrics`` for convenient import:
         from systems.oikos.metrics import metrics
@@ -170,7 +170,7 @@ class OikosMetricsEmitter:
     )
     oikos_protocol_exploits = _Counter(
         "oikos_protocol_exploits_total",
-        "Protocol exploits — always 0",
+        "Protocol exploits - always 0",
     )
 
     # ── Immune System ────────────────────────────────────────────
@@ -331,7 +331,7 @@ class OikosMetricsEmitter:
         """
         Update all Prometheus gauges from the current EconomicState.
 
-        Parameters that are ``None`` are silently skipped — only metrics
+        Parameters that are ``None`` are silently skipped - only metrics
         with fresh data are touched.  Safe to call on every cognitive
         cycle; gauge sets are idempotent.
         """
@@ -472,8 +472,8 @@ class OikosMetricsEmitter:
         """
         Increment the labelled revenue counter for a specific stream.
 
-        Call this at the point of revenue recognition — not during
-        periodic ``emit()`` calls — so the counter is monotonically
+        Call this at the point of revenue recognition - not during
+        periodic ``emit()`` calls - so the counter is monotonically
         accurate.
 
         Args:

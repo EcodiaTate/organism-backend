@@ -1,14 +1,14 @@
 """
-EcodiaOS — Recursive Self-Modification Engine
+EcodiaOS - Recursive Self-Modification Engine
 
 The difference between a system that tunes hyperparameters and one that
 rewrites its own source code.
 
 Capabilities:
-  1. Detector evolution — propose replacement for failing detectors
-  2. Evidence function adaptation — make complexity coefficients learnable
-  3. Consolidation schedule adaptation — learn optimal consolidation timing
-  4. Learning architecture proposals — request cognitive upgrades from Simula
+  1. Detector evolution - propose replacement for failing detectors
+  2. Evidence function adaptation - make complexity coefficients learnable
+  3. Consolidation schedule adaptation - learn optimal consolidation timing
+  4. Learning architecture proposals - request cognitive upgrades from Simula
 
 All self-modifications are velocity-limited: the organism can't rewrite
 itself in one cycle. Constitutional guard: can NEVER modify Equor logic,
@@ -140,7 +140,7 @@ class SelfModificationEngine:
                 record = SelfModificationRecord(
                     proposal_type="detector_replacement",
                     description=(
-                        f"Replace detector '{proposal.old_detector_name}' — "
+                        f"Replace detector '{proposal.old_detector_name}' - "
                         f"effectiveness below {_DETECTOR_FAIL_THRESHOLD} for "
                         f"{_DETECTOR_FAIL_CYCLES} cycles. "
                         f"Spec: {proposal.specification[:200]}"
@@ -266,7 +266,7 @@ class SelfModificationEngine:
             # across all detectors
             cat_count = 0
             for outcomes in self._meta_learning._detector_outcomes.values():
-                # This is a rough proxy — we'd need category tracking for precision
+                # This is a rough proxy - we'd need category tracking for precision
                 cat_count += len(outcomes)
 
             if cat_count < 5:
@@ -463,14 +463,14 @@ class SelfModificationEngine:
                 refute_rate = total_refuted / max(1, total_generated)
 
                 if refute_rate > 0.7:
-                    # Check constitutional guard — never propose modifying forbidden targets
+                    # Check constitutional guard - never propose modifying forbidden targets
                     if any(forbidden in cat.value.lower() for forbidden in _FORBIDDEN_TARGETS):
                         continue
 
                     proposal = LearningArchitectureProposal(
                         failure_mode=(
                             f"Category '{cat.value}' has {refute_rate:.0%} refutation rate "
-                            f"over {total_generated} hypotheses — systematic failure"
+                            f"over {total_generated} hypotheses - systematic failure"
                         ),
                         proposed_change=(
                             f"Adapt evidence scoring for category '{cat.value}': "

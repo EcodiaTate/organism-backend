@@ -1,5 +1,5 @@
 """
-SocialMediaChannel — emerging niche signals from public social trend APIs.
+SocialMediaChannel - emerging niche signals from public social trend APIs.
 
 Rather than requiring Twitter/X API credentials (paid), this channel uses:
   1. Reddit's public JSON API (no auth for read-only listing)

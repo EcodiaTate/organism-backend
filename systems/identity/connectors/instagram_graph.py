@@ -1,5 +1,5 @@
 """
-EcodiaOS — Instagram Graph API Connector
+EcodiaOS - Instagram Graph API Connector
 
 Implements the PlatformConnector ABC for Meta's Instagram Graph API using
 the system-user / business OAuth 2.0 flow.
@@ -10,7 +10,7 @@ Instagram / Meta specifics:
     via a separate GET request to the Graph API.
   - Long-lived tokens can be refreshed before expiry by calling the refresh
     endpoint; a fresh 60-day window starts from the call time.
-  - Meta does not issue a traditional OAuth refresh token — the long-lived token
+  - Meta does not issue a traditional OAuth refresh token - the long-lived token
     itself acts as its own renewal credential.
   - Revocation is handled via the Graph API's DELETE /me/permissions endpoint.
 """
@@ -59,11 +59,11 @@ class InstagramConnector(PlatformConnector):
     Instagram Graph API OAuth 2.0 connector.
 
     Token lifecycle:
-      1. build_authorization_url() — standard OAuth authorize redirect.
-      2. exchange_code() — POST short-lived token, then GET long-lived token.
-      3. refresh_token() — GET a refreshed long-lived token (new 60-day window).
-      4. revoke() — DELETE /me/permissions to de-authorise the app.
-      5. check_health() — GET /me to verify the token is still valid.
+      1. build_authorization_url() - standard OAuth authorize redirect.
+      2. exchange_code() - POST short-lived token, then GET long-lived token.
+      3. refresh_token() - GET a refreshed long-lived token (new 60-day window).
+      4. revoke() - DELETE /me/permissions to de-authorise the app.
+      5. check_health() - GET /me to verify the token is still valid.
 
     The connector stores only the long-lived token in the vault; the
     short-lived token is a transient intermediate never persisted.
@@ -201,7 +201,7 @@ class InstagramConnector(PlatformConnector):
         Refresh the long-lived token, resetting its 60-day window.
 
         Meta requires the token be at least 24 hours old before a refresh
-        will extend the window. Calling early is harmless — the existing
+        will extend the window. Calling early is harmless - the existing
         token is returned unchanged if too recent.
         """
         if self._credentials is None or not self._credentials.token_envelope_id:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Model Hot-Swap Manager
+EcodiaOS - Model Hot-Swap Manager
 
 Orchestrates live transitions of the organism's primary inference engine
 to a newly trained LoRA adapter, with a strict rollback circuit breaker.
@@ -13,7 +13,7 @@ Architecture:
   5. Active model state is persisted to Neo4j so the organism remembers
      which brain it is using across reboots
 
-The probation monitoring is tick-driven — SynapseService calls
+The probation monitoring is tick-driven - SynapseService calls
 rollback_monitor.tick() on every cognitive cycle during probation, so
 there is zero additional latency from polling or timers.
 
@@ -111,7 +111,7 @@ class RollbackMonitor:
     error rate exceeds the configured threshold, it signals an immediate
     rollback.
 
-    This is a pure data structure — it does not perform the rollback itself.
+    This is a pure data structure - it does not perform the rollback itself.
     It reports whether a rollback is needed, and the HotSwapManager acts.
 
     Thread-safety: all mutation happens on the asyncio event loop thread
@@ -214,7 +214,7 @@ class RollbackMonitor:
             )
             return True
 
-        # Probation period complete — adapter passed
+        # Probation period complete - adapter passed
         if self._cycles_elapsed >= self._probation_cycles:
             self._logger.info(
                 "probation_passed",
@@ -564,7 +564,7 @@ class HotSwapManager:
         if not auto_rollback:
             self._logger.info(
                 "model_rollback_triggered_skipped",
-                reason="auto_rollback=False — manual intervention required",
+                reason="auto_rollback=False - manual intervention required",
             )
             return
 
@@ -700,7 +700,7 @@ class HotSwapManager:
                     error=str(exc),
                 )
 
-                # Emit RE training example — hot-swap failure is a negative training
+                # Emit RE training example - hot-swap failure is a negative training
                 # signal: the organism attempted to upgrade its own reasoning engine
                 # and failed.  The adapter CID, failure class, and swap context are
                 # captured so the RE can learn to avoid re-applying bad adapters.
@@ -819,7 +819,7 @@ class HotSwapManager:
         inner = self._llm.inner
 
         if inner.supports_adapters:
-            # Case 2: Already on a local engine — just swap the adapter
+            # Case 2: Already on a local engine - just swap the adapter
             self._phase = SwapPhase.LOADING_ADAPTER
 
             # Preserve reference for rollback
@@ -921,7 +921,7 @@ class HotSwapManager:
         """
         Instantly revert to the previous model configuration.
 
-        This is the organism's immune response to catastrophic forgetting —
+        This is the organism's immune response to catastrophic forgetting -
         the moment the error rate spikes, we yank the new adapter and
         restore the proven previous brain.
         """
@@ -952,7 +952,7 @@ class HotSwapManager:
             except Exception as exc:
                 self._logger.warning("failed_to_close_rolled_back_provider", error=str(exc))
 
-        # Case 2: We were already on a local engine — just unload the adapter
+        # Case 2: We were already on a local engine - just unload the adapter
         elif self._llm.inner.supports_adapters:
             try:
                 await self._llm.inner.unload_adapter()
@@ -1011,7 +1011,7 @@ class HotSwapManager:
             source_system="simula",
         ))
 
-        # Emit RE training example — probation failure is a negative training signal.
+        # Emit RE training example - probation failure is a negative training signal.
         # The organism tried a new adapter, observed elevated error rate during probation,
         # and rolled back.  Capturing the probation snapshot gives the RE concrete data
         # on what kinds of adapters fail in production.
@@ -1071,7 +1071,7 @@ class HotSwapManager:
 
         During probation, advances the monitor and triggers rollback
         if the error rate exceeds the threshold. This is the "circuit
-        breaker" check — it runs at full clock speed (~6.7 Hz) so the
+        breaker" check - it runs at full clock speed (~6.7 Hz) so the
         organism reacts to catastrophic forgetting within seconds.
         """
         if not self._monitor.is_active:

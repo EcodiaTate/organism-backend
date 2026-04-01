@@ -1,21 +1,21 @@
 """
-EcodiaOS — Evo Consolidation Orchestrator
+EcodiaOS - Evo Consolidation Orchestrator
 
 The "sleep mode" of the learning system. Runs every 6 hours or 10,000
-cognitive cycles — whichever comes first.
+cognitive cycles - whichever comes first.
 
 Ten phases (spec Section VII):
-  1.    Memory consolidation       — delegate to MemoryService
-  2.    Hypothesis review          — integrate supported, archive refuted/stale
-  2.5   Belief aging               — flag stale beliefs for re-verification
-  2.75  Belief consolidation       — harden high-confidence beliefs into read-only nodes
-  2.8   Genetic fixation           — compress stable beliefs into inheritable genome
-  3.    Schema induction           — propose new entity/relation types from clusters
-  4.    Procedure extraction       — codify mature action sequences as Procedures
-  5.    Parameter optimisation     — apply supported parameter hypotheses
-  6.    Self-model update          — recompute capability and effectiveness metrics
-  7.    Drift data feed            — send effectiveness data to Equor's drift detector
-  8.    Evolution proposals        — flag structural changes that warrant Simula review
+  1.    Memory consolidation       - delegate to MemoryService
+  2.    Hypothesis review          - integrate supported, archive refuted/stale
+  2.5   Belief aging               - flag stale beliefs for re-verification
+  2.75  Belief consolidation       - harden high-confidence beliefs into read-only nodes
+  2.8   Genetic fixation           - compress stable beliefs into inheritable genome
+  3.    Schema induction           - propose new entity/relation types from clusters
+  4.    Procedure extraction       - codify mature action sequences as Procedures
+  5.    Parameter optimisation     - apply supported parameter hypotheses
+  6.    Self-model update          - recompute capability and effectiveness metrics
+  7.    Drift data feed            - send effectiveness data to Equor's drift detector
+  8.    Evolution proposals        - flag structural changes that warrant Simula review
 
 Performance budget: ≤60 seconds end-to-end (spec Section X).
 
@@ -88,7 +88,7 @@ _PRESSURE_DECAY_PER_100_CYCLES: float = 0.05        # Natural cooldown
 
 class ConsolidationOrchestrator:
     """
-    Drives the full consolidation pipeline — the organism dreaming.
+    Drives the full consolidation pipeline - the organism dreaming.
 
     Receives the active hypothesis list and pattern context from EvoService.
     Coordinates all sub-systems through the 8-phase pipeline.
@@ -177,7 +177,7 @@ class ConsolidationOrchestrator:
         )
 
     def decay_pressure(self, cycles_elapsed: int) -> None:
-        """Apply natural pressure decay — 0.05 per 100 cycles.
+        """Apply natural pressure decay - 0.05 per 100 cycles.
 
         Call this each time the consolidation loop polls (every 60 s / ~N cycles).
         """
@@ -240,7 +240,7 @@ class ConsolidationOrchestrator:
             return True
         # Early consolidation gate: only fire if at least 1 hour has elapsed
         # (prevents hammering consolidation on every single regression event)
-        # and hypotheses_pending is checked by caller via `cycle_count` proxy —
+        # and hypotheses_pending is checked by caller via `cycle_count` proxy -
         # callers that pass pending hypothesis count as cycle_count satisfy ≥5.
         if self._early_consolidation_requested and hours_elapsed >= _CONSOLIDATION_MIN_INTERVAL_HOURS and cycle_count >= 5:
             self._early_consolidation_requested = False
@@ -274,7 +274,7 @@ class ConsolidationOrchestrator:
                              ParameterTuner.apply_adjustment() so the feedback
                              loop has a valid baseline for each new adjustment.
 
-        Never raises — all phases handle their own exceptions.
+        Never raises - all phases handle their own exceptions.
         """
         self._logger.info("consolidation_starting")
         start = time.monotonic()
@@ -585,7 +585,7 @@ class ConsolidationOrchestrator:
         Phase 2.75: Harden high-confidence, low-volatility beliefs into
         read-only :ConsolidatedBelief reference nodes.
 
-        Also checks for foundation conflicts — hypotheses that contradict
+        Also checks for foundation conflicts - hypotheses that contradict
         consolidated beliefs are logged at high severity.
 
         Returns a BeliefConsolidationResult.
@@ -622,7 +622,7 @@ class ConsolidationOrchestrator:
                     ],
                 )
 
-                # Escalate to Thymos as immune incident — conflicting foundation
+                # Escalate to Thymos as immune incident - conflicting foundation
                 # beliefs are pathological and need immune system intervention
                 await self._escalate_foundation_conflicts_to_thymos(conflicts)
 
@@ -746,14 +746,14 @@ class ConsolidationOrchestrator:
 
     async def _phase_speciation(self) -> Any:
         """
-        Phase 2.9: Cognitive Speciation — evolve new ways of thinking.
+        Phase 2.9: Cognitive Speciation - evolve new ways of thinking.
 
         Runs five speciation mechanisms: allopatric (domain divergence),
         sympatric (same-domain worldview splits), adaptive radiation
         (novel domain pressure), parapatric (boundary zone divergence),
         and ring species detection (circular incompatibility).
 
-        Creates and evolves cognitive niches — isolated hypothesis
+        Creates and evolves cognitive niches - isolated hypothesis
         ecosystems with their own fitness landscapes.
         """
         from systems.evo.speciation import SpeciationResult
@@ -795,7 +795,7 @@ class ConsolidationOrchestrator:
 
     async def _phase_niche_forking(self) -> Any:
         """
-        Phase 2.95: Niche Forking — cognitive organogenesis.
+        Phase 2.95: Niche Forking - cognitive organogenesis.
 
         Examines mature niches and proposes architectural forks:
         specialized detectors, evidence functions, consolidation
@@ -938,7 +938,7 @@ class ConsolidationOrchestrator:
             if procedure is not None:
                 extracted += 1
 
-        # Also run ProcedureCodifier — converts mature (Intent, Outcome) pairs
+        # Also run ProcedureCodifier - converts mature (Intent, Outcome) pairs
         # accumulated via on_action_completed into Procedure objects.
         if self._codifier is not None:
             codified = await self._codifier.codify()
@@ -951,7 +951,7 @@ class ConsolidationOrchestrator:
         Phase 5: Apply supported parameter hypotheses.
         Uses the pre-Phase-2 snapshot so hypotheses are available after integration.
         Velocity-limited to prevent lurching changes.
-        Skipped when Oikos reports high metabolic pressure (GROWTH gate denied) —
+        Skipped when Oikos reports high metabolic pressure (GROWTH gate denied) -
         expensive optimisation should not run while the organism is starving.
         Returns (adjustment_count, total_absolute_delta).
         """
@@ -1057,17 +1057,17 @@ class ConsolidationOrchestrator:
 
         # Compute target re_progress_min_improvement_pct
         if learning_rate >= 0.8:
-            re_pct = 3.0   # Fast learner — be sensitive to even small RE gains
+            re_pct = 3.0   # Fast learner - be sensitive to even small RE gains
         elif learning_rate < 0.3:
-            re_pct = 7.0   # Slow / stalled — reduce noisy RE progress alerts
+            re_pct = 7.0   # Slow / stalled - reduce noisy RE progress alerts
         else:
             re_pct = 5.0   # Default
 
         # Compute target metabolic_degradation_fraction
         if economic_ratio < 1.1:
-            met_frac = 0.07  # Tight economy — detect metabolic degradation sooner
+            met_frac = 0.07  # Tight economy - detect metabolic degradation sooner
         elif economic_ratio >= 1.5:
-            met_frac = 0.15  # Comfortable — tolerate more variance before alarming
+            met_frac = 0.15  # Comfortable - tolerate more variance before alarming
         else:
             met_frac = 0.10  # Default
 
@@ -1136,7 +1136,7 @@ class ConsolidationOrchestrator:
 
     async def _phase_meta_learning_update(self) -> None:
         """
-        Phase 6.25: Meta-learning — Evo learns about HOW it learns.
+        Phase 6.25: Meta-learning - Evo learns about HOW it learns.
 
         Adapts detector sensitivity, evidence thresholds, and hypothesis
         quality scoring based on accumulated outcome statistics. Adjustments
@@ -1225,7 +1225,7 @@ class ConsolidationOrchestrator:
           3. Sort by evidence score (highest first) as a pre-ranking heuristic
           4. For high-confidence candidates (confidence >= 0.9, evidence_score >= 8.0):
              emit EVOLUTION_CANDIDATE on Synapse so Simula can receive via event bus
-          5. Submit to Simula via bridge callback — each proposal is scored by
+          5. Submit to Simula via bridge callback - each proposal is scored by
              Simula's ArchitectureEFEScorer during process_proposal() and
              its EFE is persisted as a :ProposalEFE node for monitoring
 
@@ -1328,7 +1328,7 @@ class ConsolidationOrchestrator:
                     evidence_score=round(h.evidence_score, 2),
                 )
 
-            # Submit to Simula via bridge callback — only when the event-bus path
+            # Submit to Simula via bridge callback - only when the event-bus path
             # was not used, to avoid duplicate delivery into process_proposal().
             emitted_via_event_bus = (
                 confidence >= 0.9 and self._event_bus is not None

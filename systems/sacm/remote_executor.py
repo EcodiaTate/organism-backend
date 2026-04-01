@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Remote Execution Manager
+EcodiaOS - SACM Remote Execution Manager
 
 The orchestrator for the Execution & Verification subsystem.
 Coordinates the full lifecycle of dispatching a workload to a remote
@@ -7,14 +7,14 @@ compute provider with end-to-end encryption and dual-strategy
 verification.
 
 Pipeline:
-  1. PREPARE — Serialize workload, generate canaries, mix into batch.
-  2. ENCRYPT — Seal the mixed batch with X25519/AES-256-GCM for the
+  1. PREPARE - Serialize workload, generate canaries, mix into batch.
+  2. ENCRYPT - Seal the mixed batch with X25519/AES-256-GCM for the
      target provider.
-  3. DISPATCH — Send encrypted payload to the remote provider.
-  4. RECEIVE — Collect and decrypt the result batch.
-  5. VERIFY — Run consensus verification (deterministic replay +
+  3. DISPATCH - Send encrypted payload to the remote provider.
+  4. RECEIVE - Collect and decrypt the result batch.
+  5. VERIFY - Run consensus verification (deterministic replay +
      probabilistic canary audit).
-  6. ACCEPT/REJECT — If accepted, extract and return real results.
+  6. ACCEPT/REJECT - If accepted, extract and return real results.
      If rejected, mark provider, optionally retry on a different
      provider.
 """
@@ -283,10 +283,10 @@ class RemoteExecutionManager:
         execution_id: str,
         t0: float,
     ) -> RemoteExecutionResult:
-        """Internal pipeline — called by execute(), never raises to caller."""
+        """Internal pipeline - called by execute(), never raises to caller."""
         real_inputs = list(workload.items)
 
-        # ── Phase 1: PREPARE — canary generation + batch mixing ──
+        # ── Phase 1: PREPARE - canary generation + batch mixing ──
 
         canary_count = self._config.canary_count
         if canary_count == 0:
@@ -308,7 +308,7 @@ class RemoteExecutionManager:
             mixed_total=mixed_batch.total_size,
         )
 
-        # ── Phase 2: ENCRYPT — seal the mixed batch ─────────────
+        # ── Phase 2: ENCRYPT - seal the mixed batch ─────────────
 
         provider_public = public_key_from_bytes(placement.provider_public_key)
         aad = (
@@ -337,7 +337,7 @@ class RemoteExecutionManager:
             ciphertext_bytes=encryption_result.meta.ciphertext_size_bytes,
         )
 
-        # ── Phase 3: DISPATCH — send to remote provider ─────────
+        # ── Phase 3: DISPATCH - send to remote provider ─────────
 
         encrypted_result_bytes = await asyncio.wait_for(
             self._transport.submit_workload(
@@ -362,8 +362,8 @@ class RemoteExecutionManager:
             result_bytes=len(encrypted_result_bytes),
         )
 
-        # ── Phase 4: RECEIVE — decrypt result batch ──────────────
-        # Use the same keypair from Phase 2 — our_keypair.private_key matches
+        # ── Phase 4: RECEIVE - decrypt result batch ──────────────
+        # Use the same keypair from Phase 2 - our_keypair.private_key matches
         # the public key we advertised to the provider for their response encryption.
 
         result_envelope = self._wire_to_envelope(encrypted_result_bytes)
@@ -391,7 +391,7 @@ class RemoteExecutionManager:
                 ),
             )
 
-        # ── Phase 5: VERIFY — consensus verification ────────────
+        # ── Phase 5: VERIFY - consensus verification ────────────
 
         replay_items = self._build_replay_items(mixed_batch, remote_results)
 

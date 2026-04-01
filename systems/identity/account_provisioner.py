@@ -1,8 +1,8 @@
 """
-EcodiaOS — Autonomous Account Provisioner (Phase 16h: Platform Identity)
+EcodiaOS - Autonomous Account Provisioner (Phase 16h: Platform Identity)
 
-Gives each EOS instance its own platform identities — GitHub account, phone
-number, and generic platform accounts — without human intervention.
+Gives each EOS instance its own platform identities - GitHub account, phone
+number, and generic platform accounts - without human intervention.
 
 Architecture:
   1. AccountProvisioner owns the end-to-end flow for each platform.
@@ -108,7 +108,7 @@ class AccountProvisioner:
 
     Lifecycle: call initialize() once; then call provision_* methods as needed.
     The provisioner is designed to be fire-and-forget from IdentitySystem.initialize()
-    via asyncio.create_task() — it never blocks boot.
+    via asyncio.create_task() - it never blocks boot.
 
     Thread-safety: NOT thread-safe; single asyncio event loop.
     """
@@ -139,7 +139,7 @@ class AccountProvisioner:
     ) -> None:
         """
         Wire dependencies. Call once before any provision_* methods.
-        Does NOT start provisioning — call provision_platform_identities() to start.
+        Does NOT start provisioning - call provision_platform_identities() to start.
         """
         self._instance_id = instance_id
         self._full_config = config
@@ -185,7 +185,7 @@ class AccountProvisioner:
 
         self._log.info("platform_identity_provisioning_start")
 
-        # Step 1 — Twilio number
+        # Step 1 - Twilio number
         if not await self._has_twilio_number():
             try:
                 number = await self.provision_twilio_number(
@@ -204,7 +204,7 @@ class AccountProvisioner:
                     },
                 )
 
-        # Step 2 — GitHub account
+        # Step 2 - GitHub account
         if not await self._has_own_github_account():
             username, email = self._derive_github_identity()
             try:
@@ -963,7 +963,7 @@ class AccountProvisioner:
         config: dict[str, Any],
     ) -> AccountResult:
         """
-        Generic platform account provisioner — extensible hook for future platforms.
+        Generic platform account provisioner - extensible hook for future platforms.
 
         Args:
             platform: Platform name (e.g. "discord", "twitter").
@@ -1018,7 +1018,7 @@ class AccountProvisioner:
             return True
         if self._full_config and self._full_config.identity_comm.twilio_from_number:
             return True
-        # Check Neo4j audit record — set on successful prior provisioning
+        # Check Neo4j audit record - set on successful prior provisioning
         if self._neo4j is not None:
             try:
                 rows = await self._neo4j.execute_read(
@@ -1184,7 +1184,7 @@ class AccountProvisioner:
         Returns False only on explicit DENY.
         """
         if self._event_bus is None:
-            # No bus — allow by default (Equor unavailable)
+            # No bus - allow by default (Equor unavailable)
             self._log.warning(
                 "equor_gate_bypassed",
                 reason="no_event_bus",

@@ -1,1 +1,1 @@
-"""EcodiaOS unit tests — Nova Decision & Planning System."""
+"""EcodiaOS unit tests - Nova Decision & Planning System."""

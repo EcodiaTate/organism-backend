@@ -1,5 +1,5 @@
 """
-EcodiaOS — Causal Primitives
+EcodiaOS - Causal Primitives
 
 Shared causal invariant types used across systems (Kairos, Logos, Nexus, Nova, Axon).
 Moved from systems/kairos/types.py so other systems can import without
@@ -9,7 +9,7 @@ cross-system violations.
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — Pydantic needs this at runtime
+from datetime import datetime  # noqa: TC003 - Pydantic needs this at runtime
 from typing import Any, Literal
 
 from pydantic import Field
@@ -22,7 +22,7 @@ class CausalInvariantTier(enum.IntEnum):
 
     TIER_1_DOMAIN = 1        # Holds within a single domain
     TIER_2_CROSS_DOMAIN = 2  # Holds across multiple distinct domains
-    TIER_3_SUBSTRATE = 3     # Holds regardless of substrate — deepest layer
+    TIER_3_SUBSTRATE = 3     # Holds regardless of substrate - deepest layer
 
 
 class ScopeCondition(EOSBaseModel):
@@ -45,7 +45,7 @@ class ApplicableDomain(EOSBaseModel):
 
 class CausalInvariant(Identified, Timestamped):
     """
-    A confirmed causal invariant — the most compressed form of causal knowledge.
+    A confirmed causal invariant - the most compressed form of causal knowledge.
 
     One invariant generates predictions across every domain it touches.
     Tier 3 invariants are architectural events for the world model.
@@ -61,10 +61,10 @@ class CausalInvariant(Identified, Timestamped):
     description_length_bits: float = 0.0
     source_rule_id: str = ""  # ID of the CausalRule that was promoted
 
-    # Causal direction — used by counter-invariant violation predicate
+    # Causal direction - used by counter-invariant violation predicate
     direction: Literal["positive", "negative", ""] = ""
 
-    # Neo4j persistence — marks invariants validated for RE training export
+    # Neo4j persistence - marks invariants validated for RE training export
     validated: bool = False
 
     # Phase C: Distillation fields
@@ -81,7 +81,7 @@ class CausalInvariant(Identified, Timestamped):
     refined_scope: str = ""  # Natural language boundary condition
     last_violation_check: datetime | None = None
 
-    # Invariant decay — decayed by 0.95× per pipeline cycle when not reinforced
+    # Invariant decay - decayed by 0.95× per pipeline cycle when not reinforced
     recency_weight: float = 1.0
     active: bool = True  # False = archived (recency_weight < 0.1)
 
@@ -115,7 +115,7 @@ class ActionLog(Identified, Timestamped):
     Fields
     ------
     action_id : str
-        Stable ULID — same as the AuditRecord.execution_id written by Axon.
+        Stable ULID - same as the AuditRecord.execution_id written by Axon.
     action_type : str
         Executor name (e.g. "adjust_config", "wallet_transfer", "defi_yield").
     intent_id : str
@@ -169,7 +169,7 @@ class CausalHierarchyLevel(EOSBaseModel):
     confidence : float
         Hold rate at promotion time (0–1).
     substrate_independent : bool
-        True only for Tier 3 invariants — holds across ALL substrates.
+        True only for Tier 3 invariants - holds across ALL substrates.
     """
 
     tier: CausalInvariantTier = CausalInvariantTier.TIER_1_DOMAIN

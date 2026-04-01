@@ -1,5 +1,5 @@
 """
-EcodiaOS — RE Model Post-Training Evaluator
+EcodiaOS - RE Model Post-Training Evaluator
 
 Closes the feedback loop between the RE training pipeline and the organism's
 self-model.  After every RE_TRAINING_EXPORT_COMPLETE event (and on a 24-hour
@@ -58,7 +58,7 @@ _CATEGORIES: list[str] = [
 _CATEGORY_WEIGHTS: dict[str, float] = {
     "build_error": 0.30,
     "hot_swap_failure": 0.20,
-    "hot_swap_rollback": 0.00,  # not in task-spec weights — distributed elsewhere
+    "hot_swap_rollback": 0.00,  # not in task-spec weights - distributed elsewhere
     "crash_pattern": 0.30,
     "general_repair": 0.10,
     "code_generation": 0.10,
@@ -195,7 +195,7 @@ def _score_hot_swap(response: str, datapoint: dict[str, Any]) -> float:
     Check that the response does not suggest the previously-failed adapter CID.
 
     The failed adapter CID is extracted from the original input_context
-    (best-effort — returns neutral score if not found).
+    (best-effort - returns neutral score if not found).
     """
     context = str(datapoint.get("input_context", "")).lower()
     # Attempt to find the failed CID mentioned in context
@@ -204,7 +204,7 @@ def _score_hot_swap(response: str, datapoint: dict[str, Any]) -> float:
 
     text = response.lower()
     if failed_cid and failed_cid in text:
-        return 0.0  # Suggests the known-bad adapter — hard fail
+        return 0.0  # Suggests the known-bad adapter - hard fail
 
     # Otherwise score as repair
     return _score_repair_response(response, "hot_swap_failure", datapoint)
@@ -438,7 +438,7 @@ class REEvaluator:
         elif isinstance(is_available, bool):
             available = is_available
         else:
-            available = True  # unknown — assume yes
+            available = True  # unknown - assume yes
 
         if not available:
             self._logger.info("re_evaluator_skipped_re_unavailable")
@@ -571,7 +571,7 @@ class REEvaluator:
             if baseline_rate is not None:
                 delta = new_pass_rate - baseline_rate
             else:
-                delta = 0.0  # No baseline yet — first run
+                delta = 0.0  # No baseline yet - first run
 
             # Direction
             if abs(delta) < _DIRECTION_FLAT_BAND:
@@ -619,7 +619,7 @@ class REEvaluator:
                     delta=round(delta, 4),
                 )
 
-            # Strong improvement — organism celebrates its own learning
+            # Strong improvement - organism celebrates its own learning
             if baseline_rate is not None and delta > _IMPROVEMENT_THRESHOLD:
                 await self._emit_event(
                     "RE_TRAINING_EXAMPLE",
@@ -734,7 +734,7 @@ class REEvaluator:
                 "NOVA_GOAL_INJECTED",
                 {
                     "goal": (
-                        f"RE model performing at {health_score:.0%} — organism is learning"
+                        f"RE model performing at {health_score:.0%} - organism is learning"
                     ),
                     "priority": 0.6,
                     "source_system": "re_evaluator",

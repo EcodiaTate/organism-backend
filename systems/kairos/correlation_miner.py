@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Stage 1: Correlation Mining
+EcodiaOS - Kairos Stage 1: Correlation Mining
 
 Mines for correlations across CONTEXTS, not just within them.
 A correlation that only holds within one context is probably a local artifact.

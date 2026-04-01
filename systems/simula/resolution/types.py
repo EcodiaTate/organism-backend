@@ -26,7 +26,7 @@ from primitives.common import EOSBaseModel, utc_now
 
 
 class AutonomyLevel(enum.StrEnum):
-    """Progressive autonomy levels — ordered by risk and required confidence."""
+    """Progressive autonomy levels - ordered by risk and required confidence."""
 
     LINT = "lint"
     DEPENDENCY = "dependency"
@@ -140,10 +140,10 @@ class MonitoringAlert(EOSBaseModel):
 
 
 AUTONOMY_LEVEL_THRESHOLDS: dict[AutonomyLevel, float] = {
-    AutonomyLevel.LINT: 0.5,         # low bar — lint fixes are safe
-    AutonomyLevel.DEPENDENCY: 0.6,   # moderate — dep resolution is well-understood
-    AutonomyLevel.TEST_FIX: 0.8,     # high bar — test fixes can mask bugs
-    AutonomyLevel.LOGIC_BUG: 1.0,    # effectively infinite — always requires human
+    AutonomyLevel.LINT: 0.5,         # low bar - lint fixes are safe
+    AutonomyLevel.DEPENDENCY: 0.6,   # moderate - dep resolution is well-understood
+    AutonomyLevel.TEST_FIX: 0.8,     # high bar - test fixes can mask bugs
+    AutonomyLevel.LOGIC_BUG: 1.0,    # effectively infinite - always requires human
 }
 
 ISSUE_KIND_TO_AUTONOMY: dict[IssueKind, AutonomyLevel] = {

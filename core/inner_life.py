@@ -1,9 +1,9 @@
 """
-EcodiaOS — Inner Life Generator
+EcodiaOS - Inner Life Generator
 
 Periodic self-monitoring that feeds the organism's workspace even
 when no external input arrives.  Each observation enters the workspace
-like any other percept — competing for broadcast and driving the
+like any other percept - competing for broadcast and driving the
 cognitive cycle.
 
 Extracted from main.py lifespan().
@@ -56,7 +56,7 @@ async def inner_life_loop(
     The organism observes its own internal state across all subsystems:
     affect, goals, immune health, learning progress, cognitive rhythm,
     and sleep pressure.  These self-observations enter the workspace
-    like any other percept — competing for broadcast and driving
+    like any other percept - competing for broadcast and driving
     the cognitive cycle even when no external input arrives.
     """
     from systems.fovea.types import WorkspaceContribution
@@ -191,7 +191,7 @@ async def inner_life_loop(
                             content=(
                                 "I wonder what my community is doing."
                                 " I have not heard from anyone recently"
-                                " — is everything alright?"
+                                " - is everything alright?"
                             ),
                             priority=0.3 + curiosity_level * 0.15,
                             reason="curiosity_prompt",
@@ -228,7 +228,7 @@ async def inner_life_loop(
                         effectiveness = (
                             "I am effective."
                             if success_exec > total_exec * 0.7
-                            else "Some actions are failing — I should be more careful."
+                            else "Some actions are failing - I should be more careful."
                         )
                         atune.contribute(
                             WorkspaceContribution(
@@ -388,7 +388,7 @@ async def inner_life_loop(
                             f"allostatic_load={urgency:.2f}"
                         )
                         if urgency > 0.7:
-                            content += " — I am under significant internal pressure."
+                            content += " - I am under significant internal pressure."
                         atune.contribute(
                             WorkspaceContribution(
                                 system="soma",

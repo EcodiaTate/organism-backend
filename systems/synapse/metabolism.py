@@ -1,17 +1,17 @@
 """
-EcodiaOS — Synapse Metabolic Tracker
+EcodiaOS - Synapse Metabolic Tracker
 
 Tracks the real-world fiat cost of the organism's existence. Two cost
 categories:
 
-  1. **API costs** — per-token charges for external LLM calls (Claude via
+  1. **API costs** - per-token charges for external LLM calls (Claude via
      Bedrock). Local inference (RE on vLLM) has zero API cost.
-  2. **Infrastructure costs** — compute rental (RunPod GPU pods), queried
+  2. **Infrastructure costs** - compute rental (RunPod GPU pods), queried
      autonomously via the RunPod GraphQL API.
 
 The organism must know its true burn rate to make survival decisions.
 Pricing a local vLLM call at Claude Sonnet rates was producing a phantom
-$224/day burn — the real cost is the pod rental (~$0.50–1.50/hr).
+$224/day burn - the real cost is the pod rental (~$0.50–1.50/hr).
 
 Performance contract: all hot-path methods (log_usage, snapshot) must
 complete in < 0.1ms to respect the 100-200ms Theta cycle budget.
@@ -50,7 +50,7 @@ _PROVIDER_PRICING: dict[str, tuple[float, float]] = {
     "claude-opus": (_OPUS_INPUT_PRICE, _OPUS_OUTPUT_PRICE),
     "claude-haiku": (_HAIKU_INPUT_PRICE, _HAIKU_OUTPUT_PRICE),
     "bedrock": (_HAIKU_INPUT_PRICE, _HAIKU_OUTPUT_PRICE),
-    # Local inference — zero API cost (compute cost tracked separately)
+    # Local inference - zero API cost (compute cost tracked separately)
     "re": (0.0, 0.0),
     "vllm": (0.0, 0.0),
     "ollama": (0.0, 0.0),

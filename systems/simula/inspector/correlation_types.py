@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 8: Cross-Layer Correlation Types
+EcodiaOS - Inspector Phase 8: Cross-Layer Correlation Types
 
 All domain models for cross-layer cause → propagation → effect analysis.
 
@@ -18,8 +18,8 @@ links:
   - Timing signatures (Phase 7 distinguishable channels)
 
 Each hop in this graph is a CausalEdge with a typed CausalMechanism and a
-confidence weight.  The graph is then mined for recurring PropagationMotifs —
-structural patterns that appear across multiple scenarios — and ranked by
+confidence weight.  The graph is then mined for recurring PropagationMotifs -
+structural patterns that appear across multiple scenarios - and ranked by
 cross-layer impact.
 
 The final deliverable is a Phase8Result containing:
@@ -31,21 +31,21 @@ The final deliverable is a Phase8Result containing:
 Layer map
 ---------
   ┌──────────────────────────────────────────────────────────────────────────┐
-  │  Phase 3 (Phase3Result — static CFG, fragments)                          │
-  │  Phase 4 (Phase4Result — steerable regions, condition sets)              │
-  │  Phase 5 (Phase5Result — trust corridors, foothold bindings)             │
-  │  Phase 6 (Phase6Result — FSM boundary failures, scenarios)               │
-  │  Phase 7 (Phase7Result — distinguishable channels, signatures)           │
+  │  Phase 3 (Phase3Result - static CFG, fragments)                          │
+  │  Phase 4 (Phase4Result - steerable regions, condition sets)              │
+  │  Phase 5 (Phase5Result - trust corridors, foothold bindings)             │
+  │  Phase 6 (Phase6Result - FSM boundary failures, scenarios)               │
+  │  Phase 7 (Phase7Result - distinguishable channels, signatures)           │
   │    ↓  CausalGraphBuilder                                                 │
-  │  CausalGraph — nodes (EventNode) + edges (CausalEdge)                   │
+  │  CausalGraph - nodes (EventNode) + edges (CausalEdge)                   │
   │    ↓  PropagationMotifMiner                                              │
-  │  MotifCatalog — recurring structural patterns across scenarios           │
+  │  MotifCatalog - recurring structural patterns across scenarios           │
   │    ↓  CausalChainAssembler                                               │
-  │  CausalChain — end-to-end story for one scenario                        │
+  │  CausalChain - end-to-end story for one scenario                        │
   │    ↓  SynthesisBuilder                                                   │
-  │  FinalSynthesis — thesis-ready summary                                  │
+  │  FinalSynthesis - thesis-ready summary                                  │
   │    ↓                                                                     │
-  │  Phase8Result — top-level output with exit criterion                    │
+  │  Phase8Result - top-level output with exit criterion                    │
   └──────────────────────────────────────────────────────────────────────────┘
 
 Exit criterion
@@ -57,13 +57,13 @@ Phase8Result.exit_criterion_met = True when:
 
 Key concepts
 ------------
-CorrelationLayer     — the analysis layer a node belongs to
-CausalMechanism      — the type of edge (how one event causes the next)
-CausalEdge           — a typed, weighted directed edge between EventNodes
-EventNode            — a node in the causal graph, anchored to a Phase artifact
-CausalChain          — an ordered sequence of EventNodes forming a scenario story
-PropagationMotif     — a structural sub-graph pattern that recurs ≥2 times
-FinalSynthesis       — thesis-ready narrative + ranked findings
+CorrelationLayer     - the analysis layer a node belongs to
+CausalMechanism      - the type of edge (how one event causes the next)
+CausalEdge           - a typed, weighted directed edge between EventNodes
+EventNode            - a node in the causal graph, anchored to a Phase artifact
+CausalChain          - an ordered sequence of EventNodes forming a scenario story
+PropagationMotif     - a structural sub-graph pattern that recurs ≥2 times
+FinalSynthesis       - thesis-ready narrative + ranked findings
 """
 
 from __future__ import annotations
@@ -83,13 +83,13 @@ class CorrelationLayer(enum.StrEnum):
     """
     Which analysis layer an EventNode belongs to.
 
-    INPUT            — the initial input or observation that started the scenario
-    CONTROL_FLOW     — Phase 4 control-flow region / steerable branch
-    PROCESS          — Phase 5 service interaction / trust edge traversal
-    PROTOCOL         — Phase 6 FSM state / protocol boundary
-    TIMING           — Phase 7 timing channel observation
-    STATIC           — Phase 3 static fragment / CFG node
-    UNKNOWN          — unclassified
+    INPUT            - the initial input or observation that started the scenario
+    CONTROL_FLOW     - Phase 4 control-flow region / steerable branch
+    PROCESS          - Phase 5 service interaction / trust edge traversal
+    PROTOCOL         - Phase 6 FSM state / protocol boundary
+    TIMING           - Phase 7 timing channel observation
+    STATIC           - Phase 3 static fragment / CFG node
+    UNKNOWN          - unclassified
     """
 
     INPUT        = "input"
@@ -105,16 +105,16 @@ class CausalMechanism(enum.StrEnum):
     """
     The typed mechanism by which one event causes the next.
 
-    DATA_DEPENDENCY      — output value of A is input to B
-    CONTROL_DEPENDENCY   — branch outcome at A determines whether B executes
-    TRUST_DELEGATION     — A's trust relationship enables B
-    PROTOCOL_TRANSITION  — A fires a protocol state transition leading to B
-    TIMING_COVARIATION   — A's execution time correlates with B's timing channel
-    RESOURCE_CONTENTION  — A's resource usage causes B to behave differently
-    STATE_POLLUTION      — A's side effect on shared state influences B
-    TIMING_ORACLE        — B's latency reveals information about A's internal value
-    AMPLIFICATION        — A's repeated execution amplifies B's observable effect
-    UNKNOWN              — mechanism not identified
+    DATA_DEPENDENCY      - output value of A is input to B
+    CONTROL_DEPENDENCY   - branch outcome at A determines whether B executes
+    TRUST_DELEGATION     - A's trust relationship enables B
+    PROTOCOL_TRANSITION  - A fires a protocol state transition leading to B
+    TIMING_COVARIATION   - A's execution time correlates with B's timing channel
+    RESOURCE_CONTENTION  - A's resource usage causes B to behave differently
+    STATE_POLLUTION      - A's side effect on shared state influences B
+    TIMING_ORACLE        - B's latency reveals information about A's internal value
+    AMPLIFICATION        - A's repeated execution amplifies B's observable effect
+    UNKNOWN              - mechanism not identified
     """
 
     DATA_DEPENDENCY     = "data_dependency"
@@ -133,10 +133,10 @@ class ChainStatus(enum.StrEnum):
     """
     Completeness status of a CausalChain.
 
-    COMPLETE    — all layers represented; chain is end-to-end
-    PARTIAL     — some layers missing; chain has gaps
-    BROKEN      — chain cannot be connected across a layer gap
-    HYPOTHETICAL — chain includes one or more inferred / unobserved links
+    COMPLETE    - all layers represented; chain is end-to-end
+    PARTIAL     - some layers missing; chain has gaps
+    BROKEN      - chain cannot be connected across a layer gap
+    HYPOTHETICAL - chain includes one or more inferred / unobserved links
     """
 
     COMPLETE     = "complete"
@@ -149,14 +149,14 @@ class MotifKind(enum.StrEnum):
     """
     Structural category of a PropagationMotif.
 
-    LINEAR_CHAIN     — A → B → C, each hop same mechanism (rare)
-    BRANCH_MERGE     — one cause fans out to multiple effects, then converges
-    LAYER_JUMP       — mechanism skips one or more intermediate layers
-    AMPLIFICATION_LOOP — effect feeds back to amplify its own cause
-    PRIVILEGE_ESCALATION — monotonically increasing sensitivity/privilege along path
-    TIMING_LEAKAGE   — path terminates at a timing channel disclosing internal state
-    TRUST_BRIDGE     — path crosses a trust boundary at a single delegation edge
-    MIXED            — more than one of the above patterns
+    LINEAR_CHAIN     - A → B → C, each hop same mechanism (rare)
+    BRANCH_MERGE     - one cause fans out to multiple effects, then converges
+    LAYER_JUMP       - mechanism skips one or more intermediate layers
+    AMPLIFICATION_LOOP - effect feeds back to amplify its own cause
+    PRIVILEGE_ESCALATION - monotonically increasing sensitivity/privilege along path
+    TIMING_LEAKAGE   - path terminates at a timing channel disclosing internal state
+    TRUST_BRIDGE     - path crosses a trust boundary at a single delegation edge
+    MIXED            - more than one of the above patterns
     """
 
     LINEAR_CHAIN          = "linear_chain"
@@ -489,7 +489,7 @@ class PropagationMotif(EOSBaseModel):
 
     Motifs are the core discovery of Phase 8: if the same structural pattern
     appears repeatedly across independent scenarios, it is evidence of a
-    *systematic* propagation mechanism — not a one-off coincidence.
+    *systematic* propagation mechanism - not a one-off coincidence.
     """
 
     motif_id: str = Field(default_factory=new_id)
@@ -619,11 +619,11 @@ class FinalSynthesis(EOSBaseModel):
 
     Structure
     ---------
-    thesis          — one-paragraph top-level claim (reproducible, cross-layer supported)
-    key_findings    — ranked list of specific sub-claims with evidence
-    propagation_model — abstract description of the dominant propagation pattern
-    limitations     — known gaps, noise effects, unobserved layers
-    reproducibility — how to reproduce the strongest findings
+    thesis          - one-paragraph top-level claim (reproducible, cross-layer supported)
+    key_findings    - ranked list of specific sub-claims with evidence
+    propagation_model - abstract description of the dominant propagation pattern
+    limitations     - known gaps, noise effects, unobserved layers
+    reproducibility - how to reproduce the strongest findings
     """
 
     synthesis_id: str = Field(default_factory=new_id)

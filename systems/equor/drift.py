@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Drift Detection
+EcodiaOS - Equor Drift Detection
 
 Monitors whether the instance's behaviour is drifting from constitutional drives.
 Not through any single bad decision, but through gradual pattern shifts.
@@ -135,7 +135,7 @@ def _compute_drift_severity(
     """
     severity = 0.0
 
-    # Care and Honesty are floor drives — drift here is more serious
+    # Care and Honesty are floor drives - drift here is more serious
     for drive, weight in [("care", 0.35), ("honesty", 0.3), ("coherence", 0.2), ("growth", 0.15)]:
         mean_val = means.get(drive, 0.0)
         trend_val = trends.get(drive, 0.0)
@@ -211,7 +211,7 @@ def respond_to_drift(report: dict[str, Any]) -> dict[str, Any]:
         "action": "immune_response",
         "detail": (
             "Severe constitutional drift. Somatic stress signal + Thymos incident raised. "
-            "Amendment self-proposal queued if sustained. No auto-demotion — governance decides."
+            "Amendment self-proposal queued if sustained. No auto-demotion - governance decides."
         ),
     }
 
@@ -336,7 +336,7 @@ async def emit_drift_event(
 
     # SG1: Escalate to Thymos as an incident when drift is severe (≥0.7).
     # Thymos classifies constitutional drift as a T3/T4-tier integrity breach.
-    # Spec §7 — drift precariousness must be real, not just logged.
+    # Spec §7 - drift precariousness must be real, not just logged.
     if severity >= 0.7:
         try:
             incident_id = new_id()

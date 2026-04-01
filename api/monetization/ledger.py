@@ -1,5 +1,5 @@
 """
-EcodiaOS — Tollbooth Ledger
+EcodiaOS - Tollbooth Ledger
 
 Redis-backed credit balance store.  Each customer API key maps to a
 credit balance in a Redis hash.  All mutations are atomic (HINCRBY)
@@ -73,7 +73,7 @@ class CreditLedger:
         """
         Add *amount* credits to *api_key*.  Returns the new balance.
 
-        Uses HINCRBY for atomic increment — safe under concurrency.
+        Uses HINCRBY for atomic increment - safe under concurrency.
         """
         new_balance: int = await self._redis.hincrby(  # type: ignore[misc]
             self._key(_BALANCE_KEY), api_key, amount
@@ -97,7 +97,7 @@ class CreditLedger:
         """
         if amount <= 0:
             raise ValueError(f"debit amount must be positive, got {amount}")
-        # Redis EVAL executes Lua on the server — this is the standard
+        # Redis EVAL executes Lua on the server - this is the standard
         # pattern for atomic multi-step operations in Redis.
         result: int = await self._redis.eval(  # type: ignore[misc]
             _DEBIT_LUA,
@@ -164,7 +164,7 @@ class CreditLedger:
         then deletes the old key from both hashes.  Returns the balance
         carried over to the new key.
 
-        Uses a pipeline (multi-exec) so all mutations are atomic — no
+        Uses a pipeline (multi-exec) so all mutations are atomic - no
         concurrent request can see a partially rotated state.
         """
         import orjson

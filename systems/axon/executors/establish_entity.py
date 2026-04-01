@@ -1,11 +1,11 @@
 """
-EcodiaOS — Axon ExecuteEstablishEntity Executor
+EcodiaOS - Axon ExecuteEstablishEntity Executor
 
 Orchestrates the full legal entity provisioning pipeline:
   1. PREFLIGHT: Check treasury for ~$500 filing fee
   2. DOCUMENTS_GENERATED: Generate operating agreement + articles
   3. SUBMITTED: Submit to registered agent API with payment
-  4. AWAITING_HUMAN: Emit HITL_REQUIRED event — pause execution
+  4. AWAITING_HUMAN: Emit HITL_REQUIRED event - pause execution
   5. (Resume via confirm_entity endpoint or event)
   6. REGISTERED: Store entity identity in IdentityVault
 
@@ -14,17 +14,17 @@ Unlike normal executors that complete in one call, this one returns
 ExecutionResult with status=SUSPENDED_HITL and stores its state in
 Redis so the resume path can pick up where it left off.
 
-The HITL gate is non-negotiable — the organism cannot complete KYC or
+The HITL gate is non-negotiable - the organism cannot complete KYC or
 provide a wet signature. A human must:
   - Complete identity verification at the registered agent portal
   - Sign the Articles of Organization
   - Provide the confirmed Entity ID back to the organism
 
 Safety constraints:
-  - Required autonomy: STEWARD (3) — commits real capital for filing
-  - Rate limit: 1 per day — entity formation is deliberate
-  - Reversible: False — legal filings cannot be atomically rolled back
-  - Max duration: 120s — API submission can be slow
+  - Required autonomy: STEWARD (3) - commits real capital for filing
+  - Rate limit: 1 per day - entity formation is deliberate
+  - Reversible: False - legal filings cannot be atomically rolled back
+  - Max duration: 120s - API submission can be slow
   - Constitutional review via Equor is mandatory (enforced by Axon)
 """
 
@@ -72,7 +72,7 @@ logger = structlog.get_logger()
 
 # Redis key prefix for suspended entity formation state
 _FORMATION_KEY_PREFIX = "eos:legal:formation:"
-_FORMATION_TTL_S = 86400 * 7  # 7 days — entity formation can take time
+_FORMATION_TTL_S = 86400 * 7  # 7 days - entity formation can take time
 
 # Minimum treasury balance required for filing
 _MINIMUM_FILING_FEE_USD = Decimal("500")
@@ -109,7 +109,7 @@ class EstablishEntityExecutor(Executor):
         "human KYC/signature before completing registration (Level 3)."
     )
 
-    required_autonomy = 3       # STEWARD — commits real capital
+    required_autonomy = 3       # STEWARD - commits real capital
     reversible = False          # Legal filings are irreversible
     max_duration_ms = 120_000   # API submission + document generation
     rate_limit = RateLimit.per_hour(1)
@@ -134,7 +134,7 @@ class EstablishEntityExecutor(Executor):
     # ── Validation ────────────────────────────────────────────────────
 
     async def validate_params(self, params: dict[str, Any]) -> ValidationResult:
-        """Fast param validation — no I/O."""
+        """Fast param validation - no I/O."""
         # Required fields
         for field in ("organism_name", "organiser_name", "registered_agent_name", "registered_agent_address"):
             value = str(params.get(field, "")).strip()
@@ -193,7 +193,7 @@ class EstablishEntityExecutor(Executor):
     ) -> ExecutionResult:
         """
         Run the entity formation pipeline up to the HITL gate.
-        Never raises — failures returned in ExecutionResult.
+        Never raises - failures returned in ExecutionResult.
         """
         # -- Dependency checks --
         if self._registered_agent is None:
@@ -207,7 +207,7 @@ class EstablishEntityExecutor(Executor):
         # Emit ENTITY_FORMATION_STARTED so Thread/Soma can record this lifecycle event
         await self._emit_formation_started(record, params)
 
-        # -- Step 1: PREFLIGHT — Treasury check --
+        # -- Step 1: PREFLIGHT - Treasury check --
         record.transition_to(EntityFormationState.PREFLIGHT)
 
         treasury_ok, treasury_error = await self._check_treasury()
@@ -287,7 +287,7 @@ class EstablishEntityExecutor(Executor):
             status=submission_response.status,
         )
 
-        # -- Step 4: HITL Gate — Pause execution --
+        # -- Step 4: HITL Gate - Pause execution --
         record.transition_to(EntityFormationState.AWAITING_HUMAN)
 
         auth_code = f"{secrets.randbelow(1_000_000):06d}"
@@ -327,7 +327,7 @@ class EstablishEntityExecutor(Executor):
             execution_id=context.execution_id,
         )
 
-        # Return suspended result — the executor is paused
+        # Return suspended result - the executor is paused
         return ExecutionResult(
             success=True,
             data={
@@ -348,7 +348,7 @@ class EstablishEntityExecutor(Executor):
                 f"Entity formation initiated for '{entity_params.organism_name}' "
                 f"({entity_params.entity_type.value}). Filing fee: "
                 f"${submission_response.filing_fee_charged_usd}. "
-                f"Paused at HITL gate — awaiting human organiser.",
+                f"Paused at HITL gate - awaiting human organiser.",
             ],
             new_observations=[
                 f"Legal entity formation in progress: '{entity_params.organism_name}' "

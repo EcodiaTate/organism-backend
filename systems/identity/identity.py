@@ -1,5 +1,5 @@
 """
-EcodiaOS — Identity System Service (Spec 23)
+EcodiaOS - Identity System Service (Spec 23)
 
 The organism's cryptographic identity authority. Manages:
   - Neo4j-persisted Identity node (organism UUID, constitutional hash, generation, lineage)
@@ -9,7 +9,7 @@ The organism's cryptographic identity authority. Manages:
   - Evo signals (IDENTITY_DRIFT_DETECTED) for population-level identity diversity
   - Lifecycle subscriptions (GENOME_EXTRACT_REQUEST, ORGANISM_SLEEP, ORGANISM_SPAWNED)
 
-The Identity node in Neo4j is the organism's canonical self-record — it knows
+The Identity node in Neo4j is the organism's canonical self-record - it knows
 what it is, where it came from, and how its constitution has evolved.
 """
 
@@ -37,7 +37,7 @@ logger = structlog.get_logger("identity.system")
 # Default constitutional document path (relative to project root)
 _DEFAULT_CONSTITUTION_PATH = ".claude/EcodiaOS_Identity_Document.md"
 
-# Drift detection threshold — below this coherence score, emit IDENTITY_DRIFT_DETECTED
+# Drift detection threshold - below this coherence score, emit IDENTITY_DRIFT_DETECTED
 _DRIFT_THRESHOLD = 0.7
 
 
@@ -61,7 +61,7 @@ def compute_constitutional_hash(constitution_path: str | Path | None = None) -> 
 
 class IdentitySystem:
     """
-    The organism's identity authority — Neo4j persistence, constitutional
+    The organism's identity authority - Neo4j persistence, constitutional
     hash management, certificate lifecycle, and Synapse event integration.
 
     Thread-safety: NOT thread-safe. Single-threaded asyncio like all EOS services.
@@ -136,7 +136,7 @@ class IdentitySystem:
             parent=parent_instance_id,
         )
 
-        # Autonomous platform identity provisioning — runs in background on first boot.
+        # Autonomous platform identity provisioning - runs in background on first boot.
         # Checks if this instance already has its own GitHub account / phone number,
         # and provisions them if not. Never blocks the boot sequence.
         if self._account_provisioner is not None:
@@ -214,7 +214,7 @@ class IdentitySystem:
 
     @property
     def otp_coordinator(self) -> OTPCoordinator:
-        """Unified OTP coordination layer — use to await codes from any channel."""
+        """Unified OTP coordination layer - use to await codes from any channel."""
         return self._otp_coordinator
 
     @property
@@ -407,7 +407,7 @@ class IdentitySystem:
 
     async def verify_identity(self) -> dict[str, Any]:
         """
-        Confirm this organism's identity — certificate validity + constitutional hash.
+        Confirm this organism's identity - certificate validity + constitutional hash.
 
         Emits IDENTITY_VERIFIED on success.
         """
@@ -567,7 +567,7 @@ class IdentitySystem:
         )
         # HIGH #6: Subscribe to CHILD_SPAWNED (Mitosis → Identity)
         # CertificateManager.set_event_bus() also subscribes to this to issue birth certs.
-        # IdentitySystem's handler only persists lineage in Neo4j — no cert issuance here.
+        # IdentitySystem's handler only persists lineage in Neo4j - no cert issuance here.
         self._event_bus.subscribe(
             SynapseEventType.CHILD_SPAWNED,
             self._handle_child_spawned,
@@ -666,7 +666,7 @@ class IdentitySystem:
         (also subscribed to CHILD_SPAWNED). This separation ensures the cert
         pipeline and identity-graph pipeline stay decoupled.
         """
-        # Delegate entirely to _handle_organism_spawned — same semantics
+        # Delegate entirely to _handle_organism_spawned - same semantics
         await self._handle_organism_spawned(event)
 
     async def _handle_child_certificate_installed(self, event: Any) -> None:

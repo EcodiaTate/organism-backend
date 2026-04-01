@@ -1,4 +1,4 @@
-"""Tests for Soma Counterfactual Engine — Oneiros REM integration."""
+"""Tests for Soma Counterfactual Engine - Oneiros REM integration."""
 
 from __future__ import annotations
 

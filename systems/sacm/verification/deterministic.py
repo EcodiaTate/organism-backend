@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Deterministic Replay Verifier
+EcodiaOS - SACM Deterministic Replay Verifier
 
 Verifies remote execution results by re-running a statistically
 significant sample of the workload locally and comparing outputs.
@@ -370,7 +370,7 @@ class DeterministicReplayVerifier:
         if batch_size == 0:
             return VerificationReport(
                 accepted=True,
-                error="empty batch — vacuously accepted",
+                error="empty batch - vacuously accepted",
             )
 
         # Step 1: sample size

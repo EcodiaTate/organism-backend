@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Amendment Process
+EcodiaOS - Equor Amendment Process
 
 The most serious governance mechanism: changing the constitutional drives.
 Requires deliberation, impact assessment, supermajority vote, and cooldown.

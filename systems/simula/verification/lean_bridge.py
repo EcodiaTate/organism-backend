@@ -10,7 +10,7 @@ Lean 4 integration implementing the DeepSeek-Prover-V2 pattern:
   5. Proven lemmas stored in proof library for reuse across proposals
 
 Target domains: risk scoring, governance gating, constitutional
-alignment, budget calculations — all get machine-checked Lean proofs.
+alignment, budget calculations - all get machine-checked Lean proofs.
 
 The Lean 4 binary and Mathlib must be available. Install via:
   curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
@@ -109,19 +109,19 @@ LEAN_TACTIC_PROMPT = """You are a Lean 4 tactic expert for EcodiaOS.
 Fill in the `sorry` placeholders in this partial proof with correct Lean 4 tactics.
 
 ## Available Tactics (prefer automated tactics)
-- `simp` / `simp [lemma_name]` — simplification
-- `omega` — linear integer arithmetic
-- `linarith` — linear real arithmetic
-- `norm_num` — numeric normalization
-- `decide` — decidable propositions
-- `aesop` — automated reasoning (try this first for complex goals)
-- `ring` — ring normalization
-- `exact term` — provide exact proof term
-- `apply lemma` — apply a theorem/lemma
-- `cases h` — case analysis on hypothesis h
-- `constructor` — split conjunction goals
-- `intro` — introduce hypotheses
-- `assumption` — use a hypothesis directly
+- `simp` / `simp [lemma_name]` - simplification
+- `omega` - linear integer arithmetic
+- `linarith` - linear real arithmetic
+- `norm_num` - numeric normalization
+- `decide` - decidable propositions
+- `aesop` - automated reasoning (try this first for complex goals)
+- `ring` - ring normalization
+- `exact term` - provide exact proof term
+- `apply lemma` - apply a theorem/lemma
+- `cases h` - case analysis on hypothesis h
+- `constructor` - split conjunction goals
+- `intro` - introduce hypotheses
+- `assumption` - use a hypothesis directly
 
 ## Partial Proof (round {round_number}/{max_rounds})
 ```lean4
@@ -177,7 +177,7 @@ class LeanBridge:
       4. Stores proven lemmas in Neo4j proof library
       5. Retrieves relevant lemmas for reuse (LeanDojo pattern)
 
-    All proofs are machine-checked — no trust in the LLM output.
+    All proofs are machine-checked - no trust in the LLM output.
     """
 
     def __init__(
@@ -480,7 +480,7 @@ class LeanBridge:
             exit_code = proc.returncode or 0
 
             # Lean exits 0 on success, non-zero on errors
-            # Also check for 'sorry' in the output — proofs with sorry are incomplete
+            # Also check for 'sorry' in the output - proofs with sorry are incomplete
             has_sorry = "sorry" in lean_source.lower() and "sorry" not in (
                 # Allow sorry in comments
                 line.strip()
@@ -596,7 +596,7 @@ class LeanBridge:
         Suggest a tactic replacement for `sorry` based on context.
 
         This implements a simplified version of Lean Copilot's tactic
-        suggestion — in production, the actual Lean Copilot server
+        suggestion - in production, the actual Lean Copilot server
         would provide more sophisticated suggestions.
         """
         # Gather context from preceding lines
@@ -630,7 +630,7 @@ class LeanBridge:
             return "simp"
 
         # Try aesop as last resort (automated reasoning)
-        return None  # leave sorry — LLM will fill it
+        return None  # leave sorry - LLM will fill it
 
     # ── Proof Library (LeanDojo Pattern) ────────────────────────────────────
 
@@ -1015,7 +1015,7 @@ class LeanBridge:
         parts.extend([
             "",
             "Generate a proof with `have` subgoals for each sub-property. "
-            "Use `sorry` for tactics you cannot determine — they will be "
+            "Use `sorry` for tactics you cannot determine - they will be "
             "filled automatically.",
             "",
             "Respond with ONLY a single ```lean4 fenced code block.",

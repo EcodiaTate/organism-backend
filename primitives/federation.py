@@ -1,10 +1,10 @@
 """
-EcodiaOS — Federation Primitives
+EcodiaOS - Federation Primitives
 
 Instance identity cards, federation links, trust levels, knowledge exchange,
 coordinated action, and privacy-filtered sharing types.
 
-The Federation Protocol governs how EOS instances relate to each other —
+The Federation Protocol governs how EOS instances relate to each other -
 as sovereign entities that can choose to share knowledge, coordinate action,
 and build relationships. Every interaction is consent-based; trust starts
 at zero and builds through demonstrated reliability.
@@ -29,7 +29,7 @@ class TrustLevel(int, enum.Enum):
     Trust levels between federated instances.
 
     Trust starts at NONE after mutual authentication and builds through
-    successful interactions. Violations cost 3x — a privacy breach
+    successful interactions. Violations cost 3x - a privacy breach
     resets trust to zero immediately.
     """
 
@@ -172,7 +172,7 @@ class KnowledgeType(enum.StrEnum):
     ANONYMISED_PATTERNS = "anonymised_patterns"
     SCHEMA_STRUCTURES = "schema_structures"
     THREAT_ADVISORY = "threat_advisory"
-    RE_ADAPTER_DIFF = "re_adapter_diff"  # LoRA adapter diffs — digital horizontal gene transfer
+    RE_ADAPTER_DIFF = "re_adapter_diff"  # LoRA adapter diffs - digital horizontal gene transfer
 
 
 class PrivacyLevel(enum.StrEnum):
@@ -220,7 +220,7 @@ class KnowledgeResponse(EOSBaseModel):
 
 
 class FilteredKnowledge(EOSBaseModel):
-    """Knowledge after privacy filtering — safe to send across federation."""
+    """Knowledge after privacy filtering - safe to send across federation."""
 
     items: list[KnowledgeItem] = Field(default_factory=list)
     items_removed_by_privacy: int = 0
@@ -406,7 +406,7 @@ class IngestionVerdict(enum.StrEnum):
     ACCEPTED = "accepted"           # Passed EIS + Equor, integrated
     QUARANTINED = "quarantined"     # EIS flagged, held for manual review
     REJECTED = "rejected"           # Equor denied or EIS hard-block
-    DEFERRED = "deferred"           # Temporarily held — governance unavailable
+    DEFERRED = "deferred"           # Temporarily held - governance unavailable
 
 
 class ExchangePayload(EOSBaseModel):
@@ -418,7 +418,7 @@ class ExchangePayload(EOSBaseModel):
     and ``confidence`` + ``provenance_chain`` enable selective acceptance.
 
     content is a dict rather than a typed union so the wire format remains
-    stable across Evo/Simula/Oikos schema changes — the receiving ingestion
+    stable across Evo/Simula/Oikos schema changes - the receiving ingestion
     pipeline re-validates into the correct domain type.
     """
 
@@ -462,7 +462,7 @@ class ExchangeReceipt(EOSBaseModel):
     Acknowledgement returned to the sender after an exchange.
 
     Per-payload verdicts let the sender know what was accepted, quarantined,
-    or rejected — enabling trust scoring on the remote side.
+    or rejected - enabling trust scoring on the remote side.
     """
 
     envelope_id: str
@@ -474,7 +474,7 @@ class ExchangeReceipt(EOSBaseModel):
 # ─── IIEP Confidence Thresholds ────────────────────────────────────
 
 # Knowledge below these thresholds is never shared outbound, regardless
-# of trust level.  These are floor values — ExchangeProtocol may raise
+# of trust level.  These are floor values - ExchangeProtocol may raise
 # them per-link based on trust.
 EXCHANGE_CONFIDENCE_FLOORS: dict[ExchangePayloadKind, float] = {
     ExchangePayloadKind.HYPOTHESIS: 0.7,       # Only well-supported hypotheses
@@ -492,7 +492,7 @@ EXCHANGE_TRUST_GATES: dict[ExchangePayloadKind, TrustLevel] = {
 }
 
 
-# ─── Active Work Pooling (Spec 11b — Phase 2: Task Delegation) ───────
+# ─── Active Work Pooling (Spec 11b - Phase 2: Task Delegation) ───────
 
 
 class TaskType(enum.StrEnum):
@@ -523,7 +523,7 @@ class TaskDelegation(Identified):
 
     The delegating instance pays the accepting instance ``offered_reward_usdc``
     on successful completion via WalletClient.  Trust gate is enforced by
-    TaskDelegationManager — minimum COLLEAGUE (score ≥ 20) required;
+    TaskDelegationManager - minimum COLLEAGUE (score ≥ 20) required;
     default is 0.7 normalised score threshold.
     """
 
@@ -613,7 +613,7 @@ class YieldPoolProposal(Identified):
     """
     Proposal to pool capital across federated instances for a high-APY position.
 
-    Trust requirement is 0.9 (normalised) — capital pooling requires
+    Trust requirement is 0.9 (normalised) - capital pooling requires
     deep trust.  Each participant's contribution is locked via smart
     contract escrow.  Yield is distributed proportionally to contribution
     share when the position is unwound.

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Voxis Internal Types
+EcodiaOS - Voxis Internal Types
 
 All Voxis-specific types that don't belong in the shared primitives layer.
 These are working types used within the Voxis pipeline; the shared primitives
@@ -32,7 +32,7 @@ class ExpressionTrigger(enum.StrEnum):
     NOVA_CELEBRATE = "nova_celebrate"      # Celebrating an achievement
     NOVA_WARN = "nova_warn"                # Warning about a risk
 
-    # From Atune (reactive — workspace broadcast)
+    # From Atune (reactive - workspace broadcast)
     ATUNE_DISTRESS = "atune_distress"      # Detected distress, immediate response
     ATUNE_DIRECT_ADDRESS = "atune_direct_address"  # Someone spoke to EOS directly
 
@@ -58,7 +58,7 @@ class OutputChannel(enum.StrEnum):
 
 class StrategyParams(EOSBaseModel):
     """
-    Rich internal expression strategy — built and mutated across pipeline stages.
+    Rich internal expression strategy - built and mutated across pipeline stages.
 
     At render time this is collapsed into the leaner ExpressionStrategy primitive
     that gets persisted on the Expression node.
@@ -99,7 +99,7 @@ class StrategyParams(EOSBaseModel):
     # ── Humour ──
     humour_allowed: bool = False
     humour_probability: float = 0.0
-    humour_style: str = "light"          # "light" | "dry" — never sarcastic
+    humour_style: str = "light"          # "light" | "dry" - never sarcastic
     context_appropriate_for_humour: bool = False
 
     # ── Empathy & emotion ──
@@ -202,7 +202,7 @@ class SomaticExpressionContext(EOSBaseModel):
     Somatic state distilled for expression modulation.
 
     Carries the organism's felt internal state into the rendering pipeline
-    so the expression reflects how the organism actually feels — not just
+    so the expression reflects how the organism actually feels - not just
     what it wants to say.
     """
 
@@ -255,7 +255,7 @@ class ConversationMessage(EOSBaseModel):
 
 class ConversationState(EOSBaseModel):
     """
-    Live conversation state — serialised to Redis with 24h TTL.
+    Live conversation state - serialised to Redis with 24h TTL.
     Maintains a rolling message history with LLM-generated rolling summary
     for efficient context window management.
     """
@@ -265,7 +265,7 @@ class ConversationState(EOSBaseModel):
     started_at: datetime = Field(default_factory=utc_now)
     last_active: datetime = Field(default_factory=utc_now)
 
-    # Message history — kept as a list for serialisation (deque rebuilt in memory)
+    # Message history - kept as a list for serialisation (deque rebuilt in memory)
     messages: list[ConversationMessage] = Field(default_factory=list)
 
     # Rolling summary of older messages (LLM-generated)

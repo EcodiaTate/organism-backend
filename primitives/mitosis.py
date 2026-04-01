@@ -1,5 +1,5 @@
 """
-EcodiaOS — Mitosis Shared Primitives
+EcodiaOS - Mitosis Shared Primitives
 
 Child lifecycle types shared between the Mitosis and Oikos systems.
 Placed in primitives so Mitosis can import them without crossing the
@@ -24,7 +24,7 @@ class ChildStatus(enum.StrEnum):
     ALIVE = "alive"                # Running and reporting
     STRUGGLING = "struggling"      # Runway < 30 days
     RESCUED = "rescued"            # Received rescue funding
-    INDEPENDENT = "independent"    # Graduated — no longer pays dividends
+    INDEPENDENT = "independent"    # Graduated - no longer pays dividends
     DEAD = "dead"                  # Gracefully terminated
 
 
@@ -57,7 +57,7 @@ class ChildPosition(EOSBaseModel):
     last_health_report_at: datetime | None = None
     wallet_address: str = ""                               # Child's on-chain address
     container_id: str = ""                                 # Infrastructure identifier
-    dividend_ceased: bool = False                          # True when INDEPENDENT — weekly loop skips
+    dividend_ceased: bool = False                          # True when INDEPENDENT - weekly loop skips
 
     @property
     def is_independent(self) -> bool:

@@ -1,22 +1,22 @@
 """
-EcodiaOS — Simula: Self-Evolution System
+EcodiaOS - Simula: Self-Evolution System
 
 The organism's capacity for metamorphosis. Where Evo adjusts the knobs,
 Simula redesigns the dashboard.
 
 Public API:
-  SimulaService              — main service, wired in main.py
-  EvoSimulaBridge            — translates Evo proposals to Simula format
-  EvolutionAnalyticsEngine   — evolution quality tracking
-  ProposalIntelligence       — dedup, prioritize, dependency analysis
-  SimulaCodeAgent            — agentic code generation engine
-  EvolutionHistoryManager    — immutable evolution history in Neo4j
-  EvolutionProposal          — submitted by Evo when a hypothesis reaches SUPPORTED
-  ProposalResult             — outcome of process_proposal()
-  CodeChangeResult           — output of the code agent
-  ChangeCategory             — taxonomy of allowed (and forbidden) change types
-  ChangeSpec                 — formal specification of what to change
-  EnrichedSimulationResult   — deep multi-strategy simulation output
+  SimulaService              - main service, wired in main.py
+  EvoSimulaBridge            - translates Evo proposals to Simula format
+  EvolutionAnalyticsEngine   - evolution quality tracking
+  ProposalIntelligence       - dedup, prioritize, dependency analysis
+  SimulaCodeAgent            - agentic code generation engine
+  EvolutionHistoryManager    - immutable evolution history in Neo4j
+  EvolutionProposal          - submitted by Evo when a hypothesis reaches SUPPORTED
+  ProposalResult             - outcome of process_proposal()
+  CodeChangeResult           - output of the code agent
+  ChangeCategory             - taxonomy of allowed (and forbidden) change types
+  ChangeSpec                 - formal specification of what to change
+  EnrichedSimulationResult   - deep multi-strategy simulation output
 
 Stage 1 enhancements:
   1A: Extended-thinking model routing for governance/high-risk proposals
@@ -27,19 +27,19 @@ Stage 2 enhancements (Formal Verification Core):
   2A: Dafny proof-carrying code with Clover pattern
   2B: LLM + Z3 invariant discovery loop
   2C: Static analysis gates (Bandit / Semgrep)
-  2D: AgentCoder pattern — test/code separation pipeline
+  2D: AgentCoder pattern - test/code separation pipeline
 
 Stage 3 enhancements (Incremental & Learning):
-  3A: Salsa incremental verification — dependency-aware memoization
-  3B: SWE-grep agentic retrieval — multi-hop code search
-  3C: LILO library learning — abstraction extraction from successful proposals
+  3A: Salsa incremental verification - dependency-aware memoization
+  3B: SWE-grep agentic retrieval - multi-hop code search
+  3C: LILO library learning - abstraction extraction from successful proposals
 
-Inspector — Zero-Day Discovery Engine:
-  TargetWorkspace      — workspace abstraction (internal/external)
-  AttackSurface        — discovered entry point
-  VulnerabilityReport  — proven vulnerability + PoC
-  InspectionResult           — aggregated hunt results
-  InspectorConfig         — authorization and resource limits
+Inspector - Zero-Day Discovery Engine:
+  TargetWorkspace      - workspace abstraction (internal/external)
+  AttackSurface        - discovered entry point
+  VulnerabilityReport  - proven vulnerability + PoC
+  InspectionResult           - aggregated hunt results
+  InspectorConfig         - authorization and resource limits
 """
 
 # Stage 2D: AgentCoder agents

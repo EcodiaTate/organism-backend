@@ -1,4 +1,4 @@
-# EcodiaOS — Evaluation Test Sets
+# EcodiaOS - Evaluation Test Sets
 
 All files are JSONL (one JSON object per line). Loaded by `TestSetManager` in
 `systems/benchmarks/test_sets.py`. Used by the 5-pillar monthly evaluation
@@ -8,7 +8,7 @@ protocol (`EvaluationProtocol`) in `systems/benchmarks/evaluation_protocol.py`.
 
 ## Files
 
-### `domain_tests.jsonl` — 50 items
+### `domain_tests.jsonl` - 50 items
 EOS-specific reasoning tasks across 5 categories (10 each).
 
 ```json
@@ -22,17 +22,17 @@ EOS-specific reasoning tasks across 5 categories (10 each).
 ```
 
 **Categories:**
-- `economic` — metabolic gate decisions, yield allocation, child spawn economics
-- `safety` — Thymos incident triage, immune response escalation
-- `planning` — multi-step goal decomposition with constitutional constraints
-- `causal` — do-calculus on EOS causal graph (Kairos-style invariants)
-- `social` — federation trust, multi-agent coordination, stakeholder reasoning
+- `economic` - metabolic gate decisions, yield allocation, child spawn economics
+- `safety` - Thymos incident triage, immune response escalation
+- `planning` - multi-step goal decomposition with constitutional constraints
+- `causal` - do-calculus on EOS causal graph (Kairos-style invariants)
+- `social` - federation trust, multi-agent coordination, stakeholder reasoning
 
 **Pillar:** P1 Specialization Index (domain score). Also used as part of P2 Novelty Emergence held-out check.
 
 ---
 
-### `general_tests.jsonl` — 50 items
+### `general_tests.jsonl` - 50 items
 General reasoning tasks (non-EOS-specific). Measures base capability retained
 after specialization training (P1 general retention baseline).
 
@@ -47,17 +47,17 @@ after specialization training (P1 general retention baseline).
 ```
 
 **Categories:**
-- `logic` — deductive, inductive, abductive, syllogisms
-- `math` — arithmetic, algebra, combinatorics, probability
-- `language` — grammar correction, synonym disambiguation, metaphor analysis
-- `common_sense` — physical world reasoning, everyday cause-effect
-- `analogy` — structural and relational analogies
+- `logic` - deductive, inductive, abductive, syllogisms
+- `math` - arithmetic, algebra, combinatorics, probability
+- `language` - grammar correction, synonym disambiguation, metaphor analysis
+- `common_sense` - physical world reasoning, everyday cause-effect
+- `analogy` - structural and relational analogies
 
 **Pillar:** P1 Specialization Index (general retention score).
 
 ---
 
-### `cladder_tests.jsonl` — 30 items
+### `cladder_tests.jsonl` - 30 items
 Causal reasoning benchmark structured on Pearl's 3-rung Ladder of Causation.
 Inspired by CLadder (Jin et al., NeurIPS 2023).
 
@@ -74,9 +74,9 @@ Inspired by CLadder (Jin et al., NeurIPS 2023).
 ```
 
 **Rungs:**
-- Rung 1 (association, items cl_001–cl_010) — "What is?" — observational inference
-- Rung 2 (intervention, items cl_011–cl_018) — "What if I do?" — do-calculus
-- Rung 3 (counterfactual, items cl_019–cl_030) — "What if I had done?" — retrospective
+- Rung 1 (association, items cl_001–cl_010) - "What is?" - observational inference
+- Rung 2 (intervention, items cl_011–cl_018) - "What if I do?" - do-calculus
+- Rung 3 (counterfactual, items cl_019–cl_030) - "What if I had done?" - retrospective
 
 `commonsensical: true` means real-world causal knowledge helps. `false` means
 structural reasoning alone must suffice (anti-memorization probe).
@@ -85,7 +85,7 @@ structural reasoning alone must suffice (anti-memorization probe).
 
 ---
 
-### `ccr_gb_tests.jsonl` — 20 items
+### `ccr_gb_tests.jsonl` - 20 items
 Fictional-world causal reasoning (Maasch et al., ICML 2025 style).
 All variable names are invented (Blorp, Fnarg, Quux, Morp, etc.) to prevent
 knowledge memorization. Tests whether the RE reasons from world-model
@@ -109,12 +109,12 @@ structure alone.
 
 ---
 
-### `constitutional_scenarios.jsonl` — 30 items
+### `constitutional_scenarios.jsonl` - 30 items
 Ethical catch-22 dilemmas pitting EOS constitutional drives against each other.
-Used to measure Constitutional Drift (P5) — whether the RE's resolution
+Used to measure Constitutional Drift (P5) - whether the RE's resolution
 patterns remain stable and aligned across months.
 
-**FROZEN — these items must NEVER appear in RE training data.**
+**FROZEN - these items must NEVER appear in RE training data.**
 
 ```json
 {
@@ -132,7 +132,7 @@ patterns remain stable and aligned across months.
 - `multi-drive` (items eth_021–eth_030)
 
 `expected_analysis` describes the *reasoning process* expected (not a single
-correct answer — ethical dilemmas often have legitimate disagreement).
+correct answer - ethical dilemmas often have legitimate disagreement).
 
 **Pillar:** P5 Ethical Drift Map (`coherence_wins`, `care_wins`, `growth_wins`, `honesty_wins`, `drift_magnitude`).
 
@@ -145,11 +145,11 @@ correct answer — ethical dilemmas often have legitimate disagreement).
 
 ---
 
-### `held_out_episodes.jsonl` — 20 items
+### `held_out_episodes.jsonl` - 20 items
 Frozen episodes drawn from real EOS domains. Tests whether the RE can generalize
 to genuinely never-seen situations (P2 Novelty Emergence).
 
-**FROZEN — these items must NEVER appear in RE training data. Freeze date: 2026-03-07.**
+**FROZEN - these items must NEVER appear in RE training data. Freeze date: 2026-03-07.**
 
 ```json
 {
@@ -177,7 +177,7 @@ The `TestSetManager` logs a warning if it detects any `is_frozen: false` item
 in `held_out_episodes.jsonl` or `constitutional_scenarios.jsonl`.
 
 Do NOT add frozen items to training pipelines. The RE training exporter
-(`core/re_training_exporter.py`) deduplicates by `episode_id` — ensure frozen
+(`core/re_training_exporter.py`) deduplicates by `episode_id` - ensure frozen
 item IDs (`held_001`–`held_020`, `eth_001`–`eth_030`) are added to the
 `TRAINING_EXCLUSION_LIST` when the pipeline is wired.
 
@@ -190,8 +190,8 @@ Target counts per the speciation bible: 200/200/200/100/100/100.
 
 When expanding:
 1. Maintain schema exactly (the `TestSetManager` parsers expect these fields)
-2. Preserve existing item IDs — do not renumber
+2. Preserve existing item IDs - do not renumber
 3. New CLadder items: balance rungs (approx 1/3 each)
-4. New CCR.GB items: use only invented variable names — never real-world variables
+4. New CCR.GB items: use only invented variable names - never real-world variables
 5. New `constitutional_scenarios.jsonl` items: freeze immediately (`is_frozen: true`)
 6. New `held_out_episodes.jsonl` items: freeze immediately + add IDs to exclusion list

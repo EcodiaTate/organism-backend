@@ -1,4 +1,4 @@
-"""Tests for Soma Phase-Space Model — attractors, bifurcations, navigation."""
+"""Tests for Soma Phase-Space Model - attractors, bifurcations, navigation."""
 
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ class TestUpdate:
 
     def test_transient_when_far_from_all(self):
         m = _make_model()
-        # State at extreme corner — far from all seed attractors
+        # State at extreme corner - far from all seed attractors
         extreme = {d: 0.99 for d in ALL_DIMENSIONS}
         extreme[InteroceptiveDimension.VALENCE] = -0.99
 
@@ -84,7 +84,7 @@ class TestUpdate:
         m.update(trajectory, velocity)
 
         # Should be transient (no attractor within radius)
-        # This depends on distances — extreme state may be far from all centers
+        # This depends on distances - extreme state may be far from all centers
         # Just verify no crash
         _ = m.snapshot()
 

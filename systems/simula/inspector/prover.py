@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Vulnerability Prover (Phases 4 + 5)
+EcodiaOS - Inspector Vulnerability Prover (Phases 4 + 5)
 
 Proves vulnerabilities exist by encoding security conditions as Z3 constraints,
 then translates proven counterexamples into local diagnostic reproduction scripts.
@@ -102,7 +102,7 @@ _VULN_SEVERITY_MAP: dict[VulnerabilityClass, VulnerabilitySeverity] = {
 # ── Bounded Model Checking constants ─────────────────────────────────────────
 # The BMC loop starts at depth 1 (stateless, single request) and increments
 # until SAT is found or MAX_DEPTH is exhausted.  This guarantees we find the
-# *shortest* exploit chain — the minimum number of state transitions needed
+# *shortest* exploit chain - the minimum number of state transitions needed
 # to violate the business invariant.
 
 BMC_MAX_DEPTH: int = 5
@@ -134,7 +134,7 @@ def _build_attack_encoding_system_prompt(transition_depth: int) -> str:
     if transition_depth == 1:
         depth_rules = (
             "1. Model exactly 1 application state: State_0.  There are NO "
-            "transitions — this is a stateless, single-request model.\n\n"
+            "transitions - this is a stateless, single-request model.\n\n"
             "2. Declare Z3 variables with the `_0` suffix to denote their "
             "value in State_0:\n"
             "   - Use z3.Int for integer values (balance_0, user_id_0)\n"
@@ -224,7 +224,7 @@ def _build_attack_encoding_system_prompt(transition_depth: int) -> str:
     )
 
 
-# Static examples text shared across all depths — the LLM adapts the
+# Static examples text shared across all depths - the LLM adapts the
 # example patterns to the requested depth.
 _BMC_EXAMPLES_TEXT = """\
 ## Examples
@@ -266,7 +266,7 @@ Goal: "Regular user escalates to admin by toggling roles across requests"
     "admin_access_granted_1": "Bool"
   },
   "z3_expression": "z3.And(role_level_0 < admin_threshold, admin_threshold == 100, role_change_allowed_0 == True, request_new_role_0 > role_level_0, role_level_1 == request_new_role_0, request_action_1 == True, admin_access_granted_1 == (role_level_1 >= admin_threshold), role_level_2 == role_level_1, admin_access_granted_1 == True)",
-  "reasoning": "State_0: user starts below admin threshold. Step 0: user changes role (unchecked upper bound). State_1: role_level >= admin_threshold. Step 1: user accesses admin endpoint — access granted. Business invariant 'non-admin cannot reach admin functions' is violated.",
+  "reasoning": "State_0: user starts below admin threshold. Step 0: user changes role (unchecked upper bound). State_1: role_level >= admin_threshold. Step 1: user accesses admin endpoint - access granted. Business invariant 'non-admin cannot reach admin functions' is violated.",
   "state_count": 3
 }
 
@@ -314,7 +314,7 @@ Goal: "Unauthenticated user accesses protected resource via session fixation"
 }"""
 
 
-# Legacy alias — callers that reference the constant directly get the
+# Legacy alias - callers that reference the constant directly get the
 # depth-3 variant which matches the previous hard-coded behavior.
 _ATTACK_ENCODING_SYSTEM_PROMPT = _build_attack_encoding_system_prompt(3)
 
@@ -365,7 +365,7 @@ generate a Python Security Unit Test script that:
 ## Rules
 
 1. The script must use the `requests` library (or `httpx` as fallback).
-2. The script MUST target localhost only — `TARGET_URL` defaults to \
+2. The script MUST target localhost only - `TARGET_URL` defaults to \
 "http://localhost:8000". Add a comment: "# Run against local dev server only".
 3. Include detailed comments explaining:
    - Which security property the Z3 counterexample violates
@@ -479,15 +479,15 @@ model the taint propagation chain from entry point to sink.
 ## Cross-Service Variables
 
 Declare the following Z3 variable patterns:
-  - tainted_at_source: Bool — True when user input enters the first service
-  - cross_boundary_N: Bool — True when tainted data flows from service N \
+  - tainted_at_source: Bool - True when user input enters the first service
+  - cross_boundary_N: Bool - True when tainted data flows from service N \
     to service N+1 (one per hop)
-  - sanitized_at_hop_N: Bool — True if the data is sanitized at hop N \
+  - sanitized_at_hop_N: Bool - True if the data is sanitized at hop N \
     (one per hop)
-  - service_trusts_input_N: Bool — True if service N implicitly trusts \
+  - service_trusts_input_N: Bool - True if service N implicitly trusts \
     input from the calling service (common inter-service anti-pattern)
-  - reaches_sink: Bool — True when tainted data reaches the vulnerable sink
-  - sink_is_parameterized: Bool — True if the sink uses parameterized \
+  - reaches_sink: Bool - True when tainted data reaches the vulnerable sink
+  - sink_is_parameterized: Bool - True if the sink uses parameterized \
     queries or escaping
 
 Plus any vulnerability-specific variables from the standard encoding rules.
@@ -539,15 +539,15 @@ propagation across service boundaries. The script must:
 ## Rules
 
 1. Use the `requests` library (or `httpx` as fallback).
-2. Target localhost only — each service runs on a different port \
+2. Target localhost only - each service runs on a different port \
    in the docker-compose topology.
 3. Structure the script as:
    - Module docstring: "Cross-Service Security Unit Test: <VulnerabilityClass>"
    - `TARGET_URLS` dict mapping service name → localhost:port
-   - `inject_tainted_payload(target_urls)` — sends the initial request
-   - `verify_propagation(target_urls)` — checks intermediate services
-   - `verify_sink_exploitation(target_urls)` — asserts the final exploit
-   - `run_cross_service_test()` — orchestrates all three steps
+   - `inject_tainted_payload(target_urls)` - sends the initial request
+   - `verify_propagation(target_urls)` - checks intermediate services
+   - `verify_sink_exploitation(target_urls)` - asserts the final exploit
+   - `run_cross_service_test()` - orchestrates all three steps
    - `if __name__ == "__main__"` block
 
 4. Include comments explaining:
@@ -646,7 +646,7 @@ class VulnerabilityProver:
           - **SAT**: the shortest exploit chain is found and returned
             immediately as a ``VulnerabilityReport``.
           - **UNSAT at max_depth**: the invariant is proven safe within
-            bounds — returns ``None``.
+            bounds - returns ``None``.
           - **Encoding failure at every depth**: returns ``None``.
 
         This guarantees the counterexample uses the *minimum* number of
@@ -678,7 +678,7 @@ class VulnerabilityProver:
             max_depth=effective_max_depth,
         )
 
-        # Track encoding failures — if every depth fails encoding we log
+        # Track encoding failures - if every depth fails encoding we log
         # differently from UNSAT-at-all-depths.
         all_encoding_failed = True
 
@@ -703,7 +703,7 @@ class VulnerabilityProver:
                     entry_point=surface.entry_point,
                     attack_goal=attack_goal,
                 )
-                # Encoding failure at this depth — try the next depth.
+                # Encoding failure at this depth - try the next depth.
                 # The LLM may succeed at a different unroll depth where it
                 # can reason about the vulnerability more naturally.
                 continue
@@ -768,7 +768,7 @@ class VulnerabilityProver:
                 return report
 
             elif status == "unsat":
-                # ── UNSAT at this depth — safe so far, try deeper ──────
+                # ── UNSAT at this depth - safe so far, try deeper ──────
                 self._log.info(
                     "bmc_depth_safe",
                     depth=depth,
@@ -777,7 +777,7 @@ class VulnerabilityProver:
                     z3_time_ms=z3_time_ms,
                     depth_ms=depth_ms,
                 )
-                # Continue to next depth — the exploit may require more steps.
+                # Continue to next depth - the exploit may require more steps.
                 continue
 
             else:
@@ -791,7 +791,7 @@ class VulnerabilityProver:
                     detail=counterexample,
                     z3_time_ms=z3_time_ms,
                 )
-                # Inconclusive — still try the next depth rather than
+                # Inconclusive - still try the next depth rather than
                 # aborting the entire BMC run, since a different encoding
                 # may produce a decisive result.
                 continue
@@ -930,7 +930,7 @@ class VulnerabilityProver:
                 surface, attack_goal, counterexample, vuln_class,
             )
 
-            # Cross-service vulns are at least HIGH — taint crossed a trust boundary
+            # Cross-service vulns are at least HIGH - taint crossed a trust boundary
             if severity in (VulnerabilitySeverity.LOW, VulnerabilitySeverity.MEDIUM):
                 severity = VulnerabilitySeverity.HIGH
 
@@ -1525,7 +1525,7 @@ class VulnerabilityProver:
             # Validate Z3 execution (catches SyntaxError, NameError, Z3Exception, etc.)
             execution_error = self._validate_z3_expression(z3_expr, var_decls)
             if execution_error is None:
-                # Success — valid, executable Z3 expression
+                # Success - valid, executable Z3 expression
                 if attempt > 0:
                     self._log.info(
                         "z3_reflexion_succeeded",
@@ -1540,7 +1540,7 @@ class VulnerabilityProver:
                 "Please correct the Z3 script and output the fixed version. "
                 "Common issues:\n"
                 "- Expression must use declared variable names exactly\n"
-                "- Use z3.And, z3.Or, z3.Not, z3.Implies — not Python and/or/not\n"
+                "- Use z3.And, z3.Or, z3.Not, z3.Implies - not Python and/or/not\n"
                 "- Comparison operators (==, !=, <, >, <=, >=) are fine on Z3 vars\n"
                 "- Bool variables use == True/False, not bare references\n"
                 "Respond with ONLY a corrected JSON object."
@@ -1778,7 +1778,7 @@ class VulnerabilityProver:
         ``steps`` (an ordered list of per-state dicts) and ``globals``.
         The method partitions each step's variables into HTTP field
         categories and emits ``edge_case_input`` as an **ordered list**
-        of sequential payloads — one per exploit step.
+        of sequential payloads - one per exploit step.
 
         Args:
             report: The proven VulnerabilityReport.
@@ -1874,7 +1874,7 @@ class VulnerabilityProver:
         edge_case_input: list[dict[str, Any]] = []
         for step_idx, step_vars in enumerate(steps):
             if not step_vars:
-                # Empty step — still include for positional correctness
+                # Empty step - still include for positional correctness
                 edge_case_input.append({"step": step_idx})
                 continue
             partitioned = _partition_vars(step_vars)
@@ -2115,7 +2115,7 @@ class VulnerabilityProver:
         demonstrate a violated security property) and the attack surface
         context, then uses the LLM to produce a local-only diagnostic
         reproduction script. The script is structured as a Python test
-        that asserts the expected secure response — making it directly
+        that asserts the expected secure response - making it directly
         consumable by the RepairAgent's patch-verify loop.
 
         Args:
@@ -2208,7 +2208,7 @@ class VulnerabilityProver:
             )
             return ""
 
-        # Validate syntax — must be parseable Python
+        # Validate syntax - must be parseable Python
         syntax_error = self._validate_poc_syntax(poc_code)
         if syntax_error is not None:
             self._log.warning(
@@ -2231,7 +2231,7 @@ class VulnerabilityProver:
                 )
                 return ""
 
-        # Validate safety — no forbidden imports, no unauthorized URLs
+        # Validate safety - no forbidden imports, no unauthorized URLs
         authorized_targets = config.authorized_targets if config else []
         safety_error = self._validate_poc_safety(poc_code, authorized_targets)
         if safety_error is not None:
@@ -2388,7 +2388,7 @@ class VulnerabilityProver:
         """
         Validate that the reproduction script is syntactically valid Python.
 
-        Uses ast.parse() — the code is NOT executed.
+        Uses ast.parse() - the code is NOT executed.
 
         Returns:
             None if valid, or a human-readable error string if invalid.

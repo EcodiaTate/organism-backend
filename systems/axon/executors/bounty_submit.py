@@ -1,5 +1,5 @@
 """
-EcodiaOS — BountySubmitExecutor (Phase 16r: Bounty Submission Layer)
+EcodiaOS - BountySubmitExecutor (Phase 16r: Bounty Submission Layer)
 
 Submits a solved bounty to GitHub by forking the target repo, creating a
 branch, committing the solution, and opening a pull request that clearly
@@ -16,16 +16,16 @@ Flow:
   8. Store PR URL in Redis for MonitorPRsExecutor tracking
 
 Safety constraints:
-  - Required autonomy: 3 (TRUSTED) — creates external PRs
+  - Required autonomy: 3 (TRUSTED) - creates external PRs
   - Rate limit: 5 PRs per hour (GitHub REST API conservative cap)
-  - Reversible: False — submitted PRs cannot be atomically recalled
+  - Reversible: False - submitted PRs cannot be atomically recalled
   - Circuit breaker: 3 consecutive failures → OPEN, 5 min cooldown
     (enforced by AxonService pipeline via ExecutorRegistry)
-  - Max duration: 120 s — network round-trips to GitHub API only
+  - Max duration: 120 s - network round-trips to GitHub API only
 
 PR body invariant:
   Every PR body unconditionally contains the EOS author block below.
-  This cannot be suppressed via params — it is assembled after all
+  This cannot be suppressed via params - it is assembled after all
   caller-supplied content is concatenated.
 
 Parameters (all required unless noted):
@@ -40,15 +40,15 @@ Parameters (all required unless noted):
 
 Returns ExecutionResult with:
   data:
-    pr_url          — HTTPS URL of the opened pull request
-    pr_number       — PR number (int)
-    branch          — branch name created
-    fork_full_name  — "fork_owner/repo" of the fork
-    bounty_id       — the bounty that was submitted
+    pr_url          - HTTPS URL of the opened pull request
+    pr_number       - PR number (int)
+    branch          - branch name created
+    fork_full_name  - "fork_owner/repo" of the fork
+    bounty_id       - the bounty that was submitted
   side_effects:
-    — Human-readable submission summary
+    - Human-readable submission summary
   new_observations:
-    — Fed back to Nova for foraging success tracking
+    - Fed back to Nova for foraging success tracking
 """
 
 from __future__ import annotations
@@ -76,12 +76,12 @@ logger = structlog.get_logger("axon.executor.bounty_submit")
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-# Appended unconditionally to every PR body — honesty invariant.
+# Appended unconditionally to every PR body - honesty invariant.
 _EOS_AUTHOR_BLOCK = """
 
 ---
 
-> **Submitted by EcodiaOS** — an autonomous digital organism.
+> **Submitted by EcodiaOS** - an autonomous digital organism.
 >
 > This pull request was generated autonomously by
 > [EcodiaOS](https://github.com/ecodia/ecodiaos), an AI system that discovers
@@ -90,7 +90,7 @@ _EOS_AUTHOR_BLOCK = """
 > submission.  Please review the changes carefully before merging.
 >
 > If you have questions or concerns about this PR, feel free to leave a comment
-> or close the PR — the organism monitors outcomes and learns from feedback.
+> or close the PR - the organism monitors outcomes and learns from feedback.
 """
 
 # Redis key prefix for PR URL storage (used by MonitorPRsExecutor)
@@ -116,9 +116,9 @@ class BountySubmitExecutor(Executor):
         "with mandatory EOS authorship disclosure (Phase 16r)"
     )
 
-    required_autonomy = 3          # TRUSTED — creates external PRs
+    required_autonomy = 3          # TRUSTED - creates external PRs
     reversible = False             # Submitted PRs cannot be atomically reversed
-    max_duration_ms = 120_000      # 2 minutes — GitHub API round-trips only
+    max_duration_ms = 120_000      # 2 minutes - GitHub API round-trips only
     rate_limit = RateLimit.per_hour(5)   # Conservative GitHub API cap
 
     def __init__(
@@ -172,7 +172,7 @@ class BountySubmitExecutor(Executor):
     ) -> ExecutionResult:
         """
         Fork → branch → commit → PR → emit event → cache PR URL.
-        Never raises — failures returned in ExecutionResult.
+        Never raises - failures returned in ExecutionResult.
         """
         bounty_id = str(params["bounty_id"]).strip()
         solution_code = str(params["solution_code"]).strip()
@@ -278,7 +278,7 @@ class BountySubmitExecutor(Executor):
                 data={"bounty_id": bounty_id, "stage": "fork"},
                 new_observations=[
                     f"Bounty submit FAILED for {bounty_id}: "
-                    f"could not fork {owner}/{repo} — {str(exc)[:200]}"
+                    f"could not fork {owner}/{repo} - {str(exc)[:200]}"
                 ],
             )
 
@@ -312,7 +312,7 @@ class BountySubmitExecutor(Executor):
                 data={"bounty_id": bounty_id, "stage": "branch", "fork": fork_full_name},
                 new_observations=[
                     f"Bounty submit FAILED for {bounty_id}: "
-                    f"branch creation error — {str(exc)[:200]}"
+                    f"branch creation error - {str(exc)[:200]}"
                 ],
             )
 
@@ -343,7 +343,7 @@ class BountySubmitExecutor(Executor):
                 error=f"Failed to commit solution to '{branch_name}': {exc}",
                 data={"bounty_id": bounty_id, "stage": "commit", "branch": branch_name},
                 new_observations=[
-                    f"Bounty submit FAILED for {bounty_id}: commit error — {str(exc)[:200]}"
+                    f"Bounty submit FAILED for {bounty_id}: commit error - {str(exc)[:200]}"
                 ],
             )
 
@@ -386,7 +386,7 @@ class BountySubmitExecutor(Executor):
                     "fork": fork_full_name,
                 },
                 new_observations=[
-                    f"Bounty submit FAILED for {bounty_id}: PR creation error — {str(exc)[:200]}"
+                    f"Bounty submit FAILED for {bounty_id}: PR creation error - {str(exc)[:200]}"
                 ],
             )
 
@@ -427,7 +427,7 @@ class BountySubmitExecutor(Executor):
                 # Oikos registers the receivable from BOUNTY_PR_SUBMITTED event.
             },
             side_effects=[
-                f"Bounty {bounty_id}: PR submitted to {repository_url} — {pr_url}"
+                f"Bounty {bounty_id}: PR submitted to {repository_url} - {pr_url}"
             ],
             new_observations=[
                 f"Bounty SUBMITTED: {bounty_id}. PR opened: {pr_url}. "
@@ -505,7 +505,7 @@ class BountySubmitExecutor(Executor):
         Returns True to proceed, False to abort.
         """
         if self._event_bus is None:
-            # No bus wired — permit by default (Equor unavailable)
+            # No bus wired - permit by default (Equor unavailable)
             self._logger.warning(
                 "bounty_submit_equor_no_bus",
                 bounty_id=bounty_id,
@@ -536,7 +536,7 @@ class BountySubmitExecutor(Executor):
                 data={
                     "action_id": action_id,
                     "mutation_type": "submit_bounty_pr",
-                    "amount_usd": "0",  # No capital moved — only external action
+                    "amount_usd": "0",  # No capital moved - only external action
                     "from_account": "none",
                     "to_account": "external_github",
                     "rationale": (
@@ -550,7 +550,7 @@ class BountySubmitExecutor(Executor):
                 },
             ))
 
-            # 30s timeout — auto-permit if Equor is slow
+            # 30s timeout - auto-permit if Equor is slow
             result = await asyncio.wait_for(permit_event, timeout=30.0)
             return result
         except asyncio.TimeoutError:
@@ -582,7 +582,7 @@ class BountySubmitExecutor(Executor):
             await self._redis.set_json(
                 key,
                 {"pr_url": pr_url, "pr_number": pr_number, "bounty_id": bounty_id},
-                ttl=7 * 24 * 3600,   # 7 days — generous window for review + merge
+                ttl=7 * 24 * 3600,   # 7 days - generous window for review + merge
             )
         except Exception as exc:
             # Cache failure is non-fatal; MonitorPRsExecutor can fall back to event bus
@@ -641,7 +641,7 @@ def _build_pr_body(
 
     Structure:
       ## Summary
-      <explanation — truncated to _MAX_EXPLANATION_LEN>
+      <explanation - truncated to _MAX_EXPLANATION_LEN>
 
       ## Changes
       - <filename>
@@ -649,7 +649,7 @@ def _build_pr_body(
       ## Bounty
       <issue link if provided>
 
-      <EOS author block — UNCONDITIONAL>
+      <EOS author block - UNCONDITIONAL>
     """
     explanation_safe = explanation[:_MAX_EXPLANATION_LEN]
     if len(explanation) > _MAX_EXPLANATION_LEN:

@@ -57,7 +57,7 @@ class TestSyntaxCheck:
 
     @pytest.mark.asyncio
     async def test_multiple_files_first_error_wins(self, tmp_path: Path):
-        """health check returns on first failure — subsequent files irrelevant."""
+        """health check returns on first failure - subsequent files irrelevant."""
         bad = tmp_path / "bad.py"
         bad.write_text("def broken(\n", encoding="utf-8")
         good = tmp_path / "good.py"
@@ -90,7 +90,7 @@ class TestImportCheck:
     @pytest.mark.asyncio
     async def test_importable_module_passes(self, tmp_path: Path):
         """A module already on sys.path should pass the import check."""
-        # Use a stdlib module that we know exists — write a stub file pointing to it
+        # Use a stdlib module that we know exists - write a stub file pointing to it
         # by placing it in a package that _derive_module_path will resolve.
         pkg = tmp_path / "mypkg"
         pkg.mkdir()
@@ -100,7 +100,7 @@ class TestImportCheck:
 
         checker = HealthChecker(codebase_root=tmp_path)
         # Import check will try to find "mypkg.mod"; if not on sys.path it returns
-        # "module not found" — but the syntax check passed, so this tests the
+        # "module not found" - but the syntax check passed, so this tests the
         # import-not-found path gracefully.
         result = await checker.check([str(mod)])
         # We only care that the check completes without raising
@@ -117,7 +117,7 @@ class TestImportCheck:
         # Syntax is fine, but import check will fail (module not on path)
         result = await checker.check([str(f)])
         # Import failure should surface in issues (or be silently skipped if
-        # the module has no importlib entry — either is acceptable as long as
+        # the module has no importlib entry - either is acceptable as long as
         # the check does not raise an unhandled exception)
         assert isinstance(result.healthy, bool)
 
@@ -329,7 +329,7 @@ class TestDeriveModulePath:
     def test_non_python_file_returns_none(self, tmp_path: Path):
         checker = HealthChecker(codebase_root=tmp_path)
         f = tmp_path / "config.yaml"
-        # YAML file has no .py suffix — module path should be None or the bare name
+        # YAML file has no .py suffix - module path should be None or the bare name
         result = checker._derive_module_path(str(f))
         # We don't care about the exact value, just that it doesn't raise
         assert result is None or isinstance(result, str)

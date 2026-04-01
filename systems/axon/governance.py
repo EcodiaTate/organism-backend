@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Governance
+EcodiaOS - Axon Governance
 
 Records governance decisions for action execution, persists them to Neo4j,
 and emits RE training traces so the reasoning engine can learn governance

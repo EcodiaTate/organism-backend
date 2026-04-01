@@ -217,7 +217,7 @@ def test_triage() -> None:
 async def test_diagnosis() -> tuple:
     print("--- Diagnosis ---")
 
-    # CausalAnalyzer — trace_root_cause is async
+    # CausalAnalyzer - trace_root_cause is async
     ca = CausalAnalyzer()
     chain = await ca.trace_root_cause(make_incident())
     check("CausalAnalyzer returns CausalChain", isinstance(chain, CausalChain))
@@ -235,14 +235,14 @@ async def test_diagnosis() -> tuple:
     ])
     check("CausalAnalyzer.find_common_upstream returns str", isinstance(common, str))
 
-    # TemporalCorrelator — record_event(event_type, details, system_id)
+    # TemporalCorrelator - record_event(event_type, details, system_id)
     tc = TemporalCorrelator()
     tc.record_event("deployment", "deployed v1.2", "simula")
     tc.record_event("metric_spike", "latency 500ms", "memory")
     corr = tc.correlate(make_incident())
     check("TemporalCorrelator.correlate returns list", isinstance(corr, list))
 
-    # DiagnosticEngine — __init__(llm_client), diagnose(incident, chain, correlations, antibody)
+    # DiagnosticEngine - __init__(llm_client), diagnose(incident, chain, correlations, antibody)
     de = DiagnosticEngine(llm_client=None)
     diag = await de.diagnose(
         incident=make_incident(),
@@ -263,7 +263,7 @@ async def test_diagnosis() -> tuple:
 async def test_prescription(diag: Diagnosis) -> tuple:
     print("--- Prescription ---")
 
-    # RepairPrescriber — async prescribe(incident, diagnosis)
+    # RepairPrescriber - async prescribe(incident, diagnosis)
     rp = RepairPrescriber()
     inc = make_incident(incident_class=IncidentClass.DEGRADATION)
     spec = await rp.prescribe(inc, diag)
@@ -271,7 +271,7 @@ async def test_prescription(diag: Diagnosis) -> tuple:
     check("RepairSpec has tier", isinstance(spec.tier, RepairTier))
     check("RepairSpec has action", isinstance(spec.action, str))
 
-    # RepairValidator — async validate(incident, repair)
+    # RepairValidator - async validate(incident, repair)
     rv = RepairValidator()
     result = await rv.validate(inc, spec)
     check("RepairValidator returns ValidationResult", isinstance(result, ValidationResult))
@@ -285,7 +285,7 @@ async def test_prescription(diag: Diagnosis) -> tuple:
 async def test_antibody(spec: RepairSpec, inc: Incident) -> None:
     print("--- Antibody Library ---")
 
-    # AntibodyLibrary — all methods are async
+    # AntibodyLibrary - all methods are async
     ab = AntibodyLibrary(neo4j_client=None)
     await ab.initialize()
 
@@ -343,13 +343,13 @@ async def test_prophylactic() -> None:
     ab = AntibodyLibrary(neo4j_client=None)
     await ab.initialize()
 
-    # ProphylacticScanner — async scan(files_changed, file_contents)
+    # ProphylacticScanner - async scan(files_changed, file_contents)
     ps = ProphylacticScanner(antibody_library=ab)
     warnings = await ps.scan([])
     check("ProphylacticScanner.scan returns list", isinstance(warnings, list))
     check("ProphylacticScanner stats", ps.stats["scans_run"] == 1)
 
-    # HomeostasisController — sync methods
+    # HomeostasisController - sync methods
     hc = HomeostasisController()
     hc.record_metric("synapse.cycle.latency_ms", 50.0)
     adjustments = hc.check_homeostasis()
@@ -450,7 +450,7 @@ async def test_service() -> None:
     result = await svc.scan_files([])
     check("Service scan_files returns list", isinstance(result, list))
 
-    # Synapse event handling — SYSTEM_FAILED
+    # Synapse event handling - SYSTEM_FAILED
     event = SynapseEvent(
         event_type=SynapseEventType.SYSTEM_FAILED,
         data={"system_id": "nova"},

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Email Client
+EcodiaOS - Email Client
 
 Async email sending with two backends:
   Primary:  AWS SES via boto3 (cheapest; organism already has AWS creds for S3)

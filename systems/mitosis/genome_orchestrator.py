@@ -1,5 +1,5 @@
 """
-EcodiaOS — Genome Orchestrator
+EcodiaOS - Genome Orchestrator
 
 Coordinates genome extraction across all systems and assembly into
 OrganismGenome. Used by MitosisEngine before spawning a child, and

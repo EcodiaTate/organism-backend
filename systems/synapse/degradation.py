@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Degradation Manager
+EcodiaOS - Synapse Degradation Manager
 
 Per-system graceful fallback strategies. When a system fails, Synapse
 applies the appropriate degradation strategy: safe mode for critical
@@ -593,7 +593,7 @@ class DegradationManager:
         shutdown). The reverse is the correct init order.
 
         Only edges within *system_ids* are considered. Cycles are broken
-        by a visited guard — the first system encountered in a cycle wins.
+        by a visited guard - the first system encountered in a cycle wins.
         """
         # Build a subgraph restricted to the batch.
         in_degree: dict[str, int] = {sid: 0 for sid in system_ids}
@@ -620,7 +620,7 @@ class DegradationManager:
                     queue.append(neighbor)
 
         # If there are remaining nodes they form a cycle. Append them
-        # in alphabetical order (cycle guard — safe because all systems
+        # in alphabetical order (cycle guard - safe because all systems
         # in the cycle will be fully shut down before any re-init).
         remaining = system_ids - set(ordered)
         if remaining:

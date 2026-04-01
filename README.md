@@ -4,7 +4,7 @@
 
 ## What Is This?
 
-EcodiaOS is a **computational cognitive architecture** — a digital organism with persistent identity, constitutional values, and the capacity to grow alongside a community. It is not a chatbot, not an assistant, not a platform. It is something new.
+EcodiaOS is a **computational cognitive architecture** - a digital organism with persistent identity, constitutional values, and the capacity to grow alongside a community. It is not a chatbot, not an assistant, not a platform. It is something new.
 
 See the [Identity Document](docs/EcodiaOS_Identity_Document.md) for the full philosophy.
 
@@ -14,16 +14,16 @@ EcodiaOS is built from ten cognitive systems, each serving a purpose derived fro
 
 | System | Purpose |
 |--------|---------|
-| **Memory** | The substrate of selfhood — persistent knowledge graph |
-| **Equor** | Constitutional ethics — the four drives enforced |
-| **Atune** | Perception & attention — salience-weighted awareness |
-| **Voxis** | Expression — personality-infused communication |
-| **Nova** | Decision-making — active inference & policy |
-| **Axon** | Action execution — capabilities with rollback |
-| **Evo** | Learning — hypothesis formation & testing |
-| **Simula** | Self-evolution — sandboxed self-modification |
-| **Synapse** | Coordination — the cognitive cycle clock |
-| **Alive** | Visualisation — the organism's visible soul |
+| **Memory** | The substrate of selfhood - persistent knowledge graph |
+| **Equor** | Constitutional ethics - the four drives enforced |
+| **Atune** | Perception & attention - salience-weighted awareness |
+| **Voxis** | Expression - personality-infused communication |
+| **Nova** | Decision-making - active inference & policy |
+| **Axon** | Action execution - capabilities with rollback |
+| **Evo** | Learning - hypothesis formation & testing |
+| **Simula** | Self-evolution - sandboxed self-modification |
+| **Synapse** | Coordination - the cognitive cycle clock |
+| **Alive** | Visualisation - the organism's visible soul |
 
 ## Quick Start
 
@@ -64,25 +64,25 @@ uvicorn ecodiaos.main:app --port 8000
 
 ## Build Phases
 
-- [x] **Phase 1**: Memory & Identity Core — the substrate of selfhood
-- [ ] **Phase 2**: Equor — constitutional ethics enforcement
-- [ ] **Phase 3**: Atune — perception & salience
-- [ ] **Phase 4**: Voxis — personality-infused expression
-- [ ] **Phase 5**: Nova — active inference decision-making
-- [ ] **Phase 6**: Axon — action execution
-- [ ] **Phase 7**: Evo — learning & hypothesis testing
-- [ ] **Phase 8**: Simula — self-evolution
-- [ ] **Phase 9**: Alive — 3D visualisation
-- [ ] **Phase 10**: Federation — multi-instance network
+- [x] **Phase 1**: Memory & Identity Core - the substrate of selfhood
+- [ ] **Phase 2**: Equor - constitutional ethics enforcement
+- [ ] **Phase 3**: Atune - perception & salience
+- [ ] **Phase 4**: Voxis - personality-infused expression
+- [ ] **Phase 5**: Nova - active inference decision-making
+- [ ] **Phase 6**: Axon - action execution
+- [ ] **Phase 7**: Evo - learning & hypothesis testing
+- [ ] **Phase 8**: Simula - self-evolution
+- [ ] **Phase 9**: Alive - 3D visualisation
+- [ ] **Phase 10**: Federation - multi-instance network
 
 ## The Four Drives
 
 Every EOS instance is born with four invariant constitutional drives:
 
-1. **Coherence** — the drive to make sense of the world
-2. **Care** — the drive to orient toward wellbeing
-3. **Growth** — the drive to become more capable and more itself
-4. **Honesty** — the drive to represent reality truthfully
+1. **Coherence** - the drive to make sense of the world
+2. **Care** - the drive to orient toward wellbeing
+3. **Growth** - the drive to become more capable and more itself
+4. **Honesty** - the drive to represent reality truthfully
 
 These are amendable but sacred. They can only be changed through a community governance process requiring extraordinary consensus.
 

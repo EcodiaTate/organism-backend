@@ -1,12 +1,12 @@
 """
-Testbed Service B — API / Transform Layer
+Testbed Service B - API / Transform Layer
 
 Receives requests from Service A, transforms/forwards the payload (including
 any taint tokens) to Service C via HTTP POST. This simulates a typical API
 gateway or middleware that doesn't sanitize user input before passing it
 downstream.
 
-The taint token (TAINT=<uuid>;) passes through B untouched — this is the
+The taint token (TAINT=<uuid>;) passes through B untouched - this is the
 intentional vulnerability we're testing cross-service taint tracking for.
 
 Runs on port 8080.
@@ -62,7 +62,7 @@ class APIHandler(BaseHTTPRequestHandler):
 
         print(f"[B] Received from A: action={action} user_input={user_input!r}", flush=True)
 
-        # Build the downstream "query" — taint propagates here because
+        # Build the downstream "query" - taint propagates here because
         # user_input is embedded directly into the query string.
         query = f"SELECT * FROM records WHERE data = '{user_input}' AND action = '{action}'"
         downstream_payload = json.dumps({

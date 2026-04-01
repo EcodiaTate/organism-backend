@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma Fisher Information Manifold
+EcodiaOS - Soma Fisher Information Manifold
 
 The organism's state distributions define a statistical manifold. The Fisher
-information matrix provides a Riemannian metric — the organism's intrinsic
+information matrix provides a Riemannian metric - the organism's intrinsic
 sense of "how different does this feel from normal."
 
 For a Gaussian approximation of the state distribution, the Fisher information
@@ -80,7 +80,7 @@ class FisherManifold:
         # Rolling window of recent state vectors for current Fisher estimation
         self._window: deque[np.ndarray] = deque(maxlen=window_size)
 
-        # Healthy baseline trajectory — frozen after calibration
+        # Healthy baseline trajectory - frozen after calibration
         self._baseline: deque[np.ndarray] = deque(maxlen=baseline_capacity)
         self._baseline_locked: bool = False
         self._calibration_threshold = calibration_threshold
@@ -98,7 +98,7 @@ class FisherManifold:
         # Historical deviation magnitudes for percentile computation
         self._deviation_history: deque[float] = deque(maxlen=deviation_history_size)
 
-        # Dimensionality — inferred from first state vector
+        # Dimensionality - inferred from first state vector
         self._dim: int | None = None
 
         # Cached (N, D) matrix of baseline vectors for vectorized deviation.
@@ -225,7 +225,7 @@ class FisherManifold:
     def update_baseline(self, state_vector: np.ndarray) -> None:
         """
         Slow adaptation of the baseline during sleep/recovery.
-        Only callable when baseline is locked — adds new vectors and
+        Only callable when baseline is locked - adds new vectors and
         recomputes the baseline Fisher matrix.
         """
         if not self._baseline_locked:
@@ -294,7 +294,7 @@ class FisherManifold:
         B = self._baseline_matrix  # (N, D)
         diff_all = current[np.newaxis, :] - B  # (N, D)
 
-        # d²_i = diff_i @ F @ diff_i  — batched as (N, D) @ (D, D) = (N, D), then row-dot
+        # d²_i = diff_i @ F @ diff_i  - batched as (N, D) @ (D, D) = (N, D), then row-dot
         Fdiff = diff_all @ fisher  # (N, D)
         sq_dists = np.einsum("ij,ij->i", Fdiff, diff_all)  # (N,)
         # Clamp numerical negatives from floating-point error
@@ -344,7 +344,7 @@ class FisherManifold:
         Estimate the Fisher information matrix from a collection of state vectors.
 
         For a Gaussian approximation: F = Sigma_inv (precision matrix).
-        Uses Ledoit-Wolf shrinkage for numerical stability — this regularizes
+        Uses Ledoit-Wolf shrinkage for numerical stability - this regularizes
         the covariance estimate when dimensionality is high relative to
         sample count, preventing singular or near-singular matrices.
 

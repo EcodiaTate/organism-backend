@@ -1,12 +1,12 @@
 """
-EcodiaOS — Cognition Cost Calculator
+EcodiaOS - Cognition Cost Calculator
 
 Computes the real-time metabolic cost of cognitive operations so Nova can
 factor literal energy budgets into expected-free-energy computations.
 
 Every second of deliberation, every LLM call, every database query has a
 real financial cost. This module prices cognition internally so the system
-can align cognitive investment with decision importance — spending more
+can align cognitive investment with decision importance - spending more
 thought on high-stakes decisions and being frugal on routine ones.
 
 Cost model:
@@ -229,7 +229,7 @@ class CognitionCostCalculator:
     Output: CognitionCost with USD cost, token cost, CPU seconds,
             and annualized projection.
 
-    Stateless and fast — all state lives in CognitionBudget.
+    Stateless and fast - all state lives in CognitionBudget.
 
     Usage:
         calc = CognitionCostCalculator()

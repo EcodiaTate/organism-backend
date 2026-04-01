@@ -1,5 +1,5 @@
 """
-EcodiaOS — RE Training Data Primitives
+EcodiaOS - RE Training Data Primitives
 
 Canonical schema for training examples emitted by every system via Synapse.
 These feed the Reasoning Engine (Qwen3-8B-Base fine-tuning pipeline).
@@ -30,11 +30,11 @@ from primitives.common import (
 #
 # These types are distinct from RETrainingExample/RETrainingBatch.
 #
-# RETrainingExample  — a single LLM call captured in-process by a system.
+# RETrainingExample  - a single LLM call captured in-process by a system.
 #                      Emitted immediately over Synapse as RE_TRAINING_EXAMPLE.
-# RETrainingDatapoint — a normalised record collected by RETrainingExporter
+# RETrainingDatapoint - a normalised record collected by RETrainingExporter
 #                       from RE_TRAINING_EXAMPLE events (one per event).
-# RETrainingExportBatch — an hourly roll-up written to S3/Neo4j for the
+# RETrainingExportBatch - an hourly roll-up written to S3/Neo4j for the
 #                          offline CLoRA fine-tuning pipeline.
 
 
@@ -65,7 +65,7 @@ class RETrainingDatapoint(EOSBaseModel):
     )
     cost_usd: Decimal = Decimal("0")
     latency_ms: int = 0
-    # Dedup key (source_system:episode_id) — empty string means no episode
+    # Dedup key (source_system:episode_id) - empty string means no episode
     episode_id: str = ""
     # Retroactive outcome correction (set when AXON_EXECUTION_RESULT arrives later)
     outcome_updated: bool = False
@@ -141,7 +141,7 @@ class RETrainingExample(EOSBaseModel):
     alternatives_considered: list[str] = Field(default_factory=list)
     counterfactual: str = ""
 
-    # Domain specialization — optional; generalist by default
+    # Domain specialization - optional; generalist by default
     domain: str = "generalist"        # e.g. "art", "trading", "software", "defi"
     skill_area: str = ""               # e.g. "code_quality_assessment", "risk_evaluation"
     transferable_skills: list[str] = Field(default_factory=list)

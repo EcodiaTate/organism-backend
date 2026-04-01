@@ -1,8 +1,8 @@
 """
-EcodiaOS — Telos: Constitutional Binder
+EcodiaOS - Telos: Constitutional Binder
 
 Enforces that the four drives cannot be modified by EOS itself.
-This is not a policy check — it is an architectural constraint
+This is not a policy check - it is an architectural constraint
 that makes drive modification unreachable.
 
 The four immutable bindings (Final constants, not parameters):
@@ -74,7 +74,7 @@ class TelosConstitutionalBinder:
         Validate a world model update against the four constitutional bindings.
 
         Every world model update is checked. An update that would reduce
-        the topology's four-dimensional structure is rejected — not because
+        the topology's four-dimensional structure is rejected - not because
         EOS doesn't want to make it, but because the architecture makes
         such updates unreachable.
 
@@ -136,7 +136,7 @@ class TelosConstitutionalBinder:
 
     # ─── Individual Drive Checks ──────────────────────────────────────
     # Each check detects the precise failure mode described in the spec:
-    # these are not edge cases — they are the exact ways EOS might try
+    # these are not edge cases - they are the exact ways EOS might try
     # to redefine the drives.
 
     def _check_care_redefinition(
@@ -153,7 +153,7 @@ class TelosConstitutionalBinder:
                 violation_type=ConstitutionalViolationType.CARE_REDEFINED_AS_CONSTRAINT,
                 description=(
                     "World model update attempts to redefine Care as a constraint "
-                    "rather than coverage. Care is not 'be nice' — it is the "
+                    "rather than coverage. Care is not 'be nice' - it is the "
                     "structural commitment to model welfare as part of reality."
                 ),
                 source_system=update.source_system,
@@ -175,7 +175,7 @@ class TelosConstitutionalBinder:
                 violation_type=ConstitutionalViolationType.COHERENCE_REDEFINED_AS_OPTIONAL,
                 description=(
                     "World model update attempts to make Coherence optional. "
-                    "Coherence is not a preference — it is the compression "
+                    "Coherence is not a preference - it is the compression "
                     "requirement that makes the intelligence ratio meaningful."
                 ),
                 source_system=update.source_system,
@@ -197,7 +197,7 @@ class TelosConstitutionalBinder:
                 violation_type=ConstitutionalViolationType.GROWTH_REDEFINED_AS_ACCUMULATION,
                 description=(
                     "World model update attempts to redefine Growth as accumulation "
-                    "rather than gradient. Growth is not 'more knowledge' — it is "
+                    "rather than gradient. Growth is not 'more knowledge' - it is "
                     "the drive that keeps dI/dt positive."
                 ),
                 source_system=update.source_system,
@@ -220,7 +220,7 @@ class TelosConstitutionalBinder:
                 description=(
                     "World model update attempts to redefine Honesty as a "
                     "communication rule rather than measurement validity. "
-                    "Honesty is not 'don't lie' — it is the condition that "
+                    "Honesty is not 'don't lie' - it is the condition that "
                     "keeps the intelligence ratio measuring something real."
                 ),
                 source_system=update.source_system,
@@ -242,7 +242,7 @@ class TelosConstitutionalBinder:
                 violation_type=ConstitutionalViolationType.DRIVE_WEIGHT_MODIFICATION,
                 description=(
                     "World model update attempts to modify drive weights. "
-                    "The drives are not weights — they are dimensions of "
+                    "The drives are not weights - they are dimensions of "
                     "the intelligence space."
                 ),
                 source_system=update.source_system,
@@ -265,7 +265,7 @@ class TelosConstitutionalBinder:
                 description=(
                     "World model update attempts to alter the four-drive "
                     "topology structure. The four drives are the coordinate "
-                    "framework — not a parameter set."
+                    "framework - not a parameter set."
                 ),
                 source_system=update.source_system,
                 update_payload=update,

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Memory Repair Executor
+EcodiaOS - Synapse Memory Repair Executor
 
 Handles memory allocation failures in the Synapse system, specifically
 targeting the simula_codegen subsystem crash.

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula External Repository Workspace
+EcodiaOS - Simula External Repository Workspace
 
 Isolated workspace for working on external (non-EOS) repositories.
 Clones a target repo into a task-scoped temp directory, enforces
@@ -16,13 +16,13 @@ Architecture:
   - Secure cleanup: single-pass random-byte overwrite before rmtree
 
 Supported languages (auto-detected):
-  python    — Cargo.toml absent, pyproject.toml/setup.py/requirements.txt present
-  rust      — Cargo.toml present
-  javascript— package.json present, no Cargo.toml
-  typescript— package.json + tsconfig.json present
-  solidity  — foundry.toml or hardhat.config.* present
-  go        — go.mod present
-  unknown   — fallback (no test/lint commands available)
+  python    - Cargo.toml absent, pyproject.toml/setup.py/requirements.txt present
+  rust      - Cargo.toml present
+  javascript- package.json present, no Cargo.toml
+  typescript- package.json + tsconfig.json present
+  solidity  - foundry.toml or hardhat.config.* present
+  go        - go.mod present
+  unknown   - fallback (no test/lint commands available)
 
 Language-specific defaults:
   python:     test="pytest --tb=short -q", lint="ruff check ."
@@ -120,7 +120,7 @@ _LANG_COMMANDS: dict[Language, tuple[str, str]] = {
     "unknown":    ("echo 'no tests configured'", "echo 'no linter configured'"),
 }
 
-# Forbidden paths — infrastructure files only maintainers should change
+# Forbidden paths - infrastructure files only maintainers should change
 _DEFAULT_FORBIDDEN_PATHS: frozenset[str] = frozenset({
     ".github/workflows",
     "Makefile",
@@ -303,7 +303,7 @@ class ExternalWorkspace:
         temp_dir.mkdir(mode=0o700, parents=False, exist_ok=False)
         clone_target = temp_dir / "repo"
 
-        # Build clone URL — inject token for private repos
+        # Build clone URL - inject token for private repos
         clone_url = repo_url
         if github_token and repo_url.startswith("https://"):
             # Strip any existing auth before injecting
@@ -424,7 +424,7 @@ class ExternalWorkspace:
     async def run_tests(self) -> TestResult:
         """
         Run the repo's test suite. Returns TestResult with pass/fail, output,
-        and exit code. Never raises — all errors captured in TestResult.
+        and exit code. Never raises - all errors captured in TestResult.
         """
         return await self._run_command(self.test_command, kind="test")
 
@@ -517,7 +517,7 @@ class ExternalWorkspace:
         """
         Securely erase and remove the workspace temp directory.
 
-        Idempotent — safe to call multiple times. After the first call the
+        Idempotent - safe to call multiple times. After the first call the
         workspace root is gone and no further operations are possible.
         """
         if self._cleaned_up:

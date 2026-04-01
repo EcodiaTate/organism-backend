@@ -1,5 +1,5 @@
 """
-EcodiaOS — Energy-Aware Scheduler Interceptor
+EcodiaOS - Energy-Aware Scheduler Interceptor
 
 Sits between Nova's intent approval and Axon's execution pipeline.
 When a high-compute task is queued (REM/GRPO, model fine-tuning, bounty
@@ -15,19 +15,19 @@ Architecture:
                    EnergyProvider (Electricity Maps | WattTime)
 
 The interceptor is invoked by AxonService.execute() before the pipeline
-runs. It does NOT replace the pipeline — it gates entry to it.
+runs. It does NOT replace the pipeline - it gates entry to it.
 
 A background drain loop periodically checks the deferred queue and
 re-submits tasks whose grid conditions have improved.
 
 Iron Rules:
   - Interceptor decision is synchronous from the caller's perspective
-    (cache lookup, threshold comparison — no LLM calls).
+    (cache lookup, threshold comparison - no LLM calls).
   - Deferred tasks are never silently dropped. They expire visibly after
     max_defer_seconds with an audit log entry.
   - The interceptor can be disabled at runtime via config toggle.
   - Financial and safety-critical tasks (wallet_transfer, request_funding)
-    are NEVER deferred — only compute-heavy tasks.
+    are NEVER deferred - only compute-heavy tasks.
 """
 
 from __future__ import annotations
@@ -167,7 +167,7 @@ class EnergyAwareInterceptor:
         self._drain_task: asyncio.Task[None] | None = None
         self._running: bool = False
 
-        # Callback for re-submitting released tasks — wired by AxonService
+        # Callback for re-submitting released tasks - wired by AxonService
         self._resubmit_callback: Any = None
 
         # Metrics
@@ -251,10 +251,10 @@ class EnergyAwareInterceptor:
                 compute_intensity=intensity,
             )
 
-        # High/critical compute — check grid
+        # High/critical compute - check grid
         reading = await self._cache.get_reading()
         if reading is None:
-            # No grid data available — execute anyway (fail-open)
+            # No grid data available - execute anyway (fail-open)
             self._log.debug("no_grid_data_fail_open", intent_id=request.intent.id)
             return InterceptDecision(
                 should_defer=False,

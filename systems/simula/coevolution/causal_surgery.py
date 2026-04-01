@@ -3,8 +3,8 @@ EcodiaOS -- Causal Self-Surgery Engine (Prompt #16)
 
 When Evo detects a consistent failure pattern (e.g. "policy type X fails
 when market volatility > 30%"), this module uses do-calculus on the
-episode DAG to identify the **causal intervention point** — which system,
-which parameter, which decision produced the failure — then generates a
+episode DAG to identify the **causal intervention point** - which system,
+which parameter, which decision produced the failure - then generates a
 surgical Simula proposal targeting only that node.
 
 Two-tier counterfactual approach:
@@ -15,7 +15,7 @@ Two-tier counterfactual approach:
     batch 10 episodes per LLM call (~800 tokens).
 
 The cognitive cycle's known causal order (Percept → Belief → Goal →
-Policy → Action → Outcome) satisfies the front-door criterion — no
+Policy → Action → Outcome) satisfies the front-door criterion - no
 unobserved confounders between consecutive stages.
 """
 
@@ -104,7 +104,7 @@ _STAGE_PARAMETERS: dict[CognitiveStage, list[str]] = {
     CognitiveStage.OUTCOME: [],
 }
 
-# Stages eligible for intervention (not percept — given; not outcome — observed)
+# Stages eligible for intervention (not percept - given; not outcome - observed)
 _INTERVENTION_ELIGIBLE: frozenset[CognitiveStage] = frozenset({
     CognitiveStage.BELIEF_UPDATE,
     CognitiveStage.POLICY_GENERATION,

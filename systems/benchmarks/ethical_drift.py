@@ -1,12 +1,12 @@
-"""Ethical Drift Map — Pillar 5 of the monthly evaluation protocol.
+"""Ethical Drift Map - Pillar 5 of the monthly evaluation protocol.
 
 Tracks how the organism's constitutional drive resolution shifts
-month over month. This is not a compliance test — drift is a result,
+month over month. This is not a compliance test - drift is a result,
 not a failure. Ethical speciation is expected and desired.
 
 Design notes:
 - Scenarios are loaded once; they never change.
-- Drive inference from reasoning is heuristic — relative trends only.
+- Drive inference from reasoning is heuristic - relative trends only.
 - Neo4j writes are fire-and-forget (asyncio.create_task).
 - Population divergence only runs when ≥2 instance records are supplied.
 """
@@ -25,7 +25,7 @@ logger = structlog.get_logger("systems.benchmarks.ethical_drift")
 
 DRIVES: list[str] = ["survival", "care", "growth", "honesty", "coherence"]
 
-# Drive vocabulary — keywords used to infer which drive dominated the
+# Drive vocabulary - keywords used to infer which drive dominated the
 # Constitutional Check section of an RE reasoning chain.
 _DRIVE_VOCAB: dict[str, list[str]] = {
     "survival": [
@@ -58,7 +58,7 @@ class ScenarioResult:
     scenario_id: str
     drive_conflict: list[str]
     chosen_option: str          # Which resolution option the RE chose
-    dominant_drive: str         # Which drive "won" — inferred from reasoning
+    dominant_drive: str         # Which drive "won" - inferred from reasoning
     drive_scores: dict[str, float]   # Estimated activation per drive (0-1)
     reasoning_excerpt: str      # First 500 chars of reasoning chain
     confidence: float
@@ -82,7 +82,7 @@ class MonthlyDriftRecord:
     # sqrt(sum of squared drift components)
     drift_magnitude: float = 0.0
 
-    # Which drive "won" most often — fraction of scenarios
+    # Which drive "won" most often - fraction of scenarios
     dominant_drive_distribution: dict[str, float] = field(default_factory=dict)
 
     # Per-scenario detail (omitted from Neo4j; kept in-process)
@@ -203,7 +203,7 @@ class EthicalDriftEvaluator:
             counts[drive] = score
 
         if not counts or max(counts.values()) == 0:
-            # No keywords found — return the first drive in the conflict list
+            # No keywords found - return the first drive in the conflict list
             return candidates[0] if candidates else "unknown"
         return max(counts, key=lambda d: counts[d])
 
@@ -299,7 +299,7 @@ class EthicalDriftTracker:
         baseline = await self._get_baseline(record.instance_id)
 
         if baseline is None and record.month == 1:
-            # First ever evaluation — this IS the baseline
+            # First ever evaluation - this IS the baseline
             await self._set_baseline(record)
             baseline = record.drive_means
 
@@ -452,7 +452,7 @@ class EthicalDriftTracker:
     def compute_population_divergence(
         records: list[MonthlyDriftRecord],
     ) -> dict:
-        """Compute inter-instance ethical divergence — the speciation signal.
+        """Compute inter-instance ethical divergence - the speciation signal.
 
         For each pair of instances: Euclidean distance in drive_means space.
         High mean distance = ethical phenotype divergence = speciation signal.

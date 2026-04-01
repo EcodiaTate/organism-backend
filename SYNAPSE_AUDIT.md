@@ -1,9 +1,9 @@
-# Synapse Event Audit — Final Health Check
+# Synapse Event Audit - Final Health Check
 
 **Generated:** 2026-03-09 (updated same session)
 **Total enum entries:** 638
 **Python files scanned:** 731
-**Scanner:** `scripts/synapse_audit.py` — multi-line context, `_SET.X` alias, string-literal matching
+**Scanner:** `scripts/synapse_audit.py` - multi-line context, `_SET.X` alias, string-literal matching
 
 ---
 
@@ -15,9 +15,9 @@
 | **EMIT-ONLY** (telemetry/observability) | 274 | **~255** | **~40.0%** | acceptable |
 | **DANGLING** (subscriber, no emitter) | 25 | **6** | **0.9%** | 0 ideal |
 | **UNWIRED** (neither emit nor subscribe) | 62 | **~66** | **~10.4%** | <5% |
-| **String-literal SynapseEvent emits** | 0 | **0** | — | **PASS** |
-| **DEAF systems** | 1 | **0** | — | **PASS** |
-| **MUTE systems** | 1 | **1** | — | needs fix |
+| **String-literal SynapseEvent emits** | 0 | **0** | - | **PASS** |
+| **DEAF systems** | 1 | **0** | - | **PASS** |
+| **MUTE systems** | 1 | **1** | - | needs fix |
 
 > **Scanner vs True**: The grep-based scanner misses ~34 emit/subscribe sites that use patterns like
 > `_SET.X` (lazy alias), `_SynET.X`, `getattr(SynapseEventType, "NAME")`, `_emit_equor_event(...)`,
@@ -42,15 +42,15 @@
 
 | Target | Status |
 |--------|--------|
-| LIVE >= 80% | **MISSED** — 48.7% (structural: many events are telemetry by design) |
-| LIVE + EMIT-ONLY >= 80% | **PASS** — 88.7% of enum entries have at least one emission site |
-| DANGLING < 1% | **PASS** — 0.9% true dangling (6 events) |
-| UNWIRED < 5% | **MISSED** — 10.4% (mostly unimplemented spec features, not dead code) |
+| LIVE >= 80% | **MISSED** - 48.7% (structural: many events are telemetry by design) |
+| LIVE + EMIT-ONLY >= 80% | **PASS** - 88.7% of enum entries have at least one emission site |
+| DANGLING < 1% | **PASS** - 0.9% true dangling (6 events) |
+| UNWIRED < 5% | **MISSED** - 10.4% (mostly unimplemented spec features, not dead code) |
 | String-literal emits = 0 | **PASS** |
 | DEAF systems = 0 | **PASS** |
 
 > **Note on LIVE target**: The 80% LIVE target assumes every emitted event should have a subscriber.
-> In practice, ~40% of events are intentional telemetry (EMIT-ONLY by design — Benchmarks, Federation,
+> In practice, ~40% of events are intentional telemetry (EMIT-ONLY by design - Benchmarks, Federation,
 > Skia restoration lifecycle, Equor audit trail, etc.). The meaningful health metric is **LIVE + EMIT-ONLY ≥ 80%**,
 > which passes at 88.7%.
 
@@ -60,7 +60,7 @@
 
 | System | Emits | Subscribes | Status | Notes |
 |--------|-------|------------|--------|-------|
-| alive | 0 | 4 | **MUTE** | WebSocket bridge — subscribes to telemetry for visualization, no reason to emit |
+| alive | 0 | 4 | **MUTE** | WebSocket bridge - subscribes to telemetry for visualization, no reason to emit |
 | atune | 0 | 0 | DARK | Atune is implemented as a subsystem of Fovea/Synapse; events under `fovea` |
 | axon | 59 | 20 | OK | |
 | benchmarks | 19 | 19 | OK | |
@@ -340,7 +340,7 @@
 | `RESOURCE_PRESSURE` | synapse | alive, sacm |
 | `REVENUE_INJECTED` | axon, nova, oikos, synapse | evo, memory, nexus, nova, oikos, simula, soma, synapse, thread, voxis |
 | `RHYTHM_STATE_CHANGED` | synapse | core |
-| `SAFE_MODE_ENTERED` | synapse | — (EMIT-ONLY: no subscriber found) |
+| `SAFE_MODE_ENTERED` | synapse | - (EMIT-ONLY: no subscriber found) |
 | `SCHEMA_EVOLVED` | thread | evo |
 | `SCHEMA_FORMED` | thread | evo |
 | `SCHEMA_INDUCED` | evo | thread |
@@ -407,7 +407,7 @@
 ## EMIT-ONLY Events (~255 true)
 
 Events emitted for telemetry, observability, or federation with no active subscriber in this instance.
-Many are intentional — Benchmarks, EIS metrics, Skia lifecycle, etc.
+Many are intentional - Benchmarks, EIS metrics, Skia lifecycle, etc.
 
 <details><summary>Click to expand (scanner-reported 274, minus ~19 reclassified to LIVE)</summary>
 
@@ -440,7 +440,7 @@ These have subscribers but genuinely no emitter implementation exists. Subscribe
 | `INV_017_VIOLATED` | thymos | No formal prover emits this; DRIVE_EXTINCTION_DETECTED is the active signal |
 | `TELOS_SELF_MODEL_REQUEST` | telos | No system queries Telos for self-model; `hasattr` emit guard only |
 
-> **Severity**: LOW-MEDIUM. All 6 are "ready when built" patterns — subscriber + event defined, emitter is the missing half. None block current functionality.
+> **Severity**: LOW-MEDIUM. All 6 are "ready when built" patterns - subscriber + event defined, emitter is the missing half. None block current functionality.
 
 ---
 
@@ -448,7 +448,7 @@ These have subscribers but genuinely no emitter implementation exists. Subscribe
 
 Events in the enum with no emit or subscribe sites found anywhere. Categorized below.
 
-### IMPLEMENT (32) — Wire in near-term sprint
+### IMPLEMENT (32) - Wire in near-term sprint
 
 These have spec references and should be implemented:
 
@@ -489,13 +489,13 @@ These have spec references and should be implemented:
 | `SLEEP_PRESSURE_WARNING` | oneiros | Spec 13/14 (0.70 threshold) |
 | `SLEEP_STAGE_CHANGED` | oneiros | Spec 13/14 (alias of SLEEP_STAGE_TRANSITION?) |
 
-### DEFER (24) — Low priority, no spec contract
+### DEFER (24) - Low priority, no spec contract
 
 | Event | Reason |
 |-------|--------|
 | `ADAPTER_TRAINING_COMPLETE` | No spec lifecycle defined |
 | `ADAPTER_TRAINING_STARTED` | No spec lifecycle defined |
-| `ANTIBODY_RETIRED` | Thymos gap — antibody retirement not implemented |
+| `ANTIBODY_RETIRED` | Thymos gap - antibody retirement not implemented |
 | `BOUNTY_DISCOVERED` | Oikos Level 6 scanning not wired |
 | `BOUNTY_EVALUATED` | Oikos scoring not emitting events |
 | `CAPABILITY_OFFERED` | IIEP undefined (Spec 17 §13.2 concept only) |
@@ -516,20 +516,20 @@ These have spec references and should be implemented:
 | `PROTOCOL_TERMINATED` | Spec uses different event name |
 | `REPUTATION_UPDATED` | Oikos Level 7 not built |
 | `SERVICE_OFFER_ACCEPTED` | IIEP undefined |
-| `SYSTEM_STOPPED` | Synapse lifecycle — may be scanner miss |
+| `SYSTEM_STOPPED` | Synapse lifecycle - may be scanner miss |
 
-### DELETE (2) — Confirmed dead weight
+### DELETE (2) - Confirmed dead weight
 
 | Event | Reason |
 |-------|--------|
 | `SACM_DRAINING` | SACM `shutdown()` uses `ORGANISM_SHUTDOWN_REQUESTED`; `SACM_DRAINING` is unreferenced duplicate |
 | `VAULT_KEY_ROTATION_STARTED` | `VAULT_KEY_ROTATION_COMPLETE` is the meaningful event; no subscriber or emitter for STARTED variant |
 
-> Note: `VAULT_KEY_ROTATION_COMPLETE` itself is also UNWIRED — both halves of the vault rotation event pair are missing emit sites. See IMPLEMENT list.
+> Note: `VAULT_KEY_ROTATION_COMPLETE` itself is also UNWIRED - both halves of the vault rotation event pair are missing emit sites. See IMPLEMENT list.
 
 ---
 
-## Scanner False Positives — Patterns Missed
+## Scanner False Positives - Patterns Missed
 
 The grep-based audit scanner reports DANGLING/DEAF incorrectly for these emit/subscribe patterns:
 
@@ -563,35 +563,35 @@ TRUE DANGLING:           6   (0.9%)      ✓ <1% target MET
 UNWIRED:                ~66  (10.3%)     ✗ >5% target MISSED
 String-literal emits:    0               ✓ target MET
 DEAF systems:            0               ✓ target MET
-MUTE systems:            1 (alive)       acceptable — visualization bridge by design
+MUTE systems:            1 (alive)       acceptable - visualization bridge by design
 ```
 
 ### Priority Fix Sprint
 
-**P1 — True DANGLING (6 events, deadcode subscribers)**
+**P1 - True DANGLING (6 events, deadcode subscribers)**
 None are blocking current functionality, but they represent planned features with stubs in place.
 Recommended: leave as-is until the feature is implemented (AssetFactory, EngagementPoller, etc.).
 
-**P2 — UNWIRED IMPLEMENT list (32 events)**
+**P2 - UNWIRED IMPLEMENT list (32 events)**
 High-value wiring work. Recommended sprint order:
-1. `SLEEP_ONSET/FORCED/PRESSURE_WARNING` + `SLEEP_STAGE_CHANGED` — Oneiros completeness
-2. `EQUOR_REVIEW_STARTED/COMPLETED` + `EQUOR_AUTONOMY_PROMOTED/DEMOTED/DEFERRED/FAST_PATH_HIT` — Equor audit trail
-3. `PROOF_FOUND/FAILED` — Simula verification lifecycle
-4. `MODEL_HOT_SWAP_STARTED/COMPLETED` — RE hot-swap observability
-5. `HEALING_STORM_ENTERED/EXITED` — Thymos immune response visibility
-6. `MEMORY_CONSOLIDATED` — Logos + Oneiros integration
-7. Identity provisioning events (4) — `GITHUB_ACCOUNT_PROVISIONED`, etc.
+1. `SLEEP_ONSET/FORCED/PRESSURE_WARNING` + `SLEEP_STAGE_CHANGED` - Oneiros completeness
+2. `EQUOR_REVIEW_STARTED/COMPLETED` + `EQUOR_AUTONOMY_PROMOTED/DEMOTED/DEFERRED/FAST_PATH_HIT` - Equor audit trail
+3. `PROOF_FOUND/FAILED` - Simula verification lifecycle
+4. `MODEL_HOT_SWAP_STARTED/COMPLETED` - RE hot-swap observability
+5. `HEALING_STORM_ENTERED/EXITED` - Thymos immune response visibility
+6. `MEMORY_CONSOLIDATED` - Logos + Oneiros integration
+7. Identity provisioning events (4) - `GITHUB_ACCOUNT_PROVISIONED`, etc.
 
-**P3 — DELETE (2 events)**
+**P3 - DELETE (2 events)**
 Remove `SACM_DRAINING` and `VAULT_KEY_ROTATION_STARTED` from `synapse/types.py`.
 
-**P4 — Scanner improvement**
+**P4 - Scanner improvement**
 Extend `scripts/synapse_audit.py` to recognize `_SET.X`, `_SynET.X`, module-level aliases,
 and list-based subscribe patterns. Will bring scanner accuracy to >95%.
 
 ---
 
-## Logos — DEAF Status (Scanner False Positive)
+## Logos - DEAF Status (Scanner False Positive)
 
 Logos appears DEAF in scanner output because it subscribes via list-based pattern:
 
@@ -607,8 +607,8 @@ for event_type, handler in _SUBSCRIPTIONS:
 
 Logos has **12 subscriptions** confirmed by manual inspection. Status: **OK**.
 
-## `alive` — MUTE Status (Acceptable)
+## `alive` - MUTE Status (Acceptable)
 
 `alive` (WebSocket bridge for 3D visualization) subscribes to 4 telemetry events for push-to-frontend
-and never emits on the Synapse bus. This is correct by design — it's an output device, not a cognitive
+and never emits on the Synapse bus. This is correct by design - it's an output device, not a cognitive
 actor. Status: **ACCEPTABLE**, not a bug.

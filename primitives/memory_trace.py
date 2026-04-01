@@ -1,5 +1,5 @@
 """
-EcodiaOS — Memory Trace Primitives
+EcodiaOS - Memory Trace Primitives
 
 Data types for the knowledge graph: Episodes, Entities, Communities,
 and the MemoryTrace (a processed, stored experience).
@@ -47,11 +47,11 @@ class Episode(Identified):
     access_count: int = 0
     free_energy: float = 0.0
 
-    # Somatic marker — 19D interoceptive snapshot at encoding time (Soma §0.5)
+    # Somatic marker - 19D interoceptive snapshot at encoding time (Soma §0.5)
     somatic_marker: Any | None = None
     somatic_vector: list[float] | None = None
 
-    # RE training enrichment (Phase 2 — Memory Spec 01)
+    # RE training enrichment (Phase 2 - Memory Spec 01)
     novelty_score: float = 0.0        # 1.0 - max cosine sim to recent episodes
     context_summary: str = ""          # Percept context or LLM-generated summary
     is_correction: bool = False        # True when episode corrects a previous belief/action
@@ -163,7 +163,7 @@ class MemoryTrace(Identified):
     ingestion_time: datetime = Field(default_factory=utc_now)
     consolidation_level: int = ConsolidationLevel.RAW
 
-    # Somatic marker — 19D interoceptive snapshot at encoding time (Soma §0.5)
+    # Somatic marker - 19D interoceptive snapshot at encoding time (Soma §0.5)
     somatic_marker: Any | None = None
     somatic_vector: list[float] | None = None
 

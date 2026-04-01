@@ -1,5 +1,5 @@
 """
-EcodiaOS — Benchmark Types
+EcodiaOS - Benchmark Types
 
 Shared primitives for the benchmarks system.
 """
@@ -62,17 +62,17 @@ class DomainKPI(EOSBaseModel):
     """Total wall-clock hours spent on domain tasks."""
 
     tasks_completed: int = 0
-    """Alias for successes — counts fully completed tasks."""
+    """Alias for successes - counts fully completed tasks."""
 
     avg_task_duration_hours: float = 0.0
     """hours_spent / attempts."""
 
     # ── Quality ───────────────────────────────────────────────────────
     customer_satisfaction: float = 0.0
-    """[0, 1] — averaged from EpisodeOutcome.custom_metrics['customer_satisfaction']."""
+    """[0, 1] - averaged from EpisodeOutcome.custom_metrics['customer_satisfaction']."""
 
     rework_rate: float = 0.0
-    """[0, 1] — fraction of tasks requiring revision (from episode metadata)."""
+    """[0, 1] - fraction of tasks requiring revision (from episode metadata)."""
 
     # ── Domain-specific custom metrics ────────────────────────────────
     custom_metrics: dict[str, float] = Field(default_factory=dict)
@@ -86,7 +86,7 @@ class DomainKPI(EOSBaseModel):
 
     # ── Trend ─────────────────────────────────────────────────────────
     trend_direction: str = "stable"
-    """'improving' | 'declining' | 'stable' — based on success_rate vs prior period."""
+    """'improving' | 'declining' | 'stable' - based on success_rate vs prior period."""
 
     trend_magnitude: float = 0.0
     """Absolute change in success_rate vs prior period [0, 1]."""
@@ -119,7 +119,7 @@ class BenchmarkSnapshot(EOSBaseModel):
     """Simula proposals_approved / proposals_received. None if no proposals."""
 
     effective_intelligence_ratio: float | None = None
-    """Telos effective_I — nominal_I scaled by all four drive multipliers. Master metric."""
+    """Telos effective_I - nominal_I scaled by all four drive multipliers. Master metric."""
 
     compression_ratio: float | None = None
     """Logos intelligence ratio I = K(reality_modeled) / K(model). >1 means compressive."""
@@ -167,7 +167,7 @@ class MetricRegression(EOSBaseModel):
 
 
 class BenchmarkTrend(EOSBaseModel):
-    """Trend data for the dashboard — multiple snapshots for a single KPI."""
+    """Trend data for the dashboard - multiple snapshots for a single KPI."""
 
     metric: str
     points: list[dict[str, Any]] = Field(default_factory=list)

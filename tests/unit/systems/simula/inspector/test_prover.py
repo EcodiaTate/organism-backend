@@ -264,7 +264,7 @@ class TestZ3ConstraintChecking:
         """SAT = vulnerability proven (The Inversion)."""
         prover = _make_prover()
 
-        # This expression is always satisfiable — Z3 will find values
+        # This expression is always satisfiable - Z3 will find values
         z3_expr = "z3.And(is_authenticated == False, user_id != attacker_id)"
         var_decls = {
             "is_authenticated": "Bool",

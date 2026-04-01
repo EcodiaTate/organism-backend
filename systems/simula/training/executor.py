@@ -102,7 +102,7 @@ class ExecuteModelFineTune(_AxonExecutorBase):
 
     action_type = "executor.model_finetune"
     description = "Fine-tune a local model using organism memories via Akash GPU compute"
-    required_autonomy = 3           # STEWARD — fully autonomous
+    required_autonomy = 3           # STEWARD - fully autonomous
     reversible = False              # Model weights are append-only
     max_duration_ms = 7_200_000     # 2 hours hard limit
     rate_limit = RateLimit.per_hour(2)  # Max 2 fine-tune jobs per hour
@@ -209,7 +209,7 @@ class ExecuteModelFineTune(_AxonExecutorBase):
                 if not dpo_records:
                     return ExecutionResult(
                         success=False,
-                        error="Could not assemble DPO pairs — need both successes and failures.",
+                        error="Could not assemble DPO pairs - need both successes and failures.",
                     )
                 jsonl_bytes = builder.to_jsonl(dpo_records, fmt)
                 manifest = builder.build_manifest(
@@ -296,7 +296,7 @@ class ExecuteModelFineTune(_AxonExecutorBase):
             if not adapter_cid:
                 return ExecutionResult(
                     success=False,
-                    error="Training did not complete — no adapter CID returned.",
+                    error="Training did not complete - no adapter CID returned.",
                     data={
                         "dataset_cid": dataset_cid,
                         "deployment_id": deploy_result.deployment_id,

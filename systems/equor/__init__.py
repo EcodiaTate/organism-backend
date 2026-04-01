@@ -1,4 +1,4 @@
-"""EcodiaOS — Equor: Constitution & Ethics System."""
+"""EcodiaOS - Equor: Constitution & Ethics System."""
 
 from systems.equor.economic_evaluator import (
     classify_economic_action,

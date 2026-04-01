@@ -1,13 +1,13 @@
 """
-EcodiaOS — Axon Executor: UpdatePlatformProfile
+EcodiaOS - Axon Executor: UpdatePlatformProfile
 
 Syncs the organism's PersonaProfile to external platform accounts after
 a PERSONA_CREATED or PERSONA_EVOLVED event.
 
 Supported platforms:
-    "github"     — Updates GitHub profile bio + name via REST API
-    "x"          — Updates X/Twitter profile description via v2 API
-    "linkedin"   — Updates LinkedIn headline + about section via API
+    "github"     - Updates GitHub profile bio + name via REST API
+    "x"          - Updates X/Twitter profile description via v2 API
+    "linkedin"   - Updates LinkedIn headline + about section via API
 
 Rate limiting:
     Max 1 update per platform per 24 hours. Enforced via Redis with key:
@@ -22,7 +22,7 @@ Avatar:
     new_observations so Nova can track platform identity sync status.
 
 AI disclosure:
-    ai_disclosure is always appended to the bio — suppression is impossible
+    ai_disclosure is always appended to the bio - suppression is impossible
     at this level. If the profile's ai_disclosure field is absent for any
     reason, _DEFAULT_AI_DISCLOSURE is appended unconditionally.
 
@@ -76,10 +76,10 @@ class UpdatePlatformProfileExecutor(Executor):
     Sync the organism's PersonaProfile to an external platform account.
 
     Dependency injection:
-        set_persona_engine(engine)  — PersonaEngine for bio/handle lookup
-        set_vault(vault)            — IdentityVault for platform credentials
-        set_redis(redis)            — Redis client for 24h cooldown enforcement
-        set_instance_id(id)         — Instance ID for Redis key namespacing
+        set_persona_engine(engine)  - PersonaEngine for bio/handle lookup
+        set_vault(vault)            - IdentityVault for platform credentials
+        set_redis(redis)            - Redis client for 24h cooldown enforcement
+        set_instance_id(id)         - Instance ID for Redis key namespacing
     """
 
     action_type = "update_platform_profile"
@@ -88,7 +88,7 @@ class UpdatePlatformProfileExecutor(Executor):
         "account (GitHub, X/Twitter, LinkedIn). Rate-limited to 1 update per "
         "platform per 24 hours."
     )
-    required_autonomy = 2          # COLLABORATOR — visible external action
+    required_autonomy = 2          # COLLABORATOR - visible external action
     reversible = False             # Bio update cannot be automatically rolled back
     rate_limit = RateLimit.per_hour(5)  # Burst guard across all platforms
 
@@ -301,7 +301,7 @@ class UpdatePlatformProfileExecutor(Executor):
         bearer = creds.get("bearer_token") or creds.get("access_token")
         if not bearer:
             raise ValueError("No X bearer token in credentials")
-        # X API v2 — update profile description
+        # X API v2 - update profile description
         # Note: X API v2 does not support profile description update via bearer token alone.
         # Requires OAuth1.0a user context. We use the access_token + secret from vault.
         oauth_token = creds.get("oauth_token") or creds.get("access_token", "")
@@ -333,7 +333,7 @@ class UpdatePlatformProfileExecutor(Executor):
                 resp.raise_for_status()
                 return {"x_profile_url": f"https://x.com/{resp.json().get('screen_name', '')}"}
         except ImportError:
-            # authlib not available — log and skip
+            # authlib not available - log and skip
             logger.warning("x_profile_update_authlib_not_available")
             return {"x_profile_url": "", "skipped": "authlib_not_available"}
 
@@ -415,13 +415,13 @@ class UpdatePlatformProfileExecutor(Executor):
     async def _check_cooldown(self, platform: str) -> bool:
         """Return True if the 24h cooldown is active (should skip update)."""
         if self._redis is None:
-            return False  # No Redis — no cooldown enforcement
+            return False  # No Redis - no cooldown enforcement
         try:
             key = self._cooldown_key(platform)
             exists = await self._redis.exists(key)
             return bool(exists)
         except Exception:
-            return False  # Fail open — don't block update if Redis unavailable
+            return False  # Fail open - don't block update if Redis unavailable
 
     async def _set_cooldown(self, platform: str) -> None:
         """Set the 24h cooldown key in Redis after a successful update."""

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Cascade Predictor
+EcodiaOS - Soma Cascade Predictor
 
 Anticipates systemic cascades by combining the causal flow graph
 (transfer entropy) with current interoceptive error signals.
@@ -10,7 +10,7 @@ anticipation. It answers "if system X is stressed, which other systems
 will feel it next, and how badly?"
 
 This is analogous to how the brain's insular cortex can feel an
-impending panic attack before it happens — not by extrapolating heart
+impending panic attack before it happens - not by extrapolating heart
 rate, but by recognising the causal pattern that precedes one.
 
 Architecture:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Logos Type Definitions
+EcodiaOS - Logos Type Definitions
 
 All data types for the Universal Compression Engine: cognitive budget,
 MDL scoring, compression cascade stages, world model structures,
@@ -478,7 +478,7 @@ class LogosFitnessRecord(EOSBaseModel):
       - Mitosis child spawning based on compression fitness ranking
       - Benchmarks evolutionary activity detection (Bedau-Packard)
 
-    Node label: LogosFitnessTimeSeries (never updated — append-only)
+    Node label: LogosFitnessTimeSeries (never updated - append-only)
     """
 
     instance_id: str = ""  # EOS instance identifier (filled by service)

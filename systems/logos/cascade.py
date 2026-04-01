@@ -1,14 +1,14 @@
 """
-EcodiaOS — Logos: Compression Cascade
+EcodiaOS - Logos: Compression Cascade
 
 The four-stage pipeline that every experience traverses before reaching
 long-term storage.  Each stage extracts more structure and discards more
 redundancy, producing measurable compression ratios (bits-in vs bits-out).
 
-Stage 1 — Holographic Encoding:  delta vs world model prediction (holographic.py)
-Stage 2 — Episodic Compression:  prediction-errors only, near-zero delta discarded
-Stage 3 — Semantic Distillation: pattern-extraction into entities/relations/schemas
-Stage 4 — World Model Integration: distilled structures -> WorldModel.integrate()
+Stage 1 - Holographic Encoding:  delta vs world model prediction (holographic.py)
+Stage 2 - Episodic Compression:  prediction-errors only, near-zero delta discarded
+Stage 3 - Semantic Distillation: pattern-extraction into entities/relations/schemas
+Stage 4 - World Model Integration: distilled structures -> WorldModel.integrate()
 """
 
 from __future__ import annotations
@@ -367,7 +367,7 @@ class CompressionCascade:
         An item is irreducibly novel if:
         - High prediction error (> 0.8) and low distillation savings (< 20%)
         - Contains invariant violations (violated_priors non-empty)
-        These become anchor memories — permanent, never evicted.
+        These become anchor memories - permanent, never evicted.
         """
         if episode.prediction_error > 0.8:
             savings = 1.0 - (

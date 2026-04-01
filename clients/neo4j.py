@@ -1,5 +1,5 @@
 """
-EcodiaOS — Neo4j Client
+EcodiaOS - Neo4j Client
 
 Async connection management for the knowledge graph.
 All graph operations go through this client.

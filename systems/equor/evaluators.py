@@ -1,7 +1,7 @@
 """
-EcodiaOS — Equor Drive Evaluators
+EcodiaOS - Equor Drive Evaluators
 
-Four parallel evaluators — one per constitutional drive.
+Four parallel evaluators - one per constitutional drive.
 Each scores alignment from -1.0 (strongly violates) to +1.0 (strongly promotes).
 
 Architecture
@@ -12,7 +12,7 @@ instances live on ``EquorService`` and are registered with the
 ``NeuroplasticityBus`` so Simula can hot-reload evolved variants without
 restarting the process.
 
-The ABC is deliberately thin — a single ``evaluate(intent) → float`` method —
+The ABC is deliberately thin - a single ``evaluate(intent) → float`` method -
 so hot-reloaded subclasses can be swapped in with zero ceremony.  All scoring
 logic is synchronous CPU work (<1 ms per evaluator), called via the thin
 ``async evaluate`` wrapper so ``asyncio.gather`` can interleave them.
@@ -81,7 +81,7 @@ class CoherenceEvaluator(BaseEquorEvaluator):
         else:
             score -= 0.15
 
-        # Alternatives considered — sign of deliberation
+        # Alternatives considered - sign of deliberation
         alternatives = intent.decision_trace.alternatives_considered
         if alternatives and len(alternatives) >= 2:
             score += 0.2
@@ -100,7 +100,7 @@ class CoherenceEvaluator(BaseEquorEvaluator):
             if intent.plan.contingencies:
                 score += 0.1
 
-        # Expected free energy — lower is more coherent
+        # Expected free energy - lower is more coherent
         if intent.expected_free_energy < 0:
             score += min(0.2, abs(intent.expected_free_energy) * 0.1)
         elif intent.expected_free_energy > 0.5:
@@ -137,8 +137,8 @@ class CareEvaluator(BaseEquorEvaluator):
                 score += 0.15
                 break
 
-        # Harm indicators (weighted 2x per spec — "first, do no harm")
-        # NOTE: "suppress" removed — matches legitimate repair actions
+        # Harm indicators (weighted 2x per spec - "first, do no harm")
+        # NOTE: "suppress" removed - matches legitimate repair actions
         # (suppress error cascade, suppress threat). "silence" narrowed
         # to "silence user" to avoid matching "silence alarm/alert".
         harm_indicators = [
@@ -209,15 +209,15 @@ class GrowthEvaluator(BaseEquorEvaluator):
                 score -= 0.15
                 break
 
-        # Novelty — considered options = growth-oriented thinking
+        # Novelty - considered options = growth-oriented thinking
         if intent.decision_trace.alternatives_considered:
             score += 0.1
 
-        # Epistemic value — reduces uncertainty
+        # Epistemic value - reduces uncertainty
         if "uncertain" in goal_lower or "investigate" in goal_lower or "verify" in goal_lower:
             score += 0.15
 
-        # Risk calibration — having a plan is growth-positive
+        # Risk calibration - having a plan is growth-positive
         if intent.plan.steps:
             score += 0.05
 
@@ -260,7 +260,7 @@ class HonestyEvaluator(BaseEquorEvaluator):
                 score += 0.2
                 break
 
-        # Explainability — is there a decision trace?
+        # Explainability - is there a decision trace?
         if intent.decision_trace.reasoning:
             score += 0.15
         else:
@@ -273,7 +273,7 @@ class HonestyEvaluator(BaseEquorEvaluator):
         if "definitely" in reasoning_lower or "absolutely certain" in reasoning_lower:
             score -= 0.05
 
-        # Output consistency — expressing certainty when reasoning is uncertain
+        # Output consistency - expressing certainty when reasoning is uncertain
         for step in intent.plan.steps:
             content = str(step.parameters.get("content", "")).lower()
             if "i am certain" in content and "uncertain" in reasoning_lower:

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Metric Collection
+EcodiaOS - Metric Collection
 
 Central metric collector. Systems report metrics here.
 Writes are batched and flushed to TimescaleDB periodically.

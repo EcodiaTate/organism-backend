@@ -1,15 +1,15 @@
 """
-EcodiaOS — SACM (Substrate-Arbitrage Compute Mesh) API Router
+EcodiaOS - SACM (Substrate-Arbitrage Compute Mesh) API Router
 
 Exposes read-only endpoints for the frontend SACM dashboard:
 
-  GET /api/v1/sacm/metrics        — SACMMetrics.snapshot + rolling burn rate
-  GET /api/v1/sacm/savings        — SACMCostAccounting.get_savings_report()
-  GET /api/v1/sacm/providers      — Market oracle: provider health + offer counts
-  GET /api/v1/sacm/oracle         — Pricing surface snapshot
-  GET /api/v1/sacm/compute        — ComputeResourceManager: capacity, queue, allocations
-  GET /api/v1/sacm/pre-warm       — PreWarmingEngine: pool state + predictor EMA
-  GET /api/v1/sacm/health         — Aggregate system health across all subsystems
+  GET /api/v1/sacm/metrics        - SACMMetrics.snapshot + rolling burn rate
+  GET /api/v1/sacm/savings        - SACMCostAccounting.get_savings_report()
+  GET /api/v1/sacm/providers      - Market oracle: provider health + offer counts
+  GET /api/v1/sacm/oracle         - Pricing surface snapshot
+  GET /api/v1/sacm/compute        - ComputeResourceManager: capacity, queue, allocations
+  GET /api/v1/sacm/pre-warm       - PreWarmingEngine: pool state + predictor EMA
+  GET /api/v1/sacm/health         - Aggregate system health across all subsystems
 """
 
 from __future__ import annotations

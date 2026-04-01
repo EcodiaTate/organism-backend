@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova EFE Heuristic Fallbacks
+EcodiaOS - Nova EFE Heuristic Fallbacks
 
 Fast approximations for LLM-based components when:
 - Budget is exhausted (Red/Yellow tier)

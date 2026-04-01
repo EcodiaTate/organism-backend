@@ -1,5 +1,5 @@
 """
-Fovea — WorldModelAdapter
+Fovea - WorldModelAdapter
 
 A Memory-backed implementation of the LogosWorldModel protocol.
 
@@ -210,7 +210,7 @@ class WorldModelAdapter:
                     max_results=8,
                     salience_floor=0.1,
                 ),
-                timeout=0.010,  # 10ms hard cap — we're inside PERCEIVE phase
+                timeout=0.010,  # 10ms hard cap - we're inside PERCEIVE phase
             )
             embeddings = [
                 t.embedding
@@ -399,7 +399,7 @@ class WorldModelAdapter:
         """
         window_total = await self._get_window_total()
         if window_total == 0:
-            return 0.5  # No data — neutral
+            return 0.5  # No data - neutral
 
         if self._memory is None:
             return 0.5
@@ -449,11 +449,11 @@ class WorldModelAdapter:
         return 0.5  # neutral prior
 
     async def get_context_stability_age(self, context_type: str) -> int:
-        """Return 0 — stability age is not tracked by Memory-backed adapter."""
+        """Return 0 - stability age is not tracked by Memory-backed adapter."""
         return 0
 
     async def get_compression_score(self) -> float:
-        """Return 0.5 — compression score requires Logos; not available here."""
+        """Return 0.5 - compression score requires Logos; not available here."""
         return 0.5
 
     # ------------------------------------------------------------------

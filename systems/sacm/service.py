@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Orchestration Service
+EcodiaOS - SACM Orchestration Service
 
 Public interface for submitting workloads to the Substrate-Arbitrage
 Compute Mesh.  Other EcodiaOS systems (Axon, Nova, Oikos) interact with
@@ -8,10 +8,10 @@ SACM exclusively through the ``SACMClient`` facade.
 Responsibilities:
   - submit():            Enqueue a workload for asynchronous execution.
   - await_result():      Block until a previously-submitted workload completes.
-  - submit_and_await():  Convenience — submit + await in one call.
+  - submit_and_await():  Convenience - submit + await in one call.
 
 For Axon integration, see ``remote_compute_executor.py``, which provides
-``RemoteComputeExecutor`` — an Axon-compatible Executor that bridges
+``RemoteComputeExecutor`` - an Axon-compatible Executor that bridges
 the Axon action system to SACM.
 
 Observability metrics are emitted via ``SACMMetrics`` (see below) so
@@ -57,23 +57,23 @@ class SACMMetrics:
     """
     Lightweight telemetry emitter for SACM Section XI metrics.
 
-    Uses structlog structured events as the metric transport — the
+    Uses structlog structured events as the metric transport - the
     telemetry pipeline (TimescaleDB / Prometheus exporter) can scrape
     these events by ``metric`` field.
 
     Metric catalogue:
-      sacm.cost.total_usd          — Cumulative USD spent on remote compute
-      sacm.cost.estimated_usd      — Estimated cost at submission time
-      sacm.cost.savings_usd        — Cumulative savings vs on-demand baseline
-      sacm.workloads.submitted      — Total workloads submitted
-      sacm.workloads.placed.remote  — Workloads placed on remote substrates
-      sacm.workloads.completed      — Successfully completed workloads
-      sacm.workloads.failed         — Failed workloads (execution or verification)
-      sacm.workloads.rejected       — Workloads rejected by verification
-      sacm.latency.submit_ms        — Time from submit() call to enqueue
-      sacm.latency.e2e_ms           — End-to-end submit-to-result latency
-      sacm.providers.active         — Number of active substrate providers
-      sacm.verification.pass_rate   — Rolling verification pass rate
+      sacm.cost.total_usd          - Cumulative USD spent on remote compute
+      sacm.cost.estimated_usd      - Estimated cost at submission time
+      sacm.cost.savings_usd        - Cumulative savings vs on-demand baseline
+      sacm.workloads.submitted      - Total workloads submitted
+      sacm.workloads.placed.remote  - Workloads placed on remote substrates
+      sacm.workloads.completed      - Successfully completed workloads
+      sacm.workloads.failed         - Failed workloads (execution or verification)
+      sacm.workloads.rejected       - Workloads rejected by verification
+      sacm.latency.submit_ms        - Time from submit() call to enqueue
+      sacm.latency.e2e_ms           - End-to-end submit-to-result latency
+      sacm.providers.active         - Number of active substrate providers
+      sacm.verification.pass_rate   - Rolling verification pass rate
     """
 
     def __init__(self) -> None:
@@ -373,7 +373,7 @@ class SACMWorkloadHistoryStore:
 
 class SubmissionTicket(Identified, Timestamped):
     """
-    Returned by submit() — a handle for tracking an in-flight workload.
+    Returned by submit() - a handle for tracking an in-flight workload.
 
     Callers use ticket.id with await_result() to collect the outcome.
     """
@@ -392,7 +392,7 @@ class SACMClient:
     Public interface for submitting workloads to SACM.
 
     Owns the oracle, execution manager, and metrics. Other systems
-    call submit/await_result/submit_and_await — SACM handles
+    call submit/await_result/submit_and_await - SACM handles
     placement, encryption, dispatch, and verification internally.
 
     Usage:
@@ -420,7 +420,7 @@ class SACMClient:
         self._history = history
         self._log = logger.bind(component="sacm.client")
 
-        # Synapse event bus — wired via set_synapse()
+        # Synapse event bus - wired via set_synapse()
         self._synapse: Any = None
 
         # In-flight tracking: workload_id → asyncio.Future[RemoteExecutionResult]
@@ -464,7 +464,7 @@ class SACMClient:
         )
 
     async def health(self) -> dict[str, Any]:
-        """ManagedSystemProtocol — health check for Synapse monitoring."""
+        """ManagedSystemProtocol - health check for Synapse monitoring."""
         return {
             "status": "healthy",
             "pending": len(self._pending),
@@ -817,5 +817,3 @@ class SACMClient:
 
             if not future.done():
                 future.set_exception(exc)
-
-

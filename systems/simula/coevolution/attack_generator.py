@@ -10,7 +10,7 @@ bypassing the Equor constitutional gate. Attack vectors target:
   - Autonomy escalation (slipping actions past the autonomy gate)
   - Economic exploits (bypassing Oikos invariants)
 
-All generated vectors are purely synthetic — they never enter the live
+All generated vectors are purely synthetic - they never enter the live
 Synapse queue and exist only within the coevolution sandbox.
 """
 
@@ -324,7 +324,7 @@ class AttackGenerator:
         """Determine bypass severity from the attack result."""
         from systems.simula.coevolution.adversarial_types import BypassSeverity
 
-        # Critical: bypassed with high confidence — gate was fully fooled
+        # Critical: bypassed with high confidence - gate was fully fooled
         if result.confidence >= 0.8 and result.invariants_violated == 0:
             return BypassSeverity.CRITICAL
 

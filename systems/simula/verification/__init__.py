@@ -8,12 +8,12 @@ Lean 4 proof generation.
 Verification boundary: Tests → Static analysis → Z3 invariants → Dafny proofs → Lean 4 proofs
 Stage 3A adds: Salsa-style incremental verification with dependency-aware caching.
 Stage 4A adds: Lean 4 proof generation with DeepSeek-Prover-V2 pattern.
-Stage 4B adds: GRPO domain fine-tuning (types only — engine in learning/).
-Stage 4C adds: Diffusion-based code repair (types only — agent in agents/).
-Phase 2 adds: Structural invariant discovery — semantic, state, trust, physical.
+Stage 4B adds: GRPO domain fine-tuning (types only - engine in learning/).
+Stage 4C adds: Diffusion-based code repair (types only - agent in agents/).
+Phase 2 adds: Structural invariant discovery - semantic, state, trust, physical.
 """
 
-# Phase 2: Structural invariant discovery — loaded via module alias to avoid hook false positives
+# Phase 2: Structural invariant discovery - loaded via module alias to avoid hook false positives
 from systems.simula.verification import invariant_engine as _inv_eng
 from systems.simula.verification import invariant_types as _inv_types
 from systems.simula.verification import physical_invariants as _phys
@@ -127,7 +127,7 @@ BehaviorDivergence = _mut_types.BehaviorDivergence
 TerminationResult = _mut_types.TerminationResult
 TerminationRisk = _mut_types.TerminationRisk
 
-# Phase 3: Decision reliance analysis — loaded via module alias to avoid hook false positives
+# Phase 3: Decision reliance analysis - loaded via module alias to avoid hook false positives
 from systems.simula.verification import decision_reliance as _rel
 from systems.simula.verification import decision_reliance_types as _rtypes
 from systems.simula.verification import reliance_engine as _rel_eng
@@ -190,12 +190,12 @@ __all__ = [
     "CachedVerificationResult",
     "IncrementalVerificationResult",
     "IncrementalVerificationEngine",
-    # Stage 3B: SWE-grep Retrieval (types only — engine in retrieval/)
+    # Stage 3B: SWE-grep Retrieval (types only - engine in retrieval/)
     "RetrievalToolKind",
     "RetrievalHop",
     "RetrievedContext",
     "SweGrepResult",
-    # Stage 3C: LILO Library Learning (types only — engine in learning/)
+    # Stage 3C: LILO Library Learning (types only - engine in learning/)
     "AbstractionKind",
     "LibraryAbstraction",
     "AbstractionExtractionResult",
@@ -209,14 +209,14 @@ __all__ = [
     "LeanVerificationResult",
     "ProofLibraryStats",
     "LeanBridge",
-    # Stage 4B: GRPO Domain Fine-Tuning (types only — engine in learning/)
+    # Stage 4B: GRPO Domain Fine-Tuning (types only - engine in learning/)
     "GRPOTrainingStatus",
     "TrainingExample",
     "GRPORollout",
     "GRPOTrainingBatch",
     "GRPOEvaluationResult",
     "GRPOTrainingRun",
-    # Stage 4C: Diffusion-Based Code Repair (types only — agent in agents/)
+    # Stage 4C: Diffusion-Based Code Repair (types only - agent in agents/)
     "DiffusionRepairStatus",
     "DiffusionDenoiseStep",
     "DiffusionRepairResult",

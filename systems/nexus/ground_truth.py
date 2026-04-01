@@ -1,16 +1,16 @@
 """
-EcodiaOS — Nexus: Ground Truth Promotion Pipeline
+EcodiaOS - Nexus: Ground Truth Promotion Pipeline
 
 Phase D of epistemic triangulation. Fragments climb through four
 epistemic levels, each requiring strictly more evidence:
 
-Level 0 — HYPOTHESIS: Single instance. Could be experience path artifact.
-Level 1 — CORROBORATED: independent_source_count >= 2.
-Level 2 — TRIANGULATED: confidence > 0.75, diversity > 0.5, sources >= 3.
-Level 3 — GROUND_TRUTH_CANDIDATE: confidence > 0.9, diversity > 0.7,
+Level 0 - HYPOTHESIS: Single instance. Could be experience path artifact.
+Level 1 - CORROBORATED: independent_source_count >= 2.
+Level 2 - TRIANGULATED: confidence > 0.75, diversity > 0.5, sources >= 3.
+Level 3 - GROUND_TRUTH_CANDIDATE: confidence > 0.9, diversity > 0.7,
           sources >= 5, survived speciation bridge exchange.
           Anchor memory status. Near-zero decay rate.
-Level 4 — EMPIRICAL_INVARIANT: Level 3 + survived Oneiros adversarial
+Level 4 - EMPIRICAL_INVARIANT: Level 3 + survived Oneiros adversarial
           simulation + survived Evo hypothesis competition.
           Constitutional-level protection via Equor.
 
@@ -50,7 +50,7 @@ class GroundTruthPromotionPipeline:
 
     Each level requires strictly more evidence. The pipeline checks
     the current level and tests promotion criteria for the next level.
-    Promotion is always one level at a time — no skipping.
+    Promotion is always one level at a time - no skipping.
     """
 
     def __init__(
@@ -121,7 +121,7 @@ class GroundTruthPromotionPipeline:
         if current == EpistemicLevel.GROUND_TRUTH_CANDIDATE:
             return await self._evaluate_to_empirical(fragment, decision)
 
-        # Already at EMPIRICAL_INVARIANT — no further promotion
+        # Already at EMPIRICAL_INVARIANT - no further promotion
         decision.reason = "Already at maximum epistemic level."
         return decision
 

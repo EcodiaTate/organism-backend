@@ -1,20 +1,20 @@
 """
-EcodiaOS — Thymos Antibody Library (Immune Memory)
+EcodiaOS - Thymos Antibody Library (Immune Memory)
 
 The accumulated immune intelligence of the organism. Every successful
 repair becomes an antibody that can be instantly applied to future
 incidents with the same fingerprint.
 
 Lifecycle:
-  1. CREATION    — A successful Tier 3+ repair → new antibody
-  2. APPLICATION — Matching fingerprint → instant Tier 3 repair
-  3. FEEDBACK    — Track success/failure on each application
-  4. REFINEMENT  — Effectiveness drops below 0.6 → regenerate repair
-  5. RETIREMENT  — Effectiveness below 0.3 after 5+ applications → retire
+  1. CREATION    - A successful Tier 3+ repair → new antibody
+  2. APPLICATION - Matching fingerprint → instant Tier 3 repair
+  3. FEEDBACK    - Track success/failure on each application
+  4. REFINEMENT  - Effectiveness drops below 0.6 → regenerate repair
+  5. RETIREMENT  - Effectiveness below 0.3 after 5+ applications → retire
 
 The library grows over time. An old organism has hundreds of antibodies
 and resolves most incidents instantly without LLM-powered diagnosis.
-This is genuine adaptive immunity — it compounds.
+This is genuine adaptive immunity - it compounds.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ class AntibodyLibrary:
         self._cache: dict[str, Antibody] = {}  # fingerprint → antibody
         self._all: dict[str, Antibody] = {}  # id → antibody
         self._logger = logger.bind(system="thymos", component="antibody_library")
-        # Optional event callback — set by ThymosService for lifecycle event emission
+        # Optional event callback - set by ThymosService for lifecycle event emission
         self._on_event: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None
 
     async def initialize(self) -> None:
@@ -130,7 +130,7 @@ class AntibodyLibrary:
         decay_factor = math.exp(
             -hours_since * math.log(2) / self.DECAY_HALF_LIFE_HOURS
         )
-        # Decay toward 0.5 floor (not zero — the fix did work at some point)
+        # Decay toward 0.5 floor (not zero - the fix did work at some point)
         floor = 0.5
         antibody.effectiveness = floor + (antibody.effectiveness - floor) * decay_factor
 
@@ -210,9 +210,9 @@ class AntibodyLibrary:
             if ab.last_applied is not None:
                 hours_since = (now - ab.last_applied).total_seconds() / 3600.0
                 if hours_since < 1.0 and ab.effectiveness > 0.7:
-                    recency_boost = 1.1  # Recently worked — prefer it
+                    recency_boost = 1.1  # Recently worked - prefer it
                 elif hours_since > 24.0:
-                    recency_boost = 0.95  # Stale — slight discount
+                    recency_boost = 0.95  # Stale - slight discount
 
             # Tier preference: lower tier = less invasive = preferable
             # NOOP=0, PARAMETER=1, RESTART=2, KNOWN_FIX=3, NOVEL_FIX=4
@@ -300,7 +300,7 @@ class AntibodyLibrary:
         if self._neo4j is not None:
             from contextlib import suppress
 
-            with suppress(Exception):  # Non-critical — incident node may not exist yet
+            with suppress(Exception):  # Non-critical - incident node may not exist yet
                 await self._neo4j.execute_write(
                     """
                     MATCH (a:Antibody {id: $aid})

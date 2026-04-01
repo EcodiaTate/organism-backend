@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 5: Trust-Graph Influence Expansion Types
+EcodiaOS - Inspector Phase 5: Trust-Graph Influence Expansion Types
 
 All domain models for post-boundary propagation analysis.
 
@@ -18,14 +18,14 @@ Layer map
   ┌──────────────────────────────────────────────────────────────────────────┐
   │  Phase 4 (Phase4Result, SteerabilityModel, ConditionSet)                  │
   │    ↓  TrustGraphBuilder                                                  │
-  │  TrustGraph   — principals, services, resources, roles, credentials,     │
+  │  TrustGraph   - principals, services, resources, roles, credentials,     │
   │                 sessions + typed trust edges                              │
   │    ↓  PropagationEngine                                                  │
-  │  PropagationResult — per-foothold reachability + privilege gradient       │
+  │  PropagationResult - per-foothold reachability + privilege gradient       │
   │    ↓                                                                     │
-  │  ExpansionCorridor — ranked propagation pathway (graph finding)           │
+  │  ExpansionCorridor - ranked propagation pathway (graph finding)           │
   │    ↓                                                                     │
-  │  Phase5Result  — top-level output with exit criterion                    │
+  │  Phase5Result  - top-level output with exit criterion                    │
   └──────────────────────────────────────────────────────────────────────────┘
 
 Exit criterion
@@ -36,11 +36,11 @@ the trust edges enabling each one.
 
 Key concepts
 ------------
-TrustEdgeKind   — the mechanism by which trust is transferred between nodes
-PrivilegeValue  — a numeric weight (0–100) assigned to each node; higher = more
+TrustEdgeKind   - the mechanism by which trust is transferred between nodes
+PrivilegeValue  - a numeric weight (0–100) assigned to each node; higher = more
                   valuable/sensitive; paths must monotonically increase to qualify
                   as privilege-gradient corridors
-ExpansionCorridor — a ranked pathway that starts from a foothold node and
+ExpansionCorridor - a ranked pathway that starts from a foothold node and
                   monotonically traverses nodes of increasing privilege value
 """
 
@@ -61,12 +61,12 @@ class TrustNodeKind(enum.StrEnum):
     """
     Semantic category of a node in the trust graph.
 
-    PRINCIPAL   — a human user, service account, or bot identity
-    SERVICE     — a process, microservice, or daemon (can act + be delegated to)
-    RESOURCE    — a data store, file, secret, key, config item — things that hold value
-    ROLE        — a named permission bundle (IAM role, RBAC role, sudo group)
-    CREDENTIAL  — a token, certificate, API key, password hash, session cookie
-    SESSION     — an authenticated runtime context binding a principal to capabilities
+    PRINCIPAL   - a human user, service account, or bot identity
+    SERVICE     - a process, microservice, or daemon (can act + be delegated to)
+    RESOURCE    - a data store, file, secret, key, config item - things that hold value
+    ROLE        - a named permission bundle (IAM role, RBAC role, sudo group)
+    CREDENTIAL  - a token, certificate, API key, password hash, session cookie
+    SESSION     - an authenticated runtime context binding a principal to capabilities
     """
 
     PRINCIPAL  = "principal"
@@ -82,19 +82,19 @@ class TrustEdgeKind(enum.StrEnum):
     """
     The mechanism by which trust transfers along a directed edge A → B.
 
-    AUTHENTICATION      — A proves identity to B (credential presented + accepted)
-    DELEGATION          — A explicitly grants a subset of its capabilities to B
-    ASSUMED_TRUST       — B assumes A is trustworthy without explicit proof
+    AUTHENTICATION      - A proves identity to B (credential presented + accepted)
+    DELEGATION          - A explicitly grants a subset of its capabilities to B
+    ASSUMED_TRUST       - B assumes A is trustworthy without explicit proof
                           (e.g., same-host loopback, private subnet co-tenancy)
-    IMPLICIT_PERMISSION — B inherits A's capabilities by default configuration
+    IMPLICIT_PERMISSION - B inherits A's capabilities by default configuration
                           (e.g., sudo NOPASSWD, IAM wildcard, inherited role)
-    CREDENTIAL_REUSE    — A's credential is stored/forwarded and reused by B
-    SERVICE_ASSUMPTION  — B is configured to trust all calls from A's service
+    CREDENTIAL_REUSE    - A's credential is stored/forwarded and reused by B
+    SERVICE_ASSUMPTION  - B is configured to trust all calls from A's service
                           (e.g., mTLS peer bypass, allow-all network policy)
-    SHARED_SECRET       — A and B share a secret that acts as bilateral trust anchor
-    PRIVILEGE_GRANT     — A explicitly grants B elevated privilege (GRANT SQL, chmod)
-    INHERITANCE         — B is a child process / sub-service that inherits A's context
-    LATERAL_MOVEMENT    — forensic/inferred edge: A was observed pivoting to B
+    SHARED_SECRET       - A and B share a secret that acts as bilateral trust anchor
+    PRIVILEGE_GRANT     - A explicitly grants B elevated privilege (GRANT SQL, chmod)
+    INHERITANCE         - B is a child process / sub-service that inherits A's context
+    LATERAL_MOVEMENT    - forensic/inferred edge: A was observed pivoting to B
     """
 
     AUTHENTICATION      = "authentication"
@@ -112,13 +112,13 @@ class TrustEdgeKind(enum.StrEnum):
 
 class TrustStrength(enum.StrEnum):
     """
-    How robust the trust relationship is — inversely proportional to how easy
+    How robust the trust relationship is - inversely proportional to how easy
     it is to exploit the edge.
 
-    EXPLICIT   — cryptographically enforced, mutual, logged (hard to abuse)
-    VERIFIED   — checked at runtime but not cryptographic (e.g., HMAC, bearer token)
-    IMPLICIT   — assumed, inferred, or based on network position (easy to abuse)
-    BLIND      — no verification at all; one side fully trusts the other
+    EXPLICIT   - cryptographically enforced, mutual, logged (hard to abuse)
+    VERIFIED   - checked at runtime but not cryptographic (e.g., HMAC, bearer token)
+    IMPLICIT   - assumed, inferred, or based on network position (easy to abuse)
+    BLIND      - no verification at all; one side fully trusts the other
     """
 
     EXPLICIT = "explicit"
@@ -131,10 +131,10 @@ class PrivilegeImpact(enum.StrEnum):
     """
     The consequence of an attacker reaching this node.
 
-    CRITICAL  — full system / tenant compromise (root, admin, DBA superuser)
-    HIGH      — significant capability gain (read all data, impersonate user)
-    MEDIUM    — partial gain (read some data, limited write)
-    LOW       — minimal gain (unauthenticated read-only public data)
+    CRITICAL  - full system / tenant compromise (root, admin, DBA superuser)
+    HIGH      - significant capability gain (read all data, impersonate user)
+    MEDIUM    - partial gain (read some data, limited write)
+    LOW       - minimal gain (unauthenticated read-only public data)
     NONE      = no useful privilege at this node
     """
 
@@ -149,10 +149,10 @@ class CorridorRiskTier(enum.StrEnum):
     """
     Ranked risk tier for an ExpansionCorridor.
 
-    CRITICAL — corridor terminates at a CRITICAL node and all edges are exploitable
-    HIGH     — corridor terminates at HIGH node or has ≥1 BLIND/IMPLICIT edge
-    MEDIUM   — corridor terminates at MEDIUM node
-    LOW      — corridor terminates at LOW node or all edges are EXPLICIT
+    CRITICAL - corridor terminates at a CRITICAL node and all edges are exploitable
+    HIGH     - corridor terminates at HIGH node or has ≥1 BLIND/IMPLICIT edge
+    MEDIUM   - corridor terminates at MEDIUM node
+    LOW      - corridor terminates at LOW node or all edges are EXPLICIT
     """
 
     CRITICAL = "critical"
@@ -183,7 +183,7 @@ class TrustNode(EOSBaseModel):
     service_name: str = Field(default="")
     file_path: str = Field(default="")
 
-    # Privilege weight — higher = more valuable for an attacker (0–100)
+    # Privilege weight - higher = more valuable for an attacker (0–100)
     privilege_value: int = Field(
         default=0,
         ge=0,
@@ -217,7 +217,7 @@ class TrustEdge(EOSBaseModel):
     A directed trust relationship A → B.
 
     An edge represents a pathway along which influence can flow from A to B
-    (not necessarily a data flow — trust is about who-can-act-as or
+    (not necessarily a data flow - trust is about who-can-act-as or
     who-is-assumed-equivalent-to).
     """
 
@@ -411,7 +411,7 @@ class PropagationPath(EOSBaseModel):
     privilege_delta: int = 0           # terminal_value - foothold_value
     is_monotonic: bool = True          # all steps increase or maintain privilege
 
-    # Weakest link — the edge with the lowest traversal cost (easiest to abuse)
+    # Weakest link - the edge with the lowest traversal cost (easiest to abuse)
     weakest_edge_id: str = Field(default="")
     weakest_edge_kind: TrustEdgeKind = TrustEdgeKind.UNKNOWN
     weakest_edge_cost: float = 1.0
@@ -469,7 +469,7 @@ class ExpansionCorridor(EOSBaseModel):
     what privilege elevation results.
 
     Corridors are produced by PropagationEngine and ranked by risk.
-    They are *findings*, not exploit templates — they describe what the
+    They are *findings*, not exploit templates - they describe what the
     graph topology makes possible.
     """
 
@@ -485,7 +485,7 @@ class ExpansionCorridor(EOSBaseModel):
     # Alternative paths to the same terminal node (different routes)
     alternative_paths: list[PropagationPath] = Field(default_factory=list)
 
-    # Binding to Phase 4 foothold (optional — not all footholds come from Phase 4)
+    # Binding to Phase 4 foothold (optional - not all footholds come from Phase 4)
     foothold_binding: FootholdBinding | None = None
 
     # ── Corridor summary ──────────────────────────────────────────────────────
@@ -532,7 +532,7 @@ class PropagationSimulation(EOSBaseModel):
     """
     The result of a single propagation simulation from one foothold node.
 
-    Produced by PropagationEngine.simulate() — BFS from the foothold, tracking
+    Produced by PropagationEngine.simulate() - BFS from the foothold, tracking
     all reachable nodes within a configurable depth and the privilege gradient
     along each path.
     """

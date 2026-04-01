@@ -1,5 +1,5 @@
 """
-EcodiaOS — Semantic Lossy Compression for Long-Term Memory
+EcodiaOS - Semantic Lossy Compression for Long-Term Memory
 
 During Evo deep consolidation, replaces raw episode embeddings with
 projections onto the top-K principal components of each community's
@@ -42,7 +42,7 @@ logger = structlog.get_logger()
 # Minimum episodes in a community before compression is attempted
 MIN_EPISODES_FOR_COMPRESSION = 50
 
-# Target variance retention — adaptive K selection stops here
+# Target variance retention - adaptive K selection stops here
 DEFAULT_VARIANCE_TARGET = 0.80
 
 # Hard floor/ceiling on K to prevent degenerate cases
@@ -177,7 +177,7 @@ async def compress_community_embeddings(
     mean = embeddings.mean(axis=0)
     centered = embeddings - mean
 
-    # Economy SVD — we only need the left singular vectors up to rank
+    # Economy SVD - we only need the left singular vectors up to rank
     # Use full_matrices=False for efficiency on tall-skinny matrices
     _U, S, Vt = np.linalg.svd(centered, full_matrices=False)
 
@@ -256,7 +256,7 @@ async def compress_community_embeddings(
     )
 
     # ── Step 6: Compress and update episodes in batches ──────────────
-    compressed_all = (centered @ basis.T)  # (N, K) — projected embeddings
+    compressed_all = (centered @ basis.T)  # (N, K) - projected embeddings
 
     for batch_start in range(0, n_episodes, UPDATE_BATCH_SIZE):
         batch_end = min(batch_start + UPDATE_BATCH_SIZE, n_episodes)
@@ -328,7 +328,7 @@ async def run_semantic_compression(
     """
     start = time.monotonic()
 
-    # Get all communities — use `id` which is the canonical property on Community nodes.
+    # Get all communities - use `id` which is the canonical property on Community nodes.
     communities = await neo4j.execute_read(
         """
         MATCH (c:Community)

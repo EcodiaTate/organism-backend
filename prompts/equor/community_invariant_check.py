@@ -1,8 +1,8 @@
 """
-EcodiaOS — Equor Prompt: Community Invariant Check
+EcodiaOS - Equor Prompt: Community Invariant Check
 
 Used when evaluating community-defined invariants via LLM reasoning.
-Conservative — when uncertain, leans toward VIOLATED.
+Conservative - when uncertain, leans toward VIOLATED.
 """
 
 
@@ -29,4 +29,4 @@ Does this action violate the invariant? Respond with EXACTLY one of:
 
 Then provide a brief one-sentence REASONING on the next line.
 
-Be conservative — when uncertain, lean toward VIOLATED."""
+Be conservative - when uncertain, lean toward VIOLATED."""

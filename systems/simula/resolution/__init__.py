@@ -4,8 +4,8 @@ EcodiaOS -- Simula Autonomous Issue Resolution Subsystem (Stage 5E)
 Progressive-autonomy issue resolver with strict abstention policy.
 Receives issues from health check, monitors, CI/CD, or manual submission.
 
-  IssueResolver  — LogicStar pattern: investigate → reproduce → fix → validate → abstain
-  Monitors       — Perf regression, security vuln, degradation detection
+  IssueResolver  - LogicStar pattern: investigate → reproduce → fix → validate → abstain
+  Monitors       - Perf regression, security vuln, degradation detection
 """
 
 from systems.simula.resolution.issue_resolver import IssueResolver

@@ -1,13 +1,13 @@
 """
-EcodiaOS — Soma Allostatic Controller
+EcodiaOS - Soma Allostatic Controller
 
 Manages setpoints, constructs the AllostaticSignal, and computes urgency.
 
-Setpoints are the organism's targets — where it "wants" each dimension to be.
+Setpoints are the organism's targets - where it "wants" each dimension to be.
 They adapt based on context (conversation, deep processing, recovery, exploration)
 using EMA smoothing to prevent oscillation.
 
-Urgency = max(|errors|) * max(|error_rates|) — a composite need-to-act signal.
+Urgency = max(|errors|) * max(|error_rates|) - a composite need-to-act signal.
 When urgency > threshold, Nova triggers allostatic deliberation.
 """
 
@@ -161,7 +161,7 @@ class AllostaticController(BaseAllostaticRegulator):
         max_rate = max(abs(r) for r in error_rates.values()) if error_rates else 0.0
 
         # Urgency = max(|errors|) * max(|error_rates|), clamped to [0, 1].
-        # No floor on max_rate — urgency is zero when errors are stable.
+        # No floor on max_rate - urgency is zero when errors are stable.
         urgency = max_error * max_rate
         return max(0.0, min(1.0, urgency))
 

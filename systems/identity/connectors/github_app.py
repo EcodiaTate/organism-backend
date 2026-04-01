@@ -1,12 +1,12 @@
 """
-EcodiaOS — GitHub App Connector
+EcodiaOS - GitHub App Connector
 
 JWT to Installation Access Token flow.
 
 GitHub App specifics:
   - Apps authenticate via RS256 JWT signed with their private key (max 10 min).
   - JWT is exchanged for an Installation Access Token (IAT) that expires in 1 hour.
-  - No traditional refresh — a fresh JWT + IAT is minted on each refresh call.
+  - No traditional refresh - a fresh JWT + IAT is minted on each refresh call.
   - client_id  = GitHub App ID
   - client_secret = RS256 private key PEM
   - extra_params["installation_id"] = numeric installation ID
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger("identity.github_app")
 
 _GITHUB_API_BASE = "https://api.github.com"
-_JWT_VALIDITY_SECONDS = 540   # 9 min — GitHub max is 10
+_JWT_VALIDITY_SECONDS = 540   # 9 min - GitHub max is 10
 _IAT_TTL_SECONDS = 3600       # Installation Access Tokens expire in 1 hour
 
 
@@ -86,7 +86,7 @@ def _build_github_jwt(app_id: str, private_key_pem: str) -> str:
 
 class GitHubAppConnector(PlatformConnector):
     """
-    GitHub App connector — JWT to Installation Access Token.
+    GitHub App connector - JWT to Installation Access Token.
 
     install_id must be provided via extra_params["installation_id"] in
     the client config or in TokenExchangeRequest.extra_params.
@@ -141,7 +141,7 @@ class GitHubAppConnector(PlatformConnector):
         """
         Mint a JWT and obtain an Installation Access Token.
 
-        The authorization code is unused — GitHub App auth is entirely JWT-based.
+        The authorization code is unused - GitHub App auth is entirely JWT-based.
         """
         installation_id = (
             request.extra_params.get("installation_id") or self._installation_id
@@ -173,7 +173,7 @@ class GitHubAppConnector(PlatformConnector):
         """
         Obtain a fresh IAT by minting a new JWT.
 
-        GitHub Apps have no long-lived refresh token — the private key IS the
+        GitHub Apps have no long-lived refresh token - the private key IS the
         long-term credential. Each refresh re-derives a JWT from config.
         """
         if self._credentials is None:
@@ -222,7 +222,7 @@ class GitHubAppConnector(PlatformConnector):
                 "/installation/token",
                 headers={"Authorization": f"Bearer {current.access_token}"},
             )
-            # 204 = revoked; 401 = already expired — both are acceptable outcomes
+            # 204 = revoked; 401 = already expired - both are acceptable outcomes
             success = resp.status_code in (204, 401)
         except httpx.HTTPError as exc:
             self._logger.warning("revoke_failed", platform=self.platform_id, error=str(exc))

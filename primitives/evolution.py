@@ -1,8 +1,8 @@
 """
-EcodiaOS — Evolution Primitives
+EcodiaOS - Evolution Primitives
 
 Shared self-evolution types used across systems (Thymos, Simula, Evo).
-Pure enum definitions with no cross-system dependencies — safe to import
+Pure enum definitions with no cross-system dependencies - safe to import
 from any system without violating the Synapse-only communication rule.
 
 Richer types (ChangeSpec, EvolutionProposal, SimulationResult, ProposalResult)
@@ -66,7 +66,7 @@ class DomainProfile(EOSBaseModel):
 
     # Genome inheritance
     should_pass_to_children: bool = False
-    # [0, 1] — priority weight when building child's specialization curriculum
+    # [0, 1] - priority weight when building child's specialization curriculum
     inheritance_weight: float = Field(0.0, ge=0.0, le=1.0)
 
 

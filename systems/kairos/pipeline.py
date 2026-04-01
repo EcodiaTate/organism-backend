@@ -6,11 +6,11 @@ Wires the Kairos causal mining pipeline to the EOS event bus.
 Phases A+B (existing): Correlation mining, causal direction, confounder
 analysis, context invariance testing.
 
-Phase C (new): Invariant distillation — variable abstraction, tautology test,
+Phase C (new): Invariant distillation - variable abstraction, tautology test,
 minimality test, domain mapping. Tier 3 promotion with broadcast.
 
-Phase D (new): Counter-invariant detection — violation scanning, clustering,
-scope refinement. Intelligence contribution ledger — per-invariant accounting.
+Phase D (new): Counter-invariant detection - violation scanning, clustering,
+scope refinement. Intelligence contribution ledger - per-invariant accounting.
 
 Events broadcast:
   KAIROS_CAUSAL_CANDIDATE_GENERATED, KAIROS_CAUSAL_DIRECTION_ACCEPTED,
@@ -318,7 +318,7 @@ class KairosPipeline:
 
     async def initialize(self) -> None:
         """
-        Initialize Kairos — restore invariants from Neo4j.
+        Initialize Kairos - restore invariants from Neo4j.
 
         Must complete before the first pipeline cycle so the hierarchy
         is populated with previously discovered invariants.
@@ -365,7 +365,7 @@ class KairosPipeline:
             self._on_cross_domain_match,
         )
 
-        # P1: Logos bidirectional — subscribe to world model updates
+        # P1: Logos bidirectional - subscribe to world model updates
         self._event_bus.subscribe(
             SynapseEventType.WORLD_MODEL_UPDATED,
             self._on_world_model_updated,
@@ -411,7 +411,7 @@ class KairosPipeline:
                 self._on_empirical_invariant_confirmed,
             )
 
-        # SG-PERCEPT: Raw observation stream — convert percepts to causal variable obs
+        # SG-PERCEPT: Raw observation stream - convert percepts to causal variable obs
         if hasattr(SynapseEventType, "PERCEPT_ARRIVED"):
             self._event_bus.subscribe(
                 SynapseEventType.PERCEPT_ARRIVED,
@@ -425,7 +425,7 @@ class KairosPipeline:
                 self._on_drive_weights_updated,
             )
 
-        # SG-SOMA: Somatic drive vector — observe organism drives as causal variables
+        # SG-SOMA: Somatic drive vector - observe organism drives as causal variables
         # This closes the organism-awareness loop: Kairos can discover causal
         # relationships BETWEEN drives (e.g. low Coherence → high Care response).
         if hasattr(SynapseEventType, "SOMATIC_DRIVE_VECTOR"):
@@ -469,7 +469,7 @@ class KairosPipeline:
             variable_a=f"fovea_causal_cause:{percept_id}",
             variable_b=f"fovea_causal_effect:{percept_id}",
             mean_correlation=causal_error,
-            cross_context_variance=0.0,  # Single observation — variance unknown
+            cross_context_variance=0.0,  # Single observation - variance unknown
             context_count=1,
         )
         self._correlation_miner.add_preseed(candidate)
@@ -505,7 +505,7 @@ class KairosPipeline:
         if not context_id or not observations:
             return
 
-        # Buffer observations keyed by context — the next run_pipeline() call
+        # Buffer observations keyed by context - the next run_pipeline() call
         # will include them via the observations_by_context argument.
         # For pre-seeding: if the episode contains causal annotations, create
         # CorrelationCandidates directly.
@@ -533,7 +533,7 @@ class KairosPipeline:
 
     async def _on_cross_domain_match(self, event: SynapseEvent) -> None:
         """
-        Loop 5 — Oneiros → Kairos.
+        Loop 5 - Oneiros → Kairos.
 
         Oneiros REM emits CROSS_DOMAIN_MATCH_FOUND when it discovers a structural
         isomorphism between two domains.  A cross-domain match IS an invariance
@@ -667,7 +667,7 @@ class KairosPipeline:
             fed_invariant.id,
         )
         if not local_observations:
-            # No local data to validate — accept at trust but don't promote
+            # No local data to validate - accept at trust but don't promote
             self._hierarchy._place(fed_invariant)
             logger.info(
                 "federation_invariant_accepted_unvalidated",
@@ -682,7 +682,7 @@ class KairosPipeline:
         )
 
         if not violations:
-            # Validated locally — merge into hierarchy
+            # Validated locally - merge into hierarchy
             self._hierarchy._place(fed_invariant)
             self._hierarchy.promote_if_eligible(fed_invariant.id)
             fed_invariant.validated = True
@@ -693,7 +693,7 @@ class KairosPipeline:
                 tier=fed_invariant.tier.value,
             )
         else:
-            # Contradicted locally — emit contradiction event
+            # Contradicted locally - emit contradiction event
             if self._event_bus is not None:
                 from systems.synapse.types import SynapseEvent as SE
                 from systems.synapse.types import SynapseEventType
@@ -724,7 +724,7 @@ class KairosPipeline:
 
     async def _on_economic_episode(self, event: SynapseEvent) -> None:
         """
-        Handle OIKOS_ECONOMIC_EPISODE — primary economic causal data stream.
+        Handle OIKOS_ECONOMIC_EPISODE - primary economic causal data stream.
 
         Each episode contains causal variable annotations (day_of_week, eth_price_usd,
         gas_price_gwei, protocol, roi_pct, success, etc.) that EconomicCausalMiner
@@ -753,7 +753,7 @@ class KairosPipeline:
         Handle FOVEA_INTERNAL_PREDICTION_ERROR as a high-salience causal anomaly.
 
         A large prediction error means the organism's world model failed on an
-        economic outcome — this is the strongest possible signal that a causal
+        economic outcome - this is the strongest possible signal that a causal
         relationship exists that Kairos has not yet discovered.
         Convert to a pre-seeded CorrelationCandidate with high weight.
         """
@@ -791,7 +791,7 @@ class KairosPipeline:
 
     async def _on_price_observation(self, event: SynapseEvent) -> None:
         """
-        Handle PHANTOM_PRICE_OBSERVATION — raw market price signals.
+        Handle PHANTOM_PRICE_OBSERVATION - raw market price signals.
 
         Market prices are leading causal variables: ETH price movements
         typically precede yield APY changes by minutes to hours.
@@ -854,7 +854,7 @@ class KairosPipeline:
         """
         SG-NEXUS: Handle EMPIRICAL_INVARIANT_CONFIRMED from Nexus.
 
-        Level 4 epistemic certainty — this fragment has been confirmed by multiple
+        Level 4 epistemic certainty - this fragment has been confirmed by multiple
         independent sources. Boost the corresponding Kairos invariant's recency_weight
         to prevent decay, and re-validate it for potential tier promotion.
         """
@@ -871,7 +871,7 @@ class KairosPipeline:
                 invariant.abstract_form == abstract_form
                 or (fragment_id and fragment_id in invariant.id)
             ):
-                invariant.recency_weight = 1.0  # Reset decay — empirically confirmed
+                invariant.recency_weight = 1.0  # Reset decay - empirically confirmed
                 invariant.validated = True
                 self._hierarchy.promote_if_eligible(invariant.id)
                 logger.info(
@@ -885,7 +885,7 @@ class KairosPipeline:
 
     async def _on_percept_arrived(self, event: SynapseEvent) -> None:
         """
-        SG-PERCEPT: Handle PERCEPT_ARRIVED — convert raw percepts into observation variables.
+        SG-PERCEPT: Handle PERCEPT_ARRIVED - convert raw percepts into observation variables.
 
         Every percept is a potential observation for Stage 1 correlation mining.
         Extract numeric salience components and buffer them as observations keyed
@@ -932,7 +932,7 @@ class KairosPipeline:
 
     async def _on_drive_weights_updated(self, event: SynapseEvent) -> None:
         """
-        SG-DRIVE: Handle EQUOR_DRIVE_WEIGHTS_UPDATED — drive coupling for Kairos.
+        SG-DRIVE: Handle EQUOR_DRIVE_WEIGHTS_UPDATED - drive coupling for Kairos.
 
         When Equor updates drive weights, Kairos should check whether the change
         is causally explained by known invariants (closing an autonomy feedback loop).
@@ -954,7 +954,7 @@ class KairosPipeline:
                 continue
             abs_delta = abs(float(delta))
             if abs_delta < 0.05:
-                continue  # Below materiality threshold — ignore small drift
+                continue  # Below materiality threshold - ignore small drift
 
             candidate = CorrelationCandidate(
                 variable_a=f"drive_pressure:{drive_name}",
@@ -974,7 +974,7 @@ class KairosPipeline:
 
     async def _on_somatic_drive_vector(self, event: SynapseEvent) -> None:
         """
-        SG-SOMA: Handle SOMATIC_DRIVE_VECTOR — buffer organism drive state as causal observations.
+        SG-SOMA: Handle SOMATIC_DRIVE_VECTOR - buffer organism drive state as causal observations.
 
         Each drive vector is a snapshot of the organism's motivational state.
         Kairos buffers these and uses them as a cross-context observation set,
@@ -1043,7 +1043,7 @@ class KairosPipeline:
         known_domains = known_domains or []
 
         # SG-SOMA: Merge buffered drive vector observations into the observation set.
-        # Drive vectors are organism-introspective observations — mining their causal
+        # Drive vectors are organism-introspective observations - mining their causal
         # structure reveals how the organism's own motivational system works.
         if self._drive_vector_observations:
             drive_obs = list(self._drive_vector_observations)
@@ -1090,7 +1090,7 @@ class KairosPipeline:
             if confounder_result.is_confounded:
                 await self._emit_confounder_discovered(confounder_result)
                 self._confounders_found += 1
-                # P0: Evo penalty signal — this hypothesis class is spurious
+                # P0: Evo penalty signal - this hypothesis class is spurious
                 await self._emit_spurious_hypothesis_class(confounder_result)
             else:
                 clean_directions.append(direction_result)
@@ -1141,9 +1141,9 @@ class KairosPipeline:
                 )
                 await self._ingest_to_logos(invariant, rule)
 
-                # P0: Evo validation signal — this causal structure is confirmed
+                # P0: Evo validation signal - this causal structure is confirmed
                 await self._emit_validated_causal_structure(invariant, rule)
-                # P0: Fovea absorption — request world model integration
+                # P0: Fovea absorption - request world model integration
                 await self._emit_invariant_absorption_requested(invariant)
                 # P2: Novelty detection
                 await self._detect_and_emit_novelty(invariant, direction_result)
@@ -1309,12 +1309,12 @@ class KairosPipeline:
         the organism itself.
 
         Tracked variables (sampled every pipeline run):
-          prediction_error_rate  — mean causal surprise rate from health status
-          coherence              — intelligence ledger mean I-ratio as a proxy
-          hypothesis_count       — total active invariants in the hierarchy
-          re_success_rate        — Tier 3 / (total discoveries) ratio
-          sleep_frequency        — consolidation events received (raw count proxy)
-          consolidation_depth    — Oneiros consolidation event counter (raw)
+          prediction_error_rate  - mean causal surprise rate from health status
+          coherence              - intelligence ledger mean I-ratio as a proxy
+          hypothesis_count       - total active invariants in the hierarchy
+          re_success_rate        - Tier 3 / (total discoveries) ratio
+          sleep_frequency        - consolidation events received (raw count proxy)
+          consolidation_depth    - Oneiros consolidation event counter (raw)
 
         Algorithm:
           1. Append current values to rolling history (window=100).
@@ -1326,7 +1326,7 @@ class KairosPipeline:
           5. Emit KAIROS_INTERNAL_INVARIANT when a new law is discovered or an
              existing one's hold_rate changes significantly (Δ > 0.1).
 
-        Produces (:InternalCausalInvariant) — conceptually; actual Neo4j nodes
+        Produces (:InternalCausalInvariant) - conceptually; actual Neo4j nodes
         are not written here to avoid double-persistence. The Synapse event is
         the primary output (Thread + Nova subscribe).
         """
@@ -1461,7 +1461,7 @@ class KairosPipeline:
                     )
 
                 else:
-                    # Update existing — emit if hold_rate changed significantly
+                    # Update existing - emit if hold_rate changed significantly
                     old_hold = existing["hold_rate"]
                     existing["hold_rate"] = hold_rate
                     existing["correlation"] = round(r, 4)
@@ -1594,7 +1594,7 @@ class KairosPipeline:
             invariant.recency_weight *= 0.95
 
             if invariant.recency_weight < 0.1:
-                # Archive — remove from hierarchy
+                # Archive - remove from hierarchy
                 invariant.active = False
                 self._hierarchy._remove(invariant)
                 archived += 1
@@ -1754,7 +1754,7 @@ class KairosPipeline:
 
         # Emit WORLD_MODEL_UPDATED to close Loop 3:
         # Fovea's weight learner listens for this event to recalibrate its
-        # causal_error component — fewer causal errors → higher Kairos SNR.
+        # causal_error component - fewer causal errors → higher Kairos SNR.
         if self._event_bus is not None:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
@@ -1859,7 +1859,7 @@ class KairosPipeline:
         rule: CausalRule,
         invariance_result: Any,
     ) -> None:
-        """Broadcast KAIROS_INVARIANT_CANDIDATE — Stage 5 strong invariant."""
+        """Broadcast KAIROS_INVARIANT_CANDIDATE - Stage 5 strong invariant."""
         if self._event_bus is None:
             return
 
@@ -1887,7 +1887,7 @@ class KairosPipeline:
         invariant: CausalInvariant,
         distill_result: Any,
     ) -> None:
-        """Broadcast KAIROS_INVARIANT_DISTILLED — Stage 6 complete."""
+        """Broadcast KAIROS_INVARIANT_DISTILLED - Stage 6 complete."""
         if self._event_bus is None:
             return
 
@@ -1941,7 +1941,7 @@ class KairosPipeline:
             task = loop.create_task(self._handle_tier3_async(invariant))
             task.add_done_callback(self._tier3_task_done)
         except RuntimeError:
-            # No running loop — queue for deferred execution
+            # No running loop - queue for deferred execution
             logger.warning(
                 "tier3_deferred",
                 invariant_id=invariant.id,
@@ -1975,7 +1975,7 @@ class KairosPipeline:
 
     async def _handle_tier3_async(self, invariant: CausalInvariant) -> None:
         """
-        Async handler for Tier 3 promotion — full 7-response cascade:
+        Async handler for Tier 3 promotion - full 7-response cascade:
         1. Broadcast TIER3_INVARIANT_DISCOVERED (existing)
         2. Share with Nexus for federation (existing)
         3. Inject Oneiros REM seed (existing)
@@ -1995,7 +1995,7 @@ class KairosPipeline:
     async def _logos_tier3_structural_reorganize(self, invariant: CausalInvariant) -> None:
         """
         M7: Signal Logos to reorganize its world model around a Tier 3 substrate-independent
-        invariant. This goes beyond the standard ingest — it requests deep structural
+        invariant. This goes beyond the standard ingest - it requests deep structural
         reweighting of hypotheses that touch the same variables.
         """
         if self._logos_ingest is None:
@@ -2157,11 +2157,11 @@ class KairosPipeline:
 
     async def _inject_oneiros_rem_seed(self, invariant: CausalInvariant) -> None:
         """
-        Loop 5 — Kairos → Oneiros (direct path).
+        Loop 5 - Kairos → Oneiros (direct path).
 
         Inject a Tier 3 invariant as a priority REM seed so the next Oneiros
         dream cycle asks: "what other domains might this substrate-level
-        pattern apply to?" — closing the Oneiros ↔ Kairos discovery loop.
+        pattern apply to?" - closing the Oneiros ↔ Kairos discovery loop.
         """
         if self._oneiros is None:
             return
@@ -2190,7 +2190,7 @@ class KairosPipeline:
     # --- Phase C+D Synapse event emission ---
 
     async def _emit_tier3_discovered(self, invariant: CausalInvariant) -> None:
-        """Broadcast KAIROS_TIER3_INVARIANT_DISCOVERED — highest priority."""
+        """Broadcast KAIROS_TIER3_INVARIANT_DISCOVERED - highest priority."""
         if self._event_bus is None:
             return
 

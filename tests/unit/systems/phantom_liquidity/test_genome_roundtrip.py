@@ -5,7 +5,7 @@ Verifies that GenomeExtractionProtocol.extract_genome_segment() serializes
 and LiquidityPhantomService.seed_from_genome_segment() deserializes Phantom's
 configuration without data loss.
 
-No external dependencies required — runs fully in-process.
+No external dependencies required - runs fully in-process.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # ---------------------------------------------------------------------------
-# Minimal stub fixtures — no real infra needed
+# Minimal stub fixtures - no real infra needed
 # ---------------------------------------------------------------------------
 
 
@@ -109,7 +109,7 @@ async def test_genome_roundtrip_config_fidelity() -> None:
     expected_json = json.dumps(payload, sort_keys=True, default=str)
     expected_hash = hashlib.sha256(expected_json.encode()).hexdigest()
     assert segment.payload_hash == expected_hash, (
-        "Payload hash mismatch — genome integrity check would fail"
+        "Payload hash mismatch - genome integrity check would fail"
     )
 
     # --- Phase 3: seed into a fresh service ---
@@ -147,7 +147,7 @@ async def test_genome_roundtrip_empty_pools() -> None:
     assert segment.payload["pool_configs"] == []
     assert segment.payload_hash is not None
 
-    # Seed into another service — should succeed trivially.
+    # Seed into another service - should succeed trivially.
     service2 = LiquidityPhantomService(config=_make_config(), instance_id="child")
     success = await service2.seed_from_genome_segment(segment)
     assert success is True

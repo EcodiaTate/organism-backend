@@ -1,4 +1,4 @@
-"""Tests for Soma Interoceptive Predictor — multi-horizon generative model."""
+"""Tests for Soma Interoceptive Predictor - multi-horizon generative model."""
 
 from __future__ import annotations
 

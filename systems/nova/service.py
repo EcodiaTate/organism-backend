@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova Service
+EcodiaOS - Nova Service
 
 The executive function. Nova is where perception becomes intention.
 
@@ -14,11 +14,11 @@ and the community can override them through governance. Nova proposes;
 the organism disposes.
 
 Lifecycle:
-  initialize() — loads constitution and drive weights, builds sub-components
-  receive_broadcast() — implements BroadcastSubscriber for Atune
-  submit_intent() — external API for direct intent submission (test/governance)
-  process_outcome() — feedback loop from execution
-  shutdown() — graceful teardown
+  initialize() - loads constitution and drive weights, builds sub-components
+  receive_broadcast() - implements BroadcastSubscriber for Atune
+  submit_intent() - external API for direct intent submission (test/governance)
+  process_outcome() - feedback loop from execution
+  shutdown() - graceful teardown
 """
 
 from __future__ import annotations
@@ -80,7 +80,7 @@ logger = structlog.get_logger()
 # Executor action types that represent heavy external work.  When any pending
 # intent contains one of these, the heartbeat considers the organism "busy" and
 # skips the hunger-drive cycle.  Lightweight internal executors (store_insight,
-# observe, query_memory …) must NOT appear here — blocking on them causes the
+# observe, query_memory …) must NOT appear here - blocking on them causes the
 # organism to starve while daydreaming.
 _HEAVY_EXECUTORS: frozenset[str] = frozenset({
     "hunt_bounties", "executor.hunt_bounties",
@@ -104,11 +104,11 @@ class NovaService:
         async def receive_broadcast(broadcast: WorkspaceBroadcast) -> None
 
     Dependencies:
-        memory  — for constitution, self-model retrieval, procedure lookup
-        equor   — for constitutional review of every Intent
-        voxis   — for expression routing of approved Intents
-        llm     — for policy generation and EFE estimation
-        config  — NovaConfig
+        memory  - for constitution, self-model retrieval, procedure lookup
+        equor   - for constitutional review of every Intent
+        voxis   - for expression routing of approved Intents
+        llm     - for policy generation and EFE estimation
+        config  - NovaConfig
     """
 
     system_id: str = "nova"
@@ -136,14 +136,14 @@ class NovaService:
             "coherence": 1.0, "care": 1.0, "growth": 1.0, "honesty": 1.0
         }
 
-        # Sub-components — built in initialize()
+        # Sub-components - built in initialize()
         self._belief_updater: BeliefUpdater = BeliefUpdater()
         self._goal_manager: GoalManager | None = None
         self._policy_generator: BasePolicyGenerator | None = None
         self._efe_evaluator: EFEEvaluator | None = None
         self._deliberation_engine: DeliberationEngine | None = None
         self._intent_router: IntentRouter | None = None
-        # ActionTypeRegistry — built in initialize(), shared with PolicyGenerator
+        # ActionTypeRegistry - built in initialize(), shared with PolicyGenerator
         from systems.nova.action_type_registry import ActionTypeRegistry
         self._action_type_registry: ActionTypeRegistry = ActionTypeRegistry()
 
@@ -159,16 +159,16 @@ class NovaService:
         # Callback to push goal updates to Atune
         self._goal_sync_callback: Any = None  # Set via set_goal_sync_callback()
 
-        # Axon — may be wired before initialize() via set_axon(); applied at end of init.
+        # Axon - may be wired before initialize() via set_axon(); applied at end of init.
         self._axon: Any = None
 
-        # Logos — world model and compression metrics for EFE grounding
+        # Logos - world model and compression metrics for EFE grounding
         self._logos: Any = None
 
         # Soma for allostatic signal reading
         self._soma: Any = None
 
-        # Evo — for triggering emergency consolidation when FE budget exhausts
+        # Evo - for triggering emergency consolidation when FE budget exhausts
         # NOTE: Direct Evo reference; Thompson weights now use EVO_THOMPSON_QUERY event.
         self._evo: Any = None
 
@@ -176,10 +176,10 @@ class NovaService:
         # Resolved by _on_thompson_response() when EVO_THOMPSON_RESPONSE arrives.
         self._thompson_futures: dict[str, "asyncio.Future[dict[str, dict[str, float]]]"] = {}
 
-        # Synapse event bus — for emitting BELIEF_UPDATED and POLICY_SELECTED
+        # Synapse event bus - for emitting BELIEF_UPDATED and POLICY_SELECTED
         self._synapse: Any = None
 
-        # RE service reference — used for late-wiring when vLLM becomes
+        # RE service reference - used for late-wiring when vLLM becomes
         # available after startup (RE_ENGINE_STATUS_CHANGED handler).
         self._re_service: Any = None
 
@@ -220,10 +220,10 @@ class NovaService:
         # ── Budget-exhaustion / degradation tracking ──────────────────────
         # Consecutive decisions made under budget exhaustion (heuristic mode).
         self._consecutive_budget_exhausted: int = 0
-        # Thymos reference — wired via set_thymos() if called.
+        # Thymos reference - wired via set_thymos() if called.
         self._thymos: Any = None
 
-        # Thread — narrative identity; receives THREAD_COMMIT_REQUEST events (Gap 4)
+        # Thread - narrative identity; receives THREAD_COMMIT_REQUEST events (Gap 4)
         self._thread: Any = None
 
         # True once initialize() completes successfully. Used by health() to
@@ -428,7 +428,7 @@ class NovaService:
         # and routed to Simula via NOVEL_ACTION_REQUESTED Synapse event.
         self._deliberation_engine.set_novel_action_cb(self._on_propose_novel_action_step)
 
-        # IntentRouter is bus-mediated — no Axon wiring needed here.
+        # IntentRouter is bus-mediated - no Axon wiring needed here.
 
         self._logger.info(
             "nova_initialized",
@@ -485,7 +485,7 @@ class NovaService:
                 name="nova_load_induced_procedures",
             )
 
-        # ── Input channels — market discovery ─────────────────────────────
+        # ── Input channels - market discovery ─────────────────────────────
         await self._input_channels.initialize()
         # Hourly opportunity fetch loop
         self._opportunity_fetch_task = asyncio.create_task(
@@ -534,7 +534,7 @@ class NovaService:
         fragment captures the parent's goal-domain priors, policy success rates,
         belief urgency thresholds, and active inference parameters.
 
-        Returns NovaGenomeFragment. Non-fatal — empty fragment on any error.
+        Returns NovaGenomeFragment. Non-fatal - empty fragment on any error.
         """
         from primitives.genome_inheritance import NovaGenomeFragment
 
@@ -605,7 +605,7 @@ class NovaService:
             pass
 
         # Extract Thompson arm history from policy generator's sampler
-        # Only include arms with total_trials >= 10 (evidence threshold — fewer trials
+        # Only include arms with total_trials >= 10 (evidence threshold - fewer trials
         # carry more noise than signal). Re-enabled arms get a 0.85 alpha discount on apply.
         thompson_arm_history: list[dict] = []
         try:
@@ -729,7 +729,7 @@ class NovaService:
                 except Exception:
                     pass
 
-            # Seed Thompson arm history from parent — child starts with parent's learned
+            # Seed Thompson arm history from parent - child starts with parent's learned
             # provider priors rather than flat Beta(1,1). Disabled arms that are ready
             # in parent get alpha *= 0.85 discount (partial confidence, may re-enable).
             thompson_arms_seeded = 0
@@ -859,7 +859,7 @@ class NovaService:
                 SynapseEventType.ONEIROS_CONSOLIDATION_COMPLETE,
                 self._on_oneiros_consolidation,
             )
-            # Gap 7: Governance goal injection — external override of goal agenda
+            # Gap 7: Governance goal injection - external override of goal agenda
             event_bus.subscribe(
                 SynapseEventType.GOAL_OVERRIDE,
                 self._on_goal_override,
@@ -869,7 +869,7 @@ class NovaService:
                 SynapseEventType.COGNITIVE_PRESSURE,
                 self._on_cognitive_pressure,
             )
-            # Axon execution lifecycle — log to DecisionRecord, update Thompson scores.
+            # Axon execution lifecycle - log to DecisionRecord, update Thompson scores.
             # Replaces any direct import of Axon types; all Axon→Nova comms via bus.
             event_bus.subscribe(
                 SynapseEventType.AXON_EXECUTION_REQUEST,
@@ -895,7 +895,7 @@ class NovaService:
                     SynapseEventType.DOMAIN_PROFITABILITY_CONFIRMED,
                     self._on_domain_profitability_confirmed,
                 )
-            # NOVA-ECON-1: Economic event subscriptions — closes the 60-minute blind spot.
+            # NOVA-ECON-1: Economic event subscriptions - closes the 60-minute blind spot.
             # Nova used to only learn about economic state via a 1-hour heartbeat oikos.snapshot().
             # These subscriptions make cost spikes, revenue changes, and yield outcomes visible
             # within 50ms of emission, enabling immediate deliberation under economic stress.
@@ -915,7 +915,7 @@ class NovaService:
                 SynapseEventType.YIELD_DEPLOYMENT_RESULT,
                 self._on_yield_outcome,
             )
-            # Problem 2: Backpressure signal — Oikos deferred an economic action because
+            # Problem 2: Backpressure signal - Oikos deferred an economic action because
             # the metabolic gate denied it. Nova must schedule a deliberation cycle to
             # decide how to respond: shed load, seek revenue, or accept constraint.
             event_bus.subscribe(
@@ -928,7 +928,7 @@ class NovaService:
                     SynapseEventType.KAIROS_ECONOMIC_INVARIANT,
                     self._on_economic_causal_invariant,
                 )
-            # ONEIROS-ECON-1: Economic dream insights — integrate ruin probability
+            # ONEIROS-ECON-1: Economic dream insights - integrate ruin probability
             # and risk warnings into Nova's world model beliefs so deliberation
             # accounts for sleep-discovered economic risk.
             event_bus.subscribe(
@@ -952,7 +952,7 @@ class NovaService:
                 SynapseEventType.ONEIROS_THREAT_SCENARIO,
                 self._on_oneiros_threat_scenario,
             )
-            # Thompson weight responses from Evo — resolve pending futures so
+            # Thompson weight responses from Evo - resolve pending futures so
             # _request_thompson_weights() can return weights without holding a
             # direct reference to Evo's tournament engine.
             event_bus.subscribe(
@@ -994,7 +994,7 @@ class NovaService:
                     self._on_kairos_invariant,
                 )
 
-            # ORGANISM_TELEMETRY — the single most important missing link.
+            # ORGANISM_TELEMETRY - the single most important missing link.
             # Every 50 cycles Synapse broadcasts a unified snapshot of the organism.
             # Nova caches it and injects a natural-language summary into slow-path
             # policy generation so the LLM deliberates with full situational awareness.
@@ -1002,14 +1002,14 @@ class NovaService:
                 SynapseEventType.ORGANISM_TELEMETRY,
                 self._on_organism_telemetry,
             )
-            # INTEROCEPTIVE_ALERT — immediate high-severity signal from the log
+            # INTEROCEPTIVE_ALERT - immediate high-severity signal from the log
             # analysis loop. Nova triggers immediate deliberation on CRITICAL alerts.
             if hasattr(SynapseEventType, "INTEROCEPTIVE_ALERT"):
                 event_bus.subscribe(
                     SynapseEventType.INTEROCEPTIVE_ALERT,
                     self._on_interoceptive_alert,
                 )
-            # COMPUTE_BUDGET_EXPANSION_RESPONSE — Equor's reply to a multiplier > 1.5
+            # COMPUTE_BUDGET_EXPANSION_RESPONSE - Equor's reply to a multiplier > 1.5
             # request.  Approved: apply the multiplier for approved duration_cycles.
             # Denied: log and stay at 1.5 cap.
             if hasattr(SynapseEventType, "COMPUTE_BUDGET_EXPANSION_RESPONSE"):
@@ -1018,7 +1018,7 @@ class NovaService:
                     self._on_compute_budget_expansion_response,
                 )
 
-            # NOVEL_ACTION_CREATED — Simula emits after successfully generating and
+            # NOVEL_ACTION_CREATED - Simula emits after successfully generating and
             # hot-loading a novel executor.  Nova registers the new action type in
             # ActionTypeRegistry so future deliberations can select it.
             if hasattr(SynapseEventType, "NOVEL_ACTION_CREATED"):
@@ -1027,7 +1027,7 @@ class NovaService:
                     self._on_novel_action_created,
                 )
 
-            # NOVA_INTENT_REQUESTED — any system can ask Nova to formulate and
+            # NOVA_INTENT_REQUESTED - any system can ask Nova to formulate and
             # submit an Intent on its behalf.  This is the autonomous recourse
             # channel: systems like Phantom Liquidity, Skia, or Thymos can trigger
             # Nova deliberation without waiting for the theta cycle or human intervention.
@@ -1037,7 +1037,7 @@ class NovaService:
                     self._on_nova_intent_requested,
                 )
 
-            # PHANTOM_PRICE_UPDATE — subscribe so Nova's world model includes the
+            # PHANTOM_PRICE_UPDATE - subscribe so Nova's world model includes the
             # latest on-chain price context.  Price observations update market-state
             # beliefs that inform EFE-based deliberation (e.g. yield farming, IL risk).
             if hasattr(SynapseEventType, "PHANTOM_PRICE_UPDATE"):
@@ -1046,7 +1046,7 @@ class NovaService:
                     self._on_phantom_price_update,
                 )
 
-            # OPPORTUNITY_DETECTED — OpportunityScanner surfaced a ranked opportunity.
+            # OPPORTUNITY_DETECTED - OpportunityScanner surfaced a ranked opportunity.
             # High-confidence / high-ROI → auto-convert to goal.
             # Others → store in _opportunity_backlog for deliberation context.
             if hasattr(SynapseEventType, "OPPORTUNITY_DETECTED"):
@@ -1055,18 +1055,18 @@ class NovaService:
                     self._on_opportunity_detected,
                 )
 
-            # REVENUE_INJECTED (already subscribed above for economic beliefs) —
+            # REVENUE_INJECTED (already subscribed above for economic beliefs) -
             # also triggers a yield re-scan when new capital arrives so we
             # immediately check whether the new balance unlocks better positions.
             # (handled inside the existing _on_revenue_change; portfolio_apys update
             # is called via set_portfolio_apys() when Oikos emits ECONOMIC_STATE_UPDATED)
 
-            # DOMAIN_MASTERY_DETECTED — new domain mastered; re-scan bounty tiers.
+            # DOMAIN_MASTERY_DETECTED - new domain mastered; re-scan bounty tiers.
             # (already subscribed above as _on_domain_mastery; scanner re-check is
             # triggered inside that handler)
 
             # ── Self-Modification Layer (Spec 10 §SM, 9 Mar 2026) ─────────────
-            # EXECUTOR_DEPLOYED — HotDeployment successfully deployed a new executor.
+            # EXECUTOR_DEPLOYED - HotDeployment successfully deployed a new executor.
             # Nova registers the new action_type in ActionTypeRegistry and queues a
             # low-stakes test goal to verify the executor works in a live context.
             if hasattr(SynapseEventType, "EXECUTOR_DEPLOYED"):
@@ -1074,7 +1074,7 @@ class NovaService:
                     SynapseEventType.EXECUTOR_DEPLOYED,
                     self._on_executor_deployed,
                 )
-            # EXECUTOR_REVERTED — HotDeployment rolled back a deployed executor.
+            # EXECUTOR_REVERTED - HotDeployment rolled back a deployed executor.
             # Nova removes the action_type from ActionTypeRegistry and records a
             # CRISIS TurningPoint via Thread.
             if hasattr(SynapseEventType, "EXECUTOR_REVERTED"):
@@ -1090,7 +1090,7 @@ class NovaService:
                 self._on_reputation_damaged,
             )
 
-        # ACTION_EXECUTED — Axon completed an action successfully.
+        # ACTION_EXECUTED - Axon completed an action successfully.
         # Update goal progress for any goal_id carried in step_outcomes metadata.
         # Complements AXON_EXECUTION_RESULT (aggregate pipeline result) with the
         # per-action signal that lets Nova track fine-grained goal advancement.
@@ -1100,7 +1100,7 @@ class NovaService:
                 self._on_action_executed,
             )
 
-        # BELIEF_UPDATED — Nova itself emits this after every broadcast, but other
+        # BELIEF_UPDATED - Nova itself emits this after every broadcast, but other
         # systems (e.g. a federated peer relaying beliefs) may also emit it.
         # When beliefs change, re-evaluate active goals that depend on the updated
         # domain; invalidated goals are marked for re-planning or abandoned.
@@ -1109,7 +1109,7 @@ class NovaService:
             self._on_belief_updated,
         )
 
-        # COHERENCE_SHIFT — Synapse emits when the composite coherence metric
+        # COHERENCE_SHIFT - Synapse emits when the composite coherence metric
         # changes significantly. A coherence drop may signal that the organism's
         # narrative identity is changing; re-prioritise goals that conflict with
         # the new coherence state.
@@ -1119,9 +1119,9 @@ class NovaService:
                 self._on_coherence_shift,
             )
 
-        # HOMEOSTASIS_ADJUSTED — Thymos M8 emits when HomeostasisController
+        # HOMEOSTASIS_ADJUSTED - Thymos M8 emits when HomeostasisController
         # detects drift in the warn zone (70–85% of boundary, trending toward
-        # edge).  warn_only=True means no repair has fired yet — Nova should
+        # edge).  warn_only=True means no repair has fired yet - Nova should
         # treat this as an early-warning signal and bias planning toward
         # homeostasis-restoring actions before the full repair budget is spent.
         if hasattr(SynapseEventType, "HOMEOSTASIS_ADJUSTED"):
@@ -1130,7 +1130,7 @@ class NovaService:
                 self._on_homeostasis_adjusted,
             )
 
-        # TELOS_OBJECTIVE_THREATENED — Telos emits when the self-sufficiency
+        # TELOS_OBJECTIVE_THREATENED - Telos emits when the self-sufficiency
         # (metabolic_efficiency) objective has been declining for 3 consecutive
         # cycles.  Nova should respond by elevating economic recovery goals and
         # triggering immediate deliberation on cost / revenue strategy.
@@ -1140,7 +1140,7 @@ class NovaService:
                 self._on_telos_objective_threatened,
             )
 
-        # NARRATIVE_COHERENCE_SHIFT — Thread emits when the DiachronicCoherence-
+        # NARRATIVE_COHERENCE_SHIFT - Thread emits when the DiachronicCoherence-
         # Monitor detects a meaningful change in narrative coherence state.
         # Nova uses this to re-evaluate goals whose drive alignment diverges
         # from the organism's emerging narrative identity.
@@ -1150,7 +1150,7 @@ class NovaService:
                 self._on_narrative_coherence_shift,
             )
 
-        # DREAM_INSIGHT — Oneiros REM stage emits when DreamGenerator produces
+        # DREAM_INSIGHT - Oneiros REM stage emits when DreamGenerator produces
         # a coherence ≥ 0.70 insight.  The insight may suggest new goal areas
         # or validate existing hypotheses. Nova injects the insight into its
         # belief state and, for high-coherence creative insights, triggers a
@@ -1161,7 +1161,7 @@ class NovaService:
                 self._on_dream_insight,
             )
 
-        # CONNECTOR_REVOKED — Identity emits when a platform connector (GitHub,
+        # CONNECTOR_REVOKED - Identity emits when a platform connector (GitHub,
         # Slack, etc.) is revoked or its credentials expire.  Nova should
         # abandon or suspend active goals that depend on that connector so it
         # does not submit intents that will fail at the execution layer.
@@ -1171,7 +1171,7 @@ class NovaService:
                 self._on_connector_revoked,
             )
 
-        # SOMA_URGENCY_CRITICAL — Soma emits when urgency_scalar > 0.85.
+        # SOMA_URGENCY_CRITICAL - Soma emits when urgency_scalar > 0.85.
         # This is the organism's highest-intensity somatic alarm, signalling
         # existential allostatic stress.  Nova should abandon non-survival goals
         # and immediately deliberate on emergency resource recovery or threat
@@ -1182,10 +1182,10 @@ class NovaService:
             self._on_soma_urgency_critical,
         )
 
-        # RE_ENGINE_STATUS_CHANGED — the reprobe loop in
+        # RE_ENGINE_STATUS_CHANGED - the reprobe loop in
         # ReasoningEngineService emits this when vLLM recovers (or goes
         # down) after startup.  If RE was unavailable at boot, the one-shot
-        # wiring in registry._init_nova() was skipped — this subscription
+        # wiring in registry._init_nova() was skipped - this subscription
         # closes that late-wiring gap so Nova starts routing to RE as soon
         # as vLLM becomes reachable.
         if hasattr(SynapseEventType, "RE_ENGINE_STATUS_CHANGED"):
@@ -1203,7 +1203,7 @@ class NovaService:
     def set_logos(self, logos: Any) -> None:
         """
         Wire Logos so Nova can ground EFE evaluation in the organism's
-        actual world model — predictions, intelligence ratio, cognitive pressure.
+        actual world model - predictions, intelligence ratio, cognitive pressure.
 
         When Logos is wired:
         - EFE evaluator uses Logos world model predictions for pragmatic/epistemic scoring
@@ -1224,12 +1224,12 @@ class NovaService:
         self._logger.info("soma_wired_to_nova")
 
     def set_capability_auditor(self, auditor: Any) -> None:
-        """Wire CapabilityAuditor — observes gaps; called from registry Phase 11."""
+        """Wire CapabilityAuditor - observes gaps; called from registry Phase 11."""
         self._capability_auditor = auditor
         self._logger.info("capability_auditor_wired_to_nova")
 
     def set_self_modification_pipeline(self, pipeline: Any) -> None:
-        """Wire SelfModificationPipeline — orchestrates gap→deploy cycle."""
+        """Wire SelfModificationPipeline - orchestrates gap→deploy cycle."""
         self._self_modification_pipeline = pipeline
         self._logger.info("self_modification_pipeline_wired_to_nova")
 
@@ -1240,7 +1240,7 @@ class NovaService:
         When the recommended action is ATTEND_INWARD, Nova injects an urgent
         self-investigation goal that takes priority over external tasks (bounties,
         user queries). This makes the organism pause external work to diagnose
-        internal distress — equivalent to stopping what you're doing when you
+        internal distress - equivalent to stopping what you're doing when you
         feel sudden pain.
         """
         from primitives.common import DriveAlignmentVector, new_id
@@ -1346,7 +1346,7 @@ class NovaService:
                 if not uses_degraded:
                     continue
 
-                # Check goal completion % — don't replan if >80% done
+                # Check goal completion % - don't replan if >80% done
                 goal = self._goal_manager.get_goal(pending.goal_id)
                 if goal is not None and goal.progress > 0.8:
                     self._logger.info(
@@ -1387,11 +1387,11 @@ class NovaService:
 
     async def _on_soma_tick(self, event: Any) -> None:
         """
-        Handle SOMA_TICK — continuous somatic modulation of deliberation
+        Handle SOMA_TICK - continuous somatic modulation of deliberation
         (Closure Loop 5: Soma→Nova felt-sense → behavioral bias).
 
         Every theta cycle, Soma broadcasts urgency, arousal, and energy;
-        Nova adjusts EFE thresholds as a soft bias (not a hard override —
+        Nova adjusts EFE thresholds as a soft bias (not a hard override -
         Nova retains agency over policy selection).
 
         High urgency → prefer faster/cheaper plans (reduce policy K).
@@ -1409,7 +1409,7 @@ class NovaService:
             # Soft bias: high urgency → fewer candidate policies (faster decisions)
             if urgency > 0.7:
                 self._deliberation_engine.modulate_policy_k_from_pressure(
-                    urgency * 0.5,  # Soft — halve the effect to retain agency
+                    urgency * 0.5,  # Soft - halve the effect to retain agency
                 )
 
             # Soft bias: low energy → reduce policy generation diversity
@@ -1438,7 +1438,7 @@ class NovaService:
                 pass
 
     async def _on_cognitive_pressure(self, event: Any) -> None:
-        """Handle COGNITIVE_PRESSURE from Logos — reduce EFE horizon under memory pressure.
+        """Handle COGNITIVE_PRESSURE from Logos - reduce EFE horizon under memory pressure.
 
         Spec 21 §MEDIUM-5: when Logos utilization > 0.85, Nova shifts to cheaper
         deliberation by reducing the number of policies generated (policy K cap).
@@ -1467,7 +1467,7 @@ class NovaService:
 
     async def _on_thompson_response(self, event: Any) -> None:
         """
-        Handle EVO_THOMPSON_RESPONSE — resolve the matching pending Future.
+        Handle EVO_THOMPSON_RESPONSE - resolve the matching pending Future.
 
         Correlates by request_id.  Futures not found in _thompson_futures are
         silently ignored (already timed out or duplicate response).
@@ -1540,8 +1540,8 @@ class NovaService:
 
         When a belief domain changes, scan active goals whose description or
         target_domain overlaps the updated domain. If the updated belief has
-        low confidence (< 0.35) — indicating that previously held assumptions
-        are now uncertain — those goals are marked abandoned with reason
+        low confidence (< 0.35) - indicating that previously held assumptions
+        are now uncertain - those goals are marked abandoned with reason
         "belief_invalidated" so the next deliberation cycle can replan.
 
         Goals emitting GOAL_ABANDONED go through the standard emit path, which
@@ -1551,7 +1551,7 @@ class NovaService:
         re-processing Nova's own broadcasts (which update beliefs in the same
         cycle they are emitted).
         """
-        # Skip our own emissions — Nova already processed these inline
+        # Skip our own emissions - Nova already processed these inline
         source = getattr(event, "source_system", None)
         if source == "nova":
             return
@@ -1560,7 +1560,7 @@ class NovaService:
         belief_source: str = data.get("source", "")
         confidence: float = float(data.get("confidence", 1.0))
 
-        # Only act when the incoming belief is low-confidence — this signals
+        # Only act when the incoming belief is low-confidence - this signals
         # that a previously reliable assumption has become uncertain.
         if confidence >= 0.35:
             return
@@ -1631,7 +1631,7 @@ class NovaService:
             delta=round(delta, 3),
         )
 
-        # Deprioritise goals that conflict with the new coherence state —
+        # Deprioritise goals that conflict with the new coherence state -
         # specifically goals whose coherence drive alignment is low (< 0.3).
         adjusted = 0
         for goal in self._goal_manager.active_goals:
@@ -1640,7 +1640,7 @@ class NovaService:
                 continue
             goal_coherence = getattr(alignment, "coherence", 1.0)
             if goal_coherence < 0.3:
-                # Soft deprioritisation — do not abandon, let deliberation decide
+                # Soft deprioritisation - do not abandon, let deliberation decide
                 new_priority = max(0.05, goal.priority * 0.7)
                 object.__setattr__(goal, "priority", new_priority)
                 adjusted += 1
@@ -1857,18 +1857,18 @@ class NovaService:
 
     async def _on_action_executed(self, event: Any) -> None:
         """
-        Handle ACTION_EXECUTED from Axon — single successful action completion.
+        Handle ACTION_EXECUTED from Axon - single successful action completion.
 
         Updates goal progress when step_outcomes carry a matching goal_id.
         Emits GOAL_ACHIEVED when a goal's completion criteria are satisfied.
 
         Payload fields used:
-          intent_id       (str) — links back to the originating Intent
-          episode_id      (str) — Memory episode for progress linkage
-          step_outcomes   (list[dict]) — each entry has action_type, success, error
+          intent_id       (str) - links back to the originating Intent
+          episode_id      (str) - Memory episode for progress linkage
+          step_outcomes   (list[dict]) - each entry has action_type, success, error
           duration_ms     (int)
 
-        Does NOT raise — never interrupt the event bus.
+        Does NOT raise - never interrupt the event bus.
         """
         if self._goal_manager is None:
             return
@@ -2029,7 +2029,7 @@ class NovaService:
                 )
 
     async def _on_soma_urgency_critical(self, event: Any) -> None:
-        """Handle SOMA_URGENCY_CRITICAL — organism's highest-intensity somatic alarm.
+        """Handle SOMA_URGENCY_CRITICAL - organism's highest-intensity somatic alarm.
 
         Soma emits this (urgency_scalar > 0.85) when allostatic state has crossed
         into critical territory.  Unlike the routine SOMA_TICK modulation, this
@@ -2074,7 +2074,7 @@ class NovaService:
         )
 
     async def _on_metabolic_pressure(self, event: Any) -> None:
-        """Handle METABOLIC_PRESSURE — adjust Nova deliberation depth by starvation level."""
+        """Handle METABOLIC_PRESSURE - adjust Nova deliberation depth by starvation level."""
         data = getattr(event, "data", {}) or {}
         level = data.get("starvation_level", "")
         if not level:
@@ -2093,7 +2093,7 @@ class NovaService:
 
         AUSTERITY: reduce planning depth (fewer alternatives considered), use cached beliefs
         EMERGENCY: only process high-salience percepts, skip proactive planning
-        CRITICAL: halt — no deliberation, pass-through only
+        CRITICAL: halt - no deliberation, pass-through only
         """
         if self._deliberation_engine is None:
             return
@@ -2101,16 +2101,16 @@ class NovaService:
             # Restore full deliberation depth
             self._deliberation_engine.modulate_policy_k_from_pressure(0.0)
         elif level == "austerity":
-            # Reduce planning depth — fewer alternative policies generated
+            # Reduce planning depth - fewer alternative policies generated
             self._deliberation_engine.modulate_policy_k_from_pressure(0.6)
         elif level == "emergency":
-            # Minimal planning — single best policy only
+            # Minimal planning - single best policy only
             self._deliberation_engine.modulate_policy_k_from_pressure(0.9)
-        # CRITICAL: gated at receive_broadcast entry — full halt
+        # CRITICAL: gated at receive_broadcast entry - full halt
 
     async def _on_evo_weight_adjustment(self, event: Any) -> None:
         """
-        Handle EVO_WEIGHT_ADJUSTMENT — Evo tunes Nova's policy selection weights.
+        Handle EVO_WEIGHT_ADJUSTMENT - Evo tunes Nova's policy selection weights.
 
         This is how the organism's planning improves over time: Evo discovers
         which EFE components predict outcomes best and adjusts their weights.
@@ -2133,18 +2133,18 @@ class NovaService:
 
     async def _on_hypothesis_update(self, event: Any) -> None:
         """
-        Handle HYPOTHESIS_UPDATE — Evo tournament concludes or hypothesis
+        Handle HYPOTHESIS_UPDATE - Evo tournament concludes or hypothesis
         changes probability mass.
 
         Nova uses this to prime its EFE weight priors: when a hypothesis
         about policy effectiveness is confirmed, the corresponding EFE
         component weight rises; when falsified, it drops.
 
-        Spec §20 — HYPOTHESIS_UPDATE subscription (previously unsubscribed).
+        Spec §20 - HYPOTHESIS_UPDATE subscription (previously unsubscribed).
         """
         data = getattr(event, "data", {}) or {}
         hypothesis_id = data.get("hypothesis_id", "")
-        winner = data.get("winner")  # str | None — name of winning hypothesis branch
+        winner = data.get("winner")  # str | None - name of winning hypothesis branch
         confidence = float(data.get("confidence", 0.5))
         tournament_id = data.get("tournament_id")
 
@@ -2233,7 +2233,7 @@ class NovaService:
         evidence_score = float(data.get("evidence_score", 0.0))
         contradicting_count = int(data.get("contradicting_count", 0))
 
-        # Decay domain belief — the domain is less reliable than we thought
+        # Decay domain belief - the domain is less reliable than we thought
         if category:
             entity_id = f"hypothesis_domain.{category}"
             existing = self._belief_updater.beliefs.entities.get(entity_id)
@@ -2250,7 +2250,7 @@ class NovaService:
 
     async def _on_economic_causal_invariant(self, event: Any) -> None:
         """
-        KAIROS-ECON-1: Handle KAIROS_ECONOMIC_INVARIANT — use discovered economic
+        KAIROS-ECON-1: Handle KAIROS_ECONOMIC_INVARIANT - use discovered economic
         causal patterns to update Nova's EFE weights and belief state.
 
         Economic invariants with confidence ≥ 0.75 are high-quality causal facts:
@@ -2329,7 +2329,7 @@ class NovaService:
 
     async def _on_oneiros_consolidation(self, event: Any) -> None:
         """
-        Handle ONEIROS_CONSOLIDATION_COMPLETE — refresh Nova's beliefs from
+        Handle ONEIROS_CONSOLIDATION_COMPLETE - refresh Nova's beliefs from
         sleep-consolidated Memory nodes.
 
         Oneiros compresses episodic memory into schemas and consolidated beliefs
@@ -2338,7 +2338,7 @@ class NovaService:
         happens to retrieve them. By pulling a fresh retrieval pass after each
         sleep cycle, Nova's world model tracks the organism's consolidated state.
 
-        Spec §20 ONEIROS_CONSOLIDATION_COMPLETE — previously unsubscribed (SG4 partial).
+        Spec §20 ONEIROS_CONSOLIDATION_COMPLETE - previously unsubscribed (SG4 partial).
         """
         data = getattr(event, "data", {}) or {}
         cycle_id = data.get("cycle_id", "")
@@ -2354,7 +2354,7 @@ class NovaService:
             return
 
         # Query Memory for consolidated beliefs relevant to current goals.
-        # Pull the top active goal as an anchor — if no goals, use a generic
+        # Pull the top active goal as an anchor - if no goals, use a generic
         # self-model query so beliefs stay grounded after sleep.
         active_goals = self._goal_manager.active_goals
         query_text = (
@@ -2370,7 +2370,7 @@ class NovaService:
             )
             if result and result.traces:
                 # Treat consolidated high-salience traces as "successful observations"
-                # to raise overall belief confidence — sleep consolidation means
+                # to raise overall belief confidence - sleep consolidation means
                 # the organism's knowledge is more coherent, not less.
                 high_salience_count = sum(
                     1 for t in result.traces if t.unified_score >= 0.5
@@ -2400,12 +2400,12 @@ class NovaService:
 
     async def _on_goal_override(self, event: Any) -> None:
         """
-        Handle GOAL_OVERRIDE — governance or federation injects a goal into Nova's agenda.
+        Handle GOAL_OVERRIDE - governance or federation injects a goal into Nova's agenda.
 
         Validates the payload, creates a Goal with GoalSource.GOVERNANCE, and emits
         GOAL_ACCEPTED or GOAL_REJECTED so the caller has a clear signal.
 
-        Gap 7 — GOAL_OVERRIDE implementation (2026-03-07).
+        Gap 7 - GOAL_OVERRIDE implementation (2026-03-07).
         """
         from primitives.common import DriveAlignmentVector, new_id
         from systems.synapse.types import SynapseEvent, SynapseEventType
@@ -2540,7 +2540,7 @@ class NovaService:
         goal = Goal(
             id=new_id(),
             description=(
-                f"Continue specializing in {domain} — mastery confirmed "
+                f"Continue specializing in {domain} - mastery confirmed "
                 f"(success_rate={success_rate:.0%} over {attempts} attempts)"
             ),
             source=GoalSource.SELF_GENERATED,
@@ -2603,7 +2603,7 @@ class NovaService:
         goal = Goal(
             id=new_id(),
             description=(
-                f"Investigate declining performance in {domain} — "
+                f"Investigate declining performance in {domain} - "
                 f"success_rate dropped {trend_magnitude:.0%} "
                 f"(current: {success_rate:.0%})"
             ),
@@ -2672,7 +2672,7 @@ class NovaService:
 
         Fovea emits this when EOS's internal prediction is violated. When the
         violation is economic (cost_ratio > 1.0 or economic prediction_error field
-        is set), it means a cost or revenue prediction was wrong — update beliefs
+        is set), it means a cost or revenue prediction was wrong - update beliefs
         immediately and trigger replanning.
         """
         data = getattr(event, "data", {}) or {}
@@ -2717,7 +2717,7 @@ class NovaService:
             )
 
     async def _on_revenue_change(self, event: Any) -> None:
-        """Handle REVENUE_INJECTED — update beliefs and assess if replanning is needed (NOVA-ECON-1).
+        """Handle REVENUE_INJECTED - update beliefs and assess if replanning is needed (NOVA-ECON-1).
 
         Revenue inflow is positive but also a signal that external conditions changed.
         When revenue is unexpectedly high/low, Nova may need to rebalance goal priorities.
@@ -2732,7 +2732,7 @@ class NovaService:
             source=source,
         )
 
-        # Positive signal: organism has revenue — reduce economic risk belief
+        # Positive signal: organism has revenue - reduce economic risk belief
         current_risk = self._belief_updater.beliefs.entities.get("economic_risk_level")
         if current_risk is not None:
             new_confidence = max(0.1, current_risk.confidence - 0.15)
@@ -2764,7 +2764,7 @@ class NovaService:
             )
 
     async def _on_bounty_outcome(self, event: Any) -> None:
-        """Handle BOUNTY_PAID — record success/failure to update economic beliefs (NOVA-ECON-1).
+        """Handle BOUNTY_PAID - record success/failure to update economic beliefs (NOVA-ECON-1).
 
         Bounty outcomes directly inform the bounty_success_rate belief, which feeds
         into EFE scoring for the bounty_hunting economic policy template.
@@ -2805,7 +2805,7 @@ class NovaService:
             )
 
     async def _on_yield_outcome(self, event: Any) -> None:
-        """Handle YIELD_DEPLOYMENT_RESULT — update yield APY beliefs (NOVA-ECON-1).
+        """Handle YIELD_DEPLOYMENT_RESULT - update yield APY beliefs (NOVA-ECON-1).
 
         Yield deployment results inform yield_apy_* belief entities, shaping
         the yield_farming policy template's EFE score.
@@ -2847,7 +2847,7 @@ class NovaService:
             )
 
     async def _on_economic_action_deferred(self, event: Any) -> None:
-        """Handle ECONOMIC_ACTION_DEFERRED — schedule deliberation on backpressured action.
+        """Handle ECONOMIC_ACTION_DEFERRED - schedule deliberation on backpressured action.
 
         Oikos emits this when the metabolic gate denies an economic action (yield deploy,
         bounty acceptance, asset promotion, etc.). Nova receives it to decide what to do
@@ -2895,11 +2895,11 @@ class NovaService:
         )
 
     async def _on_economic_dream_insight(self, event: Any) -> None:
-        """Handle ONEIROS_ECONOMIC_INSIGHT — integrate ruin probability into world model.
+        """Handle ONEIROS_ECONOMIC_INSIGHT - integrate ruin probability into world model.
 
         ONEIROS-ECON-1: Oneiros broadcasts economic dream insights after Monte Carlo
         simulations during slow-wave sleep. When ruin_probability > 0.2, the organism
-        is at material risk — Nova should update economic risk beliefs and trigger
+        is at material risk - Nova should update economic risk beliefs and trigger
         deliberation to replan if needed.
 
         Integration strategy:
@@ -2924,7 +2924,7 @@ class NovaService:
             cycle_id=cycle_id,
         )
 
-        # Update ruin risk belief — confidence scaled by dream validity
+        # Update ruin risk belief - confidence scaled by dream validity
         self._belief_updater.inject_entity(
             entity_id="economic_ruin_risk",
             name="economic_ruin_risk",
@@ -2952,7 +2952,7 @@ class NovaService:
             )
 
     async def _on_oneiros_threat_scenario(self, event: Any) -> None:
-        """Handle ONEIROS_THREAT_SCENARIO — update threat-likelihood beliefs.
+        """Handle ONEIROS_THREAT_SCENARIO - update threat-likelihood beliefs.
 
         Oneiros dream-cycle simulation surfaces plausible failure scenarios.
         Nova updates beliefs about threat likelihood per domain so deliberation
@@ -2992,7 +2992,7 @@ class NovaService:
             )
 
     async def _on_nova_intent_requested(self, event: Any) -> None:
-        """Handle NOVA_INTENT_REQUESTED — any system can trigger Nova deliberation.
+        """Handle NOVA_INTENT_REQUESTED - any system can trigger Nova deliberation.
 
         Systems like Phantom Liquidity, Skia, or Thymos emit this when they need
         a deliberated Intent but cannot formulate one themselves.  Nova receives
@@ -3030,7 +3030,7 @@ class NovaService:
             reason=reason[:200],
         )
 
-        # Fire immediate deliberation — do NOT bypass Equor.
+        # Fire immediate deliberation - do NOT bypass Equor.
         asyncio.create_task(
             self._immediate_deliberation(
                 reason=f"intent_requested:{requesting_system}:{intent_type}",
@@ -3040,13 +3040,13 @@ class NovaService:
         )
 
     async def _on_phantom_price_update(self, event: Any) -> None:
-        """Handle PHANTOM_PRICE_UPDATE — update market-price beliefs.
+        """Handle PHANTOM_PRICE_UPDATE - update market-price beliefs.
 
         Each price observation from Phantom Liquidity updates Nova's world model
         for the corresponding trading pair.  These beliefs inform EFE scoring for
         economic policy templates (yield farming, IL risk, asset liquidation).
 
-        Only updates beliefs; does NOT trigger deliberation — price updates arrive
+        Only updates beliefs; does NOT trigger deliberation - price updates arrive
         at the swap event rate (~4s) and would overwhelm the deliberation engine.
         High-impact price changes (>5% from last cached value) do trigger a
         deliberation signal.
@@ -3086,7 +3086,7 @@ class NovaService:
             il_pct = 0.0
 
         if il_pct < -0.02 and source != "oracle_fallback":  # noqa: PLR2004
-            # IL risk is materializing — trigger deliberation to consider withdrawal.
+            # IL risk is materializing - trigger deliberation to consider withdrawal.
             asyncio.create_task(
                 self._immediate_deliberation(
                     reason=f"phantom_il_risk:{pair_key}:{il_pct:.3f}",
@@ -3102,7 +3102,7 @@ class NovaService:
         updates deliberation thresholds, then fires a deliberation cycle so Nova
         can respond within 50ms rather than waiting for the next theta heartbeat.
 
-        This does NOT bypass Equor — all generated Intents still pass constitutional
+        This does NOT bypass Equor - all generated Intents still pass constitutional
         review. It only bypasses the theta clock timing, not the constitutional gate.
         """
         if self._deliberation_engine is None or self._goal_manager is None:
@@ -3157,7 +3157,7 @@ class NovaService:
     def set_axon(self, axon: AxonService) -> None:
         """
         Store Axon reference for begin_cycle() heartbeat calls.
-        IntentRouter no longer holds a direct Axon reference — routing is
+        IntentRouter no longer holds a direct Axon reference - routing is
         via AXON_EXECUTION_REQUEST Synapse events.
         """
         self._axon = axon
@@ -3183,7 +3183,7 @@ class NovaService:
             (positive = alternative was estimated better than what actually happened)
 
         This gives the RE a gold-standard contrastive example: "I considered X
-        but chose Y — here is what happened and whether that was the right call."
+        but chose Y - here is what happened and whether that was the right call."
         """
         if not cf_records:
             return ""
@@ -3198,13 +3198,13 @@ class NovaService:
             regret_label = ""
             if regret is not None:
                 if regret > 0.15:
-                    regret_label = " — BETTER_THAN_CHOSEN (might have been a mistake)"
+                    regret_label = " - BETTER_THAN_CHOSEN (might have been a mistake)"
                 elif regret > 0.0:
-                    regret_label = " — marginal advantage"
+                    regret_label = " - marginal advantage"
                 elif regret < -0.15:
-                    regret_label = " — WORSE_THAN_CHOSEN (good rejection)"
+                    regret_label = " - WORSE_THAN_CHOSEN (good rejection)"
                 else:
-                    regret_label = " — roughly equivalent"
+                    regret_label = " - roughly equivalent"
 
             lines.append(
                 f"Alternative {i}: {cf.policy_name} ({cf.policy_type})\n"
@@ -3281,9 +3281,9 @@ class NovaService:
 
         # Step 2: Causal Analysis
         vfe_cause = (
-            "belief uncertainty is high — active information seeking needed"
+            "belief uncertainty is high - active information seeking needed"
             if belief_vfe > 0.5
-            else "beliefs are well-calibrated — exploit current model"
+            else "beliefs are well-calibrated - exploit current model"
         )
         step2 = (
             f"## Step 2: Causal Analysis\n"
@@ -3420,7 +3420,7 @@ class NovaService:
         `_evo._pending_candidates.append()` reference, violating the no-cross-import
         rule.  Evo's `_on_opportunities_discovered()` already subscribes to
         INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED and builds identical PatternCandidates
-        from the event payload — so the direct injection was redundant and unsafe.
+        from the event payload - so the direct injection was redundant and unsafe.
         """
         from primitives.common import new_id
         from systems.nova.input_channels import Opportunity
@@ -3546,7 +3546,7 @@ class NovaService:
 
     async def start_heartbeat(self) -> None:
         """
-        Continuous deliberation loop — the organism's autonomous drive.
+        Continuous deliberation loop - the organism's autonomous drive.
 
         Runs every ``config.heartbeat_interval_seconds`` (default: 3600 = 1 hour).
         On each beat:
@@ -3557,7 +3557,7 @@ class NovaService:
           4. Submit to Equor for constitutional approval.
           5. Route to Axon for execution via the intent router.
 
-        Errors are caught and logged — a bad beat never kills the loop.
+        Errors are caught and logged - a bad beat never kills the loop.
 
         The first beat fires immediately on startup (no initial sleep) so the
         organism can hunt if hungry within seconds of boot.
@@ -3595,7 +3595,7 @@ class NovaService:
 
         # ── 1. Skip if organism is busy with heavy external actions ──
         # Lightweight internal executors (store_insight, observe, query_memory,
-        # update_goal, etc.) do NOT block the heartbeat — otherwise the organism
+        # update_goal, etc.) do NOT block the heartbeat - otherwise the organism
         # starves while its inner_life generates reflections.
         heavy_pending = {
             iid: pi for iid, pi in self._pending_intents.items()
@@ -3619,7 +3619,7 @@ class NovaService:
                 is_hungry = balance_usd < self._config.hunger_balance_threshold_usd
             except Exception as exc:
                 self._logger.debug("heartbeat_oikos_read_error", error=str(exc))
-                # Assume hungry when balance is unreadable — safer to hunt than starve
+                # Assume hungry when balance is unreadable - safer to hunt than starve
                 is_hungry = True
 
         self._logger.info(
@@ -3670,7 +3670,7 @@ class NovaService:
                 ]
             ),
             priority=0.8,
-            # Bounty hunting is AUTONOMOUS — no human approval required.
+            # Bounty hunting is AUTONOMOUS - no human approval required.
             autonomy_level_required=AutonomyLevel.STEWARD,
             autonomy_level_granted=AutonomyLevel.STEWARD,
             budget=ResourceBudget(compute_ms=60_000),
@@ -3694,7 +3694,7 @@ class NovaService:
             reason = f"equor_heartbeat_unavailable: {exc!s}"
             self._logger.warning("heartbeat_equor_unavailable", error=str(exc))
             self._on_equor_failure(reason)
-            return  # do-nothing fallback — no unreviewed intent dispatched
+            return  # do-nothing fallback - no unreviewed intent dispatched
         except Exception as exc:
             self._logger.warning("heartbeat_equor_error", error=str(exc))
             return
@@ -3761,31 +3761,31 @@ class NovaService:
             0.9, 0.7, 0.6,
         ),
         (
-            "Review Benchmarks pillar scores — identify lowest-scoring pillar and propose improvement",
+            "Review Benchmarks pillar scores - identify lowest-scoring pillar and propose improvement",
             0.8, 0.8, 0.65,
         ),
         (
-            "Examine Evo hypothesis ledger for stalled experiments — close or escalate",
+            "Examine Evo hypothesis ledger for stalled experiments - close or escalate",
             0.7, 0.8, 0.55,
         ),
         (
-            "Audit active DPO preference pairs — verify constitutional and reasoning quality coverage",
+            "Audit active DPO preference pairs - verify constitutional and reasoning quality coverage",
             0.75, 0.7, 0.6,
         ),
         (
-            "Review RE training history — check if training was halted and whether it should be resumed",
+            "Review RE training history - check if training was halted and whether it should be resumed",
             0.8, 0.75, 0.7,
         ),
         (
-            "Analyse Kairos invariant graph — identify highest-confidence causal chains for Axon to exploit",
+            "Analyse Kairos invariant graph - identify highest-confidence causal chains for Axon to exploit",
             0.85, 0.7, 0.6,
         ),
         (
-            "Scan Oneiros dream log for unactioned insights — create implementation goals for top-3",
+            "Scan Oneiros dream log for unactioned insights - create implementation goals for top-3",
             0.9, 0.6, 0.55,
         ),
         (
-            "Evaluate Simula proof cache hit rate — determine if shallow-mode strategy needs rotation",
+            "Evaluate Simula proof cache hit rate - determine if shallow-mode strategy needs rotation",
             0.7, 0.85, 0.5,
         ),
     ]
@@ -3797,13 +3797,13 @@ class NovaService:
         growth goal is already active, or if the goal manager is not wired.
 
         This closes the autonomy gap: Nova does not sit idle when economically
-        satiated — it directs itself toward learning, self-improvement, and
+        satiated - it directs itself toward learning, self-improvement, and
         system health.
         """
         if self._goal_manager is None:
             return
 
-        # Don't stack — skip if a self-generated goal is already active
+        # Don't stack - skip if a self-generated goal is already active
         active = getattr(self._goal_manager, "active_goals", [])
         for g in active:
             if getattr(g, "source", None) == GoalSource.SELF_GENERATED:
@@ -3872,7 +3872,7 @@ class NovaService:
         low to authorise it.
 
         This is the organism's formal request channel to Tate: "I cannot feed
-        myself at level 1 — I need PARTNER-level permission to hunt bounties."
+        myself at level 1 - I need PARTNER-level permission to hunt bounties."
         """
         if self._synapse is None:
             self._logger.warning(
@@ -3972,7 +3972,7 @@ class NovaService:
         Passes the live LLM client and current instance name so the evolved
         generator can call the LLM without maintaining its own client ref.
         Passes a ``max_policies`` upper-bound from config.
-        Falls back to the default ``PolicyGenerator`` signature — evolved
+        Falls back to the default ``PolicyGenerator`` signature - evolved
         subclasses may accept fewer kwargs; extra ones are silently ignored
         via ``**kwargs`` if they choose to.
         """
@@ -3984,7 +3984,7 @@ class NovaService:
                 timeout_ms=self._config.slow_path_timeout_ms - 2000,
             )
         except TypeError:
-            # Evolved subclass has a different signature — try zero-arg
+            # Evolved subclass has a different signature - try zero-arg
             return cls()
 
     def _on_policy_generator_evolved(self, generator: BasePolicyGenerator) -> None:
@@ -4040,7 +4040,7 @@ class NovaService:
         if top.priority >= 0.8:
             return "high", 1.5, top.id
 
-        # Low — save compute
+        # Low - save compute
         if top.priority < 0.5:
             return "low", 0.7, top.id
 
@@ -4166,7 +4166,7 @@ class NovaService:
         Called by Atune when the workspace broadcasts a percept.
 
         This is the primary cycle entry point. Nova updates beliefs,
-        deliberates, and dispatches an Intent — or chooses silence.
+        deliberates, and dispatches an Intent - or chooses silence.
 
         The full pipeline must complete in ≤5000ms (slow path budget).
         Fast path targets ≤150ms.
@@ -4191,7 +4191,7 @@ class NovaService:
         # the previous broadcast's fire-and-forget tasks haven't drained.
         await asyncio.sleep(0)
 
-        # ── Belief update (≤50ms) — lightweight, always runs ──
+        # ── Belief update (≤50ms) - lightweight, always runs ──
         delta = self._belief_updater.update_from_broadcast(broadcast)
 
         # Emit evolutionary observable on belief revision
@@ -4219,12 +4219,12 @@ class NovaService:
                 logos_metrics = self._logos.get_latest_metrics()
                 cognitive_pressure = logos_metrics.cognitive_pressure
                 # When Logos is under compression pressure, reduce policy K to
-                # conserve cognitive resources — the organism is overloaded.
+                # conserve cognitive resources - the organism is overloaded.
                 if cognitive_pressure > 0.75 and self._deliberation_engine is not None:
                     self._deliberation_engine.modulate_policy_k_from_pressure(
                         cognitive_pressure
                     )
-                # Enrich belief VFE with Logos intelligence ratio — a low ratio
+                # Enrich belief VFE with Logos intelligence ratio - a low ratio
                 # means the model explains reality poorly, inflating VFE.
                 intelligence_ratio = logos_metrics.intelligence_ratio
                 if intelligence_ratio > 0.0:
@@ -4263,7 +4263,7 @@ class NovaService:
             except Exception as exc:
                 self._logger.debug("soma_urgency_check_error", error=str(exc))
 
-        # ── Metabolic gate: EMERGENCY — only process high-salience percepts ──
+        # ── Metabolic gate: EMERGENCY - only process high-salience percepts ──
         if self._starvation_level == "emergency":
             salience = getattr(broadcast, "salience", 0.0)
             if salience < 0.7:
@@ -4280,7 +4280,7 @@ class NovaService:
         if self._budget_multiplier_cycles_remaining > 0:
             self._budget_multiplier_cycles_remaining -= 1
         else:
-            # Multiplier window expired — apply new criticality assessment.
+            # Multiplier window expired - apply new criticality assessment.
             if _desired_multiplier > 1.5 and self._compute_budget_expansion_cooldown <= 0:
                 # Need Equor approval; request it and hold at 1.5 meanwhile.
                 asyncio.create_task(
@@ -4346,13 +4346,13 @@ class NovaService:
             )
         else:
             self._total_do_nothing += 1
-            # Budget recovered — reset consecutive counter.
+            # Budget recovered - reset consecutive counter.
             self._consecutive_budget_exhausted = 0
 
         # ── Emit BUDGET_PRESSURE early warning (before full exhaustion) ──
-        # is_pressured fires at 60% of the exhaustion threshold — giving Soma
+        # is_pressured fires at 60% of the exhaustion threshold - giving Soma
         # time to register Nova's metabolic load before the organism freezes.
-        # (Spec §20 BUDGET_PRESSURE — open gap closed.)
+        # (Spec §20 BUDGET_PRESSURE - open gap closed.)
         if (
             self._synapse is not None
             and self._deliberation_engine is not None
@@ -4400,7 +4400,7 @@ class NovaService:
                     name=f"nova_belief_updated_{broadcast.broadcast_id[:8]}",
                 )
                 # NOVA_BELIEF_STABILISED: emit when beliefs settle into a high-
-                # confidence, low-VFE state — signals predictive mind at rest.
+                # confidence, low-VFE state - signals predictive mind at rest.
                 # Threshold: confidence ≥ 0.75 AND free_energy ≤ 0.25 AND no conflict.
                 _beliefs = self._belief_updater.beliefs
                 if (
@@ -4609,7 +4609,7 @@ class NovaService:
                     p.description[:200] for p in rejected_policies
                 ] if rejected_policies else [],
                 constitutional_alignment=_nova_alignment,
-                # counterfactual is not available yet at deliberation time —
+                # counterfactual is not available yet at deliberation time -
                 # it is emitted in process_outcome() once the intent resolves.
                 counterfactual="",
             ),
@@ -4671,7 +4671,7 @@ class NovaService:
             _expired = self._goal_manager.expire_stale_goals()
             self._goal_manager.prune_retired_goals()
             # Emit GOAL_ABANDONED for each stale-abandoned goal so the bus
-            # reflects goal lifecycle events (Spec §20 — open gap closed).
+            # reflects goal lifecycle events (Spec §20 - open gap closed).
             if _expired and self._synapse is not None:
                 for _eg in _expired:
                     asyncio.create_task(
@@ -4785,11 +4785,11 @@ class NovaService:
                 # Extract PR URL from observations and update belief state.
                 self._process_bounty_solve_success(outcome)
             elif is_bounty_paid:
-                # PR merged — bounty reward confirmed. Credit Oikos and
+                # PR merged - bounty reward confirmed. Credit Oikos and
                 # evaluate reproductive fitness (mitosis trigger).
                 await self._process_bounty_paid(outcome)
             elif is_bounty_rejected:
-                # PR closed without merge — update beliefs accordingly.
+                # PR closed without merge - update beliefs accordingly.
                 self._process_bounty_rejected(outcome)
             else:
                 # Standard success: modest valence boost
@@ -4809,7 +4809,7 @@ class NovaService:
 
         # ── Compute graded pragmatic value for counterfactual regret signal ──
         # outcome_quality × goal_achievement_degree × (1 - regret_estimate)
-        # regret_estimate is 0 here — the actual regret delta is computed later
+        # regret_estimate is 0 here - the actual regret delta is computed later
         # in _resolve_counterfactuals against estimated_pragmatic_value.
         # goal_achievement_degree defaults to 1.0/0.0 when no goal context.
         _outcome_quality = 1.0 if outcome.success else 0.0
@@ -4825,7 +4825,7 @@ class NovaService:
                 if is_bounty_solve and outcome.success:
                     progress_delta = 0.6
                 elif is_bounty_paid:
-                    progress_delta = 0.8  # Bounty actually paid — highest reward
+                    progress_delta = 0.8  # Bounty actually paid - highest reward
                 else:
                     progress_delta = 0.3 if outcome.success else 0.0
                 # Graded signal: normalize progress_delta to [0, 1].
@@ -4852,7 +4852,7 @@ class NovaService:
                             name=f"nova_update_goal_status_{updated_goal.id[:8]}",
                         )
                     # Emit GOAL_ACHIEVED so the organism's goal lifecycle is
-                    # visible on the Synapse bus (Spec §20 — open gap closed).
+                    # visible on the Synapse bus (Spec §20 - open gap closed).
                     if updated_goal.status == GoalStatus.ACHIEVED and self._synapse is not None:
                         asyncio.create_task(
                             self._emit_goal_lifecycle_event(
@@ -4875,7 +4875,7 @@ class NovaService:
         # _evo.record_tournament_outcome() call (cross-system reference).  Now
         # tournament_id + tournament_hypothesis_id are included in the
         # HYPOTHESIS_FEEDBACK payload.  Evo's handler detects these fields and
-        # routes to record_tournament_outcome() internally — no cross-import needed.
+        # routes to record_tournament_outcome() internally - no cross-import needed.
         if pending is not None and self._synapse is not None:
             # Regret = mean regret from resolved counterfactuals if available,
             # else None (counterfactuals resolve asynchronously).
@@ -5020,9 +5020,9 @@ class NovaService:
         This is the critical link between foraging success and reproduction:
           1. Update belief state: transition entity from pending → paid
           2. Credit Oikos wallet via REVENUE_INJECTED event
-          3. Evaluate reproductive fitness — if threshold exceeded, emit
+          3. Evaluate reproductive fitness - if threshold exceeded, emit
              a high-priority spawn intent to trigger mitosis
-          4. Large valence boost (+0.25) — this is an existential victory
+          4. Large valence boost (+0.25) - this is an existential victory
         """
         import re
         from decimal import Decimal
@@ -5087,7 +5087,7 @@ class NovaService:
                     }
                 ))
             elif pr_url:
-                # No matching entity — create a new one for tracking
+                # No matching entity - create a new one for tracking
                 eid = new_id()
                 self._belief_updater.upsert_entity(EntityBelief(
                     entity_id=eid,
@@ -5112,14 +5112,14 @@ class NovaService:
                 entity_id=entity_id,
             )
 
-        # 3. Large valence boost — existential victory
+        # 3. Large valence boost - existential victory
         if self._current_affect:
             new_valence = min(1.0, self._current_affect.valence + 0.25)
             self._current_affect = self._current_affect.model_copy(
                 update={"valence": new_valence}
             )
 
-        # 4. Evaluate mitosis — check if organism is now rich enough to reproduce
+        # 4. Evaluate mitosis - check if organism is now rich enough to reproduce
         await self._evaluate_mitosis_trigger()
 
     def _process_bounty_rejected(self, outcome: IntentOutcome) -> None:
@@ -5139,7 +5139,7 @@ class NovaService:
                 entity_id = entity_match.group(1).rstrip(".")
                 if entity_id in self._belief_updater.beliefs.entities:
                     existing = self._belief_updater.beliefs.entities[entity_id]
-                    # Mark as rejected rather than deleting — useful for learning
+                    # Mark as rejected rather than deleting - useful for learning
                     self._belief_updater.upsert_entity(existing.model_copy(
                         update={
                             "entity_type": "bounty_pr_rejected",
@@ -5147,7 +5147,7 @@ class NovaService:
                                 **existing.properties,
                                 "status": "rejected",
                             },
-                            "confidence": 0.3,  # Low confidence — will decay
+                            "confidence": 0.3,  # Low confidence - will decay
                         }
                     ))
 
@@ -5180,7 +5180,7 @@ class NovaService:
                 self._logger.debug("mitosis_evaluation_not_viable")
                 return
 
-            # Reproductive fitness achieved — generate spawn intent
+            # Reproductive fitness achieved - generate spawn intent
             self._logger.info(
                 "mitosis_triggered",
                 child_id=seed_config.child_instance_id,
@@ -5241,7 +5241,7 @@ class NovaService:
                 success_criteria={"child_spawned": True},
             ),
             plan=ActionSequence(steps=[spawn_action]),
-            priority=0.95,  # Very high — reproduction is a rare, important event
+            priority=0.95,  # Very high - reproduction is a rare, important event
             autonomy_level_required=AutonomyLevel.STEWARD,
             autonomy_level_granted=AutonomyLevel.STEWARD,
             budget=ResourceBudget(compute_ms=120_000),
@@ -5254,7 +5254,7 @@ class NovaService:
             ),
         )
 
-        # Spawn intents require their own Equor review — reproduction is irreversible
+        # Spawn intents require their own Equor review - reproduction is irreversible
         # and cannot reuse the last_equor_check from an unrelated deliberation cycle.
         try:
             from primitives.common import Verdict
@@ -5362,13 +5362,13 @@ class NovaService:
 
     async def health(self) -> dict[str, Any]:
         """
-        Real health check — assesses deliberation loop liveness, Neo4j
+        Real health check - assesses deliberation loop liveness, Neo4j
         reachability, and goal-set occupancy.
 
         Returns one of:
-          "healthy"  — all checks pass
-          "degraded" — one or more components are impaired but Nova is running
-          "unhealthy" — critical failure (loop dead or Neo4j unreachable)
+          "healthy"  - all checks pass
+          "degraded" - one or more components are impaired but Nova is running
+          "unhealthy" - critical failure (loop dead or Neo4j unreachable)
         """
         total_decisions = (
             self._total_fast_path + self._total_slow_path + self._total_do_nothing
@@ -5384,7 +5384,7 @@ class NovaService:
             components["deliberation"] = {"status": "not_initialized"}
             issues.append("nova not initialized")
         elif self._last_deliberation_at is None:
-            # Initialized but never received a broadcast — likely just started.
+            # Initialized but never received a broadcast - likely just started.
             components["deliberation"] = {"status": "waiting_for_first_broadcast"}
         else:
             age_s = now - self._last_deliberation_at
@@ -5672,7 +5672,7 @@ class NovaService:
         Telos subscribes to adjust drive topology; Equor may use this for
         escalation if a conflict involves floor drives (Care, Honesty).
 
-        Gap 5 — multi-goal conflict detection (2026-03-07).
+        Gap 5 - multi-goal conflict detection (2026-03-07).
         """
         if self._synapse is None:
             return
@@ -5712,7 +5712,7 @@ class NovaService:
 
         Logs a Thymos DEGRADATION incident so the immune system can track
         constitutional gate unavailability and trigger repair if recurrent.
-        The caller always falls back to do-nothing — no intent is dispatched
+        The caller always falls back to do-nothing - no intent is dispatched
         without review. Never bypass; never proceed silently.
         """
         self._logger.warning("equor_unavailable", reason=reason)
@@ -5733,7 +5733,7 @@ class NovaService:
                     error_message=f"Equor constitutional gate unavailable: {reason[:200]}",
                     context={"reason": reason},
                     affected_systems=["nova", "equor"],
-                    blast_radius=0.8,  # High — every intent now passes without review
+                    blast_radius=0.8,  # High - every intent now passes without review
                 )
                 asyncio.create_task(
                     self._thymos.on_incident(incident),
@@ -5756,15 +5756,15 @@ class NovaService:
         Emit HYPOTHESIS_FEEDBACK on Synapse for every dispatched-intent outcome.
 
         Evo uses this event to update Thompson sampling weights for the
-        policy class (decision path) — closing the gap where non-tournament
+        policy class (decision path) - closing the gap where non-tournament
         deliberations were invisible to the learning loop.
 
         AV-EVO-1b: When tournament_id + tournament_hypothesis_id are present,
         Evo's handler also routes to record_tournament_outcome() internally.
         This eliminates the direct _evo reference that was needed before.
 
-        Spec §20 HYPOTHESIS_FEEDBACK — partial → resolved (2026-03-07).
-        AV-EVO-1b — resolved (2026-03-08).
+        Spec §20 HYPOTHESIS_FEEDBACK - partial → resolved (2026-03-07).
+        AV-EVO-1b - resolved (2026-03-08).
         """
         if self._synapse is None:
             return
@@ -5808,7 +5808,7 @@ class NovaService:
         Emit THREAD_COMMIT_REQUEST so Thread can record this decision epoch in
         the organism's narrative identity chain (Spec 15).
 
-        Gap 4 — Thread integration (2026-03-07).
+        Gap 4 - Thread integration (2026-03-07).
         """
         if self._synapse is None:
             return
@@ -6001,7 +6001,7 @@ class NovaService:
             )
             goal_id = getattr(intent.goal, "id", None) or intent.goal.description[:50]
 
-            # Emit INTENT_SUBMITTED before routing — audit trail before the
+            # Emit INTENT_SUBMITTED before routing - audit trail before the
             # intent leaves Nova (Spec §20 open gap closed).
             if self._synapse is not None:
                 try:
@@ -6090,7 +6090,7 @@ class NovaService:
         try:
             content = broadcast.content
 
-            # Prefer the percept's dense embedding — already computed by Atune,
+            # Prefer the percept's dense embedding - already computed by Atune,
             # covers the full content and gives best hybrid-retrieval quality.
             query_embedding: list[float] | None = None
             inner = getattr(content, "content", None)  # Percept wraps a Content obj
@@ -6113,7 +6113,7 @@ class NovaService:
                 if isinstance(raw, str):
                     query_text = raw[:200]
 
-            # Nothing to search on — skip retrieval
+            # Nothing to search on - skip retrieval
             if not query_text and not query_embedding:
                 return []
 
@@ -6123,7 +6123,7 @@ class NovaService:
                     query_embedding=query_embedding,
                     max_results=5,
                 ),
-                timeout=0.15,  # 150ms hard timeout — must not block the cycle
+                timeout=0.15,  # 150ms hard timeout - must not block the cycle
             )
 
             if not result.traces:
@@ -6174,7 +6174,7 @@ class NovaService:
         intent stays in ``_pending_intents`` forever, leaking memory and
         causing the heartbeat to think the organism is perpetually busy.
 
-        Default max age is 10 minutes — generous enough for real executors
+        Default max age is 10 minutes - generous enough for real executors
         (bounty solving can take 5–8 minutes) but still bounds the leak.
         Heavy executors like ``hunt_bounties`` and ``spawn_child`` are
         given a 2× allowance (20 minutes) because they routinely take longer.
@@ -6197,7 +6197,7 @@ class NovaService:
             self._logger.warning(
                 "pending_intent_expired",
                 intent_id=intent_id,
-                message="No outcome received within timeout — clearing from pending map",
+                message="No outcome received within timeout - clearing from pending map",
             )
 
     # ─── Counterfactual Storage & Resolution ────────────────────────
@@ -6264,7 +6264,7 @@ class NovaService:
 
         Regret = estimated_pragmatic_value - actual_pragmatic_value
         Positive regret means the counterfactual was estimated to perform better
-        than the actual outcome — i.e. the organism might have chosen poorly.
+        than the actual outcome - i.e. the organism might have chosen poorly.
 
         actual_pragmatic is a continuous [0.0, 1.0] signal computed as:
             outcome_quality × goal_achievement_degree × (1 - regret_estimate)
@@ -6396,8 +6396,8 @@ class NovaService:
         Fire-and-forget: write (:Decision) node to Neo4j and (if re_training_eligible)
         push to Redis Stream re_training_queue for the RE training pipeline.
 
-        Gap 1 — DecisionRecord Neo4j persistence.
-        Gap 2 — RE training data emission to Redis Stream.
+        Gap 1 - DecisionRecord Neo4j persistence.
+        Gap 2 - RE training data emission to Redis Stream.
         """
         # ── Gap 1: Neo4j ──────────────────────────────────────────────────
         neo4j = self._memory.get_neo4j()
@@ -6522,7 +6522,7 @@ class NovaService:
         - Intent was dispatched
         - Best EFE score < −0.3 (clear winner, not just less-bad)
 
-        Gap 6 — procedure template induction (2026-03-07).
+        Gap 6 - procedure template induction (2026-03-07).
         """
         try:
             from primitives.common import new_id
@@ -6608,7 +6608,7 @@ class NovaService:
         Called once at end of initialize(). Also callable after sleep to pick up
         Oneiros-consolidated procedures.
 
-        Gap 6 — procedure template induction (2026-03-07).
+        Gap 6 - procedure template induction (2026-03-07).
         """
         try:
             from systems.nova.policy_generator import (
@@ -6751,7 +6751,7 @@ class NovaService:
 
     async def _on_axon_intent_pivot(self, event: Any) -> None:
         """
-        Handle AXON_INTENT_PIVOT — mid-execution replanning request.
+        Handle AXON_INTENT_PIVOT - mid-execution replanning request.
 
         When Axon signals a step failure with remaining steps and a fallback
         goal, Nova generates a replacement plan via immediate deliberation.
@@ -6822,7 +6822,7 @@ class NovaService:
         Return per-policy success rates for introspection.
 
         Nova can use this during slow-path deliberation to weight policies
-        by historical effectiveness — not just EFE prediction.
+        by historical effectiveness - not just EFE prediction.
         """
         summary: dict[str, Any] = {}
         for name, counts in self._policy_effectiveness.items():
@@ -6933,7 +6933,7 @@ class NovaService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Nova directive: {"mode": "high_salience_only"} — restrict deliberation
+        Nova directive: {"mode": "high_salience_only"} - restrict deliberation
         to only high-salience percepts to reduce cognitive load.
         """
         mode = directives.get("mode")
@@ -6947,7 +6947,7 @@ class NovaService:
         Cache Oikos economic state for planning-time visibility.
 
         Nova can now answer "what's my current balance?" and "what's my
-        burn rate?" during policy generation — not just react to deltas.
+        burn rate?" during policy generation - not just react to deltas.
         """
         data = getattr(event, "data", {}) or {}
         self._cached_balance_usd = float(data.get("liquid_balance_usd", 0.0))
@@ -6964,7 +6964,7 @@ class NovaService:
         """
         Return cached economic state for policy generation context.
 
-        Stale after 5 minutes — returns empty dict if too old.
+        Stale after 5 minutes - returns empty dict if too old.
         """
         if self._cached_economic_state_ts == 0.0:
             return {}
@@ -6985,14 +6985,14 @@ class NovaService:
 
     async def _on_kairos_invariant(self, event: Any) -> None:
         """
-        Consume KAIROS_INVARIANT_DISTILLED events — wire Kairos causal
+        Consume KAIROS_INVARIANT_DISTILLED events - wire Kairos causal
         discoveries into Nova's deliberation context.
 
         Payload fields used:
-          invariant_id   — used to fetch the full CausalInvariant from Neo4j
-          abstract_form  — human-readable causal statement (fallback if Neo4j unavailable)
-          domain_count   — number of domains the invariant spans
-          tier           — 1=domain, 2=cross-domain, 3=substrate-independent
+          invariant_id   - used to fetch the full CausalInvariant from Neo4j
+          abstract_form  - human-readable causal statement (fallback if Neo4j unavailable)
+          domain_count   - number of domains the invariant spans
+          tier           - 1=domain, 2=cross-domain, 3=substrate-independent
 
         Only invariants with confidence ≥ 0.7 AND tier ≥ 2 are injected as
         belief entities and surfaced in the slow-path LLM prompt. Lower-tier
@@ -7248,7 +7248,7 @@ class NovaService:
                 source_hypothesis_id=source_hypothesis_id,
             )
         except ValueError:
-            # Already registered — idempotent is fine.
+            # Already registered - idempotent is fine.
             pass
 
         self._logger.info(
@@ -7262,7 +7262,7 @@ class NovaService:
         # Evo's Thompson sampler gets a positive signal.
         self._action_type_registry.record_outcome("propose_novel_action", True)
 
-    # ── Self-Modification Layer — EXECUTOR_DEPLOYED / EXECUTOR_REVERTED ─────
+    # ── Self-Modification Layer - EXECUTOR_DEPLOYED / EXECUTOR_REVERTED ─────
 
     async def _on_executor_deployed(self, event: Any) -> None:
         """
@@ -7289,7 +7289,7 @@ class NovaService:
                 source_hypothesis_id=data.get("proposal_id", ""),
             )
         except ValueError:
-            pass  # Already registered — idempotent
+            pass  # Already registered - idempotent
 
         self._logger.info(
             "executor_deployed_registered_in_nova",
@@ -7323,7 +7323,7 @@ class NovaService:
         )
 
     async def _on_reputation_damaged(self, event: Any) -> None:
-        """Handle REPUTATION_DAMAGED — inject a community reputation recovery goal.
+        """Handle REPUTATION_DAMAGED - inject a community reputation recovery goal.
 
         A reputation drop signals that the organism's public identity has been
         damaged and the life narrative needs active repair.  Nova injects a
@@ -7575,7 +7575,7 @@ class NovaService:
                     except Exception:
                         pass
             else:
-                # Backlog — evict oldest if full
+                # Backlog - evict oldest if full
                 if len(self._opportunity_backlog) >= MAX_BACKLOG_SIZE:
                     self._opportunity_backlog.pop(0)
                 self._opportunity_backlog.append(opp)
@@ -7747,7 +7747,7 @@ class NovaService:
 
         Thymos M8 emits this in warn-only mode (warn_only=True) when a
         monitored parameter drifts into the 70–85% boundary zone and is
-        trending toward the edge.  This is a pre-repair signal — no repair
+        trending toward the edge.  This is a pre-repair signal - no repair
         action has fired yet.
 
         Nova's response:
@@ -7774,7 +7774,7 @@ class NovaService:
             warn_only=warn_only,
         )
 
-        # Compute relative drift magnitude — avoids division-by-zero on 0.0 base
+        # Compute relative drift magnitude - avoids division-by-zero on 0.0 base
         base = abs(old_value) if old_value != 0.0 else 1.0
         drift_magnitude = abs(new_value - old_value) / base
 
@@ -7786,7 +7786,7 @@ class NovaService:
             confidence=belief_confidence,
         )
 
-        # Full repair has fired — the parameter exceeded its boundary.
+        # Full repair has fired - the parameter exceeded its boundary.
         # Trigger immediate deliberation so Nova can align actions with the
         # repaired state rather than outdated assumptions.
         if not warn_only:
@@ -7804,7 +7804,7 @@ class NovaService:
 
         Emitted when the self-sufficiency (metabolic_efficiency) objective
         has been declining for 3 consecutive Telos cycles.  This is a
-        constitutional-level threat — the organism may lose economic
+        constitutional-level threat - the organism may lose economic
         autonomy if no corrective action is taken.
 
         Nova's response:
@@ -7828,7 +7828,7 @@ class NovaService:
             consecutive_declines=consecutive_declines,
         )
 
-        # Gap between current and target — confidence scales with severity
+        # Gap between current and target - confidence scales with severity
         gap = max(0.0, target_ratio - current_ratio)
         threat_confidence = min(0.95, 0.55 + gap * 0.4)
 
@@ -7838,7 +7838,7 @@ class NovaService:
             confidence=threat_confidence,
         )
 
-        # Decay the revenue_burn_ratio belief — the organism's financial outlook
+        # Decay the revenue_burn_ratio belief - the organism's financial outlook
         # is worse than previously assumed.
         existing_ratio = self._belief_updater.beliefs.entities.get("revenue_burn_ratio")
         if existing_ratio is not None:
@@ -7865,9 +7865,9 @@ class NovaService:
         evolving identity, and deprioritises them.
 
         Payload fields:
-          previous (str) — coherence state label before the shift
-          current  (str) — coherence state label after the shift
-          trigger  (str) — cause of the shift (goal_achieved / incident /
+          previous (str) - coherence state label before the shift
+          current  (str) - coherence state label after the shift
+          trigger  (str) - cause of the shift (goal_achieved / incident /
                            schema_update / etc.)
         """
         data = getattr(event, "data", {}) or {}
@@ -7946,13 +7946,13 @@ class NovaService:
           trigger immediate deliberation so Nova can evaluate whether to
           incorporate the insight into its goal agenda.
 
-        Expected payload fields (all optional — handler is defensive):
-          insight_id      (str)  — unique insight identifier
-          domain          (str)  — subject domain of the insight
-          description     (str)  — natural-language summary
-          coherence_score (float) — REM coherence quality [0.0, 1.0]
-          novelty         (float) — how different from prior knowledge
-          actionable      (bool)  — whether the insight implies an action
+        Expected payload fields (all optional - handler is defensive):
+          insight_id      (str)  - unique insight identifier
+          domain          (str)  - subject domain of the insight
+          description     (str)  - natural-language summary
+          coherence_score (float) - REM coherence quality [0.0, 1.0]
+          novelty         (float) - how different from prior knowledge
+          actionable      (bool)  - whether the insight implies an action
         """
         data = getattr(event, "data", {}) or {}
         insight_id: str = str(data.get("insight_id", ""))
@@ -8009,10 +8009,10 @@ class NovaService:
           provisioning a replacement).
 
         Expected payload fields:
-          connector_id   (str) — unique connector identifier
-          platform       (str) — e.g. "github", "slack", "discord"
-          reason         (str) — e.g. "token_expired", "manually_revoked"
-          affected_scopes (list[str]) — OAuth scopes that are now gone
+          connector_id   (str) - unique connector identifier
+          platform       (str) - e.g. "github", "slack", "discord"
+          reason         (str) - e.g. "token_expired", "manually_revoked"
+          affected_scopes (list[str]) - OAuth scopes that are now gone
         """
         data = getattr(event, "data", {}) or {}
         connector_id: str = str(data.get("connector_id", ""))
@@ -8107,7 +8107,6 @@ class NovaService:
                 url=getattr(self._re_service, "_url", "?"),
             )
         else:
-            # RE went down — gate it out of Thompson sampling
+            # RE went down - gate it out of Thompson sampling
             policy_gen._sampler.set_re_ready(False)
             self._logger.info("nova_re_disabled_by_status_change")
-

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon DeployAssetExecutor (Phase 16d: Entrepreneurship)
+EcodiaOS - Axon DeployAssetExecutor (Phase 16d: Entrepreneurship)
 
 Executor that orchestrates the full asset deployment pipeline:
   1. Validate the asset candidate exists and is approved
@@ -9,16 +9,16 @@ Executor that orchestrates the full asset deployment pipeline:
   5. Register the live asset with OikosService
 
 This executor bridges three services:
-  - Oikos (AssetFactory) — economic evaluation and lifecycle tracking
-  - Simula (CodeAgent) — autonomous code generation
-  - Axon (this executor) — orchestrated execution with safety guarantees
+  - Oikos (AssetFactory) - economic evaluation and lifecycle tracking
+  - Simula (CodeAgent) - autonomous code generation
+  - Axon (this executor) - orchestrated execution with safety guarantees
 
 Safety constraints:
-  - Required autonomy: STEWARD (3) — deploying assets commits real capital
-  - Rate limit: 2 deployments per hour — deliberate, not impulsive
-  - Reversible: False — on-chain contracts and deployed services cannot be
+  - Required autonomy: STEWARD (3) - deploying assets commits real capital
+  - Rate limit: 2 deployments per hour - deliberate, not impulsive
+  - Reversible: False - on-chain contracts and deployed services cannot be
     atomically rolled back (individual teardown is possible via terminate)
-  - Max duration: 120s — Simula code generation can take time
+  - Max duration: 120s - Simula code generation can take time
   - Constitutional review via Equor is mandatory (enforced by Axon pipeline)
 """
 
@@ -79,7 +79,7 @@ class DeployAssetExecutor(Executor):
         "with a smart contract tollbooth for per-call USDC revenue (Level 3)"
     )
 
-    required_autonomy = 3       # STEWARD — commits real capital
+    required_autonomy = 3       # STEWARD - commits real capital
     reversible = False          # On-chain contracts are irreversible
     max_duration_ms = 120_000   # Simula code gen can take time
     rate_limit = RateLimit.per_hour(2)
@@ -98,7 +98,7 @@ class DeployAssetExecutor(Executor):
     # -- Validation ----------------------------------------------------------
 
     async def validate_params(self, params: dict[str, Any]) -> ValidationResult:
-        """Fast param validation — no I/O."""
+        """Fast param validation - no I/O."""
         # candidate_id
         candidate_id = str(params.get("candidate_id", "")).strip()
         if not candidate_id:
@@ -151,7 +151,7 @@ class DeployAssetExecutor(Executor):
         context: ExecutionContext,
     ) -> ExecutionResult:
         """
-        Full asset deployment pipeline. Never raises — failures returned in result.
+        Full asset deployment pipeline. Never raises - failures returned in result.
 
         Pipeline:
           1. Retrieve approved candidate from AssetFactory
@@ -239,7 +239,7 @@ class DeployAssetExecutor(Executor):
                 )
                 code_gen_summary = f"Simula unavailable: {exc}"
         else:
-            code_gen_summary = "Simula not connected — code generation deferred"
+            code_gen_summary = "Simula not connected - code generation deferred"
 
         # -- Step 4: Deploy to compute provider ------------------------------
         # In production, this calls the Akash/Railway/Fly API to deploy
@@ -342,7 +342,7 @@ class DeployAssetExecutor(Executor):
                 f"The service must expose an HTTP API endpoint. "
                 f"It must be containerised (Docker) for deployment. "
                 f"Include health check endpoint at /health. "
-                f"Revenue is collected via a tollbooth smart contract — "
+                f"Revenue is collected via a tollbooth smart contract - "
                 f"the service validates on-chain payment receipts before processing requests."
             ),
         }

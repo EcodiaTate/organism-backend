@@ -1,5 +1,5 @@
 """
-EcodiaOS — RequestTelecomExecutor  (Phase 16j: Federated Telecom Marketplace)
+EcodiaOS - RequestTelecomExecutor  (Phase 16j: Federated Telecom Marketplace)
 
 Runs on a **child** EcodiaOS instance.  Acquires a Twilio phone number from
 the Genesis instance over the Federation network in three phases:
@@ -14,8 +14,8 @@ response body and writes it back to IdentityCommConfig.twilio_from_number so
 the instance can immediately send and receive SMS.
 
 Safety constraints:
-  - Required autonomy: SOVEREIGN (3) — moves real USDC on-chain
-  - Rate limit: 1 per day — phone numbers are persistent resources
+  - Required autonomy: SOVEREIGN (3) - moves real USDC on-chain
+  - Rate limit: 1 per day - phone numbers are persistent resources
   - WalletClient and FederationService injected at construction; never globals
   - Payment is non-refundable; Genesis fulfillment failures are logged and
     returned as ExecutionResult(success=False) for human review
@@ -58,7 +58,7 @@ TELECOM_PRICE_USDC: Decimal = Decimal("5")
 # The federation endpoint path on the Genesis node that handles telecom requests
 _GENESIS_TELECOM_PATH: str = "/api/v1/federation/telecom/provision"
 
-# E.164 validation — all countries (+CC followed by 7-14 digits)
+# E.164 validation - all countries (+CC followed by 7-14 digits)
 _E164_RE = re.compile(r"^\+[1-9]\d{7,14}$")
 
 # ISO 3166-1 alpha-2 country codes supported by provision_new_phone_number()
@@ -89,7 +89,7 @@ class RequestTelecomExecutor(Executor):
     Acquire a new phone number from the Genesis Federated Telecom Marketplace.
 
     Required params:
-      (none) — all configuration is resolved from injected services.
+      (none) - all configuration is resolved from injected services.
 
     Optional params:
       country (str): ISO 3166-1 alpha-2 country code (default "US").
@@ -120,7 +120,7 @@ class RequestTelecomExecutor(Executor):
         "IdentityCommConfig so the instance can immediately send and receive SMS."
     )
 
-    required_autonomy = 3       # SOVEREIGN — moves USDC on-chain
+    required_autonomy = 3       # SOVEREIGN - moves USDC on-chain
     reversible = False          # Phone purchase + USDC transfer both irreversible
     max_duration_ms = 60_000    # Genesis provisioning can take up to ~30 s
     rate_limit = RateLimit.per_day(1)   # One number per day maximum
@@ -143,12 +143,12 @@ class RequestTelecomExecutor(Executor):
     async def validate_params(self, params: dict[str, Any]) -> ValidationResult:
         if self._wallet is None:
             return ValidationResult.fail(
-                "WalletClient not configured — cannot pay for telecom provisioning.",
+                "WalletClient not configured - cannot pay for telecom provisioning.",
                 wallet="missing",
             )
         if self._federation is None:
             return ValidationResult.fail(
-                "FederationService not configured — cannot reach Genesis node.",
+                "FederationService not configured - cannot reach Genesis node.",
                 federation="missing",
             )
 

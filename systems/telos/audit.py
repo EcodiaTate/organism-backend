@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: 24-Hour Constitutional Topology Audit
+EcodiaOS - Telos: 24-Hour Constitutional Topology Audit
 
 Runs daily. Verifies all four drive bindings are intact.
 Emits CONSTITUTIONAL_TOPOLOGY_INTACT on success.

@@ -1,7 +1,7 @@
 """
-EcodiaOS — Federation Genome Extraction & Seeding
+EcodiaOS - Federation Genome Extraction & Seeding
 
-Heritable state: trust policy defaults (NOT actual trust scores — those are
+Heritable state: trust policy defaults (NOT actual trust scores - those are
 earned), protocol preferences, known threat patterns.
 
 Child starts with parent's trust policy and threat awareness. Does NOT

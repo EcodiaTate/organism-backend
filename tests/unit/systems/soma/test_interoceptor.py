@@ -1,4 +1,4 @@
-"""Tests for Soma Interoceptor — 9D sensing pipeline."""
+"""Tests for Soma Interoceptor - 9D sensing pipeline."""
 
 from __future__ import annotations
 

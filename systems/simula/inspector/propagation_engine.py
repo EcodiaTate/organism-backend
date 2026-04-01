@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 5: Propagation Engine
+EcodiaOS - Inspector Phase 5: Propagation Engine
 
 Runs influence propagation simulations across the TrustGraph and extracts
 ranked ExpansionCorridors.
@@ -34,7 +34,7 @@ Design decisions
 - max_depth=6: beyond 6 hops the noise-to-signal ratio degrades and runtime grows.
 - HIGH_THRESHOLD=50: nodes below 50 privilege_value are not interesting terminal targets.
 - MAX_ALTERNATIVES=3: one primary + three alternatives per corridor (report clarity).
-- We deliberately do not use Dijkstra's traversal_cost minimisation — we want
+- We deliberately do not use Dijkstra's traversal_cost minimisation - we want
   the *easiest* path (min cost), not the *cheapest* in a weighted-shortest-path sense.
   A separate "easiest attack" rank is produced via the weakest_edge_cost field.
 """
@@ -99,7 +99,7 @@ _TIER_ORDER = {
 
 class PropagationEngine:
     """
-    Propagation simulator — runs per-foothold BFS and extracts ExpansionCorridors.
+    Propagation simulator - runs per-foothold BFS and extracts ExpansionCorridors.
     """
 
     def __init__(

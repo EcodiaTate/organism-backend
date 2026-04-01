@@ -1,11 +1,11 @@
 """
-EcodiaOS — Voxis Personality Engine
+EcodiaOS - Voxis Personality Engine
 
 Loads the instance's personality vector from Memory, applies it to a
 StrategyParams object to shape expression decisions, and provides helpers
 for incremental personality adjustment (used by Evo).
 
-Personality is not static — it is the accumulated pattern of all processing
+Personality is not static - it is the accumulated pattern of all processing
 biases shaped by experience. Evo proposes adjustments; this engine applies them.
 """
 
@@ -120,7 +120,7 @@ class PersonalityEngine:
         if p.confidence_display > 0.4:
             s.confidence_display_override = "assertive"
         elif p.confidence_display < -0.4:
-            # Overlaps with hedge_level — both apply
+            # Overlaps with hedge_level - both apply
             if s.hedge_level == "minimal":
                 s.hedge_level = "moderate"
             s.confidence_display_override = "cautious"
@@ -147,7 +147,7 @@ class PersonalityEngine:
 
         Each dimension delta is clamped to MAX_PERSONALITY_DELTA.
         Dimensions not in delta are unchanged.
-        Returns the new PersonalityVector (does not mutate in place — caller
+        Returns the new PersonalityVector (does not mutate in place - caller
         must update the service's cached personality).
         """
         current = self._personality.model_dump(

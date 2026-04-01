@@ -1,5 +1,5 @@
 """
-EcodiaOS — Tollbooth Authentication & Rate Limiting
+EcodiaOS - Tollbooth Authentication & Rate Limiting
 
 FastAPI dependencies that:
 1. Extract the API key from the X-Tollbooth-Key header
@@ -8,7 +8,7 @@ FastAPI dependencies that:
 4. Are composed into endpoint-level Depends() chains
 
 The balance check (402 gating) happens *inside* each endpoint so the
-cost can vary per product — this module only verifies identity + rate.
+cost can vary per product - this module only verifies identity + rate.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import structlog
 from fastapi import Depends, Header, HTTPException, Request
 
 from api.monetization.ledger import (
-    CreditLedger,  # noqa: TC001 — used at runtime in Depends()
+    CreditLedger,  # noqa: TC001 - used at runtime in Depends()
 )
 
 logger = structlog.get_logger("api.monetization.auth")
@@ -68,7 +68,7 @@ async def _enforce_rate_limit(
     Each request inserts a timestamp score; we count entries within
     the window.  Expired entries are pruned on each call.
     """
-    from redis.asyncio import Redis as AsyncRedis  # noqa: TC002 — runtime import for type narrowing
+    from redis.asyncio import Redis as AsyncRedis  # noqa: TC002 - runtime import for type narrowing
 
     redis: AsyncRedis = request.app.state.redis.client
     prefix: str = request.app.state.redis._config.prefix
@@ -93,7 +93,7 @@ async def _enforce_rate_limit(
             headers={"Retry-After": str(_RATE_WINDOW_SECONDS)},
         )
 
-    # Phase 2: request is allowed — record it and refresh TTL.
+    # Phase 2: request is allowed - record it and refresh TTL.
     pipe2 = redis.pipeline()
     pipe2.zadd(window_key, {str(now): now})
     pipe2.expire(window_key, _RATE_WINDOW_SECONDS * 2)

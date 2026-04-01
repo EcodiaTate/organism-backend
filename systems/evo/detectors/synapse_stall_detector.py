@@ -8,7 +8,7 @@ from systems.evo.detectors import PatternDetector
 
 
 class DetectionResult(EOSBaseModel):
-    """Local detection result type — avoids importing from systems.axon."""
+    """Local detection result type - avoids importing from systems.axon."""
 
     detected: bool
     severity: float
@@ -24,37 +24,37 @@ class SynapseStallDetectorInput(EOSBaseModel):
 class SynapseStallDetector(PatternDetector):
     """
     Detects cognitive stalls in Synapse by monitoring broadcast acknowledgement rates.
-    
+
     Stall Criteria:
     - Broadcast acknowledgement rate below 0.3
     - Sustained over multiple cycles
     """
-    
+
     pattern_type: str = "synapse_cognitive_stall"
     description: str = "Detect cognitive coordination failures in Synapse"
 
     def scan(self, data: Dict[str, Any]) -> Optional[DetectionResult]:
         """
         Scan for cognitive stall conditions in Synapse.
-        
+
         Args:
             data: Input data containing broadcast acknowledgement metrics
-        
+
         Returns:
             DetectionResult if a stall is detected, None otherwise
         """
         try:
             input_data = SynapseStallDetectorInput.model_validate(data)
-            
-            if (input_data.broadcast_ack_rate < 0.3 and 
+
+            if (input_data.broadcast_ack_rate < 0.3 and
                 input_data.cycle_count >= 50):
-                
+
                 logger.warning(
-                    "Cognitive stall detected", 
+                    "Cognitive stall detected",
                     broadcast_ack_rate=input_data.broadcast_ack_rate,
                     cycle_count=input_data.cycle_count
                 )
-                
+
                 return DetectionResult(
                     detected=True,
                     severity=0.8,  # High severity
@@ -64,9 +64,9 @@ class SynapseStallDetector(PatternDetector):
                         "cycle_count": input_data.cycle_count
                     }
                 )
-            
+
             return None
-        
+
         except Exception as e:
             logger.error("Error in stall detection", error=str(e))
             return None

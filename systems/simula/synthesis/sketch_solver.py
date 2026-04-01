@@ -87,7 +87,7 @@ Hole context:
 {context}
 ```
 
-Respond with ONLY the code to fill the hole — no explanation, no markers."""
+Respond with ONLY the code to fill the hole - no explanation, no markers."""
 
 
 class SketchSolver:
@@ -428,7 +428,7 @@ class SketchSolver:
             max_tokens=256,
         )
 
-        # Clean up the response — strip code fences if present
+        # Clean up the response - strip code fences if present
         text = response.text.strip()
         if text.startswith("```"):
             text = re.sub(r"^```\w*\n?", "", text)

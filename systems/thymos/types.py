@@ -1,10 +1,10 @@
 """
-EcodiaOS — Thymos Type Definitions
+EcodiaOS - Thymos Type Definitions
 
 All data types for the immune system: incidents, antibodies, repairs,
 diagnoses, sentinels, and healing governance.
 
-Every error, anomaly, and violation in EOS becomes an Incident — a
+Every error, anomaly, and violation in EOS becomes an Incident - a
 first-class primitive alongside Percept, Belief, and Intent.
 """
 
@@ -29,7 +29,7 @@ __all__ = ["IncidentClass", "IncidentSeverity"]
 
 
 class RepairTier(int, enum.Enum):
-    """Escalation ladder — least invasive first."""
+    """Escalation ladder - least invasive first."""
 
     NOOP = 0  # Transient, already resolved
     PARAMETER = 1  # Adjust a configuration value
@@ -59,8 +59,8 @@ class HealingMode(enum.StrEnum):
 
     NOMINAL = "nominal"  # Normal operation
     HEALING = "healing"  # Active repair in progress
-    STORM = "storm"  # Cytokine storm — focus on root cause only
-    DEGRADED = "degraded"  # Repair budget exhausted — reduced healing capacity
+    STORM = "storm"  # Cytokine storm - focus on root cause only
+    DEGRADED = "degraded"  # Repair budget exhausted - reduced healing capacity
 
 
 # ─── Sentinel Types ──────────────────────────────────────────────
@@ -79,9 +79,9 @@ class FeedbackLoop(EOSBaseModel):
     """Definition of a feedback loop that should be actively transmitting.
 
     ``active`` controls how the sentinel treats an unobserved loop at startup:
-      - ``True``   — loop is expected to be running; MISSING → HIGH incident.
-      - ``False``  — loop is explicitly disabled; never generates incidents.
-      - ``None``   — loop's existence is unknown (not yet implemented in code);
+      - ``True``   - loop is expected to be running; MISSING → HIGH incident.
+      - ``False``  - loop is explicitly disabled; never generates incidents.
+      - ``None``   - loop's existence is unknown (not yet implemented in code);
                      generates LOW/INFO incidents so the flood doesn't drown real alerts.
     """
 
@@ -210,7 +210,7 @@ class Incident(EOSBaseModel):
     The fundamental immune primitive.
 
     Every error, anomaly, and violation becomes an Incident.
-    Incidents are also Percepts — the organism perceives its own
+    Incidents are also Percepts - the organism perceives its own
     failures through the normal workspace broadcast cycle.
     """
 
@@ -441,7 +441,7 @@ class Antibody(EOSBaseModel):
 
     When a repair succeeds, it becomes an Antibody. The next time an
     incident with the same fingerprint appears, the antibody is applied
-    instantly — no diagnosis needed.
+    instantly - no diagnosis needed.
 
     This is genuine adaptive immunity: the organism gets harder to break
     over time.
@@ -491,7 +491,7 @@ class ProphylacticWarning(EOSBaseModel):
 
 
 class ParameterAdjustment(EOSBaseModel):
-    """A homeostatic parameter nudge — Tier 1, no governance."""
+    """A homeostatic parameter nudge - Tier 1, no governance."""
 
     metric_name: str
     current_value: float

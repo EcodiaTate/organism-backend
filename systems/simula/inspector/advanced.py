@@ -1,32 +1,32 @@
 """
-EcodiaOS — Inspector Advanced Features (Phase 12)
+EcodiaOS - Inspector Advanced Features (Phase 12)
 
 Extends the core vulnerability discovery engine with production-ready CART
 (Continuous Automated Red Teaming) features:
 
-1. **Multi-Language Support** — Detect Go, Rust, TypeScript attack surfaces with
+1. **Multi-Language Support** - Detect Go, Rust, TypeScript attack surfaces with
    high confidence via AST and pattern matching.
 
-2. **Attack Path Detection** — Identify sequences of 2+ vulnerabilities that
+2. **Attack Path Detection** - Identify sequences of 2+ vulnerabilities that
    collectively enable a higher-severity logical flaw.
 
-3. **Autonomous Patching** — Auto-generate GitHub PRs with patches and CI integration
+3. **Autonomous Patching** - Auto-generate GitHub PRs with patches and CI integration
    via the RepairAgent.
 
-4. **Continuous Hunting** — Schedule periodic scans of registered repositories with
+4. **Continuous Hunting** - Schedule periodic scans of registered repositories with
    incremental discovery and change-based retesting.
 
 Architecture:
-  - MultiLanguageSurfaceDetector      — extends ingestor with Go/Rust/TS support
-  - AttackPathAnalyzer                — models multi-vuln state sequences
-  - AutonomousPatchingOrchestrator    — GitHub API integration + PR automation
-  - ContinuousHuntingScheduler        — cron-like recurring hunts with state persistence
+  - MultiLanguageSurfaceDetector      - extends ingestor with Go/Rust/TS support
+  - AttackPathAnalyzer                - models multi-vuln state sequences
+  - AutonomousPatchingOrchestrator    - GitHub API integration + PR automation
+  - ContinuousHuntingScheduler        - cron-like recurring hunts with state persistence
 
 Integration points:
-  - TargetIngestor — inject new language detectors
-  - VulnerabilityProver — sequence detection feeds from vulnerability reports
-  - InspectorService — expose new async methods for patching + scheduling
-  - InspectorAnalyticsEmitter — track path discoveries, PR outcomes
+  - TargetIngestor - inject new language detectors
+  - VulnerabilityProver - sequence detection feeds from vulnerability reports
+  - InspectorService - expose new async methods for patching + scheduling
+  - InspectorAnalyticsEmitter - track path discoveries, PR outcomes
 """
 
 from __future__ import annotations

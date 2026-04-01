@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thymos Event Payload Validation Models (AV6)
+EcodiaOS - Thymos Event Payload Validation Models (AV6)
 
 Pydantic v2 models for all Synapse event payloads that Thymos subscribes to.
 Validation is NON-BLOCKING: on failure, the raw dict is passed through with
@@ -27,7 +27,7 @@ logger = structlog.get_logger()
 
 
 class _Lenient(BaseModel):
-    """All payload models inherit this — extra fields are allowed."""
+    """All payload models inherit this - extra fields are allowed."""
 
     model_config = {"extra": "allow"}
 

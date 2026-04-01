@@ -1,5 +1,5 @@
 """
-EcodiaOS — Financial Memory Encoder
+EcodiaOS - Financial Memory Encoder
 
 Subscribes to the Synapse event bus for on-chain wallet activity and
 revenue-injection events, then immediately writes them as EpisodicMemory
@@ -56,7 +56,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.memory.financial_encoder")
 
-# Salience score injected for every financial episode — bypasses SalienceHead entirely.
+# Salience score injected for every financial episode - bypasses SalienceHead entirely.
 _FINANCIAL_SALIENCE: float = 1.0
 
 # Affect presets: spending hurts a little; income is rewarding.
@@ -144,7 +144,7 @@ class FinancialEncoder:
         self._embedding = embedding_client
         self._logger = logger.bind(component="financial_encoder")
 
-        # Episode-sequence state — kept in sync with MemoryService via
+        # Episode-sequence state - kept in sync with MemoryService via
         # set_sequence_state / get_sequence_state calls.
         self._last_episode_id: str | None = None
         self._last_episode_time: float | None = None  # monotonic seconds
@@ -194,7 +194,7 @@ class FinancialEncoder:
     # ─── Event handlers ───────────────────────────────────────────
 
     async def _on_wallet_transfer_confirmed(self, event: SynapseEvent) -> None:
-        """Handle WALLET_TRANSFER_CONFIRMED — encode as salience=1.0 episode."""
+        """Handle WALLET_TRANSFER_CONFIRMED - encode as salience=1.0 episode."""
         data = event.data
         narrative = _narrative_transfer(data)
         self._logger.info(
@@ -221,7 +221,7 @@ class FinancialEncoder:
         )
 
     async def _on_revenue_injected(self, event: SynapseEvent) -> None:
-        """Handle REVENUE_INJECTED — encode as salience=1.0 episode."""
+        """Handle REVENUE_INJECTED - encode as salience=1.0 episode."""
         data = event.data
         narrative = _narrative_revenue(data)
         self._logger.info(
@@ -261,7 +261,7 @@ class FinancialEncoder:
         """
         Write a financial event as a maximum-salience Episode to Neo4j.
 
-        salience_composite is ALWAYS set to 1.0 — the SalienceHead pipeline
+        salience_composite is ALWAYS set to 1.0 - the SalienceHead pipeline
         is completely bypassed for these events.  This is intentional and
         documented behaviour (see module docstring).
         """

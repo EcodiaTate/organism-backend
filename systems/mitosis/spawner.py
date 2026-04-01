@@ -1,5 +1,5 @@
 """
-EcodiaOS — Local Docker Spawner (Phase 16e: Speciation)
+EcodiaOS - Local Docker Spawner (Phase 16e: Speciation)
 
 Docker-out-of-Docker (DooD) implementation for local/dev mitosis.
 
@@ -22,7 +22,7 @@ Safety:
   - Containers are resource-capped (1 CPU, 1 GiB RAM) to prevent runaways.
   - Boot is time-bounded (default 120 s); if the child fails to start, the
     container is removed and the caller gets ``SpawnResult.success = False``.
-  - The spawner never touches the filesystem or modifies parent state — it is
+  - The spawner never touches the filesystem or modifies parent state - it is
     pure infrastructure orchestration.
 """
 
@@ -59,7 +59,7 @@ class SpawnResult:
     child_ws_port: int = 0
     child_federation_port: int = 0
     error: str = ""
-    # Full env that was injected (minus secrets) — useful for debugging
+    # Full env that was injected (minus secrets) - useful for debugging
     injected_env_keys: list[str] = field(default_factory=list)
 
     @property
@@ -103,7 +103,7 @@ class LocalDockerSpawner:
 
     Uses Docker-out-of-Docker: the parent container's ``/var/run/docker.sock``
     is mounted, so ``docker.from_env()`` targets the host daemon.  Each child
-    gets its own ports, env vars, and config — fully isolated.
+    gets its own ports, env vars, and config - fully isolated.
 
     Parameters
     ----------
@@ -166,7 +166,7 @@ class LocalDockerSpawner:
         except ImportError:
             return SpawnResult(
                 success=False,
-                error="docker Python package not installed — run: pip install docker",
+                error="docker Python package not installed - run: pip install docker",
             )
 
         child_id = child_config.child_instance_id
@@ -222,7 +222,7 @@ class LocalDockerSpawner:
                     ports=port_bindings,
                     volumes=volumes,
                     network=self._network,
-                    # Resource caps — prevent runaway children
+                    # Resource caps - prevent runaway children
                     mem_limit="1g",
                     cpu_period=100_000,
                     cpu_quota=100_000,  # 1 full CPU
@@ -400,7 +400,7 @@ class LocalDockerSpawner:
         A successful TCP connect means uvicorn is accepting connections.
         The FastAPI ``/health`` endpoint itself will return once the app
         is fully wired, but a TCP-level check is sufficient for spawn
-        confirmation — the Federation handshake validates deeper readiness.
+        confirmation - the Federation handshake validates deeper readiness.
         """
         log = self._log.bind(host=host, port=port)
         deadline = asyncio.get_running_loop().time() + timeout_s

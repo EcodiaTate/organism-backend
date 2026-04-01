@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Stage 2: Causal Direction Testing
+EcodiaOS - Kairos Stage 2: Causal Direction Testing
 
 Three independent tests. Agreement determines accepted direction.
 

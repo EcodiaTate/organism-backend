@@ -1,13 +1,13 @@
 """
-EcodiaOS — Kairos (Causal Invariant Mining) API Router
+EcodiaOS - Kairos (Causal Invariant Mining) API Router
 
 Exposes the Kairos causal mining pipeline state for observability and frontend:
 
-  GET  /api/v1/kairos/health             — Health status and pipeline metrics
-  GET  /api/v1/kairos/ledger             — Intelligence contribution ledger summary
-  GET  /api/v1/kairos/counter-invariants — Counter-invariant stats across all invariants
-  GET  /api/v1/kairos/tier3              — Tier 3 (substrate-independent) invariants
-  GET  /api/v1/kairos/step-changes       — Recent intelligence ratio step changes
+  GET  /api/v1/kairos/health             - Health status and pipeline metrics
+  GET  /api/v1/kairos/ledger             - Intelligence contribution ledger summary
+  GET  /api/v1/kairos/counter-invariants - Counter-invariant stats across all invariants
+  GET  /api/v1/kairos/tier3              - Tier 3 (substrate-independent) invariants
+  GET  /api/v1/kairos/step-changes       - Recent intelligence ratio step changes
 """
 
 from __future__ import annotations
@@ -180,7 +180,7 @@ async def get_tier3_invariants(
     """
     Tier 3 (substrate-independent) invariants.
 
-    Returns the most recently discovered Tier 3 causal invariants — those
+    Returns the most recently discovered Tier 3 causal invariants - those
     that hold across 4+ domains spanning 3+ substrates.
     """
     kairos = _get_kairos(request)

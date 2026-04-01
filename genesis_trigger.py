@@ -583,7 +583,7 @@ async def inject_into_live_organism(
             _log(f"Certificate minting failed (non-fatal): {_cert_err}", "warn")
             _log("Organism will operate uncertified until Federation issues a cert", "warn")
     else:
-        _log("No CertificateManager available — certificate minting skipped", "warn")
+        _log("No CertificateManager available - certificate minting skipped", "warn")
 
     # 4. Inject the seed economic state into the live organism
     _log("Injecting genesis economic state into live Oikos...", "bolt")

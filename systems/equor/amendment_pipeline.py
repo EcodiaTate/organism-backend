@@ -1,18 +1,18 @@
 """
-EcodiaOS — Equor Amendment Pipeline
+EcodiaOS - Equor Amendment Pipeline
 
 The formal governance mechanism for evolving non-invariant constitutional rules.
-Amendments can change drive weights, thresholds, and operational policies —
+Amendments can change drive weights, thresholds, and operational policies -
 but the 10 core invariants are immutable and can never be amended.
 
 Pipeline stages:
-  1. Proposal   — submit change + rationale + supporting evidence (Evo hypothesis IDs)
-  2. Validation — structural checks, cooldown, evidence quality
-  3. Shadow     — proposed rule runs alongside the current rule; both produce verdicts
-  4. Drift Gate — measure whether shadow verdicts cause constitutional drift
-  5. Vote       — supermajority community vote (only after shadow period passes)
-  6. Adoption   — apply the amendment, increment constitution version
-  7. Cooldown   — prevent rapid erosion through incremental changes
+  1. Proposal   - submit change + rationale + supporting evidence (Evo hypothesis IDs)
+  2. Validation - structural checks, cooldown, evidence quality
+  3. Shadow     - proposed rule runs alongside the current rule; both produce verdicts
+  4. Drift Gate - measure whether shadow verdicts cause constitutional drift
+  5. Vote       - supermajority community vote (only after shadow period passes)
+  6. Adoption   - apply the amendment, increment constitution version
+  7. Cooldown   - prevent rapid erosion through incremental changes
 
 Shadow mode is the heart of the pipeline: every review() call during the shadow
 period runs the verdict engine TWICE (current weights and proposed weights) and
@@ -239,7 +239,7 @@ def evaluate_shadow(
     compare against the current verdict.  Called during every review()
     while a shadow period is active.
 
-    This is a CPU-only operation — the expensive drive evaluation has
+    This is a CPU-only operation - the expensive drive evaluation has
     already been done; we just re-run compute_verdict with different weights.
     """
     # Current verdict

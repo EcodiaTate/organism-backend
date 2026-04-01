@@ -1,11 +1,11 @@
 """
-EcodiaOS — Nexus Type Definitions
+EcodiaOS - Nexus Type Definitions
 
 All data types for epistemic triangulation: shareable world model fragments,
 convergence detection, triangulation metadata, divergence measurement,
 and speciation incentives.
 
-Core insight: instances should not share beliefs — they share the structure
+Core insight: instances should not share beliefs - they share the structure
 beneath beliefs. Convergence across maximally diverse compression paths is
 the primary evidence for ground truth.
 """
@@ -27,10 +27,10 @@ from primitives.common import EOSBaseModel, Identified, new_id, utc_now
 class DivergenceClassification(enum.StrEnum):
     """Classification of how different two instances are."""
 
-    SAME_KIND = "same_kind"          # overall < 0.2 — near-duplicate, zero triangulation value
-    RELATED_KIND = "related_kind"    # overall < 0.5 — same species, different subspecies
-    DISTINCT_KIND = "distinct_kind"  # overall >= 0.5 — true speciation threshold
-    ALIEN_KIND = "alien_kind"        # overall >= 0.8 — convergence from here is near-proof
+    SAME_KIND = "same_kind"          # overall < 0.2 - near-duplicate, zero triangulation value
+    RELATED_KIND = "related_kind"    # overall < 0.5 - same species, different subspecies
+    DISTINCT_KIND = "distinct_kind"  # overall >= 0.5 - true speciation threshold
+    ALIEN_KIND = "alien_kind"        # overall >= 0.8 - convergence from here is near-proof
 
 
 class FragmentShareOutcome(enum.StrEnum):
@@ -191,7 +191,7 @@ class CompressionPath(EOSBaseModel):
     """
     Ordered list of stage names applied during compression.
     E.g. ["holographic_encoding", "slow_wave_distillation", "schema_induction"].
-    Fast comparison path — mirrors step[*].stage without traversing step records.
+    Fast comparison path - mirrors step[*].stage without traversing step records.
     """
 
     fidelity_score: float = 0.0
@@ -306,7 +306,7 @@ class ShareableWorldModelFragment(Identified):
     abstract_structure: dict[str, Any] = Field(default_factory=dict)
     """
     The relational skeleton: node types, edge types, cardinalities,
-    symmetries, invariants — everything except domain-specific names.
+    symmetries, invariants - everything except domain-specific names.
     Example: {"nodes": 3, "edges": [{"type": "causal", "from": 0, "to": 1},
               {"type": "causal", "from": 1, "to": 2}], "symmetry": "chain"}
 
@@ -546,10 +546,10 @@ class DivergencePressure(EOSBaseModel):
     """How strongly to push toward divergence. 0 = no pressure, 1 = urgent."""
 
     frontier_domains: list[str] = Field(default_factory=list)
-    """Domains that the federation lacks coverage in — explore these."""
+    """Domains that the federation lacks coverage in - explore these."""
 
     saturated_domains: list[str] = Field(default_factory=list)
-    """Domains where the federation has excess coverage — avoid these."""
+    """Domains where the federation has excess coverage - avoid these."""
 
     recommended_direction: str = ""
     """Natural-language description of the recommended divergence direction."""
@@ -570,7 +570,7 @@ class WorldModelFragmentShare(EOSBaseModel):
     IIEP message payload for sharing a world model fragment via
     WORLD_MODEL_FRAGMENT_SHARE Synapse event.
 
-    This is the wire format — what actually gets sent over federation.
+    This is the wire format - what actually gets sent over federation.
     The receiving instance's Nexus validates, compares structures,
     and updates triangulation metadata.
 
@@ -595,7 +595,7 @@ class WorldModelFragmentShare(EOSBaseModel):
     # Sleep certification metadata (Gap MEDIUM-6)
     sleep_certified: bool = False
     """
-    Mirror of fragment.sleep_certification.is_certified — lifted to top level
+    Mirror of fragment.sleep_certification.is_certified - lifted to top level
     so receivers can gate without deserialising the full fragment.
     Must be True for the receiver to accept the fragment.
     """
@@ -639,7 +639,7 @@ class IIEPFragmentType(enum.StrEnum):
     """Summary of convergence results for triangulation book-keeping."""
 
     SESSION_OPEN = "session_open"
-    """Protocol handshake — sent once per session to establish context."""
+    """Protocol handshake - sent once per session to establish context."""
 
     SESSION_CLOSE = "session_close"
     """Graceful session termination."""
@@ -681,12 +681,12 @@ class IIEPMessage(EOSBaseModel):
     # Payload classification
     fragment_type: IIEPFragmentType = IIEPFragmentType.WORLD_MODEL_FRAGMENT
 
-    # Core payload — the actual epistemic content being shared.
+    # Core payload - the actual epistemic content being shared.
     # Typed as dict[str, Any] so any serialisable payload fits;
     # receivers use fragment_type to deserialise to the correct type.
     payload: dict[str, Any] = Field(default_factory=dict)
 
-    # Sleep certification (fast-path gate — receivers check before full parse)
+    # Sleep certification (fast-path gate - receivers check before full parse)
     sleep_certified: bool = False
     """True only when the carried fragment survived full Oneiros consolidation."""
 
@@ -695,7 +695,7 @@ class IIEPMessage(EOSBaseModel):
     """
     0 = initial share.
     N = re-share after N independent confirmations.
-    Receivers use this to weight the triangulation evidence appropriately —
+    Receivers use this to weight the triangulation evidence appropriately -
     re-shared fragments already have prior confirmation and require more
     diverse sources to advance the next triangulation level.
     """
@@ -736,7 +736,7 @@ class InstanceDivergenceProfile(EOSBaseModel):
     # 0.0 = converged (same strategy), 1.0 = fully diverged.
     # Measured as revenue-per-strategy variance normalised across peers.
     # Used by Oikos and Evo to detect when instances have independently
-    # discovered different profitable strategies — valuable for triangulation.
+    # discovered different profitable strategies - valuable for triangulation.
     economic_divergence: float = Field(0.0, ge=0.0, le=1.0)
 
     # Snapshot of per-strategy revenue rates for variance computation.
@@ -816,7 +816,7 @@ class NexusConfig(EOSBaseModel):
       EMPIRICAL_INVARIANT (4)    → tier 4 → $0.004
 
     Instances that achieve convergence receive this reward;
-    divergent instances receive nothing — selection pressure toward sharing.
+    divergent instances receive nothing - selection pressure toward sharing.
     Emitted as ``economic_reward_usd`` in NEXUS_CONVERGENCE_METABOLIC_SIGNAL.
     """
 
@@ -842,7 +842,7 @@ class EpistemicLevel(enum.IntEnum):
     Epistemic status of a knowledge fragment.
 
     Each level requires strictly more evidence than the last.
-    Level 4 is constitutional — protected by Equor governance.
+    Level 4 is constitutional - protected by Equor governance.
     """
 
     HYPOTHESIS = 0            # Single instance. Could be experience path artifact.
@@ -856,7 +856,7 @@ class SpeciationEvent(EOSBaseModel):
     """
     Record that two instances have diverged beyond the speciation threshold.
 
-    After speciation, normal fragment sharing is impossible — only causal
+    After speciation, normal fragment sharing is impossible - only causal
     invariants (the most compressed structures) can cross the boundary
     via InvariantBridge.
 
@@ -884,7 +884,7 @@ class SpeciationEvent(EOSBaseModel):
     is_new_species: bool = False
     """
     True if this speciation event created a new cognitive kind entry in the
-    SpeciationRegistry — i.e., at least one of the instances was not
+    SpeciationRegistry - i.e., at least one of the instances was not
     previously classified in any existing cognitive kind.
     """
 
@@ -894,7 +894,7 @@ class ConvergedInvariant(EOSBaseModel):
     Two invariants from speciated (alien-kind) instances that match
     at the purest structural level.
 
-    This is the strongest possible evidence for ground truth — two
+    This is the strongest possible evidence for ground truth - two
     instances with incompatible structural languages independently
     arrived at the same abstract form.
     """
@@ -926,7 +926,7 @@ class InvariantExchangeReport(EOSBaseModel):
 
 class CognitiveKindEntry(EOSBaseModel):
     """
-    Registry entry for a cognitive kind — a class of instances that
+    Registry entry for a cognitive kind - a class of instances that
     share structural language compatibility.
 
     Instances within the same kind can share fragments normally.

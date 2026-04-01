@@ -1,5 +1,5 @@
 """
-EcodiaOS — Common Primitives
+EcodiaOS - Common Primitives
 
 Shared enums, base classes, and utilities used across all systems.
 """

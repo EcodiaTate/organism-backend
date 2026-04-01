@@ -1,13 +1,13 @@
 """
-EcodiaOS — Soma Abstract Base Classes
+EcodiaOS - Soma Abstract Base Classes
 
 Strategy interfaces for hot-reloadable Soma components. The
 NeuroplasticityBus can evolve these at runtime by swapping in new
 subclasses discovered via the ``eos:events:code_evolved`` channel.
 
 Two ABCs:
-  BaseSomaPredictor       — multi-horizon interoceptive prediction
-  BaseAllostaticRegulator — setpoint management, urgency, signal construction
+  BaseSomaPredictor       - multi-horizon interoceptive prediction
+  BaseAllostaticRegulator - setpoint management, urgency, signal construction
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class BaseSomaPredictor(ABC):
         self,
         current_errors: dict[InteroceptiveDimension, float],
     ) -> dict[InteroceptiveDimension, float]:
-        """Compute d(error)/dt — is each dimension improving or worsening?"""
+        """Compute d(error)/dt - is each dimension improving or worsening?"""
 
     @abstractmethod
     def update_dynamics(self, new_dynamics: list[list[float]]) -> None:

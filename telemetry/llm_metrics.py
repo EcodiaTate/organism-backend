@@ -1,5 +1,5 @@
 """
-EcodiaOS — LLM Metrics & Cost Telemetry
+EcodiaOS - LLM Metrics & Cost Telemetry
 
 Aggregates token spend, latency, cache hit rate, and cost.
 Emits observability signals for dashboards and alerts.

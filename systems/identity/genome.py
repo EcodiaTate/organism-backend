@@ -1,10 +1,10 @@
 """
-EcodiaOS — Identity Genome Extraction & Seeding
+EcodiaOS - Identity Genome Extraction & Seeding
 
 Heritable state: constitutional hash, identity parameters (generation,
 instance config), certificate configuration.
 
-The identity genome is critical for speciation — it defines what makes
+The identity genome is critical for speciation - it defines what makes
 this organism _this_ organism. A child inherits the parent's constitutional
 hash and identity parameters, establishing lineage continuity.
 """

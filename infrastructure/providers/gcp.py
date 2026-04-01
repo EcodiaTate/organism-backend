@@ -1,5 +1,5 @@
 """
-EcodiaOS — GCP Compute Provider (Stub)
+EcodiaOS - GCP Compute Provider (Stub)
 
 Stubbed GCP pricing check for Cloud Run. Returns published on-demand
 pricing for the EOS reference workload (2 vCPU / 4 GiB / 20 GiB).
@@ -66,7 +66,7 @@ class GCPProvider(ProviderManager):
         """
         Return the published GCP Cloud Run on-demand price.
 
-        Uses static pricing — no API call required. Regional price
+        Uses static pricing - no API call required. Regional price
         multipliers are not applied (stub). australia-southeast1 is
         ~1.15x us-central1 but we use base rates for comparison.
         """

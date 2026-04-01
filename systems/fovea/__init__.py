@@ -1,5 +1,5 @@
 """
-Fovea — The Unified Perception Engine.
+Fovea - The Unified Perception Engine.
 
 EOS's predictive coding layer and perception pipeline. Fovea computes
 prediction errors against the world model, manages the Global Workspace,

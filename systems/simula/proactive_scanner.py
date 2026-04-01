@@ -1,8 +1,8 @@
 """
-EcodiaOS — Simula Proactive Scanner  (Tasks 1 & 3)
+EcodiaOS - Simula Proactive Scanner  (Tasks 1 & 3)
 
 ────────────────────────────────────────────────────────────────────────────
-Task 1 — ProactiveScanner
+Task 1 - ProactiveScanner
 ────────────────────────────────────────────────────────────────────────────
 Simula hunts for pathology rather than waiting for Thymos to escalate to T4.
 
@@ -10,25 +10,25 @@ Runs every 5 minutes (configurable via SIMULA_PROACTIVE_INTERVAL_S env var).
 On each scan cycle:
   1. Reads the last 50 Thymos (:Incident) nodes from Neo4j.
   2. Detects three pattern types:
-       REPEAT_FAILURE   — same source_system appears ≥3 times in 50 incidents
-       RECURRING_ERROR  — same incident_class appears ≥4 times in 50 incidents
-       FALSE_RESOLUTION — same fingerprint was "resolved" T1/T2 but re-appeared
+       REPEAT_FAILURE   - same source_system appears ≥3 times in 50 incidents
+       RECURRING_ERROR  - same incident_class appears ≥4 times in 50 incidents
+       FALSE_RESOLUTION - same fingerprint was "resolved" T1/T2 but re-appeared
   3. For each detected pattern, generates an EvolutionProposal with
      source="simula_proactive" and submits it to the normal pipeline
      (process_proposal is passed in as a callable).
-  4. Respects SIMULA_PROACTIVE_DRY_RUN=true — logs proposals but never submits.
+  4. Respects SIMULA_PROACTIVE_DRY_RUN=true - logs proposals but never submits.
   5. Logs every scan: patterns_detected, proposals_generated,
      proposals_approved, proposals_applied.
 
 ────────────────────────────────────────────────────────────────────────────
-Task 3 — GoalAuditor
+Task 3 - GoalAuditor
 ────────────────────────────────────────────────────────────────────────────
 Nova accumulates "Monitor system recovery" maintenance goals indefinitely.
 The GoalAuditor cleans them up every 10 minutes.
 
   • Queries (:Goal) nodes where source="maintenance" older than 30 minutes.
   • Checks whether the monitored system is currently healthy (reads the last
-    Incident for that system — if the most recent is repair_successful=true
+    Incident for that system - if the most recent is repair_successful=true
     and >10 min ago, the system is considered healthy).
   • Marks stale maintenance goals ACHIEVED in Neo4j.
   • Emits GOAL_HYGIENE_COMPLETE on the Synapse bus.
@@ -37,9 +37,9 @@ The GoalAuditor cleans them up every 10 minutes.
 ────────────────────────────────────────────────────────────────────────────
 Configuration (env vars)
 ────────────────────────────────────────────────────────────────────────────
-SIMULA_PROACTIVE_DRY_RUN=true    — log proposals but do not submit (default: false)
-SIMULA_PROACTIVE_INTERVAL_S=300  — seconds between ProactiveScanner runs (default: 300)
-SIMULA_GOAL_AUDIT_INTERVAL_S=600 — seconds between GoalAuditor runs (default: 600)
+SIMULA_PROACTIVE_DRY_RUN=true    - log proposals but do not submit (default: false)
+SIMULA_PROACTIVE_INTERVAL_S=300  - seconds between ProactiveScanner runs (default: 300)
+SIMULA_GOAL_AUDIT_INTERVAL_S=600 - seconds between GoalAuditor runs (default: 600)
 """
 
 from __future__ import annotations
@@ -151,7 +151,7 @@ class ProactiveScanner:
     ``process_proposal_fn``.  The scanner calls it for each generated
     proposal, so it goes through the normal 7-stage pipeline.
 
-    The GoalAuditor is embedded here (Task 3) — it runs on a separate
+    The GoalAuditor is embedded here (Task 3) - it runs on a separate
     (slower) timer within the same supervision loop.
     """
 
@@ -196,7 +196,7 @@ class ProactiveScanner:
         self.stats.dry_run = self._dry_run
 
         # Track which (source_system, incident_class) pairs we already
-        # proposed for — avoid flooding the pipeline with identical proposals
+        # proposed for - avoid flooding the pipeline with identical proposals
         # across consecutive scans.
         self._proposed_patterns: set[str] = set()
         self._pattern_proposal_lock: asyncio.Lock = asyncio.Lock()
@@ -261,7 +261,7 @@ class ProactiveScanner:
 
         The scan interval shrinks when Soma reports high urgency so the scanner
         reacts faster under allostatic distress. Designed to be wrapped in
-        supervised_task() — the outer supervisor handles restarts, so this loop
+        supervised_task() - the outer supervisor handles restarts, so this loop
         exits cleanly on CancelledError.
         """
         self.stats.scanner_alive = True
@@ -275,10 +275,10 @@ class ProactiveScanner:
 
         try:
             while not self._shutdown_flag:
-                # ProactiveScanner — Task 1
+                # ProactiveScanner - Task 1
                 await self._run_scan()
 
-                # GoalAuditor — Task 3 (runs every goal_audit_interval_s)
+                # GoalAuditor - Task 3 (runs every goal_audit_interval_s)
                 now = utc_now()
                 if (
                     self._last_goal_audit_at is None
@@ -294,7 +294,7 @@ class ProactiveScanner:
             self._log.info("proactive_scanner_stopped")
             raise
         except Exception as exc:
-            # Unexpected exception in proactive scanner — emit to Thymos
+            # Unexpected exception in proactive scanner - emit to Thymos
             # The immune system must be able to heal itself
             self.stats.scanner_alive = False
             self._log.error(
@@ -312,7 +312,7 @@ class ProactiveScanner:
     # ─── Task 1: Proactive scan ───────────────────────────────────────────────
 
     async def _run_scan(self) -> None:
-        """Single scan cycle — detect patterns, generate proposals."""
+        """Single scan cycle - detect patterns, generate proposals."""
         # Sweep time-expired flags (e.g. evo stall) so they don't persist
         # indefinitely when no evo proposals are arriving to trigger auto-clear.
         if self._sweep_stale_flags is not None:
@@ -448,7 +448,7 @@ class ProactiveScanner:
                                 "preventing constitutional misalignment cascade."
                             ),
                             risk_assessment=(
-                                "Drive-coupled autonomous repair. Organism is in distress — "
+                                "Drive-coupled autonomous repair. Organism is in distress - "
                                 "delay cost exceeds intervention risk."
                             ),
                         )
@@ -548,9 +548,9 @@ class ProactiveScanner:
         Detect pathology patterns from the incident list.
 
         Three pattern types:
-          REPEAT_FAILURE   — same source_system fails ≥ threshold
-          RECURRING_ERROR  — same incident_class appears ≥ threshold
-          FALSE_RESOLUTION — same fingerprint was "resolved" T1/T2 but re-appeared
+          REPEAT_FAILURE   - same source_system fails ≥ threshold
+          RECURRING_ERROR  - same incident_class appears ≥ threshold
+          FALSE_RESOLUTION - same fingerprint was "resolved" T1/T2 but re-appeared
         """
         patterns: list[_Pattern] = []
         by_system: Counter[str] = Counter()
@@ -643,7 +643,7 @@ class ProactiveScanner:
                         f"Fingerprint '{fp[:16]}...' (system: '{sys}', class: '{cls}') "
                         f"was marked resolved at tier {tiers[0]} but has recurred "
                         f"{len(tiers)} times. The tier repair did not address the "
-                        f"root cause — structural intervention is needed."
+                        f"root cause - structural intervention is needed."
                     ),
                     evidence=fp_incidents[:10],
                 ))
@@ -748,7 +748,7 @@ class ProactiveScanner:
             monitored_system = self._extract_system_from_maintenance_goal(description)
 
             if monitored_system and not await self._is_system_healthy(monitored_system):
-                # System still unhealthy — leave the goal active
+                # System still unhealthy - leave the goal active
                 continue
 
             # Mark goal ACHIEVED in Neo4j
@@ -895,7 +895,7 @@ class ProactiveScanner:
                 system=system_name,
                 error=str(exc),
             )
-            return False  # Be conservative — don't retire if we can't verify
+            return False  # Be conservative - don't retire if we can't verify
 
     @staticmethod
     def _extract_system_from_maintenance_goal(description: str) -> str:

@@ -5,10 +5,10 @@ Covers:
   - Connection lifecycle (connect → initial state → disconnect)
   - Auth rejection (4401) when tokens configured, token missing or wrong
   - Auth pass-through when no tokens configured
-  - Affect payload serialization — all fields present, dominance sourced correctly
-  - System state snapshot serialization — all 13 sections present
-  - Timeout protection — hung subsystem returns {"available": False, "error": "timeout"}
-  - RE training stream write — xadd called per poll cycle
+  - Affect payload serialization - all fields present, dominance sourced correctly
+  - System state snapshot serialization - all 13 sections present
+  - Timeout protection - hung subsystem returns {"available": False, "error": "timeout"}
+  - RE training stream write - xadd called per poll cycle
   - Health report reflects wired systems
 """
 

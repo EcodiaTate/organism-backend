@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Cognitive Stall Pattern Detector
+EcodiaOS - Synapse Cognitive Stall Pattern Detector
 
 Detects cognitive stalls in Synapse subsystems by monitoring:
 1. Broadcast acknowledgement rates

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 3: Binary / Static Analysis Types
+EcodiaOS - Inspector Phase 3: Binary / Static Analysis Types
 
 All domain models for the static side of the inspector pipeline:
   - CFG recovery (function graph + basic blocks)
@@ -23,14 +23,14 @@ Layer map
   ┌──────────────────────────────────────────────────────────────────────────┐
   │  Source files / compiled binary                                          │
   │    ↓  CfgBuilder  (AST walk or binary disassembly)                       │
-  │  StaticCFG  — nodes (BasicBlock) + edges (ControlEdge)                  │
+  │  StaticCFG  - nodes (BasicBlock) + edges (ControlEdge)                  │
   │    ↓                                                                     │
-  │  FragmentCatalog  — instruction-sequence / call-chain fragments          │
+  │  FragmentCatalog  - instruction-sequence / call-chain fragments          │
   │  indexed by FragmentSemantics                                            │
   │    ↓                                                                     │
-  │  TraceMapper  — runtime ControlFlowTrace → TraceStaticMapping            │
+  │  TraceMapper  - runtime ControlFlowTrace → TraceStaticMapping            │
   │    ↓                                                                     │
-  │  ExecutionAtlas  — complete per-target picture                           │
+  │  ExecutionAtlas  - complete per-target picture                           │
   │  (CFG + hot paths + failure-adjacent regions + fragment catalog)         │
   └──────────────────────────────────────────────────────────────────────────┘
 
@@ -56,7 +56,7 @@ from primitives.common import EOSBaseModel, new_id, utc_now
 class EdgeKind(enum.StrEnum):
     """The structural type of a CFG control-flow edge."""
 
-    DIRECT_CALL   = "direct_call"      # foo() — statically known callee
+    DIRECT_CALL   = "direct_call"      # foo() - statically known callee
     INDIRECT_CALL = "indirect_call"    # (*fp)() / virtual dispatch / dyn
     RETURN        = "return"           # function return arc
     UNCONDITIONAL = "unconditional"    # jmp / goto
@@ -70,7 +70,7 @@ class FragmentSemantics(enum.StrEnum):
     """
     High-level semantic category of an instruction / call-chain fragment.
 
-    These categories drive the fragment catalog index — a consumer querying
+    These categories drive the fragment catalog index - a consumer querying
     "what memory-write fragments are reachable from this BB?" will search on
     MEMORY_WRITE.
     """
@@ -123,7 +123,7 @@ class BasicBlock(EOSBaseModel):
     start_line: int | None = None
     end_line:   int | None = None
 
-    # Instruction-level content (optional — available when backend provides it)
+    # Instruction-level content (optional - available when backend provides it)
     instructions: list[str] = Field(
         default_factory=list,
         description="Disassembled / source lines in this block",
@@ -289,7 +289,7 @@ class CodeFragment(EOSBaseModel):
     # All semantic tags present (may be multiple)
     all_semantics: list[FragmentSemantics] = Field(default_factory=list)
 
-    # Location — for single-block fragments
+    # Location - for single-block fragments
     block_id:  str = Field(default="")
     func_name: str = Field(default="")
     file_path: str = Field(default="")
@@ -481,7 +481,7 @@ class FailureAdjacentRegion(EOSBaseModel):
     A subgraph of the CFG that appeared in failure/crash runs but not (or rarely)
     in normal runs.
 
-    These regions are the primary interest of Phase 3 — they represent code
+    These regions are the primary interest of Phase 3 - they represent code
     that is only exercised when something goes wrong, and are therefore
     candidates for steerability analysis.
     """

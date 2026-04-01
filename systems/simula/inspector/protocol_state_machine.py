@@ -1,14 +1,14 @@
 """
-EcodiaOS — Inspector Phase 6: Protocol FSM Builder
+EcodiaOS - Inspector Phase 6: Protocol FSM Builder
 
 Builds a ProtocolFsm from Phase 4 and Phase 5 artifacts.
 
 Three sources are combined:
-1. Phase 4 StateVariable[PROTOCOL_STATE] — directly encodes FSM nodes and
+1. Phase 4 StateVariable[PROTOCOL_STATE] - directly encodes FSM nodes and
    the state variables that control transitions.
-2. Phase 3 CodeFragment with FragmentSemantics.CONTROL_FLOW — infers
+2. Phase 3 CodeFragment with FragmentSemantics.CONTROL_FLOW - infers
    transitions from branching patterns near protocol-state variables.
-3. Phase 5 TrustGraph CREDENTIAL/SESSION nodes — identifies protocol
+3. Phase 5 TrustGraph CREDENTIAL/SESSION nodes - identifies protocol
    contexts whose boundaries are trust-relevant (re-keying windows,
    auth-token expiry, session handshakes).
 
@@ -136,12 +136,12 @@ class ProtocolFsmBuilder:
     """
     Builds ProtocolFsm instances from Phase 3/4/5 artifacts.
 
-    Stateless — instantiate once, call .build() per target.
+    Stateless - instantiate once, call .build() per target.
 
     Parameters
     ----------
-    min_confidence      — minimum transition confidence to include (default 0.4)
-    privilege_threshold — minimum privilege_value for a Phase 5 node to
+    min_confidence      - minimum transition confidence to include (default 0.4)
+    privilege_threshold - minimum privilege_value for a Phase 5 node to
                           contribute timer/counter decorations (default 30)
     """
 
@@ -174,18 +174,18 @@ class ProtocolFsmBuilder:
 
         fsm_map: dict[str, ProtocolFsm] = {}
 
-        # Pass 1 — extract from Phase 4 state variables
+        # Pass 1 - extract from Phase 4 state variables
         if phase4_result is not None:
             self._pass1_state_variables(target_id, phase4_result, fsm_map)
 
-        # Pass 2 — map Phase 3 fragments to transitions
+        # Pass 2 - map Phase 3 fragments to transitions
         self._pass2_fragments(target_id, phase3_result, fsm_map)
 
-        # Pass 3 — inject Phase 5 session/credential context
+        # Pass 3 - inject Phase 5 session/credential context
         if phase5_result is not None:
             self._pass3_trust_context(target_id, phase5_result, fsm_map)
 
-        # Pass 4 — classify boundary states and transitions
+        # Pass 4 - classify boundary states and transitions
         for fsm in fsm_map.values():
             self._pass4_classify_boundaries(fsm)
 
@@ -200,7 +200,7 @@ class ProtocolFsmBuilder:
         )
         return fsms
 
-    # ── Pass 1 — Phase 4 state variables ─────────────────────────────────────
+    # ── Pass 1 - Phase 4 state variables ─────────────────────────────────────
 
     def _pass1_state_variables(
         self,
@@ -248,7 +248,7 @@ class ProtocolFsmBuilder:
                         str(int(sv.lower_bound) + i * step_size) for i in range(steps)
                     ]
                 else:
-                    # No value domain — create a minimal two-state FSM
+                    # No value domain - create a minimal two-state FSM
                     possible_values = ["INITIAL", "ACTIVE"]
 
             prev_state_id: str | None = None
@@ -319,7 +319,7 @@ class ProtocolFsmBuilder:
                 )
                 initial_state.counters.append(counter)
 
-    # ── Pass 2 — Phase 3 code fragments ──────────────────────────────────────
+    # ── Pass 2 - Phase 3 code fragments ──────────────────────────────────────
 
     def _pass2_fragments(
         self,
@@ -472,7 +472,7 @@ class ProtocolFsmBuilder:
             )
             fsm.add_transition(t)
 
-    # ── Pass 3 — Phase 5 trust context ────────────────────────────────────────
+    # ── Pass 3 - Phase 5 trust context ────────────────────────────────────────
 
     def _pass3_trust_context(
         self,
@@ -535,7 +535,7 @@ class ProtocolFsmBuilder:
                 if initial:
                     initial.counters.append(counter)
 
-    # ── Pass 4 — classify boundary states/transitions ─────────────────────────
+    # ── Pass 4 - classify boundary states/transitions ─────────────────────────
 
     def _pass4_classify_boundaries(self, fsm: ProtocolFsm) -> None:
         """
@@ -587,7 +587,7 @@ class ProtocolFsmBuilder:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Boundary transition engine — walks the FSM to identify the specific
+# Boundary transition engine - walks the FSM to identify the specific
 # rare/boundary paths that the stress engine will mutate.
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -601,8 +601,8 @@ class BoundaryTransitionEngine:
 
     Parameters
     ----------
-    max_path_length — maximum state hops per path (default 12)
-    max_paths       — maximum paths to return per FSM (default 50)
+    max_path_length - maximum state hops per path (default 12)
+    max_paths       - maximum paths to return per FSM (default 50)
     """
 
     def __init__(

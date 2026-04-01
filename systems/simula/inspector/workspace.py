@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Target Workspace
+EcodiaOS - Inspector Target Workspace
 
 Abstraction for a target codebase (internal EOS or externally cloned repo).
 Handles lifecycle: clone → analyze → cleanup.
@@ -15,7 +15,7 @@ Iron Rules:
   - Cleanup is secure: every regular file is overwritten with random bytes before
     the directory tree is removed, preventing filesystem forensics.
   - Use as async context manager: `async with TargetWorkspace.from_github_url(…) as ws:`
-    — cleanup is guaranteed even if an exception propagates.
+    - cleanup is guaranteed even if an exception propagates.
 """
 
 from __future__ import annotations
@@ -87,7 +87,7 @@ def _secure_erase_file(path: Path) -> None:
     """
     Overwrite a file with random bytes equal to its size, then delete it.
 
-    Best-effort — if the file is unreadable or already gone, skip silently.
+    Best-effort - if the file is unreadable or already gone, skip silently.
     This is a single-pass wipe sufficient to prevent casual filesystem
     forensics; it is not a DoD 5220.22-M multi-pass wipe.
     """
@@ -128,7 +128,7 @@ def _nuke_directory(root: Path) -> None:
       2. Overwrite every regular file with random bytes (single-pass scrub).
       3. Remove the entire directory tree via rmtree.
 
-    Logs a warning if removal fails — never raises; callers must not rely on
+    Logs a warning if removal fails - never raises; callers must not rely on
     this for correctness, only security.
     """
     if not root.exists():
@@ -150,7 +150,7 @@ def _nuke_directory(root: Path) -> None:
             root=str(root),
             error=str(exc),
         )
-        # Final fallback — accept ignore_errors only if the explicit pass failed.
+        # Final fallback - accept ignore_errors only if the explicit pass failed.
         shutil.rmtree(root, ignore_errors=True)
 
 
@@ -164,9 +164,9 @@ class TargetWorkspace:
     Lifecycle
     ---------
     1. **Construct** via a factory classmethod:
-       - ``from_github_url(url)``  — clone into a randomised temp dir
-       - ``from_local_path(path)`` — wrap an existing local directory
-       - ``internal(eos_root)``    — point at the read-only internal EOS tree
+       - ``from_github_url(url)``  - clone into a randomised temp dir
+       - ``from_local_path(path)`` - wrap an existing local directory
+       - ``internal(eos_root)``    - point at the read-only internal EOS tree
 
     2. **Use** the workspace via ``self.root`` (a resolved ``Path``).
 
@@ -202,7 +202,7 @@ class TargetWorkspace:
         temp_directory: Path | None = None,
     ) -> None:
         """
-        Direct constructor — prefer the factory classmethods.
+        Direct constructor - prefer the factory classmethods.
 
         Args:
             root: Absolute path to the codebase root (must exist and be a dir).
@@ -249,7 +249,7 @@ class TargetWorkspace:
 
         The temp directory is named ``inspector_workspace_<16-hex-token>`` and
         lives under the OS temp dir (``/tmp`` on Linux/macOS). The random token
-        is generated via ``secrets.token_hex(8)`` — cryptographically random,
+        is generated via ``secrets.token_hex(8)`` - cryptographically random,
         not predictable from PID or timestamp.
 
         Network access is *only* permitted during this clone. Once the workspace
@@ -267,7 +267,7 @@ class TargetWorkspace:
         Raises:
             RuntimeError: If git clone fails (non-zero exit code).
         """
-        token = secrets.token_hex(8)  # 16 hex chars — 64 bits of randomness
+        token = secrets.token_hex(8)  # 16 hex chars - 64 bits of randomness
         temp_dir = Path(tempfile.gettempdir()) / f"inspector_workspace_{token}"
         temp_dir.mkdir(mode=0o700, parents=False, exist_ok=False)
         clone_target = temp_dir / "repo"
@@ -280,7 +280,7 @@ class TargetWorkspace:
         # Then apply safety overrides on top to enforce hermetic clone behaviour.
         clone_env = os.environ.copy()
         clone_env.update({
-            "GIT_CONFIG_NOSYSTEM": "1",   # Ignore /etc/gitconfig — hermetic clone
+            "GIT_CONFIG_NOSYSTEM": "1",   # Ignore /etc/gitconfig - hermetic clone
             "GIT_TERMINAL_PROMPT": "0",   # Never hang on auth prompts
             "GIT_ASKPASS": "echo",        # Prevent credential-prompt hangs
             "TMPDIR": tempfile.gettempdir(),
@@ -291,7 +291,7 @@ class TargetWorkspace:
         proc = await asyncio.create_subprocess_exec(
             "git", "clone",
             "--depth", str(max(1, clone_depth)),
-            "--no-tags",           # Skip tag fetch — reduces attack surface
+            "--no-tags",           # Skip tag fetch - reduces attack surface
             "--single-branch",     # Only clone the default branch
             github_url,
             str(clone_target),
@@ -302,7 +302,7 @@ class TargetWorkspace:
         stdout, stderr = await proc.communicate()
 
         if proc.returncode != 0:
-            # Clean up on failure — secure nuke, not just rmtree
+            # Clean up on failure - secure nuke, not just rmtree
             _nuke_directory(temp_dir)
             error_msg = stderr.decode("utf-8", errors="replace").strip()
             raise RuntimeError(
@@ -336,7 +336,7 @@ class TargetWorkspace:
         """
         Create a read-only workspace pointing at the internal EOS codebase.
 
-        Cleanup and write assertions are enforced normally — if something tries
+        Cleanup and write assertions are enforced normally - if something tries
         to write to EOS source via this workspace, ``WorkspaceWriteViolation``
         is raised immediately.
         """
@@ -372,7 +372,7 @@ class TargetWorkspace:
         try:
             resolved_target = target.resolve()
         except OSError:
-            # Path doesn't exist yet — resolve its closest existing ancestor
+            # Path doesn't exist yet - resolve its closest existing ancestor
             resolved_target = target.absolute()
 
         try:
@@ -410,7 +410,7 @@ class TargetWorkspace:
 
         For internal or local workspaces (``temp_directory is None``): no-op.
 
-        This method is idempotent — calling it multiple times is safe.
+        This method is idempotent - calling it multiple times is safe.
         """
         if self.temp_directory is not None and self.temp_directory.exists():
             logger.info(
@@ -428,7 +428,7 @@ class TargetWorkspace:
     # ── Async Context Manager ─────────────────────────────────────────────────
 
     async def __aenter__(self) -> Self:
-        """Enter the context — returns self for ``async with … as ws:`` usage."""
+        """Enter the context - returns self for ``async with … as ws:`` usage."""
         return self
 
     async def __aexit__(
@@ -437,7 +437,7 @@ class TargetWorkspace:
         exc_val: BaseException | None,
         exc_tb: object,
     ) -> None:
-        """Exit the context — always nukes the temp workspace, even on exception."""
+        """Exit the context - always nukes the temp workspace, even on exception."""
         self.cleanup()
 
     # ── Repr ──────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 """
-EcodiaOS — LLM Provider Abstraction
+EcodiaOS - LLM Provider Abstraction
 
 Every system that needs LLM reasoning uses this interface.
 Supports Anthropic Claude, OpenAI, and local models via Ollama.
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Retry configuration — reduced from 3 retries / 1s base to 2 retries / 0.5s base.
+# Retry configuration - reduced from 3 retries / 1s base to 2 retries / 0.5s base.
 # Old config: up to 7s of retry delays (1+2+4) which exceeded the 5s deliberation budget.
 # New config: up to 1.5s of retry delays (0.5+1) which fits within tight budgets.
 _MAX_RETRIES = 2
@@ -274,7 +274,7 @@ class AnthropicProvider(LLMProvider):
     ) -> None:
         self._model = model
         self._budget = token_budget
-        # Strip whitespace/newlines — GCP Secret Manager can inject trailing \r\n
+        # Strip whitespace/newlines - GCP Secret Manager can inject trailing \r\n
         clean_key = api_key.strip()
         # Timeout reduced from 60s to 10s. The deliberation engine has a 5s
         # end-to-end budget; a 60s httpx timeout meant a single hung request
@@ -414,7 +414,7 @@ class AnthropicProvider(LLMProvider):
 
         data = await self._post_with_retry("/messages", payload)
 
-        # Parse content blocks — may include text and tool_use blocks
+        # Parse content blocks - may include text and tool_use blocks
         text = ""
         tool_calls: list[ToolCall] = []
         for block in data.get("content", []):
@@ -869,7 +869,7 @@ class ExtendedThinkingProvider(LLMProvider):
         temperature: float = 0.7,
         output_format: str | None = None,
     ) -> LLMResponse:
-        """Standard generation — delegates to generate_with_thinking with default budget."""
+        """Standard generation - delegates to generate_with_thinking with default budget."""
         return await self.generate_with_thinking(
             system_prompt=system_prompt,
             messages=messages,
@@ -1321,7 +1321,7 @@ class VLLMProvider(LLMProvider):
                 logger.info(
                     "vllm_dynamic_lora_unload_not_available",
                     adapter_name=self._active_adapter_name,
-                    hint="Adapter was loaded at startup — restart vLLM to unload",
+                    hint="Adapter was loaded at startup - restart vLLM to unload",
                 )
             else:
                 raise

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Observatory
+EcodiaOS - Observatory
 
 Diagnostic observability layer for the Synapse event bus.
 Tracks event flow, closure loop health, spec compliance,

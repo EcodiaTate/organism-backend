@@ -1,15 +1,15 @@
 """
-EcodiaOS — Inspector Phase 3: CFG Builder
+EcodiaOS - Inspector Phase 3: CFG Builder
 
 Recovers a static control-flow graph from source files or compiled binaries.
 
 Backends (chosen automatically based on target type)
 -----------------------------------------------------
-PYTHON_AST  — Python 3.8+ source: ast module walk → function/block/edge graph
-REGEX       — JS/TS/Go/Rust/Solidity: regex heuristics for function + call edges
-CAPSTONE    — ELF/PE/Mach-O binary: Capstone disassembly → BB boundaries
-ANGR        — Same binaries via angr CFGFast when Capstone alone is insufficient
-STUB        — Fallback for unknown file types; produces empty CFG
+PYTHON_AST  - Python 3.8+ source: ast module walk → function/block/edge graph
+REGEX       - JS/TS/Go/Rust/Solidity: regex heuristics for function + call edges
+CAPSTONE    - ELF/PE/Mach-O binary: Capstone disassembly → BB boundaries
+ANGR        - Same binaries via angr CFGFast when Capstone alone is insufficient
+STUB        - Fallback for unknown file types; produces empty CFG
 
 Python AST backend (primary for EodiaOS Python targets)
 --------------------------------------------------------
@@ -57,7 +57,7 @@ logger: Final = structlog.get_logger().bind(system="simula.inspector.cfg_builder
 
 # ── Python AST helpers ────────────────────────────────────────────────────────
 
-# Statement types that are "transparent" — they don't introduce a branch
+# Statement types that are "transparent" - they don't introduce a branch
 _TRANSPARENT_STMTS: Final = (
     ast.Assign,
     ast.AugAssign,
@@ -494,7 +494,7 @@ def _try_capstone_build(binary_path: Path, cfg: StaticCFG) -> bool:
         md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
         md.detail = True
 
-        # Naive linear sweep — good enough for stripped binaries without symbols
+        # Naive linear sweep - good enough for stripped binaries without symbols
         func_name = binary_path.stem
         instructions: list[str] = []
         current_start: int | None = None
@@ -581,7 +581,7 @@ class CfgBuilder:
     """
     Recovers a StaticCFG from source files or a compiled binary.
 
-    Usage — source files::
+    Usage - source files::
 
         cfg = CfgBuilder().build(
             workspace_root=Path("/repo"),
@@ -589,7 +589,7 @@ class CfgBuilder:
             source_files=["src/module.py", "src/util.py"],
         )
 
-    Usage — compiled binary::
+    Usage - compiled binary::
 
         cfg = CfgBuilder().build_from_binary(
             binary_path=Path("/bin/target"),

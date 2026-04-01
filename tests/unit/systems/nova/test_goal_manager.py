@@ -180,7 +180,7 @@ class TestCapacityEnforcement:
         g2 = make_goal(description="G2", priority=0.8)
         manager.add_goal(g1)
         manager.add_goal(g2)
-        # At capacity; add g3 — g2 stays (higher priority), some goal gets suspended
+        # At capacity; add g3 - g2 stays (higher priority), some goal gets suspended
         g3 = make_goal(description="G3", priority=0.95)
         manager.add_goal(g3)
         assert len(manager.active_goals) == 2

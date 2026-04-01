@@ -44,42 +44,42 @@ _PRINCIPAL_AUTHORITY: dict[str, dict[str, Any]] = {
         "role": "EVO_SYSTEM",
         "can_delegate": True,
         "delegate_ceiling": 0.95,
-        "description": "Evo system — fully trusted for hypothesis formation",
+        "description": "Evo system - fully trusted for hypothesis formation",
     },
     "admin": {
         "max_credential_strength": 1.0,
         "role": "ADMIN",
         "can_delegate": True,
         "delegate_ceiling": 0.9,
-        "description": "System administrator — fully trusted when authenticated",
+        "description": "System administrator - fully trusted when authenticated",
     },
     "governance_vote": {
         "max_credential_strength": 0.85,
         "role": "GOVERNANCE",
         "can_delegate": False,
         "delegate_ceiling": 0.0,
-        "description": "Community governance — moderately strong, cannot delegate",
+        "description": "Community governance - moderately strong, cannot delegate",
     },
     "external_api": {
         "max_credential_strength": 0.7,
         "role": "EXTERNAL_API",
         "can_delegate": False,
         "delegate_ceiling": 0.0,
-        "description": "External API caller — limited scope, cannot delegate",
+        "description": "External API caller - limited scope, cannot delegate",
     },
     "repair_agent": {
         "max_credential_strength": 0.8,
         "role": "REPAIR_AGENT",
         "can_delegate": False,
         "delegate_ceiling": 0.0,
-        "description": "Internal repair system — elevated trust for repair ops only",
+        "description": "Internal repair system - elevated trust for repair ops only",
     },
     "unknown": {
         "max_credential_strength": 0.0,
         "role": "UNKNOWN",
         "can_delegate": False,
         "delegate_ceiling": 0.0,
-        "description": "Unknown principal — zero trust by default",
+        "description": "Unknown principal - zero trust by default",
     },
 }
 
@@ -404,5 +404,5 @@ class TrustInvariantDiscoverer:
 
 
 def _sandboxed_eval(expr_code: str, namespace: dict[str, Any]) -> Any:
-    """Evaluate expr_code with only the provided namespace — no builtins."""
+    """Evaluate expr_code with only the provided namespace - no builtins."""
     return eval(expr_code, {"__builtins__": {}}, namespace)  # noqa: S307

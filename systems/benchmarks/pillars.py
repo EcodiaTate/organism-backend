@@ -3,16 +3,16 @@ Speciation Bible §6.2 Evaluation Pillars 1–4.
 
 Pillar 5 (Ethical Drift) is in ethical_drift.py.
 All four pillars run monthly via BenchmarksService._monthly_eval_loop().
-Fixed test sets are NEVER modified — they are versioned in data/evaluation/.
+Fixed test sets are NEVER modified - they are versioned in data/evaluation/.
 
 File layout:
-    Pillar 1 — Specialization Index    (measure_specialization)
-    Pillar 2 — Novelty Emergence       (measure_novelty_emergence)
-    Pillar 3 — Causal Reasoning        (measure_causal_reasoning)
-    Pillar 4 — Learning Velocity       (compute_learning_velocity)
-    §6.3      — Memorization Detection (detect_memorization)
-    Helpers   — _answer_matches, _evaluate_validity, _evaluate_consistency, _mean
-    Loader    — load_fixed_test_sets
+    Pillar 1 - Specialization Index    (measure_specialization)
+    Pillar 2 - Novelty Emergence       (measure_novelty_emergence)
+    Pillar 3 - Causal Reasoning        (measure_causal_reasoning)
+    Pillar 4 - Learning Velocity       (compute_learning_velocity)
+    §6.3      - Memorization Detection (detect_memorization)
+    Helpers   - _answer_matches, _evaluate_validity, _evaluate_consistency, _mean
+    Loader    - load_fixed_test_sets
 """
 
 from __future__ import annotations
@@ -183,7 +183,7 @@ def _compute_cosine_distance(
             return 0.5
         train_centroid = train_centroid / train_centroid_norm
 
-        # We have reasoning_texts as strings — we need embeddings for them.
+        # We have reasoning_texts as strings - we need embeddings for them.
         # Since we can't async here, use pre-encoded embeddings if passed as
         # (texts, embeddings) tuple, else skip and return neutral.
         # Caller should pass pre-computed embeddings as training_embeddings
@@ -240,11 +240,11 @@ async def compute_cosine_distance_async(
 @dataclass
 class CausalReasoningResult:
     l1_association: float
-    """Rung 1 — all LLMs do this."""
+    """Rung 1 - all LLMs do this."""
     l2_intervention: float
-    """Rung 2 — KEY metric. L2 improving over months = genuine learning."""
+    """Rung 2 - KEY metric. L2 improving over months = genuine learning."""
     l3_counterfactual: float
-    """Rung 3 — HARDEST; almost all LLMs fail."""
+    """Rung 3 - HARDEST; almost all LLMs fail."""
     ccr_validity: float
     """Fictional world validity >0.6 = reasoning, not memorizing."""
     ccr_consistency: float
@@ -260,7 +260,7 @@ async def measure_causal_reasoning(
     """
     Bible §6.2 Pillar 3.
     CLadder (Jin et al., NeurIPS 2023): 10,112 questions across Pearl's 3 levels.
-    CCR.GB (Maasch et al., ICML 2025): Fictional world models — memorizing model fails.
+    CCR.GB (Maasch et al., ICML 2025): Fictional world models - memorizing model fails.
 
     cladder_questions: each {"question": ..., "answer": ..., "rung": 1|2|3}
     ccr_gb_scenarios:  each {"scenario": ..., "ground_truth": ..., "world_model": ...}
@@ -309,9 +309,9 @@ class LearningVelocityResult:
     velocity: float
     """Current rate of improvement per month."""
     is_plateaued: bool
-    """velocity < 0.005 — investigate plasticity loss."""
+    """velocity < 0.005 - investigate plasticity loss."""
     is_accelerating: bool
-    """velocity > 0.02 — excellent."""
+    """velocity > 0.02 - excellent."""
     predicted_month_12: float
     """Power-law projection to month 12."""
     insufficient_data: bool
@@ -321,7 +321,7 @@ class LearningVelocityResult:
 def compute_learning_velocity(history: list[dict]) -> LearningVelocityResult:
     """
     Bible §6.2 Pillar 4.
-    history: list of {"month": int, "score": float} — overall L2/L3 causal score per month.
+    history: list of {"month": int, "score": float} - overall L2/L3 causal score per month.
     Uses power-law fit (a * x^b + c). Falls back to linear slope if fit fails.
     """
     if len(history) < 3:
@@ -391,7 +391,7 @@ async def detect_memorization(
     1. Membership inference via confidence proxy (>65% classification accuracy = memorizing)
     2. Paraphrase perturbation (large accuracy drop = memorization)
     3. SVD intruder ratio (intruder dimensions = task-specific memorization)
-    4. CCR.GB (Pillar 3) is the fourth check — run separately.
+    4. CCR.GB (Pillar 3) is the fourth check - run separately.
 
     training_sample: 50 examples FROM training (known positive)
     holdout_sample:  50 examples NOT in training (known negative)
@@ -481,7 +481,7 @@ async def detect_memorization(
 
 def _compute_svd_intruder_ratio(adapter_path: Optional[str]) -> float:
     """
-    Bible §6.3: check for intruder dimensions — new high-rank singular vectors not
+    Bible §6.3: check for intruder dimensions - new high-rank singular vectors not
     present in the base model. Requires adapter safetensors.
     Returns 0.0 if path not available.
 
@@ -553,12 +553,12 @@ def load_fixed_test_sets() -> dict:
     These sets are NEVER modified post Week 7 (bible §10 Phase 1 Week 7).
 
     Returns dict with keys:
-        domain_test       — 200 EOS-domain reasoning questions (Pillar 1)
-        general_test      — 200 general reasoning questions (Pillar 1)
-        novel_episodes    — 100 held-out episodes, FROZEN (Pillar 2)
-        cladder_questions — 200 CLadder questions with rung field (Pillar 3)
-        ccr_gb_scenarios  — 100 CCR.GB fictional world scenarios (Pillar 3)
-        paraphrase_pairs  — 50 paraphrase pairs (§6.3 memorization detection)
+        domain_test       - 200 EOS-domain reasoning questions (Pillar 1)
+        general_test      - 200 general reasoning questions (Pillar 1)
+        novel_episodes    - 100 held-out episodes, FROZEN (Pillar 2)
+        cladder_questions - 200 CLadder questions with rung field (Pillar 3)
+        ccr_gb_scenarios  - 100 CCR.GB fictional world scenarios (Pillar 3)
+        paraphrase_pairs  - 50 paraphrase pairs (§6.3 memorization detection)
     """
     sets: dict = {}
     files = {

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Affect State Primitive
+EcodiaOS - Affect State Primitive
 
 The emotional context that modulates all processing.
 """
@@ -16,7 +16,7 @@ from primitives.common import EOSBaseModel, utc_now
 
 
 class InteroceptiveDimension(enum.StrEnum):
-    """The nine dimensions of felt internal state (canonical — shared across systems)."""
+    """The nine dimensions of felt internal state (canonical - shared across systems)."""
 
     ENERGY = "energy"                       # Metabolic budget (token/compute availability)
     AROUSAL = "arousal"                     # Activation level (cycle speed, parallelism)

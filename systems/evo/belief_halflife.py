@@ -1,5 +1,5 @@
 """
-EcodiaOS — Belief Half-Life System
+EcodiaOS - Belief Half-Life System
 
 Radioisotope decay model for knowledge freshness. Each belief is stamped
 with a decay constant derived from its knowledge domain's historical
@@ -50,41 +50,41 @@ logger = structlog.get_logger()
 # unreliable. Tunable at runtime.
 DEFAULT_DOMAIN_HALFLIFES: dict[str, float] = {
     # Fast-decaying (hours to days)
-    "sentiment": 0.3,           # Mood/emotional state — ~7 hours
+    "sentiment": 0.3,           # Mood/emotional state - ~7 hours
     "mood": 0.3,
     "emotional": 0.3,
-    "engagement": 1.0,          # User engagement level — 1 day
-    "attention": 0.5,           # What someone is focused on — 12 hours
-    "availability": 0.5,        # Whether someone is available — 12 hours
-    "schedule": 3.0,            # Near-term plans — 3 days
-    "price": 0.04,              # Market price — ~1 hour
-    "market_state": 0.08,       # Market conditions — ~2 hours
+    "engagement": 1.0,          # User engagement level - 1 day
+    "attention": 0.5,           # What someone is focused on - 12 hours
+    "availability": 0.5,        # Whether someone is available - 12 hours
+    "schedule": 3.0,            # Near-term plans - 3 days
+    "price": 0.04,              # Market price - ~1 hour
+    "market_state": 0.08,       # Market conditions - ~2 hours
 
     # Medium-decaying (days to weeks)
-    "preference": 14.0,         # User preferences — 2 weeks
-    "opinion": 7.0,             # Stated opinions — 1 week
-    "project_status": 5.0,      # Project progress — 5 days
-    "relationship": 30.0,       # Interpersonal dynamics — 1 month
-    "context": 2.0,             # Conversational context — 2 days
-    "social": 14.0,             # Social dynamics — 2 weeks
-    "request": 1.0,             # Active requests — 1 day
-    "task_status": 3.0,         # Task completion state — 3 days
+    "preference": 14.0,         # User preferences - 2 weeks
+    "opinion": 7.0,             # Stated opinions - 1 week
+    "project_status": 5.0,      # Project progress - 5 days
+    "relationship": 30.0,       # Interpersonal dynamics - 1 month
+    "context": 2.0,             # Conversational context - 2 days
+    "social": 14.0,             # Social dynamics - 2 weeks
+    "request": 1.0,             # Active requests - 1 day
+    "task_status": 3.0,         # Task completion state - 3 days
 
     # Slow-decaying (weeks to months)
-    "capability": 90.0,         # Technical capabilities — 3 months
+    "capability": 90.0,         # Technical capabilities - 3 months
     "technical_capability": 90.0,
-    "process": 60.0,            # Process/workflow knowledge — 2 months
-    "policy": 90.0,             # Organisational policy — 3 months
-    "skill": 120.0,             # Learned skills — 4 months
-    "identity": 365.0,          # Core identity facts — 1 year
-    "personality": 180.0,       # Personality traits — 6 months
+    "process": 60.0,            # Process/workflow knowledge - 2 months
+    "policy": 90.0,             # Organisational policy - 3 months
+    "skill": 120.0,             # Learned skills - 4 months
+    "identity": 365.0,          # Core identity facts - 1 year
+    "personality": 180.0,       # Personality traits - 6 months
 
     # Very slow (months to years)
-    "physical_law": 36500.0,    # Physical constants — 100 years
-    "mathematical": 36500.0,    # Mathematical truths — 100 years
-    "definition": 3650.0,       # Definitions — 10 years
-    "historical": 3650.0,       # Historical facts — 10 years
-    "geographical": 1825.0,     # Geography — 5 years
+    "physical_law": 36500.0,    # Physical constants - 100 years
+    "mathematical": 36500.0,    # Mathematical truths - 100 years
+    "definition": 3650.0,       # Definitions - 10 years
+    "historical": 3650.0,       # Historical facts - 10 years
+    "geographical": 1825.0,     # Geography - 5 years
 }
 
 # Fallback half-life for domains not in the registry
@@ -278,7 +278,7 @@ class BeliefAgingScanner:
             if last_verified_raw is None:
                 continue
 
-            # Parse last_verified — Neo4j returns datetime or ISO string
+            # Parse last_verified - Neo4j returns datetime or ISO string
             if isinstance(last_verified_raw, str):
                 try:
                     last_verified_dt = datetime.fromisoformat(last_verified_raw)
@@ -310,7 +310,7 @@ class BeliefAgingScanner:
                 )
                 stale_beliefs.append(stale)
 
-                if age_factor < 0.25:  # Two half-lives — critical
+                if age_factor < 0.25:  # Two half-lives - critical
                     critical_count += 1
 
         # Sort by priority descending (most urgent first)
@@ -370,7 +370,7 @@ class BeliefAgingScanner:
         (for new beliefs) and to all existing Neo4j belief nodes in each domain
         (so the scanner picks up the new values on the next Phase 2.5 pass).
 
-        Spec §VIII gap fix — learnable domain half-lives.
+        Spec §VIII gap fix - learnable domain half-lives.
 
         Returns the number of Neo4j belief nodes updated.
         """
@@ -388,7 +388,7 @@ class BeliefAgingScanner:
         for domain, half_life in overrides.items():
             DEFAULT_DOMAIN_HALFLIFES[domain] = half_life
 
-        # Propagate to Neo4j — batch update all beliefs per domain
+        # Propagate to Neo4j - batch update all beliefs per domain
         updated = 0
         for domain, half_life in overrides.items():
             decay_constant = math.log(2) / half_life

@@ -1,10 +1,10 @@
 """
-EcodiaOS — Voxis Genome Extraction & Seeding
+EcodiaOS - Voxis Genome Extraction & Seeding
 
 Implements GenomeExtractionProtocol for the Voxis expression system.
-Extracts the organism's accumulated voice identity — the personality vector,
+Extracts the organism's accumulated voice identity - the personality vector,
 vocabulary affinities, thematic references, and expression strategy
-preferences — so a child instance inherits its parent's communicative
+preferences - so a child instance inherits its parent's communicative
 character rather than starting from a neutral seed.
 
 Heritable state (what crosses the generational boundary):
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# 9 personality dimensions in canonical order — must match PersonalityVector fields
+# 9 personality dimensions in canonical order - must match PersonalityVector fields
 _PERSONALITY_KEYS: list[str] = [
     "warmth",
     "directness",
@@ -92,7 +92,7 @@ class VoxisGenomeExtractor:
         strategy_preferences = await self._extract_strategy_preferences()
 
         # If there is no personality at all, the instance has not been
-        # born or initialised — return an empty segment so Mitosis
+        # born or initialised - return an empty segment so Mitosis
         # knows there is nothing to inherit.
         if not personality_vector:
             self._log.info("voxis_genome_empty", reason="no_personality_vector")
@@ -374,7 +374,7 @@ class VoxisGenomeExtractor:
 
         Combines the 9 personality dimensions, vocabulary affinities, and
         thematic references into a single personality_json dict and persists
-        it on the Self node — matching the format VoxisService._load_state()
+        it on the Self node - matching the format VoxisService._load_state()
         reads at boot.
         """
         # Build the full personality_json dict

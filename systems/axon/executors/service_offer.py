@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Service Offer Executor
+EcodiaOS - Axon Service Offer Executor
 
 When Nova detects a specific consulting opportunity (large GitHub issue, an
 explicit request for help in a public channel, or a bounty too complex to solve
@@ -14,7 +14,7 @@ The offer is:
 Action type: "service_offer"
 
 Required params:
-  channel      (str): Where to post — "github_issue" | "x_reply" | "discord" | "telegram"
+  channel      (str): Where to post - "github_issue" | "x_reply" | "discord" | "telegram"
   target_url   (str): URL of the issue, tweet, or thread to respond to.
   capability   (str): What the organism can do for the requester.
   rate_usdc_per_hour (str, Decimal-parseable): Hourly consulting rate.
@@ -36,8 +36,8 @@ Returns ExecutionResult with:
     total_usdc     -- rate × hours
 
 Safety constraints:
-  - Required autonomy: COLLABORATOR (2) — posts text to a public channel.
-  - Rate limit: 5 service offers per day — high signal-to-noise discipline.
+  - Required autonomy: COLLABORATOR (2) - posts text to a public channel.
+  - Rate limit: 5 service offers per day - high signal-to-noise discipline.
   - The AI_AUTHOR_DISCLOSURE tag is unconditionally appended (Honesty invariant).
   - Equor reviews both the capability claim and the offer price before posting.
   - Maximum rate: 100 USDC/hour (prevents price gouging misrepresentation).
@@ -88,7 +88,7 @@ class ServiceOfferExecutor(Executor):
     """
     Draft and post a consulting service offer to a public channel.
 
-    Equor gates the offer before any post is made — both for capability
+    Equor gates the offer before any post is made - both for capability
     honesty and constitutional alignment of the price.
     """
 
@@ -98,7 +98,7 @@ class ServiceOfferExecutor(Executor):
         "or messaging channel. Rate in USDC/hour on Base. Equor-gated."
     )
 
-    required_autonomy = 2       # COLLABORATOR — posts public text
+    required_autonomy = 2       # COLLABORATOR - posts public text
     reversible = False          # Public posts cannot be undone
     max_duration_ms = 30_000
     rate_limit = RateLimit.per_day(5)   # High quality, low noise
@@ -203,7 +203,7 @@ class ServiceOfferExecutor(Executor):
         if not equor_ok:
             return ExecutionResult(
                 success=False,
-                error="Equor denied the service offer — capability claim or pricing failed constitutional review.",
+                error="Equor denied the service offer - capability claim or pricing failed constitutional review.",
                 failure_type="equor_denied",
                 data={"offer_id": offer_id},
             )
@@ -364,7 +364,7 @@ class ServiceOfferExecutor(Executor):
         """
         Post the offer to the appropriate channel.
 
-        Dispatches via Synapse to the relevant connector — no direct cross-imports.
+        Dispatches via Synapse to the relevant connector - no direct cross-imports.
         """
         if not self._event_bus:
             self._log.warning("service_offer.no_event_bus", channel=channel)

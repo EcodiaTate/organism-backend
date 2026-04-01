@@ -1,5 +1,5 @@
 """
-Integration tests for Stage 0 — Soma Integration.
+Integration tests for Stage 0 - Soma Integration.
 
 Tests the complete somatic pathway end-to-end:
   Soma → Atune (precision_weights) → Nova (allostatic deliberation) → Memory (somatic markers)
@@ -445,7 +445,7 @@ class TestFullSomaMemoryPathway:
 
     @pytest.mark.asyncio
     async def test_full_pipeline_with_mixed_candidates(self):
-        """Mixed candidates — some with markers, some without — all survive reranking."""
+        """Mixed candidates - some with markers, some without - all survive reranking."""
         soma = _make_soma()
         atune = _mock_atune()
         soma.set_atune(atune)

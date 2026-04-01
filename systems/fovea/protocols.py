@@ -1,12 +1,12 @@
 """
-Fovea — World Model Protocol
+Fovea - World Model Protocol
 
 Defines the interface Fovea needs from Logos (the world model).
 Logos is being built simultaneously, so Fovea programs against this protocol.
 Dependency injection: the real Logos drops in later.
 
 Also contains the LogosWorldModelAdapter that bridges the real Logos WorldModel
-to the Fovea protocol — replacing StubWorldModel with live predictions.
+to the Fovea protocol - replacing StubWorldModel with live predictions.
 """
 
 from __future__ import annotations
@@ -216,7 +216,7 @@ class LogosWorldModelAdapter:
     predict_magnitude(), etc.  This adapter calls ``world_model.predict()`` once
     per percept context and fans the result out to the 6 dimensions Fovea expects.
 
-    This is the LIVE replacement for StubWorldModel — wired by main.py after
+    This is the LIVE replacement for StubWorldModel - wired by main.py after
     Logos is initialised.
     """
 

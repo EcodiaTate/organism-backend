@@ -1,9 +1,9 @@
 """
-EcodiaOS — Soma Counterfactual Engine
+EcodiaOS - Soma Counterfactual Engine
 
 Generates counterfactual interoceptive trajectories during Oneiros REM replay.
 Given a decision and an alternative policy, simulates what the organism's
-felt state would have been — enabling regret, gratitude, and lesson extraction.
+felt state would have been - enabling regret, gratitude, and lesson extraction.
 
 This is the computational basis of "what if I had done X instead?"
 applied to the organism's internal states, not just external outcomes.
@@ -165,11 +165,11 @@ class CounterfactualEngine:
         norm = n * len(ALL_DIMENSIONS) if n > 0 else 1.0
 
         if cf_total_error < actual_total_error:
-            # Counterfactual was better — regret
+            # Counterfactual was better - regret
             regret = min(1.0, (actual_total_error - cf_total_error) / norm)
             gratitude = 0.0
         else:
-            # Actual was better — gratitude
+            # Actual was better - gratitude
             regret = 0.0
             gratitude = min(1.0, (cf_total_error - actual_total_error) / norm)
 

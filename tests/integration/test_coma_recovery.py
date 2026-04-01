@@ -1,5 +1,5 @@
 """
-EcodiaOS — Coma Recovery Integration Tests
+EcodiaOS - Coma Recovery Integration Tests
 
 Verifies the full crash-recovery loop end-to-end:
   organism death → Skia persists context → new instance boots →
@@ -34,9 +34,9 @@ class EventCapture:
     In-process pub/sub bus that records every emitted event in order.
 
     Supports:
-      - assert_event_emitted(event_type, **payload_subset) — asserts at least
+      - assert_event_emitted(event_type, **payload_subset) - asserts at least
         one matching event was emitted, with matching payload keys.
-      - events_of_type(event_type) — returns matching events in order.
+      - events_of_type(event_type) - returns matching events in order.
     """
 
     def __init__(self) -> None:
@@ -171,7 +171,7 @@ def _make_synapse_event(event_type_str: str, data: dict, source: str = "test") -
     )
 
 
-# ─── TEST 1 — Simula brain death detection (45s fast path) ───────────────────
+# ─── TEST 1 - Simula brain death detection (45s fast path) ───────────────────
 
 
 @pytest.mark.asyncio
@@ -341,7 +341,7 @@ async def test_simula_brain_death_detection_45s() -> None:
     )
 
 
-# ─── TEST 2 — Crash context persistence ──────────────────────────────────────
+# ─── TEST 2 - Crash context persistence ──────────────────────────────────────
 
 
 @pytest.mark.asyncio
@@ -412,7 +412,7 @@ async def test_crash_context_persistence() -> None:
     )
 
 
-# ─── TEST 3 — Resurrection re-hydration ──────────────────────────────────────
+# ─── TEST 3 - Resurrection re-hydration ──────────────────────────────────────
 
 
 @pytest.mark.asyncio
@@ -509,7 +509,7 @@ async def test_resurrection_rehydration() -> None:
     )
 
 
-# ─── TEST 4 — Hot-swap failure as negative training signal ────────────────────
+# ─── TEST 4 - Hot-swap failure as negative training signal ────────────────────
 
 
 @pytest.mark.asyncio
@@ -604,7 +604,7 @@ async def test_hot_swap_failure_negative_training_signal() -> None:
         f"Expected CRITICAL severity for hot-swap failure, got {incident.severity}"
     )
 
-    # Assert RE_TRAINING_EXAMPLE was emitted — search context dict for adapter_cid
+    # Assert RE_TRAINING_EXAMPLE was emitted - search context dict for adapter_cid
     # Note: Thymos emits RE training data at the end of repair episodes.
     # For a raw hot-swap failure handled via _on_synapse_event, the training signal
     # is the MODEL_ROLLBACK_TRIGGERED itself plus any future repair outcome.
@@ -634,7 +634,7 @@ async def test_hot_swap_failure_negative_training_signal() -> None:
                 )
 
 
-# ─── TEST 5 — Full loop smoke test ───────────────────────────────────────────
+# ─── TEST 5 - Full loop smoke test ───────────────────────────────────────────
 
 
 @pytest.mark.asyncio
@@ -679,7 +679,7 @@ async def test_full_coma_recovery_loop() -> None:
 
     skia._emit_event = skia_emit
 
-    # ── Step 2: Simulate organism death — Skia emits SKIA_HEARTBEAT_LOST ──────
+    # ── Step 2: Simulate organism death - Skia emits SKIA_HEARTBEAT_LOST ──────
     t0 = time.monotonic()
 
     await skia._emit_event(SynapseEventType.SKIA_HEARTBEAT_LOST, {
@@ -702,7 +702,7 @@ async def test_full_coma_recovery_loop() -> None:
     raw = await fake_redis.client.get(redis_key)
     assert raw is not None, "Step 3 FAILED: crash context not written to Redis"
 
-    # ── Step 4: New instance boots — Thymos reads context and creates incident ─
+    # ── Step 4: New instance boots - Thymos reads context and creates incident ─
     thymos = ThymosService.__new__(ThymosService)
     thymos._logger = MagicMock()
     thymos._config = MagicMock()
@@ -760,18 +760,18 @@ async def test_full_coma_recovery_loop() -> None:
 
     # Step 5 check: INCIDENT_DETECTED was emitted (simulating Simula receiving the repair request)
     assert bus.events_of_type(SynapseEventType.INCIDENT_DETECTED), (
-        "Step 5 FAILED: INCIDENT_DETECTED never emitted — Simula handler would not receive the repair request"
+        "Step 5 FAILED: INCIDENT_DETECTED never emitted - Simula handler would not receive the repair request"
     )
 
     # Verify incident context has the CID so Simula can pull the snapshot
     assert "ipfs_snapshot_cid" in incident.context, (
-        "Step 5 FAILED: Incident context missing ipfs_snapshot_cid — Simula cannot analyse the crash"
+        "Step 5 FAILED: Incident context missing ipfs_snapshot_cid - Simula cannot analyse the crash"
     )
 
     # ── Step 6: Assert total mock time < 5 seconds ────────────────────────────
     elapsed = time.monotonic() - t0
     assert elapsed < 5.0, (
-        f"Full loop took {elapsed:.2f}s — should complete in < 5s with mock infrastructure"
+        f"Full loop took {elapsed:.2f}s - should complete in < 5s with mock infrastructure"
     )
 
     # ── Step 7: Assert no step was silently skipped ───────────────────────────

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos: Threat Model Worker (Phase 16i+)
+EcodiaOS - Oikos: Threat Model Worker (Phase 16i+)
 
 An Oneiros-compatible worker that runs during the consolidation cycle
 alongside EconomicDreamWorker. While the dream worker models organism-level

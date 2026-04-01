@@ -1,5 +1,5 @@
 """
-EcodiaOS — Universal Error Sentinel
+EcodiaOS - Universal Error Sentinel
 
 Every cognitive system MUST report operational errors to Thymos via this
 sentinel. Without it, 93% of errors are invisible to the immune system.
@@ -22,7 +22,7 @@ The sentinel:
   1. Creates a structured Incident with proper classification
   2. Emits it as a SYSTEM_FAILED SynapseEvent so Thymos can triage
   3. Fingerprints for deduplication (same error = same fingerprint)
-  4. Never propagates its own failures — emission is best-effort
+  4. Never propagates its own failures - emission is best-effort
   5. Rate-limits per fingerprint to avoid flooding (max 1/30s per unique error)
 """
 
@@ -139,7 +139,7 @@ class ErrorSentinel:
 
         Classifies the error automatically if incident_class/severity not given.
         Rate-limits duplicate fingerprints to avoid flooding.
-        Never raises — emission failures are logged and swallowed.
+        Never raises - emission failures are logged and swallowed.
         """
         if self._event_bus is None:
             self._log.warning(
@@ -188,7 +188,7 @@ class ErrorSentinel:
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # Build a structured incident dict — Incident is a thymos-internal
+            # Build a structured incident dict - Incident is a thymos-internal
             # model with repair-lifecycle fields; sentinel emits the primitives
             # only (Spec 09 §AV9: no cross-system type import from Thymos).
             incident_data: dict[str, Any] = {

@@ -1,20 +1,20 @@
 """
-EcodiaOS — Logs & Diagnostics API
+EcodiaOS - Logs & Diagnostics API
 
-Intelligent log analysis endpoints. Not just raw log queries — these
+Intelligent log analysis endpoints. Not just raw log queries - these
 endpoints understand the system dependency graph, trace error cascades
 through causal chains, and leverage Thymos diagnostics for root cause
 analysis.
 
 Endpoints:
-  /api/logs/recent          — Raw log stream (last N minutes)
-  /api/logs/errors          — Errors only
-  /api/logs/latency-summary — Per-system latency stats (min/max/avg/p95)
-  /api/logs/cascades        — Dependency-aware cascade detection
-  /api/logs/temporal        — "What happened before X crashed?"
-  /api/logs/diagnose        — LLM-powered root cause via Thymos
-  /api/logs/system-graph    — Dependency graph for debugging
-  /api/logs/health-snapshot — One-call diagnostic overview
+  /api/logs/recent          - Raw log stream (last N minutes)
+  /api/logs/errors          - Errors only
+  /api/logs/latency-summary - Per-system latency stats (min/max/avg/p95)
+  /api/logs/cascades        - Dependency-aware cascade detection
+  /api/logs/temporal        - "What happened before X crashed?"
+  /api/logs/diagnose        - LLM-powered root cause via Thymos
+  /api/logs/system-graph    - Dependency graph for debugging
+  /api/logs/health-snapshot - One-call diagnostic overview
 """
 
 from __future__ import annotations

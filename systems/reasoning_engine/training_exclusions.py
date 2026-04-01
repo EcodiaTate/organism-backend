@@ -9,7 +9,7 @@ Certain files are permanently protected from appearing in any training JSONL:
 
 These must NEVER appear in Tier 2 or Tier 3 SFT training data.
 Their presence would teach the model to pattern-match evaluation scenarios
-rather than genuinely reason — destroying evaluation validity.
+rather than genuinely reason - destroying evaluation validity.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class TrainingExclusionFilter:
     Uses prompt text hashing for fast membership testing.
     Call filter_batch() before writing any training JSONL.
 
-    Non-fatal throughout — if loading fails, filter_batch() returns the
+    Non-fatal throughout - if loading fails, filter_batch() returns the
     original batch unchanged and training proceeds normally.
     """
 
@@ -89,7 +89,7 @@ class TrainingExclusionFilter:
         """Remove excluded examples from a training batch.
 
         Returns: (filtered_examples, excluded_count)
-        Non-fatal — returns original list unchanged if filter is not loaded.
+        Non-fatal - returns original list unchanged if filter is not loaded.
         """
         if not self._loaded:
             return examples, 0

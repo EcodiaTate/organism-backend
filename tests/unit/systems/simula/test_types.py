@@ -137,7 +137,7 @@ class TestEvolutionProposal:
             ),
             evidence=["hyp_001", "hyp_002"],
             expected_benefit="Reduces timeout failures by 30%",
-            risk_assessment="Low risk — additive change only",
+            risk_assessment="Low risk - additive change only",
         )
         assert proposal.category == ChangeCategory.MODIFY_CONTRACT
         assert len(proposal.evidence) == 2

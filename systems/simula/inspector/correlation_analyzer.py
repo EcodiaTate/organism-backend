@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 8: Correlation Analyzer (Orchestrator)
+EcodiaOS - Inspector Phase 8: Correlation Analyzer (Orchestrator)
 
 Single-entry orchestrator for the Phase 8 cross-layer correlation pipeline:
 
@@ -69,7 +69,7 @@ logger = structlog.get_logger().bind(system="simula.inspector.correlation_analyz
 
 class CorrelationAnalyzer:
     """
-    Phase 8 orchestrator — builds a Phase8Result for a target.
+    Phase 8 orchestrator - builds a Phase8Result for a target.
 
     The result combines:
     - A CausalGraph linking EventNodes across all Phases 3–7
@@ -80,12 +80,12 @@ class CorrelationAnalyzer:
 
     Parameters
     ----------
-    min_edge_weight     — minimum edge confidence to include (default 0.3)
-    max_chain_depth     — maximum chain length in hops (default 8)
-    min_chain_layers    — minimum distinct layers per chain (default 2)
-    max_chains          — maximum chains to produce (default 30)
-    min_motif_occ       — minimum chain count for a motif (default 2)
-    max_motif_len       — maximum motif pattern length (default 4)
+    min_edge_weight     - minimum edge confidence to include (default 0.3)
+    max_chain_depth     - maximum chain length in hops (default 8)
+    min_chain_layers    - minimum distinct layers per chain (default 2)
+    max_chains          - maximum chains to produce (default 30)
+    min_motif_occ       - minimum chain count for a motif (default 2)
+    max_motif_len       - maximum motif pattern length (default 4)
     """
 
     def __init__(

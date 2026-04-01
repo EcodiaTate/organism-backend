@@ -1,13 +1,13 @@
 """
-EcodiaOS — Soma Temporal Derivative Engine
+EcodiaOS - Soma Temporal Derivative Engine
 
 Computes velocity (S'), acceleration (S''), and jerk (S''') of the organism
 state trajectory using Savitzky-Golay filtering for noise-robust
 differentiation at three time scales:
 
-  fast   ~ 1s   (window=7,   polyorder=3)  — function-level transients
-  medium ~ 10s  (window=67,  polyorder=3)  — system interaction dynamics
-  slow   ~ 100s (window=667, polyorder=3)  — drift and long-term trends
+  fast   ~ 1s   (window=7,   polyorder=3)  - function-level transients
+  medium ~ 10s  (window=67,  polyorder=3)  - system interaction dynamics
+  slow   ~ 100s (window=667, polyorder=3)  - drift and long-term trends
 
 Returns per-system breakdown plus whole-organism L2 norms, and identifies
 which system dominates each derivative at each scale (the localization signal).
@@ -161,7 +161,7 @@ class TemporalDerivativeEngine:
         for scale_name, params in DERIVATIVE_SCALES.items():
             window = params["window"]
             if len(self._history) < window:
-                # Not enough history for this scale — emit zeros
+                # Not enough history for this scale - emit zeros
                 snap.velocity[scale_name] = {}
                 snap.acceleration[scale_name] = {}
                 snap.jerk[scale_name] = {}

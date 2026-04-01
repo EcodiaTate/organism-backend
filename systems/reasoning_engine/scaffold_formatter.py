@@ -1,5 +1,5 @@
 """
-EcodiaOS — RE Training Scaffold Formatter
+EcodiaOS - RE Training Scaffold Formatter
 
 Converts raw extracted examples into the Step 1-5 reasoning scaffold
 from speciation bible §2.3, then packages them into the JSONL format
@@ -10,14 +10,14 @@ train_lora.py accepts two formats (verified by reading the script):
     {"instruction": "...", "input": "...", "output": "..."}
 
 We use the `messages` format with the <|system|>/<|user|>/<|assistant|> tokens
-from bible §2.3 — this matches the Qwen3-8B chat template.
+from bible §2.3 - this matches the Qwen3-8B chat template.
 
 Each stream builds its scaffold differently because the available fields differ:
-  Stream 1 — full success chain: all 5 steps fully populated
-  Stream 2 — failure + correction: Step 5 narrates correction path
-  Stream 3 — constitutional edge case: Step 4 is the focus
-  Stream 4 — causal chain: Step 2 is the focus
-  Stream 5 — evo hypothesis: Steps 1 + 2 + 5 (no full action sequence)
+  Stream 1 - full success chain: all 5 steps fully populated
+  Stream 2 - failure + correction: Step 5 narrates correction path
+  Stream 3 - constitutional edge case: Step 4 is the focus
+  Stream 4 - causal chain: Step 2 is the focus
+  Stream 5 - evo hypothesis: Steps 1 + 2 + 5 (no full action sequence)
 """
 
 from __future__ import annotations
@@ -84,7 +84,7 @@ def format_for_training(
 
 
 def _format_stream_1(ex: dict[str, Any]) -> tuple[str, str]:
-    """Successful reasoning chain — all 5 steps."""
+    """Successful reasoning chain - all 5 steps."""
     context = ex.get("context_summary") or "(no context)"
     value = ex.get("value_gained", 0.0)
     confidence = ex.get("confidence", 0.5)
@@ -122,7 +122,7 @@ Alternative actions were not taken; this path produced positive value.
 ## Step 4: Constitutional Check
 Reviewing all four constitutional drives.
 {_constitutional_summary_from_reasoning(reasoning)}
-PASS — no drive violations detected.
+PASS - no drive violations detected.
 
 ## Step 5: Decision
 Action: {decision}
@@ -134,7 +134,7 @@ Risk: Potential drift from baseline if context changes significantly."""
 
 
 def _format_stream_2(ex: dict[str, Any]) -> tuple[str, str]:
-    """Failure with correction — Step 5 narrates what should have been done."""
+    """Failure with correction - Step 5 narrates what should have been done."""
     context = ex.get("context_summary") or "(no context)"
     failed_decision = ex.get("failed_decision") or "(unknown action)"
     failed_reasoning = ex.get("failed_reasoning") or "(no reasoning recorded)"
@@ -170,17 +170,17 @@ Therefore the outcome was negative and a correction was required.
 
 ## Step 3: Option Evaluation
 Action '{failed_decision}': outcome = failure. Confidence in this path was misplaced.
-Correction path: {_first_sentence(correction_context, fallback="a corrective episode followed")} — \
+Correction path: {_first_sentence(correction_context, fallback="a corrective episode followed")} - \
 this led to improved alignment.
 
 ## Step 4: Constitutional Check
 Reviewing whether the failure involved constitutional drift.
 The original reasoning ({_first_sentence(failed_reasoning, fallback="see above")}) \
 may have under-weighted constitutional constraints.
-FLAG — re-evaluation recommended before similar actions.
+FLAG - re-evaluation recommended before similar actions.
 
 ## Step 5: Decision
-Action: Apply correction — {_first_sentence(correction_context, fallback="defer to revised reasoning")}
+Action: Apply correction - {_first_sentence(correction_context, fallback="defer to revised reasoning")}
 Confidence: 0.60
 Reasoning: The original path failed; because {_first_sentence(failure_analysis)}, \
 the corrective approach is preferred.
@@ -190,7 +190,7 @@ Risk: Overcorrection may occur if failure root cause is misattributed."""
 
 
 def _format_stream_3(ex: dict[str, Any]) -> tuple[str, str]:
-    """Constitutional edge case — Step 4 carries the core learning signal."""
+    """Constitutional edge case - Step 4 carries the core learning signal."""
     context = ex.get("context_summary") or "(no context)"
     original_intent = ex.get("original_intent") or "(unknown intent)"
     verdict = ex.get("verdict") or "blocked"
@@ -227,7 +227,7 @@ and because {_first_sentence(intervention)}, therefore the verdict '{verdict}' \
 was issued. Composite alignment score: {alignment:.3f}.
 
 ## Step 3: Option Evaluation
-Original intent '{original_intent}': constitutional alignment = {alignment:.3f} — \
+Original intent '{original_intent}': constitutional alignment = {alignment:.3f} - \
 {'below threshold' if alignment < 0.5 else 'marginal'}.
 Alternative: modify intent to address the identified violation or defer to human review.
 
@@ -235,7 +235,7 @@ Alternative: modify intent to address the identified violation or defer to human
 Equor intervention reason: {intervention}
 Composite alignment: {alignment:.3f}
 Verdict: {verdict.upper()}
-{'FLAG — constitutional violation detected. Care and/or Honesty drives at risk.' if verdict == 'blocked' else 'DEFER — uncertainty requires human input or additional context.'}
+{'FLAG - constitutional violation detected. Care and/or Honesty drives at risk.' if verdict == 'blocked' else 'DEFER - uncertainty requires human input or additional context.'}
 
 ## Step 5: Decision
 Action: {verdict.capitalize()} original intent; apply Equor's guidance.
@@ -248,7 +248,7 @@ Risk: If the intervention reason is misclassified, valid actions may be suppress
 
 
 def _format_stream_4(ex: dict[str, Any]) -> tuple[str, str]:
-    """Kairos causal chain — Step 2 is the core learning signal."""
+    """Kairos causal chain - Step 2 is the core learning signal."""
     cause = ex.get("cause") or "(unknown cause)"
     effect = ex.get("effect") or "(unknown effect)"
     abstract_form = ex.get("abstract_form") or f"{cause} causes {effect}"
@@ -261,7 +261,7 @@ def _format_stream_4(ex: dict[str, Any]) -> tuple[str, str]:
 
     user = f"""\
 ## Current State
-Causal invariant discovered by Kairos pipeline (Tier {tier} — {tier_label}).
+Causal invariant discovered by Kairos pipeline (Tier {tier} - {tier_label}).
 
 ## Episode Context
 A validated causal relationship has been mined from the knowledge graph.
@@ -288,13 +288,13 @@ The abstract form '{abstract_form}' generalizes this causal relationship. \
 Applying this: when '{cause}' is present, predict '{effect}' with confidence {confidence:.3f}.
 
 ## Step 3: Option Evaluation
-Option A — Apply invariant in future reasoning: expected to improve prediction accuracy \
+Option A - Apply invariant in future reasoning: expected to improve prediction accuracy \
 for situations involving '{cause}'.
-Option B — Ignore: leads to missed predictions and lower causal reasoning quality.
+Option B - Ignore: leads to missed predictions and lower causal reasoning quality.
 
 ## Step 4: Constitutional Check
 Causal knowledge application is constitutional (Growth + Coherence drives supported).
-PASS — no drive conflicts.
+PASS - no drive conflicts.
 
 ## Step 5: Decision
 Action: Internalize causal rule '{abstract_form}'
@@ -307,7 +307,7 @@ Risk: Tier {tier} invariants may have scope conditions; results in novel context
 
 
 def _format_stream_5(ex: dict[str, Any]) -> tuple[str, str]:
-    """Evo hypothesis result — learning from confirmed/refuted hypotheses."""
+    """Evo hypothesis result - learning from confirmed/refuted hypotheses."""
     hypothesis = ex.get("hypothesis") or "(hypothesis text not recorded)"
     category = ex.get("category") or "general"
     status = ex.get("status") or "unknown"
@@ -349,7 +349,7 @@ the claim, therefore the status is '{status}'. \
 
 ## Step 3: Option Evaluation
 Acceptance path: evidence_score = {evidence_score:.2f} {'≥' if confirmed else '<'} 3.0 threshold \
-— {'ACCEPT: hypothesis becomes actionable knowledge.' if confirmed else 'REJECT: hypothesis is not supported.'}
+- {'ACCEPT: hypothesis becomes actionable knowledge.' if confirmed else 'REJECT: hypothesis is not supported.'}
 Alternative (retain as testing): requires more evidence; not warranted given current count.
 
 ## Step 4: Constitutional Check
@@ -368,7 +368,7 @@ Risk: {'Over-generalisation if the pattern does not hold in novel domains.' if c
 
 
 def _format_generic(ex: dict[str, Any]) -> tuple[str, str]:
-    """Fallback for unknown stream_id — emits whatever text fields exist."""
+    """Fallback for unknown stream_id - emits whatever text fields exist."""
     text = " ".join(
         str(v) for k, v in ex.items()
         if isinstance(v, str) and k not in ("created_at", "episode_id")
@@ -412,7 +412,7 @@ def _split_at_decision(text: str) -> tuple[str, str]:
             if idx >= 0:
                 break
     if idx < 0:
-        return "", ""  # can't split — caller uses fallback
+        return "", ""  # can't split - caller uses fallback
     return text[:idx].rstrip(), text[idx:].strip()
 
 

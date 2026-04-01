@@ -1,5 +1,5 @@
 """
-ArtMarketsChannel — digital art / NFT market demand signals.
+ArtMarketsChannel - digital art / NFT market demand signals.
 
 Uses OpenSea's public stats API (no auth for basic collection stats) and
 the SuperRare public API where available.
@@ -20,7 +20,7 @@ from systems.nova.input_channels import EffortLevel, InputChannel, Opportunity, 
 _OPENSEA_STATS_URL = "https://api.opensea.io/api/v2/collections"
 _FETCH_TIMEOUT = 20.0
 
-# Curated list of established generative art collections — use their slugs to
+# Curated list of established generative art collections - use their slugs to
 # pull current floor / volume data without needing a paid API key.
 _COLLECTIONS = [
     "artblocks-curated",
@@ -86,7 +86,7 @@ class ArtMarketsChannel(InputChannel):
         revenue = Decimal(str(floor_price)) * eth_to_usd
 
         return self._make_opp(
-            title=f"[Art] {name} — floor {floor_price:.3f} ETH",
+            title=f"[Art] {name} - floor {floor_price:.3f} ETH",
             description=(
                 f"{name}: 7-day volume {volume_7d:.1f} ETH, "
                 f"floor {floor_price:.3f} ETH (~${float(revenue):,.0f})."
@@ -107,7 +107,7 @@ class ArtMarketsChannel(InputChannel):
 
     def _generic_signal(self) -> Opportunity:
         return self._make_opp(
-            title="[Art] Generative / AI art demand — market active",
+            title="[Art] Generative / AI art demand - market active",
             description=(
                 "Generative and AI-assisted digital art continues to sell on "
                 "OpenSea, SuperRare, and Foundation. Demand for algorithmic "

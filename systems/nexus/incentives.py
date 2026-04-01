@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nexus: Divergence Incentive Engine
+EcodiaOS - Nexus: Divergence Incentive Engine
 
 Computes triangulation weights and divergence pressure signals.
 
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("nexus.incentives")
 
-# Retained for import-time backward compat but no longer used directly —
+# Retained for import-time backward compat but no longer used directly -
 # DivergenceIncentiveEngine reads from its config instance instead.
 _PRESSURE_THRESHOLD = 0.4
 

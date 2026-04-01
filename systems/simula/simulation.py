@@ -6,11 +6,11 @@ impact prediction. This is the brain of Simula's decision-making.
 
 Strategy stack (per proposal):
   1. Category-specific validation (static analysis / budget check / LLM reasoning)
-  2. Counterfactual episode replay — "What if this existed during episode X?"
-  3. Dependency graph analysis — blast radius via import-graph traversal
-  4. Resource cost estimation — heuristic compute/memory/token impact
-  5. Constitutional alignment prediction — drive alignment scoring
-  6. Risk synthesis — combine all signals into a unified assessment
+  2. Counterfactual episode replay - "What if this existed during episode X?"
+  3. Dependency graph analysis - blast radius via import-graph traversal
+  4. Resource cost estimation - heuristic compute/memory/token impact
+  5. Constitutional alignment prediction - drive alignment scoring
+  6. Risk synthesis - combine all signals into a unified assessment
 
 Budget efficiency:
   - Counterfactual replay: batches 30 episodes into ONE LLM call (~800 tokens)
@@ -328,7 +328,7 @@ class ChangeSimulator:
                     f"Name {name!r} should be {naming_conv}{hint}"
                 )
         else:
-            # Unknown additive category — skip naming validation, still check name exists
+            # Unknown additive category - skip naming validation, still check name exists
             name = getattr(spec, f"{cat_key.split('_', 1)[-1]}_name", None)
 
         # ADD_EXECUTOR-specific checks (conflict detection + directory guard)
@@ -455,7 +455,7 @@ class ChangeSimulator:
             "BENEFIT: <1 sentence>"
         )
 
-        # Budget gate: simulation is STANDARD priority — skip in RED tier
+        # Budget gate: simulation is STANDARD priority - skip in RED tier
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
             if not self._llm.should_use_llm("simula.simulation", estimated_tokens=400):
@@ -463,7 +463,7 @@ class ChangeSimulator:
                 return SimulationResult(
                     episodes_tested=episodes_count,
                     risk_level=RiskLevel.HIGH,
-                    risk_summary="LLM budget exhausted (RED tier) — defaulting to HIGH risk.",
+                    risk_summary="LLM budget exhausted (RED tier) - defaulting to HIGH risk.",
                     benefit_summary=proposal.expected_benefit,
                 )
 
@@ -870,8 +870,8 @@ class ChangeSimulator:
         Predict how well this change aligns with the four constitutional drives.
 
         Two-round scoring (#42):
-          Round 1 — coarse score (-1.0 to 1.0), single number, ~200 tokens.
-          Round 2 — second opinion only when round-1 score is borderline
+          Round 1 - coarse score (-1.0 to 1.0), single number, ~200 tokens.
+          Round 2 - second opinion only when round-1 score is borderline
                      (abs(score) < 0.3), averages both to reduce noise.
 
         Budget: ~200 tokens (clear cases) or ~400 tokens (borderline).

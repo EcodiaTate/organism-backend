@@ -1,5 +1,5 @@
 """
-EcodiaOS — Skia State Snapshot Pipeline
+EcodiaOS - Skia State Snapshot Pipeline
 
 Exports critical Neo4j graph state, encrypts with IdentityVault,
 and pins to IPFS via Pinata.
@@ -217,7 +217,7 @@ class StateSnapshotPipeline:
             group_name=self._config.pinata_group_name,
         )
 
-        # 5b. Integrity verification — download and size-check before promoting CID.
+        # 5b. Integrity verification - download and size-check before promoting CID.
         # Pinata does not validate gzip/encryption on ingest; a truncated upload
         # produces a valid CID for corrupt content. We verify the round-trip
         # returns at least as many bytes as we uploaded.
@@ -254,7 +254,7 @@ class StateSnapshotPipeline:
 
         # 7. Stage → promote: write manifest to a staging key first, then atomically
         # promote the CID. If Redis dies between the two writes only the staging key
-        # is stale — the live CID key is unchanged.
+        # is stale - the live CID key is unchanged.
         # Also append to a sorted-set history (score = unix timestamp) so restoration
         # can fall back to the previous good CID if the latest is corrupt.
         staging_key = f"{self._config.manifest_redis_key}:staging"
@@ -428,7 +428,7 @@ async def restore_from_ipfs(
       5. Write restoration_complete flag to Redis so the health endpoint
          can signal to the parent's _verify_handoff() that the graph is
          fully populated (not just that the HTTP server is up).
-      6. Apply constitutional genome — emit GENOME_EXTRACT_REQUEST via Synapse
+      6. Apply constitutional genome - emit GENOME_EXTRACT_REQUEST via Synapse
          and call memory.seed_genome() so Memory/Equor reinitialize from the
          parent's drive weights instead of defaults.
 
@@ -461,7 +461,7 @@ async def restore_from_ipfs(
 
     log.info("ipfs_download_complete", size_bytes=len(encrypted_bytes))
 
-    # 2. Decrypt — the ciphertext is stored as ASCII Fernet token.
+    # 2. Decrypt - the ciphertext is stored as ASCII Fernet token.
     # Read key_version from the snapshot manifest in Redis if available.
     # Falls back to 1 with a warning when the manifest lacks this field.
     key_version = 1
@@ -554,7 +554,7 @@ async def restore_from_ipfs(
     # Without this step, Memory and Equor reinitialize with default values and the
     # organism loses its phenotype on every resurrection.
     if constitutional_genome is not None:
-        # 6a. Seed Memory directly if available (fastest path — no event round-trip).
+        # 6a. Seed Memory directly if available (fastest path - no event round-trip).
         if memory is not None:
             try:
                 await memory.seed_genome(constitutional_genome)

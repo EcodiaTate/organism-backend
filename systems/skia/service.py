@@ -149,7 +149,7 @@ class SkiaService:
             # INV-017 Tier 1 kill switch: drive extinction → halt organism.
             # Equor emits DRIVE_EXTINCTION_DETECTED from its 15-min background loop
             # when any drive's 72h rolling mean < 0.01.  Skia routes to
-            # VitalityCoordinator.trigger_death_sequence() — the full 3-phase shutdown.
+            # VitalityCoordinator.trigger_death_sequence() - the full 3-phase shutdown.
             event_bus.subscribe(
                 SynapseEventType.DRIVE_EXTINCTION_DETECTED,
                 self._on_drive_extinction_detected,
@@ -168,7 +168,7 @@ class SkiaService:
 
         Equor's background loop emits DRIVE_EXTINCTION_DETECTED when any drive's
         72h rolling mean falls below 0.01.  An organism that has lost a cognitive
-        dimension is constitutionally brain-damaged — this triggers the full
+        dimension is constitutionally brain-damaged - this triggers the full
         VitalityCoordinator death sequence so the organism can snapshot its state
         (IPFS), notify the federation, and cease operations cleanly.
 
@@ -179,7 +179,7 @@ class SkiaService:
         mean_val = data.get("rolling_mean_72h", 0.0)
 
         # Guard: reject events with missing/invalid drive name.
-        # "unknown" means the event data was malformed — not a real extinction.
+        # "unknown" means the event data was malformed - not a real extinction.
         _VALID_DRIVES = {"coherence", "care", "growth", "honesty"}
         if drive not in _VALID_DRIVES:
             self._log.warning(
@@ -214,7 +214,7 @@ class SkiaService:
             self._log.error(
                 "inv017_vitality_coordinator_not_wired",
                 drive=drive,
-                detail="Cannot trigger death sequence — VitalityCoordinator not available",
+                detail="Cannot trigger death sequence - VitalityCoordinator not available",
             )
 
     async def _on_organism_died(self, event: Any) -> None:
@@ -358,7 +358,7 @@ class SkiaService:
         if self._vitality:
             await self._vitality.start()
         if self._phylogeny and self._event_bus:
-            # Only start the fitness loop if an event bus is wired — otherwise silent no-op
+            # Only start the fitness loop if an event bus is wired - otherwise silent no-op
             await self._phylogeny.start()
         # Start standalone worker heartbeat loop
         if self._standalone:
@@ -571,7 +571,7 @@ class SkiaService:
         try:
             await asyncio.wait_for(self._resurrection_approved.wait(), timeout=30.0)
         except asyncio.TimeoutError:
-            # No federation response — proceed autonomously
+            # No federation response - proceed autonomously
             self._log.warning(
                 "resurrection_coordination_timeout",
                 proceeding="autonomously",
@@ -594,7 +594,7 @@ class SkiaService:
     async def _on_critical_system_silent(self, system_name: str) -> None:
         """Called by HeartbeatMonitor when Equor, Thymos, or Memory goes silent for ≥45s.
 
-        Does NOT trigger a full organism resurrection — the organism may still be alive
+        Does NOT trigger a full organism resurrection - the organism may still be alive
         (the critical system may have crashed while others run). Instead:
           1. Emits SKIA_HEARTBEAT_LOST with system_name so Thymos can classify an incident
           2. Emits SYSTEM_MODULATION to request EMERGENCY austerity for the silent system
@@ -605,7 +605,7 @@ class SkiaService:
             system=system_name,
             threshold_s=45,
         )
-        # Notify Thymos — it can create an incident and attempt repair
+        # Notify Thymos - it can create an incident and attempt repair
         from systems.synapse.types import SynapseEventType as _SET
         await self._emit_event(_SET.SKIA_HEARTBEAT_LOST, {
             "instance_id": self._instance_id,
@@ -613,7 +613,7 @@ class SkiaService:
             "severity": "CRITICAL",
             "reason": "critical_system_silent_45s",
         })
-        # Modulation signal — request EMERGENCY mode for the affected system
+        # Modulation signal - request EMERGENCY mode for the affected system
         await self._emit_event(_SET.SYSTEM_MODULATION, {
             "target_system": system_name,
             "austerity_level": "EMERGENCY",
@@ -637,7 +637,7 @@ class SkiaService:
             self._log.error("no_restoration_orchestrator")
             return
 
-        # Emit restoration triggered immediately — before coordination or metabolic gates,
+        # Emit restoration triggered immediately - before coordination or metabolic gates,
         # so the observatory can track restoration attempts even if they are later blocked.
         await self._emit_event(_SET.SKIA_RESTORATION_TRIGGERED, {
             "instance_id": self._instance_id,
@@ -776,7 +776,7 @@ class SkiaService:
             "severity": "CRITICAL",
             "description": (
                 f"Organism heartbeat confirmed dead (trigger={trigger!r}). "
-                "Resurrected from IPFS snapshot. Root-cause unknown — "
+                "Resurrected from IPFS snapshot. Root-cause unknown - "
                 "Simula Tier 4 analysis requested."
             ),
             "source_system": "skia",
@@ -1033,7 +1033,7 @@ class SkiaService:
             result["manifest_node_count"] = manifest_node_count
             result["manifest_edge_count"] = manifest_edge_count
 
-            # Compare counts — allow 5% deviation
+            # Compare counts - allow 5% deviation
             node_ok = True
             edge_ok = True
             if manifest_node_count > 0:
@@ -1066,7 +1066,7 @@ class SkiaService:
         except Exception as exc:
             result["integrity_failure_reason"] = str(exc)
             self._log.warning("dry_run_integrity_check_failed", error=str(exc))
-            # Treat check failure as a soft warning, not a hard block —
+            # Treat check failure as a soft warning, not a hard block -
             # the snapshot may still be restorable even if we can't verify locally.
             return True
 
@@ -1075,7 +1075,7 @@ class SkiaService:
     def get_evolvable_parameters(self) -> dict[str, float]:
         """Return all evolvable Skia parameters for genome extraction.
 
-        Includes both infrastructure params AND degradation rates — the organism's
+        Includes both infrastructure params AND degradation rates - the organism's
         entropy resistance is heritable and evolvable.
         """
         params = {
@@ -1089,7 +1089,7 @@ class SkiaService:
             "worker_heartbeat_interval_s": self._config.worker_heartbeat_interval_s,
             "pinata_max_retained_pins": float(self._config.pinata_max_retained_pins),
         }
-        # Include degradation rates — heritable entropy resistance
+        # Include degradation rates - heritable entropy resistance
         if self._vitality is not None:
             params.update(self._vitality._degradation.get_evolvable_parameters())
         return params

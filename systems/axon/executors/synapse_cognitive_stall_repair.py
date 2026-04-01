@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Cognitive Stall Repair Executor
+EcodiaOS - Synapse Cognitive Stall Repair Executor
 
 Handles repair of cognitive stalls in the Synapse system, specifically
 targeting simula_codegen stall scenarios.

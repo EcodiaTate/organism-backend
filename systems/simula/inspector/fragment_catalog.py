@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 3: Fragment Catalog Builder
+EcodiaOS - Inspector Phase 3: Fragment Catalog Builder
 
 Extracts "reusable fragments" from a StaticCFG and builds a FragmentCatalog
 indexed by FragmentSemantics.
@@ -13,10 +13,10 @@ units the steerability model will ask "can I reach this from the fault site?"
 
 Two extraction passes
 ---------------------
-1. Block-level pass — one fragment per BasicBlock that has a non-UNKNOWN
+1. Block-level pass - one fragment per BasicBlock that has a non-UNKNOWN
    semantic tag.  Covers individual instructions / short sequences.
 
-2. Call-chain pass — enumerate call-chain fragments: sequences of 2–5 calls
+2. Call-chain pass - enumerate call-chain fragments: sequences of 2–5 calls
    that were observed in Phase 2 traces.  These represent multi-step execution
    paths that could be exploited for ROP/JOP-style chaining (in native code) or
    logic-level control hijacking in Python.

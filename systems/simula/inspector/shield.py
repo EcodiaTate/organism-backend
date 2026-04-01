@@ -1,5 +1,5 @@
 """
-EcodiaOS — Autonomous Shield (XDP Filter Synthesizer)
+EcodiaOS - Autonomous Shield (XDP Filter Synthesizer)
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ First, check the source IP against the `xdp_blocklist` map and enforce the TTL. 
 Next, inspect the TCP/HTTP payload. If it matches the malicious signature from the report, \
 return XDP_DROP. Otherwise, return XDP_PASS.
 
-eBPF VERIFIER COMPLIANCE (CRITICAL — DO NOT VIOLATE):
+eBPF VERIFIER COMPLIANCE (CRITICAL - DO NOT VIOLATE):
 - DO NOT use dynamic loop boundaries. Loops MUST have a strict, hardcoded maximum integer boundary (e.g., `for (int i = 0; i < 64; i++)`).
 - You MUST place `#pragma unroll` immediately preceding any loop to force compiler unrolling.
 - Inside the loop, you MUST rigorously check bounds against `data_end` before dereferencing any packet bytes (e.g., `if ((void*)payload + i + 1 > data_end) break;`).
@@ -312,7 +312,7 @@ class AutonomousShield:
                 ("src_ip", ctypes.c_uint32),
                 ("vuln_id", ctypes.c_uint32),
                 # Third field is anomaly_report_id (shield template) or
-                # rule_index (filter_generator template) — same offset & size.
+                # rule_index (filter_generator template) - same offset & size.
                 ("rule_index", ctypes.c_uint32),
             ]
 
@@ -323,7 +323,7 @@ class AutonomousShield:
         loop = asyncio.get_running_loop()
 
         def _on_event(_cpu: int, data, size: int) -> None:
-            """Perf-buffer callback — runs on the poll thread."""
+            """Perf-buffer callback - runs on the poll thread."""
             ev = ctypes.cast(data, ctypes.POINTER(AlertEvent)).contents
             ip_str = socket.inet_ntoa(struct.pack("<I", ev.src_ip))
             rule = "Blocklist" if ev.vuln_id == 1 else "Signature"

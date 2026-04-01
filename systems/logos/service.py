@@ -281,9 +281,9 @@ class LogosService:
             (SynapseEventType.INSTANCE_SPAWNED, self._on_instance_spawned),
             # Spec 21 / Spec 26: prune retired-instance world model data
             (SynapseEventType.INSTANCE_RETIRED, self._on_instance_retired),
-            # Spec 09 / Spec 29: VitalityCoordinator austerity — pause compression
+            # Spec 09 / Spec 29: VitalityCoordinator austerity - pause compression
             (SynapseEventType.SYSTEM_MODULATION, self._on_system_modulation),
-            # HIGH-4: theta clock — decay every 100 cycles, self-prediction every 50
+            # HIGH-4: theta clock - decay every 100 cycles, self-prediction every 50
             (SynapseEventType.THETA_CYCLE_START, self._on_theta_cycle),
         ]
         subscribed = 0
@@ -302,7 +302,7 @@ class LogosService:
     async def _on_fovea_prediction_error(self, event: Any) -> None:
         """Handle a FOVEA_PREDICTION_ERROR: feed the error back as a compression delta.
 
-        Only high-salience errors justify a world model update — low-salience
+        Only high-salience errors justify a world model update - low-salience
         errors are noise. The threshold is set at 0.3 precision-weighted salience.
         """
         data = event.data if hasattr(event, "data") else {}
@@ -344,7 +344,7 @@ class LogosService:
             )
         except Exception as exc:
             # A2 fix: log full error context so Thymos can classify the incident.
-            # We do NOT re-raise — Synapse event handlers must not crash the bus.
+            # We do NOT re-raise - Synapse event handlers must not crash the bus.
             logger.error(
                 "fovea_error_cascade_failed",
                 error=str(exc),
@@ -363,7 +363,7 @@ class LogosService:
         consolidated_count = data.get("consolidated_count", 0)
 
         if consolidated_count > 0:
-            # Consolidation freed capacity — update coverage tracking
+            # Consolidation freed capacity - update coverage tracking
             self._world_model.coverage = min(
                 1.0, self._world_model.coverage + coverage_delta
             )
@@ -523,7 +523,7 @@ class LogosService:
 
         Spec 21 §M5 / Spec 26: when a child instance is retired, Logos should
         remove or decay any generative schemas or causal priors that were seeded
-        exclusively from that instance's data — preventing stale genome inheritance
+        exclusively from that instance's data - preventing stale genome inheritance
         from polluting the parent world model indefinitely.
         """
         data = event.data if hasattr(event, "data") else {}
@@ -562,7 +562,7 @@ class LogosService:
 
         compliant = False
         if "logos" in halt_systems or level in ("safe_mode", "emergency"):
-            self._sleep_active = True  # reuse sleep gate — no new compressions
+            self._sleep_active = True  # reuse sleep gate - no new compressions
             compliant = True
             logger.warning(
                 "logos_modulation_halted",
@@ -570,7 +570,7 @@ class LogosService:
                 halt_systems=halt_systems,
             )
         elif not halt_systems and level == "nominal":
-            # Recovery — resume if we were previously halted by modulation
+            # Recovery - resume if we were previously halted by modulation
             self._sleep_active = False
             compliant = True
 
@@ -633,7 +633,7 @@ class LogosService:
                     await self._decay_engine.run_decay_cycle(
                         self._memory_store,
                         self._anchor_ids,
-                        max_items=50,  # Light pass — theta-driven, not pressure-driven
+                        max_items=50,  # Light pass - theta-driven, not pressure-driven
                     )
                     logger.debug(
                         "theta_decay_cycle_complete",
@@ -688,7 +688,7 @@ class LogosService:
         """
         admitted = self._budget.increment(tier, amount)
         if not admitted and self._synapse is not None:
-            asyncio.create_task(  # noqa: RUF006 — fire-and-forget, tracked via _fire_forget_tasks
+            asyncio.create_task(  # noqa: RUF006 - fire-and-forget, tracked via _fire_forget_tasks
                 self._emit_budget_admission_denied(tier, amount)
             )
         return admitted
@@ -748,7 +748,7 @@ class LogosService:
         """
         update = await self._world_model.integrate(delta)
 
-        # Only broadcast structural changes — not redundant-discard no-ops
+        # Only broadcast structural changes - not redundant-discard no-ops
         if self._synapse is not None and not delta.discard_after_encoding:
             await self._synapse.event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.WORLD_MODEL_UPDATED,
@@ -764,7 +764,7 @@ class LogosService:
             ))
 
         # CRITICAL-1: Persist (:WorldModel) node + [:COMPRESSES] links to Neo4j.
-        # Source IDs come from the delta's experience_id (episode) — the cascade
+        # Source IDs come from the delta's experience_id (episode) - the cascade
         # sets this when a salient episode reaches Stage 4.
         if self._persistence is not None and not delta.discard_after_encoding:
             try:
@@ -792,7 +792,7 @@ class LogosService:
         semantic distillation -> world model integration.
 
         During Oneiros sleep (_sleep_active=True), real-time compression is
-        paused — Oneiros drives offline compression via run_batch_compression().
+        paused - Oneiros drives offline compression via run_batch_compression().
         Experiences received during sleep are discarded as redundant (not stored).
 
         Returns the CascadeResult with per-stage metrics, anchor flags,
@@ -851,14 +851,14 @@ class LogosService:
                         "causal_updates": wm.causal_links_added + wm.causal_links_revised,
                         "coverage_delta": wm.coverage_delta,
                         "complexity_delta": wm.complexity_delta,
-                        # Surfaced for Telos/Kairos/Equor — was previously invisible
+                        # Surfaced for Telos/Kairos/Equor - was previously invisible
                         "invariants_tested": wm.invariants_tested,
                         "invariants_violated": wm.invariants_violated,
                     },
                 ))
 
                 # Emit dedicated invariant violation event so Kairos/Equor/Thymos react.
-                # Previously only a WARNING log — now escalated to the organism.
+                # Previously only a WARNING log - now escalated to the organism.
                 if wm.invariants_violated > 0:
                     try:
                         await self._synapse.event_bus.emit(SynapseEvent(
@@ -1014,7 +1014,7 @@ class LogosService:
             cycle_duration_ms=elapsed,
         )
 
-        # Release budget for evicted items — decrement the correct tier (P7 fix)
+        # Release budget for evicted items - decrement the correct tier (P7 fix)
         if decay_report:
             for item_id in decay_report.evicted:
                 tier = self._item_type_to_tier(
@@ -1046,7 +1046,7 @@ class LogosService:
                     "mdl_improvement": report.mdl_improvement,
                     "bits_saved": report.bits_saved,
                     "anchors_created": report.anchors_created,
-                    # Newly surfaced — was previously invisible to organism
+                    # Newly surfaced - was previously invisible to organism
                     "evicted_item_ids": evicted_ids,
                     "evicted_items": evicted_with_types,
                     "total_evicted_this_cycle": len(evicted_ids),
@@ -1290,7 +1290,7 @@ class LogosService:
                                     "closest_indicator": closest,
                                     "fraction_to_threshold": round(closest_frac, 3),
                                     "message": (
-                                        "Schwarzschild threshold approaching — cognitive reorganization "
+                                        "Schwarzschild threshold approaching - cognitive reorganization "
                                         f"is imminent. Closest indicator: {closest} at "
                                         f"{round(closest_frac * 100, 1)}% of threshold."
                                     ),

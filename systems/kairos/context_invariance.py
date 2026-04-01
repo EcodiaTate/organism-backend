@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos: Context Invariance Testing
+EcodiaOS - Kairos: Context Invariance Testing
 
 This stage separates Kairos from ordinary causal discovery.
 

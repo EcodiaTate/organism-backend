@@ -74,7 +74,7 @@ class ProposalIntelligence:
     Smart proposal management for Simula.
 
     Provides deduplication, prioritization, dependency analysis,
-    and cost estimation — all optimized for minimal token usage.
+    and cost estimation - all optimized for minimal token usage.
 
     Stage 1B upgrade: Tier 3 dedup now uses voyage-code-3 embeddings
     for cosine similarity instead of LLM-based text comparison.
@@ -113,7 +113,7 @@ class ProposalIntelligence:
         Score and rank proposals by:
           priority = evidence_strength * expected_impact / max(0.1, risk * cost)
 
-        Pure heuristic scoring — zero LLM tokens.
+        Pure heuristic scoring - zero LLM tokens.
         Proposals with higher scores should be processed first.
         """
         priorities: list[ProposalPriority] = []
@@ -216,7 +216,7 @@ class ProposalIntelligence:
         for prefix, group in prefix_groups.items():
             if len(group) < 2:
                 continue
-            # Corpus 14 §10: tie-break by timestamp — newest proposal is the representative
+            # Corpus 14 §10: tie-break by timestamp - newest proposal is the representative
             # so the most recent description wins when merging near-identical proposals.
             rep = max(group, key=lambda p: getattr(p, "created_at", p.id))
             members = [p.id for p in group]
@@ -253,7 +253,7 @@ class ProposalIntelligence:
         still_unclustered = [p for p in proposals if p.id not in clustered_ids]
         if len(still_unclustered) >= _LLM_DEDUP_THRESHOLD:
             if self._embeddings is not None:
-                # Stage 1B: voyage-code-3 cosine similarity — cheaper and more precise
+                # Stage 1B: voyage-code-3 cosine similarity - cheaper and more precise
                 embedding_clusters = await self._embedding_deduplicate(still_unclustered)
                 clusters.extend(embedding_clusters)
             elif self._llm is not None:
@@ -306,7 +306,7 @@ class ProposalIntelligence:
             )
             return []
 
-        # Pairwise cosine similarity — find clusters above threshold
+        # Pairwise cosine similarity - find clusters above threshold
         clusters: list[ProposalCluster] = []
         clustered: set[int] = set()
 
@@ -435,7 +435,7 @@ class ProposalIntelligence:
         Detect ordering dependencies between proposals.
         Returns list of (before_id, after_id, reason) tuples.
 
-        Rule-based analysis — zero LLM tokens:
+        Rule-based analysis - zero LLM tokens:
         - ADD_EXECUTOR should come before MODIFY_CONTRACT referencing axon
         - ADD_INPUT_CHANNEL before MODIFY_CONTRACT referencing atune
         - ADJUST_BUDGET after the thing it's budgeting for is added
@@ -508,7 +508,7 @@ class ProposalIntelligence:
     def estimate_cost(self, proposal: EvolutionProposal) -> float:
         """
         Heuristic cost estimation (0.0-1.0 scale).
-        Zero LLM tokens — pure lookup + adjustment.
+        Zero LLM tokens - pure lookup + adjustment.
         """
         base_cost = _CATEGORY_COST.get(proposal.category, 0.5)
 

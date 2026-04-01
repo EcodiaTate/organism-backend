@@ -1,5 +1,5 @@
 """
-EcodiaOS — GitHub API Client
+EcodiaOS - GitHub API Client
 
 Fetches open bounty issues from GitHub's search API.
 Extracts reward amounts from labels (e.g. "bounty: $500") and issue bodies.
@@ -148,7 +148,7 @@ class GitHubClient:
         """
         assert self._http is not None, "Call connect() or use as async context manager first"
 
-        # Build query — search for open issues with a "bounty" label.
+        # Build query - search for open issues with a "bounty" label.
         # GitHub's search API 422s when OR is mixed with is: qualifiers at the top
         # level (it reinterprets OR as a top-level boolean, breaking the is: scope).
         # Use a single focused label; extra_labels are AND'd in (intersect, not union).

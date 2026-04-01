@@ -1,18 +1,18 @@
 """
-EcodiaOS — Oneiros v2: REM Stage (Cross-Domain Synthesis)
+EcodiaOS - Oneiros v2: REM Stage (Cross-Domain Synthesis)
 
 The most computationally expensive and most valuable sleep stage.
-The workspace is free — no real-time obligations. Use it for breadth.
+The workspace is free - no real-time obligations. Use it for breadth.
 
 Three operations:
-1. Cross-Domain Synthesis — structural isomorphism detection across schema domains
-2. Dream Generation — constructive simulation on highest-error domains
-3. Analogy Discovery — causal invariant transfer across domains
+1. Cross-Domain Synthesis - structural isomorphism detection across schema domains
+2. Dream Generation - constructive simulation on highest-error domains
+3. Analogy Discovery - causal invariant transfer across domains
 
 Broadcasts:
-    CROSS_DOMAIN_MATCH_FOUND — when structural isomorphism > 0.8
-    DREAM_HYPOTHESES_GENERATED — when dream predictions fail (quality < 0.7)
-    ANALOGY_DISCOVERED — when invariant applies to 2+ domains
+    CROSS_DOMAIN_MATCH_FOUND - when structural isomorphism > 0.8
+    DREAM_HYPOTHESES_GENERATED - when dream predictions fail (quality < 0.7)
+    ANALOGY_DISCOVERED - when invariant applies to 2+ domains
 """
 
 from __future__ import annotations
@@ -115,7 +115,7 @@ class CrossDomainSynthesizer:
     # Hard caps to keep inner-loop complexity polynomial in a mature organism.
     # With 20 schemas × 20 schemas × 45 domain pairs = 18,000 comparisons max.
     MAX_SCHEMAS_PER_DOMAIN: int = 20
-    MAX_DOMAIN_PAIRS: int = 45  # C(10,2) — effectively caps at 10 active domains
+    MAX_DOMAIN_PAIRS: int = 45  # C(10,2) - effectively caps at 10 active domains
 
     def __init__(
         self,
@@ -173,7 +173,7 @@ class CrossDomainSynthesizer:
             for j in range(i + 1, len(domains))
         ]
         if len(all_pairs) > self.MAX_DOMAIN_PAIRS:
-            # Score by product of schema counts — largest pools first
+            # Score by product of schema counts - largest pools first
             all_pairs.sort(
                 key=lambda p: len(by_domain[p[0]]) * len(by_domain[p[1]]),
                 reverse=True,
@@ -302,7 +302,7 @@ class CrossDomainSynthesizer:
         min_entities = min(a.entity_count, b.entity_count)
         entity_sim = min_entities / max_entities
 
-        # 2. Relation type overlap (35% weight) — Jaccard similarity
+        # 2. Relation type overlap (35% weight) - Jaccard similarity
         types_a = set(a.relation_types)
         types_b = set(b.relation_types)
         if types_a or types_b:
@@ -310,7 +310,7 @@ class CrossDomainSynthesizer:
         else:
             type_overlap = 1.0 if a.entity_count == b.entity_count else 0.0
 
-        # 3. Arity distribution match (25% weight) — histogram similarity
+        # 3. Arity distribution match (25% weight) - histogram similarity
         all_arities = sorted(set(a.relation_arities + b.relation_arities))
         if all_arities:
             hist_a = {ar: a.relation_arities.count(ar) for ar in all_arities}
@@ -386,7 +386,7 @@ class DreamGenerator:
 
     1. Get highest-remaining-error domains from Fovea
     2. For each: generate hypothetical scenarios using Logos predictions
-    3. Test world model on these scenarios — measure prediction quality
+    3. Test world model on these scenarios - measure prediction quality
     4. prediction_quality < 0.7 → extract new hypotheses via Evo
     5. Build pre-attention cache for Fovea's first wake cycles
     """
@@ -470,7 +470,7 @@ class DreamGenerator:
                 all_hypotheses, [d.get("domain", "") for d in error_domains]
             )
 
-            # Emit DREAM_INSIGHT for Evo/Nova — creative discoveries from REM
+            # Emit DREAM_INSIGHT for Evo/Nova - creative discoveries from REM
             if self._event_bus is not None:
                 try:
                     await self._event_bus.emit(SynapseEvent(
@@ -599,7 +599,7 @@ class DreamGenerator:
             {
                 "id": new_id(),
                 "statement": (
-                    f"World model underperforms in domain '{domain}' — "
+                    f"World model underperforms in domain '{domain}' - "
                     f"prediction quality {scenario.prediction_quality:.2f}"
                 ),
                 "category": "world_model",
@@ -639,7 +639,7 @@ class AnalogyDiscoverer:
     Discover causal invariants that apply across multiple domains.
 
     Same causal structure, different domain labels. When an invariant
-    applies to 2+ domains, it's an analogy — and we can delete
+    applies to 2+ domains, it's an analogy - and we can delete
     domain-specific schemas, replacing them with transfers.
 
     predictive_transfer_value = domain_count x invariant.coverage
@@ -863,9 +863,9 @@ class ThreatSimulator:
     pre-generate prophylactic antibodies before the failure actually occurs.
 
     Three seed sources:
-    1. Thymos incident history — variations on past resolved failures
-    2. Evo's 'concerning' hypotheses — evidence_ratio in [0.3, 0.5]
-    3. Nova's high-uncertainty belief regions — precision < 0.35
+    1. Thymos incident history - variations on past resolved failures
+    2. Evo's 'concerning' hypotheses - evidence_ratio in [0.3, 0.5]
+    3. Nova's high-uncertainty belief regions - precision < 0.35
     """
 
     MAX_SCENARIOS: int = 15
@@ -914,13 +914,13 @@ class ThreatSimulator:
         }
 
     async def _gather_seeds(self) -> list[dict[str, Any]]:
-        """Gather scenario seeds from Neo4j — incidents, hypotheses, beliefs."""
+        """Gather scenario seeds from Neo4j - incidents, hypotheses, beliefs."""
         seeds: list[dict[str, Any]] = []
         if self._neo4j is None:
             return seeds
 
         try:
-            # Source 1: recent resolved Thymos incidents — simulate variations
+            # Source 1: recent resolved Thymos incidents - simulate variations
             incident_rows = await self._neo4j.execute_read(
                 """
                 MATCH (i:Incident)
@@ -1043,7 +1043,7 @@ class ThreatSimulator:
         """Derive a heuristic response plan from the threat scenario.
 
         Constitutional heuristics applied: observe → isolate → repair → verify.
-        No LLM call — this runs within the 2s per-scenario budget (Spec 13 §7).
+        No LLM call - this runs within the 2s per-scenario budget (Spec 13 §7).
         """
         domain = scenario.get("domain", "")
         severity = scenario.get("severity", "medium")
@@ -1110,7 +1110,7 @@ class ThreatSimulator:
         response_plan: str,
         seed: dict[str, Any],
     ) -> None:
-        """Emit ONEIROS_THREAT_SCENARIO — Thymos subscribes to pre-generate antibodies."""
+        """Emit ONEIROS_THREAT_SCENARIO - Thymos subscribes to pre-generate antibodies."""
         if self._event_bus is None:
             return
         try:
@@ -1352,7 +1352,7 @@ class REMStage:
     """
     Stage 3: REM (~30% of sleep duration).
 
-    Cross-domain synthesis. The workspace is free — no real-time obligations.
+    Cross-domain synthesis. The workspace is free - no real-time obligations.
     Orchestrates three operations:
     1. Cross-Domain Synthesis
     2. Dream Generation
@@ -1427,13 +1427,13 @@ class REMStage:
         # 3. Analogy Discovery
         analogy_report = await self._analogy.run()
 
-        # 4. Affect Processing — dampen emotional charge on high-affect episodes
+        # 4. Affect Processing - dampen emotional charge on high-affect episodes
         affect_result = await self._affect_processor.run()
 
-        # 5. Ethical Digestion — replay constitutional edge cases + RE Stream 3
+        # 5. Ethical Digestion - replay constitutional edge cases + RE Stream 3
         ethical_result = await self._ethical_digestion.run()
 
-        # 6. Threat Simulation — Revonsuo rehearsal → prophylactic Thymos antibodies
+        # 6. Threat Simulation - Revonsuo rehearsal → prophylactic Thymos antibodies
         threat_result = await self._threat_simulator.run()
 
         elapsed = (time.monotonic() - t0) * 1000

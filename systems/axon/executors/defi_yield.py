@@ -60,12 +60,12 @@ YIELD_FLOOR_APY = Decimal("0.02")
 _SUPPORTED_ACTIONS = frozenset({"deposit", "withdraw"})
 
 # Phase 16d: expanded protocol coverage
-# aave        — Aave V3 on Base (supply/borrow lending)
-# morpho      — Morpho Blue MetaMorpho USDC vault
-# aerodrome   — Aerodrome concentrated liquidity AMM (earns AERO rewards)
-# moonwell    — Moonwell lending/borrowing (earns WELL rewards)
-# extra_finance — Extra Finance leveraged yield (conservative mode, max 2×)
-# beefy       — Beefy auto-compounding vault aggregator
+# aave        - Aave V3 on Base (supply/borrow lending)
+# morpho      - Morpho Blue MetaMorpho USDC vault
+# aerodrome   - Aerodrome concentrated liquidity AMM (earns AERO rewards)
+# moonwell    - Moonwell lending/borrowing (earns WELL rewards)
+# extra_finance - Extra Finance leveraged yield (conservative mode, max 2×)
+# beefy       - Beefy auto-compounding vault aggregator
 _SUPPORTED_PROTOCOLS = frozenset({
     "aave", "morpho", "aerodrome", "moonwell", "extra_finance", "beefy"
 })
@@ -111,7 +111,7 @@ _ERC4626_DEPOSIT_SELECTOR = "0x6e553f65"
 # ERC-4626 vault -- withdraw(uint256 assets, address receiver, address owner)
 _ERC4626_WITHDRAW_SELECTOR = "0xb460af94"
 
-# Aave V3 Pool ABI fragment for getReserveData — returns a ReserveData struct.
+# Aave V3 Pool ABI fragment for getReserveData - returns a ReserveData struct.
 # currentLiquidityRate is at index 2, encoded in ray (1e27 units).
 # We only need the selector + the asset address argument.
 _AAVE_GET_RESERVE_DATA_SELECTOR = "0x35ea6a75"
@@ -119,7 +119,7 @@ _AAVE_GET_RESERVE_DATA_SELECTOR = "0x35ea6a75"
 # Ray unit = 1e27; divide currentLiquidityRate by 1e27 to get APY as a fraction.
 _RAY = Decimal("1e27")
 
-# Seconds per year — used for Morpho share-price APY approximation.
+# Seconds per year - used for Morpho share-price APY approximation.
 _SECONDS_PER_YEAR = Decimal("365.25") * Decimal("86400")
 
 # Error fragments from DeFi interactions
@@ -417,7 +417,7 @@ class DeFiYieldExecutor(Executor):
                 contract = _MOONWELL_MUSDC_BASE
             elif protocol == "extra_finance":
                 # Extra Finance uses ERC-4626 interface in conservative (lend-only) mode.
-                # Leveraged mode is explicitly NOT used — Max leverage = 1× (simple deposit).
+                # Leveraged mode is explicitly NOT used - Max leverage = 1× (simple deposit).
                 tx_hash = await self._execute_erc4626(
                     action, amount_raw_int, context,
                     vault_address=_EXTRA_FINANCE_LEND_BASE,
@@ -425,7 +425,7 @@ class DeFiYieldExecutor(Executor):
                 )
                 contract = _EXTRA_FINANCE_LEND_BASE
             else:
-                # beefy — ERC-4626 compatible auto-compounding vault
+                # beefy - ERC-4626 compatible auto-compounding vault
                 tx_hash = await self._execute_erc4626(
                     action, amount_raw_int, context,
                     vault_address=_BEEFY_USDC_VAULT_BASE,
@@ -611,10 +611,10 @@ class DeFiYieldExecutor(Executor):
         """
         Generic ERC-4626 vault deposit or withdraw.
 
-        Used for Aerodrome, Moonwell, Extra Finance (conservative), and Beefy —
+        Used for Aerodrome, Moonwell, Extra Finance (conservative), and Beefy -
         all of which expose the standard ERC-4626 interface for USDC deposits.
 
-        Extra Finance: conservative (lend-only) mode — no leverage is applied.
+        Extra Finance: conservative (lend-only) mode - no leverage is applied.
         Aerodrome: deposits into the USDC/USDT stable gauge via ERC-4626 wrapper.
         """
         wallet = self._wallet
@@ -689,7 +689,7 @@ class DeFiYieldExecutor(Executor):
         Fetch the current supply APY from the protocol via a read-only RPC call.
 
         Returns the APY as a Decimal fraction (e.g. 0.035 = 3.5%), or None if
-        the fetch fails (caller treats None as fail-open — deposit proceeds).
+        the fetch fails (caller treats None as fail-open - deposit proceeds).
 
         Aave V3: calls getReserveData(asset) on the Pool contract and reads
         currentLiquidityRate (index 2 in the returned tuple), which is encoded
@@ -698,7 +698,7 @@ class DeFiYieldExecutor(Executor):
         Morpho (ERC-4626): calls convertToAssets(1e6) and compares to the share
         price 24h ago via totalAssets/totalSupply. Phase 1 approximation: return
         None (fail-open) as Morpho's on-chain APY requires a time-series oracle
-        not available in Phase 1 — the gas floor ($20) is sufficient protection.
+        not available in Phase 1 - the gas floor ($20) is sufficient protection.
         """
         try:
             import asyncio
@@ -712,7 +712,7 @@ class DeFiYieldExecutor(Executor):
                 return await loop.run_in_executor(
                     None, self._fetch_aave_apy_sync, rpc_url
                 )
-            # Morpho: fail-open — no time-series oracle available in Phase 1
+            # Morpho: fail-open - no time-series oracle available in Phase 1
             return None
         except Exception as exc:
             self._logger.debug(
@@ -734,7 +734,7 @@ class DeFiYieldExecutor(Executor):
             from web3 import Web3
 
             w3 = Web3(Web3.HTTPProvider(rpc_url, request_kwargs={"timeout": 5}))
-            # ABI for getReserveData(address asset) — minimal struct, read-only
+            # ABI for getReserveData(address asset) - minimal struct, read-only
             # currentLiquidityRate is index 2 in the returned ReserveData tuple.
             def _f(t: str, n: str) -> dict:  # noqa: E306
                 return {"internalType": t, "name": n, "type": t.split(".")[-1]}

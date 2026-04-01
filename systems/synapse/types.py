@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Type Definitions
+EcodiaOS - Synapse Type Definitions
 
 All data types for the autonomic nervous system: cycle clock, health monitoring,
 resource allocation, degradation strategies, emergent rhythm detection,
@@ -157,7 +157,7 @@ class ResourceSnapshot(EOSBaseModel):
 
 class SystemLoad(EOSBaseModel):
     """
-    Current system resource utilisation — passed to Atune each theta tick.
+    Current system resource utilisation - passed to Atune each theta tick.
 
     Formerly in systems.fovea.types; moved here (Spec 09 §3) so CognitiveClock
     can import it without a cross-system dependency on Fovea.
@@ -181,13 +181,13 @@ class SomaticCycleState(EOSBaseModel):
     """
 
     urgency: float = 0.0
-    """Scalar [0,1] allostatic urgency — how far from all setpoints."""
+    """Scalar [0,1] allostatic urgency - how far from all setpoints."""
 
     dominant_error: str = "energy"
     """Name of the InteroceptiveDimension with the largest allostatic error."""
 
     arousal_sensed: float = 0.4
-    """Raw sensed AROUSAL dimension [0,1] — used by clock for adaptive timing."""
+    """Raw sensed AROUSAL dimension [0,1] - used by clock for adaptive timing."""
 
     energy_sensed: float = 0.6
     """Raw sensed ENERGY dimension [0,1]."""
@@ -561,7 +561,7 @@ class SynapseEventType(enum.StrEnum):
     #   description (str)
     #   estimated_value_usdc (str)    â€” Decimal-serialised
     #   estimated_effort_hours (float)
-    #   roi (float)                   â€” estimated_value / (effort Ã— hourly_cost)
+    #   roi (float)                   â€” estimated_value / (effort Ã- hourly_cost)
     #   drive_alignment (dict)        â€” {"coherence":f, "care":f, "growth":f, "honesty":f}
     #   composite_score (float)       â€” weighted drive alignment score
     #   source (str)                  â€” originating scanner name
@@ -680,7 +680,7 @@ class SynapseEventType(enum.StrEnum):
     #   context (dict) â€” partial execution state for Nova to reason about
     AXON_INTENT_PIVOT = "axon_intent_pivot"
     #
-    # AXON_TEMPLATES_INHERITED — emitted by Axon after seeding the new instance's
+    # AXON_TEMPLATES_INHERITED - emitted by Axon after seeding the new instance's
     # executor templates from its parent genome (cold-start acceleration). Evo
     # subscribes to track the template inheritance ratio (seeded / total) as a
     # learning-speedup KPI.
@@ -1045,7 +1045,7 @@ class SynapseEventType(enum.StrEnum):
     #   mutation_description  (str)   â€” Human-readable description of the change
     #   supporting_episodes   (list)  â€” Episode IDs that support this hypothesis
     EVOLUTION_CANDIDATE = "evolution_candidate"
-    # Emitted by Evo when the consolidation loop has not run in 2Ã— its expected
+    # Emitted by Evo when the consolidation loop has not run in 2Ã- its expected
     # interval â€” the learning loop is stalled.
     # Payload: last_consolidation_ago_s (float), expected_interval_s (float),
     #          cycles_since_consolidation (int)
@@ -1464,19 +1464,19 @@ class SynapseEventType(enum.StrEnum):
     # Payload: incident_id (str), proposal_id (str), repair_tier (int)
     THYMOS_REPAIR_APPROVED = "thymos_repair_approved"
     #
-    # THYMOS_INCIDENT_QUERY — emitted by Simula (PreventiveAudit) to request
+    # THYMOS_INCIDENT_QUERY - emitted by Simula (PreventiveAudit) to request
     # recent incident history from Thymos for correlation with fragile code.
     # Payload: request_id (str), instance_id (str), lookback_days (int),
     #          max_incidents (int)
     THYMOS_INCIDENT_QUERY = "thymos_incident_query"
     #
-    # THYMOS_INCIDENT_RESPONSE — emitted by Thymos in reply to THYMOS_INCIDENT_QUERY.
-    # Payload: request_id (str), incidents (list[dict]) — each dict contains:
+    # THYMOS_INCIDENT_RESPONSE - emitted by Thymos in reply to THYMOS_INCIDENT_QUERY.
+    # Payload: request_id (str), incidents (list[dict]) - each dict contains:
     #   incident_id, incident_class, severity, source_system, error_type,
     #   error_message, fingerprint, created_at
     THYMOS_INCIDENT_RESPONSE = "thymos_incident_response"
     #
-    # THYMOS_REPAIR_COMPLETE — emitted by Thymos when a repair attempt concludes
+    # THYMOS_REPAIR_COMPLETE - emitted by Thymos when a repair attempt concludes
     # (success or failure). Thread subscribes to detect coma-recovery narratives.
     # Payload: incident_id (str), repair_tier (str), success (bool),
     #          preventive (bool), description (str), duration_ms (int),
@@ -2053,14 +2053,14 @@ class SynapseEventType(enum.StrEnum):
     #          export_duration_ms (int), hour_window (str ISO-8601)
     RE_TRAINING_EXPORT_COMPLETE = "re_training_export_complete"
     #
-    # RE_MODEL_EVALUATED — emitted by REEvaluator after every post-training
+    # RE_MODEL_EVALUATED - emitted by REEvaluator after every post-training
     # evaluation pass.  Benchmarks and Thread subscribe to observe the
     # organism's measured learning progress.
     # Payload fields:
-    #   instance_id      (str)            — emitting instance
-    #   health_score     (float)          — weighted average pass rate [0, 1]
-    #   category_results (dict[str,float])— per-category pass rates
-    #   timestamp        (str)            — ISO-8601 UTC
+    #   instance_id      (str)            - emitting instance
+    #   health_score     (float)          - weighted average pass rate [0, 1]
+    #   category_results (dict[str,float])- per-category pass rates
+    #   timestamp        (str)            - ISO-8601 UTC
     RE_MODEL_EVALUATED = "re_model_evaluated"
     #
     # RE_TRAINING_REQUESTED â€” emitted by Evo or Nova when KPI/performance data
@@ -2819,21 +2819,21 @@ class SynapseEventType(enum.StrEnum):
     #          repair_tier (str), resolution_time_ms (int), source_system (str)
     THYMOS_REPAIR_VALIDATED = "thymos_repair_validated"
     #
-    # CRASH_PATTERN_RESOLVED — emitted by Thymos when a repair succeeds on an
+    # CRASH_PATTERN_RESOLVED - emitted by Thymos when a repair succeeds on an
     # incident that matched a known CrashPattern. Signals CrashPatternAnalyzer
     # to update pattern confidence downward (pattern is not always fatal).
     # Payload: pattern_id (str), repair_tier (str), strategy_used (str),
     #          time_to_resolve_ms (int), incident_id (str), confidence_before (float)
     CRASH_PATTERN_RESOLVED = "crash_pattern_resolved"
     #
-    # CRASH_PATTERN_REINFORCED — emitted by Thymos when a repair fails on an
+    # CRASH_PATTERN_REINFORCED - emitted by Thymos when a repair fails on an
     # incident that matched a known CrashPattern. Signals CrashPatternAnalyzer
     # to update pattern confidence upward (pattern is still dangerous).
     # Payload: pattern_id (str), repair_tier (str), failure_reason (str),
     #          incident_id (str), confidence_before (float)
     CRASH_PATTERN_REINFORCED = "crash_pattern_reinforced"
     #
-    # CRASH_PATTERN_CONFIRMED — emitted when a CrashPattern is confirmed as
+    # CRASH_PATTERN_CONFIRMED - emitted when a CrashPattern is confirmed as
     # fatal: either Thymos pattern_router identifies a new pattern after all
     # tiers fail, or KAIROS_INVARIANT_DISTILLED arrives with source indicating
     # crash pattern classification (invariant_type="crash_pattern").
@@ -3513,7 +3513,7 @@ class SynapseEventType(enum.StrEnum):
     #   adaptive_activity    (float) â€” cumulative adaptive activity A(t)
     #   novelty_rate         (float) â€” novel components / total components
     #   diversity            (float) â€” Shannon entropy of fitness distribution
-    #   exceeds_shadow       (bool)  â€” A(t) > 2Ã— shadow-control activity
+    #   exceeds_shadow       (bool)  â€” A(t) > 2Ã- shadow-control activity
     #   population_size      (int)   â€” distinct fleet instances in snapshot
     #   component_count      (int)   â€” total components ingested
     #   novel_component_count (int)  â€” novel fingerprints this month
@@ -4127,7 +4127,44 @@ class SynapseEventType(enum.StrEnum):
     #   finds no reachable shadow worker and all deployment attempts fail.
     #   Payload: error (str)
     SKIA_SHADOW_WORKER_MISSING = "skia_shadow_worker_missing"
-    # â”€â”€ Vitality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+
+    # ── Symbiosis (EcodiaOS Factory Bridge) ─────────────────────────
+    #
+    # FACTORY_PROPOSAL_SENT — organism dispatched a code change proposal
+    # to the EcodiaOS Factory via Symbridge.
+    # Payload: proposal_id (str), description (str), codebase (str),
+    #          category (str), priority (str)
+    FACTORY_PROPOSAL_SENT = "factory_proposal_sent"
+    #
+    # FACTORY_RESULT_RECEIVED — EcodiaOS Factory returned results.
+    # Payload: proposal_id (str), session_id (str), status (str),
+    #          files_changed (list), commit_sha (str), confidence (float)
+    FACTORY_RESULT_RECEIVED = "factory_result_received"
+    #
+    # FACTORY_DEPLOY_SUCCEEDED — Factory successfully deployed changes.
+    # Payload: session_id (str), codebase (str), commit_sha (str)
+    FACTORY_DEPLOY_SUCCEEDED = "factory_deploy_succeeded"
+    #
+    # FACTORY_DEPLOY_FAILED — Factory deployment failed or was reverted.
+    # Payload: session_id (str), codebase (str), error (str), reverted (bool)
+    FACTORY_DEPLOY_FAILED = "factory_deploy_failed"
+    #
+    # SYMBIONT_DOWN — EcodiaOS (human-facing cortex) is unresponsive.
+    # Payload: consecutive_failures (int), last_error (str)
+    SYMBIONT_DOWN = "symbiont_down"
+    #
+    # SYMBIONT_RECOVERED — EcodiaOS recovered after being down.
+    # Payload: downtime_seconds (float)
+    SYMBIONT_RECOVERED = "symbiont_recovered"
+    #
+    # CAPABILITY_REQUESTED — organism requests EcodiaOS to build new capability.
+    # Payload: description (str), proposed_implementation (str), priority (str)
+    CAPABILITY_REQUESTED = "capability_requested"
+    #
+    # CAPABILITY_CREATED — Factory built the requested capability.
+    # Payload: description (str), session_id (str), files_changed (list)
+    CAPABILITY_CREATED = "capability_created"    # â”€â”€ Vitality â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     #
     # VITALITY_REPORT â€” periodic viability assessment against fatal thresholds.
     # Payload: VitalityReport fields (instance_id, thresholds, overall_viable, etc.)
@@ -4256,7 +4293,7 @@ class SynapseEventType(enum.StrEnum):
     #          improvement_pct (float), window_attempts (int)
     RE_ADAPTER_QUALITY_CONFIRMED = "re_adapter_quality_confirmed"
     #
-    # RE_TRAINING_RESUMED — emitted by ContinualLearningOrchestrator when a
+    # RE_TRAINING_RESUMED - emitted by ContinualLearningOrchestrator when a
     # training halt is cleared via clear_training_halt(). Benchmarks resets
     # the Thompson baseline; Nova re-enables RE-assisted goal injection.
     # Payload: cleared_by (str), timestamp (str ISO-8601)
@@ -4339,7 +4376,7 @@ class SynapseEventType(enum.StrEnum):
     EMOTION_STATE_CHANGED = "emotion_state_changed"
     #
     # CROSS_CHAIN_OPPORTUNITY â€” CrossChainYieldObserver detected a yield rate
-    #   on another chain that has been â‰¥2Ã— Base rates for >72h.
+    #   on another chain that has been â‰¥2Ã- Base rates for >72h.
     #   Payload: chain (str), protocol (str), apy (float), base_apy (float),
     #            ratio (float), hours_elevated (float), min_capital_usd (float),
     #            flagged_at (str ISO-8601)
@@ -4366,7 +4403,7 @@ class RhythmState(enum.StrEnum):
     """
     Meta-cognitive state detected from raw cycle telemetry.
 
-    These states are not programmed — they are emergent properties
+    These states are not programmed - they are emergent properties
     detected from patterns in the cognitive cycle's own behaviour.
     """
 
@@ -4386,9 +4423,9 @@ class MetabolicState(enum.StrEnum):
     Published as GRID_METABOLISM_CHANGED when the state transitions.
     """
 
-    GREEN_SURPLUS = "green_surplus"   # Carbon intensity < 150 gCO2eq/kWh — run heavy work
-    NORMAL = "normal"                 # 150–400 gCO2eq/kWh — standard operating mode
-    CONSERVATION = "conservation"     # Carbon intensity > 400 gCO2eq/kWh — defer expensive compute
+    GREEN_SURPLUS = "green_surplus"   # Carbon intensity < 150 gCO2eq/kWh - run heavy work
+    NORMAL = "normal"                 # 150–400 gCO2eq/kWh - standard operating mode
+    CONSERVATION = "conservation"     # Carbon intensity > 400 gCO2eq/kWh - defer expensive compute
 
 
 class RhythmSnapshot(EOSBaseModel):
@@ -4490,7 +4527,7 @@ class BaseResourceAllocator(ABC):
     SynapseService without restarting the process.
 
     Subclasses MUST be zero-arg constructable (all state is rebuilt from
-    scratch on hot-swap — this is intentional, as evolved logic starts with
+    scratch on hot-swap - this is intentional, as evolved logic starts with
     fresh observations).
     """
 
@@ -4530,7 +4567,7 @@ class BaseRhythmStrategy(ABC):
     evolved classification subclasses can be hot-swapped into a live
     SynapseService without restarting the process.
 
-    Only the classification logic is abstracted — the rolling window
+    Only the classification logic is abstracted - the rolling window
     data collection, hysteresis, and event emission remain in the
     EmergentRhythmDetector host.  This keeps the swap surgical: new
     thresholds or detection algorithms without disrupting the data
@@ -4566,7 +4603,7 @@ class ManagedSystemProtocol(Protocol):
     """
     Protocol that any cognitive system must satisfy to be managed by Synapse.
 
-    Not enforced at runtime (duck typing) — systems just need:
+    Not enforced at runtime (duck typing) - systems just need:
       - system_id: str
       - async def health() -> dict[str, Any]
     """

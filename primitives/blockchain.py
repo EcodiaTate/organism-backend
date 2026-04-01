@@ -1,5 +1,5 @@
 """
-EcodiaOS — Blockchain Shared Primitives
+EcodiaOS - Blockchain Shared Primitives
 
 Types shared across systems that deal with on-chain activity.
 Currently: block competition monitoring (used by Fovea + Axon MEV analysis).

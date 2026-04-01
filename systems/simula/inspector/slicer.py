@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Semantic Slicer (Phase 4: State Explosion Mitigation)
+EcodiaOS - Inspector Semantic Slicer (Phase 4: State Explosion Mitigation)
 
 Implements neurosymbolic backwards program slicing: uses a focused LLM pass
 to strip boilerplate, logging, telemetry, and irrelevant branches from an
@@ -38,7 +38,7 @@ the exact data flow of the vulnerability. DO NOT alter the actual logic, \
 variable names, or syntax of the remaining code.
 
 Output ONLY the sliced code block. No explanation, no markdown fences, no \
-commentary — just the raw code."""
+commentary - just the raw code."""
 
 
 class SemanticSlicer:
@@ -78,7 +78,7 @@ class SemanticSlicer:
         )
 
         try:
-            from clients.llm import Message  # local import — avoids circular
+            from clients.llm import Message  # local import - avoids circular
 
             response = await self._llm.generate(
                 system_prompt=_SLICER_SYSTEM_PROMPT,

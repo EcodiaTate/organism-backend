@@ -1,7 +1,7 @@
 """
-EcodiaOS — Telos: Coherence Topology Engine
+EcodiaOS - Telos: Coherence Topology Engine
 
-A contradictory world model has higher description length than a coherent one —
+A contradictory world model has higher description length than a coherent one -
 provably, by Shannon's theorem. If the model asserts both P and not-P, it must
 carry extra bits to specify which applies in each context. Those bits describe
 the contradiction, not reality.
@@ -48,7 +48,7 @@ class CoherenceTopologyEngine:
 
     4. CROSS-DOMAIN INCOHERENCE: same entity type treated differently across
        domains for no structural reason.
-       Cost: schemas cannot unify — causal hierarchy stays shallow.
+       Cost: schemas cannot unify - causal hierarchy stays shallow.
 
     coherence_compression_bonus = 1.0 + (total_extra_bits / world_model_complexity)
 
@@ -87,7 +87,7 @@ class CoherenceTopologyEngine:
         logical = self._detect_logical_contradictions(error_distribution)
 
         # 2. Temporal incoherence: high self-prediction error means the
-        #    model cannot predict its own behavior — indicating commitment
+        #    model cannot predict its own behavior - indicating commitment
         #    violations or identity drift.
         temporal = self._detect_temporal_incoherence(
             prediction_error_rate, error_distribution
@@ -139,7 +139,7 @@ class CoherenceTopologyEngine:
         """
         Detect domains where prediction errors suggest contradictory beliefs.
 
-        A domain with error rate between 0.4 and 0.6 is suspicious — the model
+        A domain with error rate between 0.4 and 0.6 is suspicious - the model
         is right about as often as it's wrong, suggesting it holds conflicting
         hypotheses and is non-deterministically choosing between them.
         """
@@ -171,7 +171,7 @@ class CoherenceTopologyEngine:
         Detect temporal incoherence from self-prediction failures.
 
         If the "self" or "identity" domain has high error rates, the model
-        cannot predict its own behavior — a sign of commitment violations.
+        cannot predict its own behavior - a sign of commitment violations.
         """
         entries: list[IncoherenceEntry] = []
         self_domains = {"self", "identity", "behavior", "commitments"}
@@ -192,7 +192,7 @@ class CoherenceTopologyEngine:
                     )
                 )
 
-        # Also flag if overall error rate is very high — global temporal instability
+        # Also flag if overall error rate is very high - global temporal instability
         if overall_error_rate > 0.5:
             entries.append(
                 IncoherenceEntry(
@@ -215,7 +215,7 @@ class CoherenceTopologyEngine:
         Detect value incoherence from conflicting drive alignment patterns.
 
         If recent decisions show wildly varying alignment patterns for similar
-        types of actions, the drive evaluation is non-deterministic — which
+        types of actions, the drive evaluation is non-deterministic - which
         costs extra bits in the model.
         """
         if len(recent_alignments) < 3:
@@ -318,7 +318,7 @@ def _domains_related(a: str, b: str) -> bool:
 
 # ─── Constants ───────────────────────────────────────────────────────
 
-# Bit costs per incoherence type — calibrated to produce meaningful
+# Bit costs per incoherence type - calibrated to produce meaningful
 # coherence_compression_bonus values.
 
 _CONTRADICTION_BIT_COST = 10.0  # A logical contradiction is expensive

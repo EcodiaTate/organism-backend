@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Configuration & Baseline Thresholds
+EcodiaOS - EIS Configuration & Baseline Thresholds
 
 Centralises all EIS tuning parameters that the integration layer and
 other EIS modules reference.  Thresholds are derived from the composite
@@ -8,11 +8,11 @@ threat score produced by the fast-path pipeline (see embeddings.py →
 
 Zone semantics
 --------------
-* **clean**          — composite < 0.20; no evidence of adversarial intent.
-* **elevated**       — 0.20 ≤ composite < 0.45; mild anomalies, log only.
-* **antigenic_zone** — 0.45 ≤ composite < 0.85; route to quarantine (LLM
+* **clean**          - composite < 0.20; no evidence of adversarial intent.
+* **elevated**       - 0.20 ≤ composite < 0.45; mild anomalies, log only.
+* **antigenic_zone** - 0.45 ≤ composite < 0.85; route to quarantine (LLM
                        evaluation) for deeper inspection.
-* **known_attack**   — composite ≥ 0.85; matches known-bad signatures,
+* **known_attack**   - composite ≥ 0.85; matches known-bad signatures,
                        immediate block.
 
 These boundaries align with ``EISConfig.quarantine_threshold`` (0.45) and
@@ -58,7 +58,7 @@ between composite scores of 0.30 and 0.70.
 SIGMOID_MIDPOINT: float = 0.45
 """
 The composite-score at which the belief discount is exactly 0.5.
-Aligned with the quarantine threshold — percepts at the quarantine
+Aligned with the quarantine threshold - percepts at the quarantine
 boundary receive half the normal belief-update weight.
 """
 
@@ -111,5 +111,5 @@ def classify_zone(composite_score: float) -> str:
     for label, bounds in THRESHOLDS.items():
         if bounds.lower <= composite_score < bounds.upper:
             return label
-    # Defensive fallback — should not be reachable with well-formed scores.
+    # Defensive fallback - should not be reachable with well-formed scores.
     return "known_attack" if composite_score >= 0.85 else "clean"

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Action Performance Monitor
+EcodiaOS - Axon Action Performance Monitor
 
 Tracks rolling action success rate and detects motor degradation.
 When degradation is detected, emits MOTOR_DEGRADATION_DETECTED so Nova

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Constitutional Memory
+EcodiaOS - Equor Constitutional Memory
 
 A rolling window of past constitutional decisions that Equor consults before
 reaching a verdict on novel intents.
@@ -9,11 +9,11 @@ Purpose
 Novel intents that bypass template matching fall through to the verdict
 pipeline with no prior context.  Constitutional Memory provides that context:
 
-  1. **Decision lookup** — before finalising APPROVED/DEFERRED on a novel
+  1. **Decision lookup** - before finalising APPROVED/DEFERRED on a novel
      intent, check whether semantically similar past intents were BLOCKED or
      DEFERRED.  If they were, downgrade the current verdict or add a warning.
 
-  2. **Decision recording** — after every review, persist the intent signature,
+  2. **Decision recording** - after every review, persist the intent signature,
      verdict, confidence, and reasoning so future reviews can learn from it.
 
 Architecture
@@ -22,13 +22,13 @@ Architecture
 - Each entry is a ``MemoryEntry`` keyed by a signature hash derived from the
   intent's goal, action executors, and autonomy level.
 - Similarity is measured by token-set overlap on the goal description.
-- No I/O — the memory lives on EquorService and is passed into compute_verdict()
+- No I/O - the memory lives on EquorService and is passed into compute_verdict()
   as a plain list[MemoryEntry].  EquorService flushes to Neo4j asynchronously.
 
 Thread safety
 -------------
 Single-writer (EquorService) via ``record()``.  Reads by ``find_similar()``
-are lock-free dict scans — safe because Python's GIL protects dict iteration.
+are lock-free dict scans - safe because Python's GIL protects dict iteration.
 """
 
 from __future__ import annotations
@@ -87,7 +87,7 @@ def _goal_tokens(intent: Intent) -> frozenset[str]:
 
 
 def _goal_signature(tokens: frozenset[str]) -> str:
-    """16-char SHA-256 hex of sorted tokens — used as a fast equality key."""
+    """16-char SHA-256 hex of sorted tokens - used as a fast equality key."""
     raw = " ".join(sorted(tokens))
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
@@ -249,7 +249,7 @@ class ConstitutionalMemory:
           - defer_rate: float
           - avg_alignment: float
           - most_recent_verdict: str | None
-          - warning: str | None  — set when past block_rate > 0.5
+          - warning: str | None  - set when past block_rate > 0.5
         """
         similar = self.find_similar(intent)
 

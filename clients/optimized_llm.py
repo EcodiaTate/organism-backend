@@ -1,12 +1,12 @@
 """
-EcodiaOS — Optimized LLM Provider
+EcodiaOS - Optimized LLM Provider
 
 Transparent wrapper around any LLMProvider that intercepts all calls and applies:
-1. Budget check — skip LLM if budget exhausted (return None → caller uses fallback)
-2. Prompt cache — return cached response if available
-3. Output validation — auto-correct malformed responses
-4. Metrics recording — track tokens, cost, latency, cache hits per system
-5. Budget charging — record actual consumption
+1. Budget check - skip LLM if budget exhausted (return None → caller uses fallback)
+2. Prompt cache - return cached response if available
+3. Output validation - auto-correct malformed responses
+4. Metrics recording - track tokens, cost, latency, cache hits per system
+5. Budget charging - record actual consumption
 
 This is the central integration point for all five optimization tools.
 Systems that need heuristic fallbacks opt in by checking the budget tier
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 # Signature: (caller_id: str, input_tokens: int, output_tokens: int, provider: str) -> float
 MetabolicCallback = Callable[[str, int, int, str], float]
 
-# Signature: (had_error: bool) -> None — reports inference outcome to RollbackMonitor
+# Signature: (had_error: bool) -> None - reports inference outcome to RollbackMonitor
 InferenceErrorCallback = Callable[[bool], None]
 
 logger = structlog.get_logger()
@@ -59,10 +59,10 @@ logger = structlog.get_logger()
 # STANDARD: Degrade in RED tier (use heuristics)
 # LOW: Degrade in YELLOW and RED tiers
 SYSTEM_PRIORITY: dict[str, str] = {
-    # Critical — never skip
+    # Critical - never skip
     "equor.invariants": "critical",
     "equor.alignment": "critical",
-    # Standard — skip only in RED
+    # Standard - skip only in RED
     "nova.efe.pragmatic": "standard",
     "nova.efe.epistemic": "standard",
     "voxis.render": "standard",
@@ -72,7 +72,7 @@ SYSTEM_PRIORITY: dict[str, str] = {
     "simula.simulation": "standard",
     "axon.observation": "standard",
     "atune.entity_extraction": "standard",
-    # Low — skip in YELLOW and RED
+    # Low - skip in YELLOW and RED
     "evo.hypothesis": "low",
     "evo.procedure": "low",
     "evo.evidence": "low",
@@ -105,7 +105,7 @@ SYSTEM_TTL: dict[str, int] = {
     "thread.schema": TTLConfig.THREAD_COHERENCE_S,
     "thread.evidence": TTLConfig.THREAD_COHERENCE_S,
     "equor.invariants": TTLConfig.EQUOR_INVARIANT_S,
-    "thymos.diagnosis": 300,  # 5 min — incidents are context-dependent
+    "thymos.diagnosis": 300,  # 5 min - incidents are context-dependent
     "oneiros.rem.dream": TTLConfig.ONEIROS_REFLECTION_S,
     "oneiros.rem.threat": TTLConfig.ONEIROS_REFLECTION_S,
     "oneiros.nrem.pattern": TTLConfig.ONEIROS_REFLECTION_S,
@@ -124,7 +124,7 @@ class OptimizedLLMProvider(LLMProvider):
     Drop-in LLMProvider wrapper that adds caching, budget, metrics, and validation.
 
     All existing systems continue to call generate/evaluate/generate_with_tools
-    as before — the optimization is transparent.
+    as before - the optimization is transparent.
 
     For systems that need finer control (heuristic fallbacks), use:
         optimized.should_use_llm(system, estimated_tokens) → bool
@@ -187,7 +187,7 @@ class OptimizedLLMProvider(LLMProvider):
             return "ollama"
         if isinstance(self._inner, BedrockProvider):
             return "bedrock"
-        # Default: Anthropic direct or OpenAI — use default pricing
+        # Default: Anthropic direct or OpenAI - use default pricing
         return ""
 
     def _report_metabolic_cost(
@@ -200,7 +200,7 @@ class OptimizedLLMProvider(LLMProvider):
         Forward token usage to MetabolicTracker (if wired) and emit a
         structlog event so fiat cost is visible in the terminal.
 
-        Skips zero-token calls (e.g., cache hits) — nothing to charge.
+        Skips zero-token calls (e.g., cache hits) - nothing to charge.
         """
         if not self._metabolic_callback or (input_tokens == 0 and output_tokens == 0):
             return

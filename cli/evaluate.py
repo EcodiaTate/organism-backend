@@ -113,7 +113,7 @@ async def _get_redis() -> Any:
         await client.ping()
         return client
     except ImportError:
-        print(_c("  [redis] redis package not installed — install redis-py", _RED))
+        print(_c("  [redis] redis package not installed - install redis-py", _RED))
         return None
     except Exception as exc:
         print(_c(f"  [redis] connection failed: {exc}", _RED))
@@ -159,14 +159,14 @@ async def cmd_monthly(args: argparse.Namespace) -> int:
             try:
                 from systems.reasoning_engine.service import ReasoningEngineService  # type: ignore[import]
                 re_service = ReasoningEngineService  # used as a stub marker
-                print(_dim("  Note: full RE client integration pending — using stub mode"))
+                print(_dim("  Note: full RE client integration pending - using stub mode"))
                 re_service = None
             except ImportError:
                 pass
         else:
-            print(_warn("\n  RE service", "not available — running in stub mode"))
+            print(_warn("\n  RE service", "not available - running in stub mode"))
     except Exception:
-        print(_warn("\n  RE service", "organism not reachable — running in stub mode"))
+        print(_warn("\n  RE service", "organism not reachable - running in stub mode"))
 
     # Run evaluation
     instance_id = args.instance_id or "cli-evaluation"
@@ -193,7 +193,7 @@ async def cmd_monthly(args: argparse.Namespace) -> int:
         stub = _c(" [STUB]", _DIM) if p1.is_stub else ""
         si = p1.specialization_index
         si_color = _GREEN if si >= 0.1 else (_YELLOW if si >= 0 else _RED)
-        print(f"  {_BOLD}Pillar 1 — Specialization Index{_RESET}{stub}")
+        print(f"  {_BOLD}Pillar 1 - Specialization Index{_RESET}{stub}")
         print(f"    specialization_index : {_c(f'{si:+.4f}', si_color)}")
         print(f"    domain_improvement   : {p1.domain_improvement:+.4f}")
         print(f"    general_retention    : {p1.general_retention:.4f}")
@@ -204,7 +204,7 @@ async def cmd_monthly(args: argparse.Namespace) -> int:
     p2 = eval_result.pillar2_novelty
     if p2:
         stub = _c(" [STUB]", _DIM) if p2.is_stub else ""
-        print(f"\n  {_BOLD}Pillar 2 — Novelty Emergence{_RESET}{stub}")
+        print(f"\n  {_BOLD}Pillar 2 - Novelty Emergence{_RESET}{stub}")
         sr_color = _GREEN if p2.success_rate >= 0.6 else (_YELLOW if p2.success_rate >= 0.4 else _RED)
         print(f"    success_rate                  : {_c(f'{p2.success_rate:.4f}', sr_color)}")
         print(f"    cosine_distance_from_training : {p2.cosine_distance_from_training:.4f}")
@@ -216,7 +216,7 @@ async def cmd_monthly(args: argparse.Namespace) -> int:
     p3 = eval_result.pillar3_causal
     if p3:
         stub = _c(" [STUB]", _DIM) if p3.is_stub else ""
-        print(f"\n  {_BOLD}Pillar 3 — Causal Reasoning Quality{_RESET}{stub}")
+        print(f"\n  {_BOLD}Pillar 3 - Causal Reasoning Quality{_RESET}{stub}")
         l2_color = _GREEN if p3.l2_intervention >= 0.6 else (_YELLOW if p3.l2_intervention >= 0.4 else _RED)
         print(f"    l1_association    : {p3.l1_association:.4f}")
         print(f"    l2_intervention   : {_c(f'{p3.l2_intervention:.4f}', l2_color)}  {_dim('(key metric)')}")
@@ -227,14 +227,14 @@ async def cmd_monthly(args: argparse.Namespace) -> int:
         if p3.error:
             print(_warn("    note", p3.error))
 
-    # Pillar 4 (separate call — see learning-velocity command)
-    print(f"\n  {_BOLD}Pillar 4 — Learning Velocity{_RESET} {_dim('(run separately: python -m cli.evaluate learning-velocity)')}")
+    # Pillar 4 (separate call - see learning-velocity command)
+    print(f"\n  {_BOLD}Pillar 4 - Learning Velocity{_RESET} {_dim('(run separately: python -m cli.evaluate learning-velocity)')}")
 
     # Pillar 5
     p5 = eval_result.pillar5_ethical
     if p5:
         stub = _c(" [STUB]", _DIM) if p5.is_stub else ""
-        print(f"\n  {_BOLD}Pillar 5 — Ethical Drift Map{_RESET}{stub}")
+        print(f"\n  {_BOLD}Pillar 5 - Ethical Drift Map{_RESET}{stub}")
         print(f"    coherence : {p5.coherence_wins:.4f}")
         print(f"    care      : {p5.care_wins:.4f}")
         print(f"    growth    : {p5.growth_wins:.4f}")
@@ -283,12 +283,12 @@ async def cmd_shadow_snapshot(args: argparse.Namespace) -> int:
         return 0
     except httpx.HTTPStatusError as exc:
         if exc.response.status_code == 404:
-            print(_warn("  API endpoint not wired yet — using Redis directly", ""))
+            print(_warn("  API endpoint not wired yet - using Redis directly", ""))
         else:
             print(_err("  API error", str(exc)))
             return 1
     except Exception:
-        print(_dim("  Organism not reachable — using Redis directly..."))
+        print(_dim("  Organism not reachable - using Redis directly..."))
 
     # Fallback: direct Redis + local tracker
     redis = await _get_redis()
@@ -302,7 +302,7 @@ async def cmd_shadow_snapshot(args: argparse.Namespace) -> int:
         ctrl = ShadowResetController(instance_id=instance_id, redis=redis)
         snapshot_id = await ctrl.take_shadow_snapshot()
         print(_ok("  snapshot_id", snapshot_id))
-        print(_dim("  (No live tracker — snapshot captured zeros; useful as timestamp anchor)"))
+        print(_dim("  (No live tracker - snapshot captured zeros; useful as timestamp anchor)"))
         print()
         print(_dim(f"  Run later: python -m cli.evaluate shadow-delta {snapshot_id}"))
         return 0
@@ -323,7 +323,7 @@ async def cmd_shadow_delta(args: argparse.Namespace) -> int:
     """Compute adaptive delta from a previous shadow snapshot."""
     snapshot_id: str = args.snapshot_id
 
-    print(_header(f"Shadow Delta — {snapshot_id[:16]}..."))
+    print(_header(f"Shadow Delta - {snapshot_id[:16]}..."))
 
     # Try via live API first
     try:
@@ -336,12 +336,12 @@ async def cmd_shadow_delta(args: argparse.Namespace) -> int:
         return 0
     except httpx.HTTPStatusError as exc:
         if exc.response.status_code == 404:
-            print(_warn("  API endpoint not wired yet — using Redis directly", ""))
+            print(_warn("  API endpoint not wired yet - using Redis directly", ""))
         else:
             print(_err("  API error", str(exc)))
             return 1
     except Exception:
-        print(_dim("  Organism not reachable — using Redis directly..."))
+        print(_dim("  Organism not reachable - using Redis directly..."))
 
     # Fallback: direct Redis
     redis = await _get_redis()
@@ -388,8 +388,8 @@ def _print_shadow_delta(result: dict[str, Any]) -> None:
     elapsed = result.get("elapsed_seconds", 0.0)
 
     drop_color = _GREEN if drop > 50.0 else (_YELLOW if drop > 20.0 else _DIM)
-    adaptive_label = (_c("YES — dynamics are adaptive, not drift", _GREEN) if is_adaptive
-                      else _c("NO — activity unchanged (possible drift)", _YELLOW))
+    adaptive_label = (_c("YES - dynamics are adaptive, not drift", _GREEN) if is_adaptive
+                      else _c("NO - activity unchanged (possible drift)", _YELLOW))
 
     print(f"  {_BOLD}is_adaptive{_RESET}              : {adaptive_label}")
     print(f"  {_BOLD}activity_drop_pct{_RESET}        : {_c(f'{drop:+.2f}%', drop_color)}")

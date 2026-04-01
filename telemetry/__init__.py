@@ -1,5 +1,5 @@
 """
-EcodiaOS — Observability Infrastructure
+EcodiaOS - Observability Infrastructure
 
 Structured logging, metrics collection, and tracing.
 """

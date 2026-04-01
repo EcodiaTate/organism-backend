@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Send Executor
+EcodiaOS - Federation Send Executor
 
 Sends data to a federated EOS instance via Synapse event bus.
 Used for cross-instance knowledge sharing, antibody sync, and coordination.
@@ -119,7 +119,7 @@ class FederationSendExecutor(Executor):
                 f"1. VALIDATE: target_instance_id={target!r}, message_type={message_type!r}, payload_size={payload_size}B",
                 f"2. TRANSPORT: emit FEDERATION_MESSAGE_SENT via Synapse event bus (Federation system is subscriber)",
                 f"3. OUTCOME: success={success}" + (f", error={error[:120]!r}" if error else ""),
-                "4. NOTE: federation_send is fire-and-forget — delivery confirmation depends on Federation system ACK",
+                "4. NOTE: federation_send is fire-and-forget - delivery confirmation depends on Federation system ACK",
             ])
 
             alternatives = [
@@ -141,7 +141,7 @@ class FederationSendExecutor(Executor):
             else:
                 counterfactual = (
                     f"If this message had not been sent, '{target}' would operate without this "
-                    f"'{message_type}' update — federation divergence grows with each unsent sync."
+                    f"'{message_type}' update - federation divergence grows with each unsent sync."
                 )
 
             equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None

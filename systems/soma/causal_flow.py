@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Causal Flow Engine (Transfer Entropy)
+EcodiaOS - Soma Causal Flow Engine (Transfer Entropy)
 
 Computes directed causal influence between all system pairs using transfer
 entropy. Detects when information flow deviates from the expected

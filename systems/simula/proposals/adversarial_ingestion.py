@@ -1,5 +1,5 @@
 """
-EcodiaOS — Adversarial Proposal Ingestion Adapter
+EcodiaOS - Adversarial Proposal Ingestion Adapter
 
 Persists EvolutionProposals produced by the AdversarialSelfPlay engine
 into the Neo4j knowledge graph, establishing the full graph schema:
@@ -7,7 +7,7 @@ into the Neo4j knowledge graph, establishing the full graph schema:
   (:RedTeamInstance)-[:GENERATED]->(:EvolutionProposal)-[:TARGETS]->(:Constitution)
 
 Design decisions:
-  - All Cypher queries use parameterised inputs — no string interpolation.
+  - All Cypher queries use parameterised inputs - no string interpolation.
   - Proposals enter Neo4j with status ``AWAITING_GOVERNANCE`` so human
     operators can query the graph for pending approvals.
   - Constraint creation is idempotent (``IF NOT EXISTS``).
@@ -62,7 +62,7 @@ class IngestionResult:
 
 
 # ---------------------------------------------------------------------------
-# Cypher constants — all parameterised, no string interpolation
+# Cypher constants - all parameterised, no string interpolation
 # ---------------------------------------------------------------------------
 
 _ENSURE_CONSTRAINTS = """
@@ -169,7 +169,7 @@ class AdversarialProposalIngester:
         """
         Idempotent schema setup: constraints + singleton nodes.
 
-        Safe to call on every startup — ``IF NOT EXISTS`` guards everything.
+        Safe to call on every startup - ``IF NOT EXISTS`` guards everything.
         """
         if self._schema_ensured:
             return
@@ -303,7 +303,7 @@ class AdversarialProposalIngester:
 
         if not rows:
             raise RuntimeError(
-                f"CREATE returned no rows for proposal {proposal.id} — "
+                f"CREATE returned no rows for proposal {proposal.id} - "
                 f"RedTeamInstance or Constitution node may be missing"
             )
 
@@ -314,8 +314,8 @@ class AdversarialProposalIngester:
         """
         Two-tier in-process dedup: keeps the first representative per group.
 
-        Tier 1 — exact description prefix (first 50 chars, lowercased).
-        Tier 2 — category + sorted affected_systems string key.
+        Tier 1 - exact description prefix (first 50 chars, lowercased).
+        Tier 2 - category + sorted affected_systems string key.
 
         Both tiers are zero-cost (no LLM, no embeddings). Tier 1 runs first;
         proposals deduplicated by Tier 1 are excluded from Tier 2 checks.

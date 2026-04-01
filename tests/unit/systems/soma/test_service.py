@@ -1,4 +1,4 @@
-"""Tests for Soma Service — the full interoceptive substrate orchestrator."""
+"""Tests for Soma Service - the full interoceptive substrate orchestrator."""
 
 from __future__ import annotations
 

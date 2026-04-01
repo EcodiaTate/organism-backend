@@ -1,5 +1,5 @@
 """
-EcodiaOS — RE Training Quality Pipeline
+EcodiaOS - RE Training Quality Pipeline
 
 Implements the quality scoring, filtering, and diversity enforcement functions
 from speciation bible §2.4.
@@ -9,7 +9,7 @@ being that it also checks `failure_analysis` and `hypothesis` fields that the
 bible's single `reasoning_chain` field doesn't cover (because Stream 2/3/4/5
 store their reasoning under different keys).
 
-All functions are pure / synchronous — no I/O.
+All functions are pure / synchronous - no I/O.
 """
 
 from __future__ import annotations
@@ -86,7 +86,7 @@ def score_example(ex: dict[str, Any]) -> float:
     ]
     text = " ".join(p for p in text_parts if p).lower()
 
-    # Reasoning depth — count structural markers
+    # Reasoning depth - count structural markers
     steps = len(_STEP_RE.findall(text))
     reasoning_depth = min(1.0, steps / 5)
 
@@ -100,7 +100,7 @@ def score_example(ex: dict[str, Any]) -> float:
     causal_hits = sum(1 for cr in _CAUSAL_RE if cr.search(text))
     causal_structure = min(1.0, causal_hits / 4)
 
-    # Novelty — from whichever field is present
+    # Novelty - from whichever field is present
     novelty = float(
         ex.get("novelty_score", ex.get("surprise_factor", 0.5)) or 0.5
     )
@@ -185,7 +185,7 @@ def ensure_temporal_span(
     Ensure the batch spans at least `min_periods` distinct calendar days.
 
     If the current set spans fewer days, examples are returned as-is
-    (we never discard data to force span — we warn instead). The CLI
+    (we never discard data to force span - we warn instead). The CLI
     stats command surfaces this so operators know when the graph is too
     sparse.
 
@@ -208,7 +208,7 @@ def ensure_temporal_span(
             continue
 
     if len(periods) < min_periods:
-        # Log but don't discard — graph may genuinely be young
+        # Log but don't discard - graph may genuinely be young
         import structlog as _sl
         _sl.get_logger("reasoning_engine.quality_pipeline").warning(
             "temporal_span_below_minimum",

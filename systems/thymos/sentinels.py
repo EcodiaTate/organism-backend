@@ -1,16 +1,16 @@
 """
-EcodiaOS — Thymos Sentinel Layer (Detection)
+EcodiaOS - Thymos Sentinel Layer (Detection)
 
 Sentinels are the sensory organs of the immune system. They instrument
 every system boundary to capture failures, anomalies, contract violations,
 and degradation trends.
 
 Five sentinel classes:
-  1. ExceptionSentinel  — unhandled exceptions with full context
-  2. ContractSentinel   — inter-system SLA violations
-  3. FeedbackLoopSentinel — severed cognitive feedback loops
-  4. DriftSentinel      — statistical process control for gradual degradation
-  5. CognitiveStallSentinel — workspace cycle producing nothing
+  1. ExceptionSentinel  - unhandled exceptions with full context
+  2. ContractSentinel   - inter-system SLA violations
+  3. FeedbackLoopSentinel - severed cognitive feedback loops
+  4. DriftSentinel      - statistical process control for gradual degradation
+  5. CognitiveStallSentinel - workspace cycle producing nothing
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ class BaseThymosSentinel(ABC):
       ``__init__`` so that a fresh instance dropped in via hot-swap is
       immediately usable.
     - Do NOT store references to long-lived external objects beyond what the
-      constructor receives — hot-swap creates a new instance via ``cls()``
+      constructor receives - hot-swap creates a new instance via ``cls()``
       (zero-arg) by default.
     """
 
@@ -111,7 +111,7 @@ class ExceptionSentinel(BaseThymosSentinel):
     Intercepts unhandled exceptions from system methods.
     Creates Incidents with full diagnostic context.
 
-    Does NOT suppress the exception — it propagates normally after capture.
+    Does NOT suppress the exception - it propagates normally after capture.
     The goal is observation, not intervention.
     """
 
@@ -238,7 +238,7 @@ class ContractSentinel(BaseThymosSentinel):
     """
     Instruments inter-system calls to verify SLA compliance.
 
-    Does NOT add latency to the call itself — measurements are taken
+    Does NOT add latency to the call itself - measurements are taken
     around the existing call, not inserted into it. The sentinel
     observes the event bus, not the call stack.
     """
@@ -273,7 +273,7 @@ class ContractSentinel(BaseThymosSentinel):
             f"contract:{source}:{target}:{operation}".encode()
         ).hexdigest()[:16]
 
-        # Honesty takes the hit when information contracts are violated —
+        # Honesty takes the hit when information contracts are violated -
         # the system is not being transparent about its actual responsiveness.
         # Coherence degrades when the cognitive loop is slow or broken.
         honesty_impact = 0.3 if overshoot > 2.0 else 0.1
@@ -334,7 +334,7 @@ DEFAULT_FEEDBACK_LOOPS: list[FeedbackLoop] = [
         signal="active_goals",
         check="atune.salience_head_weights_include_goal_component()",
         description="Nova goals → Atune salience weighting",
-        active=True,  # wiring.py:89 — set_active_goals + goal_sync_callback confirmed
+        active=True,  # wiring.py:89 - set_active_goals + goal_sync_callback confirmed
     ),
     FeedbackLoop(
         name="expression_feedback",
@@ -361,7 +361,7 @@ DEFAULT_FEEDBACK_LOOPS: list[FeedbackLoop] = [
         signal="action_outcomes",
         check="nova.has_received_outcomes_in_last_n_cycles(100)",
         description="Axon action outcomes → Nova belief updates",
-        active=True,  # axon/pipeline.py:657 — nova.process_outcome() confirmed wired
+        active=True,  # axon/pipeline.py:657 - nova.process_outcome() confirmed wired
     ),
     FeedbackLoop(
         name="memory_salience_decay",
@@ -379,7 +379,7 @@ DEFAULT_FEEDBACK_LOOPS: list[FeedbackLoop] = [
         signal="expression_effectiveness",
         check="evo.has_personality_evidence()",
         description="Voxis expression → Evo personality tuning",
-        active=True,  # wiring.py:109 — evo.set_voxis() + expression feedback callback confirmed
+        active=True,  # wiring.py:109 - evo.set_voxis() + expression feedback callback confirmed
     ),
     FeedbackLoop(
         name="rhythm_modulation",
@@ -397,7 +397,7 @@ DEFAULT_FEEDBACK_LOOPS: list[FeedbackLoop] = [
         signal="parameter_adjustments",
         check="atune.has_evo_parameters()",
         description="Evo consolidation → Atune salience head weights",
-        active=None,  # same stub as evo_head_weights — apply_evo_adjustments is pass
+        active=None,  # same stub as evo_head_weights - apply_evo_adjustments is pass
     ),
     FeedbackLoop(
         name="drive_weight_modulation",
@@ -462,7 +462,7 @@ class FeedbackLoopSentinel(BaseThymosSentinel):
 
     Unlike heartbeats (which check "is the system alive?"), this checks
     "is the system CONNECTED?" A system can be alive but disconnected
-    from the cognitive cycle — like a nerve that's intact but severed
+    from the cognitive cycle - like a nerve that's intact but severed
     from the brain.
     """
 
@@ -475,7 +475,7 @@ class FeedbackLoopSentinel(BaseThymosSentinel):
         # Track which loops have been verified as connected.
         # Initial value respects loop.active:
         #   True  → False (not yet seen, expected to become True)
-        #   None  → None  (unknown; not yet implemented — don't flood HIGH incidents)
+        #   None  → None  (unknown; not yet implemented - don't flood HIGH incidents)
         #   False → False and loop is silenced in check_loops
         self._loop_status: dict[str, bool | None] = {
             loop.name: (None if loop.active is None else False)
@@ -494,7 +494,7 @@ class FeedbackLoopSentinel(BaseThymosSentinel):
         unknown loop to be promoted to known-good once it fires.
         """
         if loop_name not in self._loop_status:
-            # Loop is either disabled (active=False) or not defined — ignore.
+            # Loop is either disabled (active=False) or not defined - ignore.
             return
         self._loop_status[loop_name] = True
         self._last_check[loop_name] = utc_now().timestamp()
@@ -521,7 +521,7 @@ class FeedbackLoopSentinel(BaseThymosSentinel):
             if loop.active is False:
                 continue
 
-            # Loops not in our status dict were disabled at init time — skip.
+            # Loops not in our status dict were disabled at init time - skip.
             if loop.name not in self._loop_status:
                 continue
 
@@ -539,9 +539,9 @@ class FeedbackLoopSentinel(BaseThymosSentinel):
                 "head_weight_adjustments", "parameter_adjustments", "community_detection"
             ) else 0.1
 
-            # Unknown loops (active=None) emit LOW severity — they are gaps to be
+            # Unknown loops (active=None) emit LOW severity - they are gaps to be
             # filled, not confirmed breakages.  Confirmed loops (active=True) that
-            # go silent are HIGH — something that was working has stopped.
+            # go silent are HIGH - something that was working has stopped.
             if loop.active is None:
                 severity = IncidentSeverity.LOW
                 error_type = "FeedbackLoopUnknown"
@@ -666,7 +666,7 @@ DEFAULT_DRIFT_METRICS: dict[str, DriftConfig] = {
 }
 
 
-# Constitutional impact per drifting metric — which drive does this hurt most?
+# Constitutional impact per drifting metric - which drive does this hurt most?
 _DRIFT_CONSTITUTIONAL_IMPACT: dict[str, dict[str, float]] = {
     "synapse.cycle.latency_ms": {"coherence": 0.3, "care": 0.2, "growth": 0.1, "honesty": 0.0},
     "memory.retrieval.latency_ms": {"coherence": 0.5, "care": 0.1, "growth": 0.2, "honesty": 0.1},
@@ -798,7 +798,7 @@ DEFAULT_STALL_THRESHOLDS: dict[str, StallConfig] = {
 }
 
 
-# Constitutional impact per stall type — what breaks when that rate hits zero?
+# Constitutional impact per stall type - what breaks when that rate hits zero?
 _STALL_CONSTITUTIONAL_IMPACT: dict[str, dict[str, float]] = {
     "broadcast_ack_rate": {"coherence": 0.7, "care": 0.4, "growth": 0.3, "honesty": 0.2},
     "nova_intent_rate": {"coherence": 0.8, "care": 0.2, "growth": 0.4, "honesty": 0.1},
@@ -909,7 +909,7 @@ _CRITICAL_GAS_THRESHOLD_ETH: float = 0.00005
 # shed all discretionary cognitive load immediately.
 _CRITICAL_API_DEFICIT_USD: float = 5.0
 
-# Stable fingerprints — one per failure mode so deduplication works correctly.
+# Stable fingerprints - one per failure mode so deduplication works correctly.
 _FP_ETH = hashlib.sha256(b"bankruptcy:eth_below_gas_threshold").hexdigest()[:16]
 _FP_API = hashlib.sha256(b"bankruptcy:api_deficit_hard_limit").hexdigest()[:16]
 
@@ -932,11 +932,11 @@ class BankruptcySentinel(BaseThymosSentinel):
 
     Two failure modes trigger a Tier-1 (CRITICAL) incident:
 
-    1. **ETH gas exhaustion** — on-chain balance drops below
+    1. **ETH gas exhaustion** - on-chain balance drops below
        ``_CRITICAL_GAS_THRESHOLD_ETH``.  Without gas the organism cannot
        execute wallet operations, which blocks all revenue pathways.
 
-    2. **API deficit hard limit** — the rolling fiat deficit tracked by
+    2. **API deficit hard limit** - the rolling fiat deficit tracked by
        ``SynapseService.metabolism`` exceeds ``_CRITICAL_API_DEFICIT_USD``.
        This means the organism has consumed significantly more in LLM API
        costs than it has earned, and continued operation will accelerate
@@ -954,7 +954,7 @@ class BankruptcySentinel(BaseThymosSentinel):
       async overhead.  The caller is responsible for fetching fresh
       values from ``WalletClient`` / ``SynapseService`` first.
     - The sentinel is **stateless** per the ABC contract.  It has no
-      rolling windows or accumulators — the thresholds are absolute
+      rolling windows or accumulators - the thresholds are absolute
       because near-zero balances are dangerous regardless of trend.
     - ``sentinel_name`` is ``"bankruptcy"`` so it occupies its own slot
       in ``ThymosService._sentinels`` and can be hot-swapped independently.

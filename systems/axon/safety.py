@@ -1,23 +1,23 @@
 """
-EcodiaOS — Axon Safety Mechanisms
+EcodiaOS - Axon Safety Mechanisms
 
 Three interlocking safety systems protect against runaway action loops,
 cascading failures, and excessive external calls:
 
-1. RateLimiter — sliding-window counters per executor type
+1. RateLimiter - sliding-window counters per executor type
    Prevents any single executor from flooding an external service or
    spamming notifications. Counters are in-memory (per-process).
    For distributed deployments, back this with Redis (future Synapse work).
 
-2. CircuitBreaker — per-executor open/half-open/closed state machine
+2. CircuitBreaker - per-executor open/half-open/closed state machine
    If an executor repeatedly fails, it is disabled for a recovery window.
    After recovery_timeout_s, a single probe execution is allowed (half-open).
    Success → closed (normal). Failure → re-opens. Prevents cascading failures
    from a degraded external service.
 
-3. BudgetTracker — per-cycle execution budget enforcement
+3. BudgetTracker - per-cycle execution budget enforcement
    Limits the total number and type of actions EOS can take in a single
-   cognitive cycle. This is the non-negotiable safety valve — it exists
+   cognitive cycle. This is the non-negotiable safety valve - it exists
    to prevent EOS from acting obsessively or exhausting shared resources.
    Budget limits come from AxonConfig and cannot be raised at runtime.
 
@@ -244,9 +244,9 @@ class CircuitBreaker:
     Per-executor circuit breaker using a three-state finite state machine.
 
     States:
-      CLOSED — normal operation; all executions allowed
-      OPEN — tripped; all executions blocked for recovery_timeout_s
-      HALF_OPEN — probing; allows exactly half_open_max_calls attempts
+      CLOSED - normal operation; all executions allowed
+      OPEN - tripped; all executions blocked for recovery_timeout_s
+      HALF_OPEN - probing; allows exactly half_open_max_calls attempts
 
     Transitions:
       CLOSED → OPEN: failure_threshold consecutive failures
@@ -386,7 +386,7 @@ class CircuitBreaker:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            return  # No event loop — skip async operations
+            return  # No event loop - skip async operations
 
         loop.create_task(
             self._persist_state(action_type),
@@ -520,9 +520,9 @@ class ActionBudget:
     propose permanent baseline adjustments via EVO_ADJUST_BUDGET.
 
     The three Equor-negotiable fields are:
-      max_actions_per_cycle     — hard cap per theta cycle (default 5)
-      max_concurrent_executions — parallel execution slots (default 3)
-      max_api_calls_per_minute  — external call rate cap (default 30)
+      max_actions_per_cycle     - hard cap per theta cycle (default 5)
+      max_concurrent_executions - parallel execution slots (default 3)
+      max_api_calls_per_minute  - external call rate cap (default 30)
 
     Safe upper bounds enforced by Equor:
       max_actions_per_cycle     ≤ 20
@@ -628,11 +628,11 @@ class BudgetTracker:
     Per-cycle execution budget enforcement.
 
     The budget is replenished at the start of each cognitive cycle by calling
-    begin_cycle(). Checks are cumulative within the cycle — once a limit is
+    begin_cycle(). Checks are cumulative within the cycle - once a limit is
     hit, it blocks for the remainder of the cycle.
 
     Sub-limits (API calls per minute, notifications per hour) use sliding-window
-    deques so they enforce across cycle boundaries — a burst of API calls in cycle N
+    deques so they enforce across cycle boundaries - a burst of API calls in cycle N
     still counts against the limit in cycle N+1 (Spec §5.3).
 
     Limits are read from ActionBudget each check, so Equor-approved temporary
@@ -657,7 +657,7 @@ class BudgetTracker:
             max_concurrent_executions=config.max_concurrent_executions,
             total_timeout_per_cycle_ms=config.total_timeout_per_cycle_ms,
         )
-        # Mutable runtime limits — Equor can expand, Evo can tune baseline
+        # Mutable runtime limits - Equor can expand, Evo can tune baseline
         self.action_budget = ActionBudget(
             max_actions_per_cycle=config.max_actions_per_cycle,
             max_concurrent_executions=config.max_concurrent_executions,
@@ -683,7 +683,7 @@ class BudgetTracker:
     def can_execute(self) -> tuple[bool, str]:
         """
         Check if the budget allows another execution.
-        Returns (allowed, reason) — reason is empty string if allowed.
+        Returns (allowed, reason) - reason is empty string if allowed.
 
         Auto-resets the cycle if total_timeout_per_cycle_ms has elapsed since
         the last begin_cycle() call. This handles the case where Synapse has not
@@ -692,7 +692,7 @@ class BudgetTracker:
         """
         elapsed_ms = int((time.monotonic() - self._cycle_start) * 1000)
         if elapsed_ms >= self._budget.total_timeout_per_cycle_ms:
-            # Cycle window expired — auto-begin a new cycle so we don't block
+            # Cycle window expired - auto-begin a new cycle so we don't block
             # permanently when Synapse's begin_cycle() wiring is missing.
             self._reset_counters()
             elapsed_ms = 0
@@ -777,7 +777,7 @@ class BudgetTracker:
             max_steps: Maximum steps allowed for this intent (0 = unlimited).
 
         Returns:
-            (allowed, reason) — reason is empty string if allowed.
+            (allowed, reason) - reason is empty string if allowed.
         """
         if max_steps <= 0:
             return True, ""

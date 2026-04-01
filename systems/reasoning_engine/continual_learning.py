@@ -1,10 +1,10 @@
 """
-EcodiaOS — Continual Learning Orchestrator (Speciation Bible §3 + §7)
+EcodiaOS - Continual Learning Orchestrator (Speciation Bible §3 + §7)
 
 Three-tier architecture:
-  Tier 1: Real-time Thompson sampling (DONE — Nova/PolicyGenerator)
-  Tier 2: Incremental LoRA training    (THIS FILE — ~2-week cadence)
-  Tier 3: Quarterly full retrain       (THIS FILE — placeholder, not yet triggered)
+  Tier 1: Real-time Thompson sampling (DONE - Nova/PolicyGenerator)
+  Tier 2: Incremental LoRA training    (THIS FILE - ~2-week cadence)
+  Tier 3: Quarterly full retrain       (THIS FILE - placeholder, not yet triggered)
 
 This orchestrator ties the historical training pipeline together:
 
@@ -13,16 +13,16 @@ This orchestrator ties the historical training pipeline together:
   asyncio subprocess: train_lora.py (Unsloth + LoRA, Qwen3-8B base)
        ↓
   Safety layer (Speciation Bible §7):
-    0. RESuccessRateMonitor.check_kill_switch()  — halt if RE rate < 0.50 (7d)
+    0. RESuccessRateMonitor.check_kill_switch()  - halt if RE rate < 0.50 (7d)
        ↓
   Anti-forgetting stack (Speciation Bible §3.3):
-    1. SurprisePrioritizedReplay  — mix replay buffer into training JSONL
-    2. SuReEMAAdapter             — merge fast adapter into slow EMA adapter
-    2b. SafeLoRAProjection        — project onto safety-aligned subspace (§7.2)
-    3. STABLEKLGate               — KL divergence gate before deployment
-    4. AnchorPerplexityMonitor    — post-deploy forgetting alarm (non-blocking)
+    1. SurprisePrioritizedReplay  - mix replay buffer into training JSONL
+    2. SuReEMAAdapter             - merge fast adapter into slow EMA adapter
+    2b. SafeLoRAProjection        - project onto safety-aligned subspace (§7.2)
+    3. STABLEKLGate               - KL divergence gate before deployment
+    4. AnchorPerplexityMonitor    - post-deploy forgetting alarm (non-blocking)
        ↓
-  ReasoningEngineService.load_adapter() — hot-swap SLOW adapter into vLLM
+  ReasoningEngineService.load_adapter() - hot-swap SLOW adapter into vLLM
 
 No cross-system imports. Synapse events only. Organism continues on
 Claude-only mode if training fails.
@@ -78,7 +78,7 @@ _TRAIN_SCRIPT = os.path.join(
 _DEFAULT_BASE_MODEL = os.environ.get("RE_BASE_MODEL", "Qwen/Qwen3-8B")
 _TRAINING_TIMEOUT_S = int(os.environ.get("RE_TRAINING_TIMEOUT_S", "7200"))  # 2 hours
 
-# S3 adapter bridge — inference pod polls this prefix for new adapters
+# S3 adapter bridge - inference pod polls this prefix for new adapters
 _S3_ADAPTER_BUCKET = os.environ.get("RE_ADAPTER_S3_BUCKET", "ecodiaos-re-training")
 _S3_ADAPTER_PREFIX = os.environ.get("RE_ADAPTER_S3_PREFIX", "adapters/production/")
 _INSTANCE_ID = os.environ.get("INSTANCE_ID", "genesis")
@@ -113,7 +113,7 @@ class TrainingTrigger:
     """Thompson sampler success-rate drop that triggers emergency Tier 2."""
 
     full_retrain_interval_days: int = 90
-    """Days between Tier 3 full retrains (future use — not yet triggered)."""
+    """Days between Tier 3 full retrains (future use - not yet triggered)."""
 
     min_viable_examples: int = 50
     """Minimum examples required to actually start a training run."""
@@ -211,7 +211,7 @@ class ContinualLearningOrchestrator:
         # Format: {"success_rate": float, "eval_loss": float | None, "cycle": str,
         #          "timestamp": str, "adapter_path": str | None}
         self._pre_deploy_baseline: dict[str, Any] | None = None
-        # Previous adapter path — restored on rollback.
+        # Previous adapter path - restored on rollback.
         self._pre_deploy_adapter_path: str | None = None
         # Counters for the post-deploy monitoring window.
         self._post_deploy_successes: int = 0
@@ -223,32 +223,32 @@ class ContinualLearningOrchestrator:
         # and returns True immediately if examples ≥ 50. Cleared after training starts.
         self._urgent_training_requested: bool = False
 
-        # Anti-forgetting components — replay/perplexity get Redis injected in set_redis()
+        # Anti-forgetting components - replay/perplexity get Redis injected in set_redis()
         self._sure = SuReEMAAdapter(self._af_config)
         self._stable = STABLEKLGate(self._af_config)
         # Replay and perplexity monitor require Redis; placeholders set here, initialised in set_redis()
         self._replay: SurprisePrioritizedReplay | None = None
         self._perplexity_monitor: AnchorPerplexityMonitor | None = None
 
-        # Safety layer (§7) — RE success rate monitor + SafeLoRA projection
+        # Safety layer (§7) - RE success rate monitor + SafeLoRA projection
         self._re_monitor = RESuccessRateMonitor(self._safety_config)
         self._safe_lora = SafeLoRAProjection(self._safety_config)
 
         # DPO constitutional alignment pipeline (§7.2 speciation bible)
-        # claude_client is optional — judge falls back to heuristic if None
+        # claude_client is optional - judge falls back to heuristic if None
         _judge = ConstitutionalJudge(self._dpo_config, claude_client)
         self._dpo_trainer = DPOTrainer(self._dpo_config, re_service, None)  # bus wired in set_event_bus
         self._pair_gen = PreferencePairGenerator(self._dpo_config, memory, equor_service, _judge)
 
-        # Tier 3 — quarterly full retrain with SVD pruning + SLAO merge
+        # Tier 3 - quarterly full retrain with SVD pruning + SLAO merge
         # Redis and event_bus are injected later via set_redis() / set_event_bus()
         # so Tier3Orchestrator is created lazily in set_redis() once Redis is available.
         self._tier3: Tier3Orchestrator | None = None
 
-        # Training exclusion filter — protects evaluation files from entering training data
+        # Training exclusion filter - protects evaluation files from entering training data
         self._exclusion_filter = TrainingExclusionFilter()
 
-        # Ablation mode — set by AblationOrchestrator before calling run_tier2().
+        # Ablation mode - set by AblationOrchestrator before calling run_tier2().
         # "none" = full stack (default); see ablation.py:AblationMode for valid values.
         # MUST be cleared back to "none" in AblationOrchestrator._train_ablated() finally block.
         self._ablation_mode: str = "none"
@@ -279,7 +279,7 @@ class ContinualLearningOrchestrator:
         self._dpo_trainer._bus = bus
         if self._tier3 is not None:
             self._tier3._bus = bus
-        # Adapter sharing — subscribe to cross-instance events
+        # Adapter sharing - subscribe to cross-instance events
         try:
             from systems.synapse.types import SynapseEventType as _SET
             bus.subscribe(_SET.ADAPTER_SHARE_REQUEST, self._on_adapter_share_request)
@@ -294,7 +294,7 @@ class ContinualLearningOrchestrator:
             logger.warning("continual_learning.re_training_requested_subscribe_failed", error=str(exc))
 
     async def _on_adapter_share_request(self, event: Any) -> None:
-        """Partner instance is requesting our adapter path — respond if we have one.
+        """Partner instance is requesting our adapter path - respond if we have one.
 
         Non-fatal: any failure is logged silently. Partner will time out after 30s.
         """
@@ -320,7 +320,7 @@ class ContinualLearningOrchestrator:
     async def _on_adapter_share_offer(self, event: Any) -> None:
         """A merged adapter has been offered to us.
 
-        Store as _pending_shared_adapter — it will be used as BASE_ADAPTER on
+        Store as _pending_shared_adapter - it will be used as BASE_ADAPTER on
         the next Tier 2 run with priority over _pending_dpo_adapter.
         The offer is always accepted; a confidence threshold could be added later.
         """
@@ -397,7 +397,7 @@ class ContinualLearningOrchestrator:
             anchor_file=str(Path(_DEFAULT_EXPORT_DIR) / "anchor_prompts.jsonl")
         )
 
-        # Load training exclusion filter — non-fatal; training proceeds without it on failure
+        # Load training exclusion filter - non-fatal; training proceeds without it on failure
         try:
             await self._exclusion_filter.load()
         except Exception as exc:
@@ -420,7 +420,7 @@ class ContinualLearningOrchestrator:
         Check if a training run should be triggered.
 
         Priority order:
-          1. Tier 3 (quarterly full retrain) — future placeholder
+          1. Tier 3 (quarterly full retrain) - future placeholder
           2. Tier 2: data volume threshold exceeded
           3. Tier 2: max days since last train
           4. Tier 2: Thompson sampler performance degradation
@@ -429,7 +429,7 @@ class ContinualLearningOrchestrator:
         Returns (should_train, reason_string).
         """
         # ── Safety kill switch (§7.3 Tier 2) ──────────────────────────────────
-        # Check persisted halt flag first — survives restarts (set by red-team or operator).
+        # Check persisted halt flag first - survives restarts (set by red-team or operator).
         try:
             halted, halt_reason = await self._is_training_halted()
             if halted:
@@ -449,7 +449,7 @@ class ContinualLearningOrchestrator:
 
         now = datetime.now(UTC)
 
-        # 1. Tier 3 quarterly check — full retrain with SVD pruning + SLAO merge
+        # 1. Tier 3 quarterly check - full retrain with SVD pruning + SLAO merge
         if self._tier3 is not None:
             try:
                 tier3_ready, tier3_reason = await self._tier3.should_run_tier3()
@@ -459,7 +459,7 @@ class ContinualLearningOrchestrator:
             except Exception as exc:
                 logger.warning("continual_learning_tier3_check_failed", error=str(exc))
 
-        # 1b. Urgent retraining request (RE_TRAINING_REQUESTED) — lowered threshold
+        # 1b. Urgent retraining request (RE_TRAINING_REQUESTED) - lowered threshold
         if self._urgent_training_requested:
             try:
                 counts = await self._extractor.stream_counts(lookback_days=self._config.max_days_since_train)
@@ -492,7 +492,7 @@ class ContinualLearningOrchestrator:
                 logger.info("continual_learning_trigger_scheduled", days_since=days_since)
                 return True, "tier2_scheduled"
         elif self._last_train_at is None:
-            # Never trained — trigger immediately if any data exists
+            # Never trained - trigger immediately if any data exists
             try:
                 counts = await self._extractor.stream_counts()
                 total = sum(v for v in counts.values() if v >= 0)
@@ -607,9 +607,9 @@ class ContinualLearningOrchestrator:
     async def _run_dpo_background(self) -> None:
         """Generate DPO preference pairs and run DPO pass if threshold met.
 
-        Non-blocking — runs as a background task after each Tier 2 cycle.
+        Non-blocking - runs as a background task after each Tier 2 cycle.
         DPO adapter is stored as _pending_dpo_adapter; NOT deployed here.
-        Failures are always caught and logged — never propagated.
+        Failures are always caught and logged - never propagated.
         """
         try:
             # Source 1: Neo4j constitutional pairs (Equor-approved vs Equor-flagged)
@@ -623,7 +623,7 @@ class ContinualLearningOrchestrator:
             )
 
             # Source 3: Reasoning quality pairs (deep causal reasoning vs shallow answer)
-            # Anti-laziness DPO signal — teaches the model to prefer rigorous over surface reasoning.
+            # Anti-laziness DPO signal - teaches the model to prefer rigorous over surface reasoning.
             reasoning_quality_pairs = await self._pair_gen.generate_pairs_from_reasoning_quality(
                 self._re, limit=100
             )
@@ -650,7 +650,7 @@ class ContinualLearningOrchestrator:
         logger.info("continual_learning_extracting_data", run_id=run.run_id)
         from systems.reasoning_engine.export_pipeline import run_export
 
-        # We need the Neo4j client from the extractor — access it directly
+        # We need the Neo4j client from the extractor - access it directly
         neo4j = self._extractor._neo4j
 
         export_dir = Path(_DEFAULT_EXPORT_DIR)
@@ -721,11 +721,11 @@ class ContinualLearningOrchestrator:
             )
             run.error = f"only {run.examples_used} examples (min {self._config.min_viable_examples})"
             run.completed_at = datetime.now(UTC)
-            # Not a hard failure — just skip training
+            # Not a hard failure - just skip training
             return run
 
         # ── Step 3: Resolve JSONL path ─────────────────────────────────────────
-        # export_pipeline already wrote the file — resolve its local path
+        # export_pipeline already wrote the file - resolve its local path
         jsonl_path = output_path
         if not Path(jsonl_path).exists():
             # Fallback: look for the path in export_result
@@ -787,8 +787,8 @@ class ContinualLearningOrchestrator:
             or self._pending_dpo_adapter
             or self._sure.production_adapter_path
         )
-        self._pending_shared_adapter = None  # consumed — prevent stale adapter on next run
-        self._pending_dpo_adapter = None  # consumed — prevent stale adapter on next run
+        self._pending_shared_adapter = None  # consumed - prevent stale adapter on next run
+        self._pending_dpo_adapter = None  # consumed - prevent stale adapter on next run
 
         env = {
             **os.environ,
@@ -799,7 +799,7 @@ class ContinualLearningOrchestrator:
             # BASE_ADAPTER: DPO-tuned starting point (if available), else current slow adapter.
             "BASE_ADAPTER": base_adapter or "",
             # PREVIOUS_ADAPTER_PATH: CLoRA orthogonalizes against slow adapter's directions.
-            # Always the slow adapter — independent of BASE_ADAPTER.
+            # Always the slow adapter - independent of BASE_ADAPTER.
             "PREVIOUS_ADAPTER_PATH": self._sure.production_adapter_path or "",
         }
 
@@ -855,7 +855,7 @@ class ContinualLearningOrchestrator:
 
         run.completed_at = datetime.now(UTC)
 
-        # ── Step 6: Success path — anti-forgetting pipeline + deploy ──────────
+        # ── Step 6: Success path - anti-forgetting pipeline + deploy ──────────
         if train_success:
             adapter_dir = Path(adapter_output_dir) / "adapter"
             if not adapter_dir.exists():
@@ -868,7 +868,7 @@ class ContinualLearningOrchestrator:
             run.eval_loss = _read_eval_loss(Path(adapter_output_dir))
 
             # ── Step 6a: Add new training examples to replay buffer ────────────
-            # These examples are in the JSONL we already exported — reload them
+            # These examples are in the JSONL we already exported - reload them
             # and buffer them for the next training cycle.
             # Protected prompts (evaluation files, DPO pairs, anchors) are filtered
             # out before entering the replay buffer.
@@ -905,7 +905,7 @@ class ContinualLearningOrchestrator:
                     mode=self._ablation_mode,
                 )
             else:
-                # ── Step 6b: SuRe EMA — merge fast adapter into slow adapter ──────
+                # ── Step 6b: SuRe EMA - merge fast adapter into slow adapter ──────
                 slow_adapter_path = str(adapter_dir)  # default: fast adapter IS production if EMA fails
                 try:
                     slow_output = str(adapter_dir) + "_slow"
@@ -935,7 +935,7 @@ class ContinualLearningOrchestrator:
                 except Exception as exc:
                     logger.warning("safe_lora_projection_error", run_id=run.run_id, error=str(exc))
 
-                # ── Step 6c: STABLE KL gate — check before deploying ──────────────
+                # ── Step 6c: STABLE KL gate - check before deploying ──────────────
                 kl_passed = True
                 try:
                     kl_passed, kl_divergence = await self._stable.check_kl_divergence(
@@ -948,7 +948,7 @@ class ContinualLearningOrchestrator:
                         "stable_kl_check_error_pass",
                         run_id=run.run_id,
                         error=str(exc),
-                        note="KL gate errored — deploying anyway",
+                        note="KL gate errored - deploying anyway",
                     )
 
                 if not kl_passed:
@@ -970,7 +970,7 @@ class ContinualLearningOrchestrator:
                             "adapter_path": slow_adapter_path,
                         },
                     )
-                    # Do NOT deploy — current adapter stays in production
+                    # Do NOT deploy - current adapter stays in production
                     return run
 
             # ── Step 6d-pre: Snapshot pre-deployment baseline ─────────────────
@@ -1039,7 +1039,7 @@ class ContinualLearningOrchestrator:
                 )
 
             # ── Step 6d.1: Upload adapter to S3 for inference pod pickup ────────
-            # Non-blocking — inference pod watcher polls this prefix.
+            # Non-blocking - inference pod watcher polls this prefix.
             s3_adapter_path = await self._upload_adapter_to_s3(
                 slow_adapter_path, run.run_id, kl_divergence, run.eval_loss
             )
@@ -1093,7 +1093,7 @@ class ContinualLearningOrchestrator:
     async def check_and_train(self) -> None:
         """
         Called by the daily background task. Checks trigger conditions and
-        fires Tier 2 if needed. All errors are caught — never raises.
+        fires Tier 2 if needed. All errors are caught - never raises.
         """
         try:
             should, reason = await self.should_train()
@@ -1135,7 +1135,7 @@ class ContinualLearningOrchestrator:
         Accumulates successes/attempts in the post-deployment monitoring window.
         When the window fills (_POST_DEPLOY_MONITOR_CYCLES attempts), evaluates
         quality vs the pre-deployment baseline and either confirms or rolls back
-        the adapter.  Non-blocking — spawns a background coroutine to handle the
+        the adapter.  Non-blocking - spawns a background coroutine to handle the
         async rollback/confirm logic.
 
         No-op if no monitoring window is open.
@@ -1147,7 +1147,7 @@ class ContinualLearningOrchestrator:
             self._post_deploy_successes += 1
 
         if self._post_deploy_attempts >= _POST_DEPLOY_MONITOR_CYCLES:
-            # Window complete — evaluate and act in the background so we don't
+            # Window complete - evaluate and act in the background so we don't
             # block the calling synchronous record path.
             self._monitoring_active = False
             asyncio.ensure_future(self._evaluate_post_deploy_quality())
@@ -1188,7 +1188,7 @@ class ContinualLearningOrchestrator:
             elif post_rate > confirm_threshold:
                 await self._confirm_adapter(run_id, pre_rate, post_rate)
             else:
-                # Within acceptable range — neutral, keep current adapter
+                # Within acceptable range - neutral, keep current adapter
                 logger.info(
                     "post_deploy_quality_neutral",
                     run_id=run_id,
@@ -1251,7 +1251,7 @@ class ContinualLearningOrchestrator:
 
         # 3. Reset Thompson "re" arm Beta params.
         # We approximate: if the old rate was R, set alpha=R*N, beta=(1-R)*N
-        # with N=20 (modest confidence — not erasing all historical learning).
+        # with N=20 (modest confidence - not erasing all historical learning).
         if self._redis is not None:
             try:
                 _n = 20.0
@@ -1275,7 +1275,7 @@ class ContinualLearningOrchestrator:
             except Exception as exc:
                 logger.warning("thompson_sampler_re_reset_failed", error=str(exc))
 
-        # 4. Emit RE_TRAINING_EXAMPLE — the rollback is a learning signal for future training
+        # 4. Emit RE_TRAINING_EXAMPLE - the rollback is a learning signal for future training
         await self._emit(
             "re_training_example",
             {
@@ -1294,7 +1294,7 @@ class ContinualLearningOrchestrator:
         self._pre_deploy_adapter_path = None
 
     async def _confirm_adapter(self, run_id: str, pre_rate: float, post_rate: float) -> None:
-        """Confirm successful deployment — log and emit quality confirmation event."""
+        """Confirm successful deployment - log and emit quality confirmation event."""
         logger.info(
             "re_adapter_confirmed",
             run_id=run_id,
@@ -1312,7 +1312,7 @@ class ContinualLearningOrchestrator:
                 "window_attempts": self._post_deploy_attempts,
             },
         )
-        # Clear baseline — this adapter is now the confirmed baseline for the next deploy
+        # Clear baseline - this adapter is now the confirmed baseline for the next deploy
         self._pre_deploy_baseline = None
         self._pre_deploy_adapter_path = None
 
@@ -1403,7 +1403,7 @@ class ContinualLearningOrchestrator:
         Also writes a manifest.json at the prefix root so the pod watcher knows
         which version is current without listing all keys.
 
-        Returns the S3 path on success, None on failure. Non-fatal — local
+        Returns the S3 path on success, None on failure. Non-fatal - local
         deployment still works even if S3 upload fails.
         """
         try:
@@ -1432,7 +1432,7 @@ class ContinualLearningOrchestrator:
                     s3.upload_file(str(fpath), _S3_ADAPTER_BUCKET, key)
                     uploaded_files.append(fpath.name)
 
-            # Write manifest at the well-known prefix — pod watcher reads this
+            # Write manifest at the well-known prefix - pod watcher reads this
             manifest = {
                 "version": timestamp,
                 "run_id": run_id,
@@ -1500,7 +1500,7 @@ class ContinualLearningOrchestrator:
                 logger.warning("training_halt_persist_failed", error=str(exc))
         logger.critical("training.halted_persisted", reason=reason)
         # Emit RE_TRAINING_HALTED so Thymos creates a HIGH incident and the
-        # Synapse bus is aware — Thymos can then attempt recovery.
+        # Synapse bus is aware - Thymos can then attempt recovery.
         if self._event_bus is not None:
             try:
                 from systems.synapse.types import SynapseEvent, SynapseEventType
@@ -1548,7 +1548,7 @@ class ContinualLearningOrchestrator:
             except Exception as exc:
                 logger.warning("training_halt_clear_failed", error=str(exc))
         logger.info("training.halt_cleared")
-        # Notify the bus — non-blocking, best-effort
+        # Notify the bus - non-blocking, best-effort
         if self._event_bus is not None:
             try:
                 from systems.synapse.types import SynapseEvent, SynapseEventType

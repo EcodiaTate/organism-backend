@@ -367,7 +367,7 @@ class TestSilenceGating:
         self, voxis: VoxisService
     ) -> None:
         """
-        ATUNE_DISTRESS is a mandatory trigger — it must speak even when the
+        ATUNE_DISTRESS is a mandatory trigger - it must speak even when the
         rate limiter would otherwise suppress it.
         """
         # Record an expression so rate limit is active
@@ -469,7 +469,7 @@ class TestMemoryTimeout:
         reasonable window. The 150ms memory timeout is enforced via asyncio.wait_for.
         """
         async def slow_retrieve(*args: Any, **kwargs: Any) -> Any:
-            await asyncio.sleep(0.3)  # 300ms — beyond the 150ms hard timeout
+            await asyncio.sleep(0.3)  # 300ms - beyond the 150ms hard timeout
 
         memory = make_memory_mock()
         memory.retrieve.side_effect = slow_retrieve
@@ -753,7 +753,7 @@ class TestBroadcastInterface:
         await service.on_broadcast(broadcast_mock)
 
 
-# ─── Context window — Honesty check ──────────────────────────────
+# ─── Context window - Honesty check ──────────────────────────────
 
 
 class TestHonestyCheck:
@@ -797,7 +797,7 @@ class TestHonestyCheck:
         """When the honesty check returns a violation, honesty_rejections counter increments."""
         llm = make_llm_mock()
         # First generate() call returns content with forced positivity
-        # evaluate() returns a violation signal — any non-"authentic" response
+        # evaluate() returns a violation signal - any non-"authentic" response
         # triggers the retry path; but we need to understand the renderer's
         # exact check logic. The renderer checks for keyword markers in evaluate().
         # We'll mock evaluate() to return "forced_positivity" on first call,

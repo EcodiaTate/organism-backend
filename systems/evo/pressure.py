@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evolutionary Pressure System
+EcodiaOS - Evolutionary Pressure System
 
 How the organism evolves under real selection pressure instead of just
 accumulating knowledge.
@@ -232,7 +232,7 @@ class EvolutionaryPressureSystem:
         1. Score all hypotheses
         2. Compute population statistics
         3. Archive those below mean - 1σ (adjusted by metabolic pressure)
-        4. Maintain niche diversity — protect minority categories
+        4. Maintain niche diversity - protect minority categories
 
         Returns the SelectionEvent describing what was pruned.
         """
@@ -409,7 +409,7 @@ class EvolutionaryPressureSystem:
         hypotheses: list[Hypothesis],
     ) -> list[CognitiveSpecies]:
         """
-        Detect cognitive 'species' — clusters of hypotheses that have
+        Detect cognitive 'species' - clusters of hypotheses that have
         diverged enough from the general population.
 
         Uses category + domain clustering as a proxy for graph distance.

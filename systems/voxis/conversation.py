@@ -1,10 +1,10 @@
 """
-EcodiaOS — Voxis Conversation Manager
+EcodiaOS - Voxis Conversation Manager
 
 Maintains short-term conversational context for coherent multi-turn dialogue.
 Backed by Redis with 24-hour TTL.
 
-The conversation state is not just a message buffer — it tracks the emotional
+The conversation state is not just a message buffer - it tracks the emotional
 arc of the exchange, active topics, unresolved questions, and belief-level
 context about the conversational partner's state. This context feeds directly
 into audience profiling and expression strategy selection.
@@ -280,7 +280,7 @@ class ConversationManager:
         except Exception:
             self._logger.warning("conversation_summarisation_failed", exc_info=True)
             # Fallback: return a simple count-based summary
-            return f"[{len(messages)} earlier messages — summarisation unavailable]"
+            return f"[{len(messages)} earlier messages - summarisation unavailable]"
 
 
 # ─── Helpers ─────────────────────────────────────────────────────
@@ -289,7 +289,7 @@ class ConversationManager:
 def _estimate_token_count(messages: list[dict[str, str]]) -> int:
     """
     Rough token count estimate: ~4 characters per token.
-    Used only for context window budget decisions — does not need to be exact.
+    Used only for context window budget decisions - does not need to be exact.
     """
     total_chars = sum(len(m.get("content", "")) for m in messages)
     return total_chars // 4

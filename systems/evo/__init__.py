@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo (Learning & Hypothesis System)
+EcodiaOS - Evo (Learning & Hypothesis System)
 
 Evo is the Growth drive made computational. It observes patterns across
 experience, forms hypotheses, accumulates evidence, and when evidence is
@@ -7,8 +7,8 @@ sufficient, adjusts the organism's parameters, codifies procedures, and
 proposes structural evolution.
 
 Evo operates in two modes:
-  WAKE — lightweight online pattern detection during each cognitive cycle
-  SLEEP — deep offline consolidation: schema induction, procedure extraction,
+  WAKE - lightweight online pattern detection during each cognitive cycle
+  SLEEP - deep offline consolidation: schema induction, procedure extraction,
            parameter optimisation, self-model update, drift monitoring,
            belief half-life aging
 
@@ -19,11 +19,11 @@ Guard rails:
   - Evolution proposals go to Simula for gating, not applied directly
 
 Public interface:
-  EvoService          — main service class
-  ConsolidationResult — result of a consolidation cycle
-  SelfModelStats      — self-assessment metrics
-  ParameterTuner      — tunable parameter management (for direct access)
-  BeliefHalfLife      — half-life metadata for knowledge freshness
+  EvoService          - main service class
+  ConsolidationResult - result of a consolidation cycle
+  SelfModelStats      - self-assessment metrics
+  ParameterTuner      - tunable parameter management (for direct access)
+  BeliefHalfLife      - half-life metadata for knowledge freshness
 """
 
 from systems.evo.belief_halflife import (

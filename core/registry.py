@@ -1,5 +1,5 @@
 """
-EcodiaOS — System Registry
+EcodiaOS - System Registry
 
 Orchestrates the full startup and shutdown sequence for all 29
 cognitive systems.  Replaces the monolithic lifespan() in main.py
@@ -67,7 +67,7 @@ class SystemRegistry:
     # ══════════════════════════════════════════════════════════════
 
     async def startup(self, app: Any) -> None:
-        """Full organism startup — infrastructure → systems → wiring → smoke tests."""
+        """Full organism startup - infrastructure → systems → wiring → smoke tests."""
         config_path = os.environ.get("ECODIAOS_CONFIG_PATH", "config/default.yaml")
         config = load_config(config_path)
         app.state.config = config
@@ -124,11 +124,11 @@ class SystemRegistry:
             setattr(app.state, key, val)
 
         # SACM persistence wiring (deferred: infra available at Phase 1 but
-        # set_neo4j / set_redis were implemented and never called — dead wiring).
+        # set_neo4j / set_redis were implemented and never called - dead wiring).
         # sacm_accounting.set_neo4j() enables CostRecord → (:EconomicEvent) audit trail.
         # sacm_history.set_redis() enables workload history to survive restarts.
         # sacm_migration_executor.set_neo4j() enables MigrationRecord → Neo4j audit trail
-        # (Known Issue #6 in CLAUDE.md — _write_migration_neo4j() stub needs injection).
+        # (Known Issue #6 in CLAUDE.md - _write_migration_neo4j() stub needs injection).
         if infra.neo4j is not None:
             sacm_parts["sacm_accounting"].set_neo4j(infra.neo4j)
             if sacm_parts["sacm_migration_executor"] is not None:
@@ -168,14 +168,14 @@ class SystemRegistry:
 
         # EIS → Metrics wiring
         eis.set_metrics(infra.metrics)
-        # EIS → Neo4j audit trail (Spec 25 §11 — immutable forensic log)
+        # EIS → Neo4j audit trail (Spec 25 §11 - immutable forensic log)
         eis.set_neo4j(infra.neo4j)
 
         # Start Atune (deferred until memory wired)
         atune.set_memory_service(memory)
         await atune.startup()
 
-        # Core cross-wiring (Evo not yet available — deferred to Phase 3)
+        # Core cross-wiring (Evo not yet available - deferred to Phase 3)
         atune.subscribe(nova)
         atune.set_active_goals(nova.active_goal_summaries)
         nova.set_goal_sync_callback(atune.set_active_goals)
@@ -184,7 +184,7 @@ class SystemRegistry:
         nova.set_axon(axon)
         voxis.register_feedback_callback(create_expression_feedback_callback(atune, nova))
 
-        # Skia state restoration check — pass memory so constitutional genome
+        # Skia state restoration check - pass memory so constitutional genome
         # from the snapshot is applied to Memory on cold-start (Spec 29 §9.3).
         await self._check_skia_restore(config, infra, memory=memory)
 
@@ -245,7 +245,7 @@ class SystemRegistry:
             "nova_heartbeat_started", interval_seconds=config.nova.heartbeat_interval_seconds
         )
 
-        # ── Phase 5: Synapse — The Coordination Bus ──────────
+        # ── Phase 5: Synapse - The Coordination Bus ──────────
         synapse = await self._init_synapse(config, infra, atune)
         app.state.synapse = synapse
 
@@ -304,7 +304,7 @@ class SystemRegistry:
         app.state.kairos = kairos
         synapse.register_system(kairos)
 
-        # ── Phase 7: Soma — Interoceptive Substrate ──────────
+        # ── Phase 7: Soma - Interoceptive Substrate ──────────
         soma = await self._init_soma(config, infra, atune, synapse, nova, thymos, equor)
         app.state.soma = soma
         synapse.register_system(soma)
@@ -325,7 +325,7 @@ class SystemRegistry:
             sacm_accounting=sacm_parts["sacm_accounting"],
         )
 
-        # ── Phase 8: Telos + Fovea — Intelligence Loops ──────
+        # ── Phase 8: Telos + Fovea - Intelligence Loops ──────
         telos = await self._init_telos(synapse, infra)
         app.state.telos = telos
         synapse.register_system(telos)
@@ -336,7 +336,7 @@ class SystemRegistry:
 
         # Wire Neo4j into Fovea so DynamicIgnitionThreshold can persist/restore
         # learned ignition thresholds across restarts (Spec 20 Part B gap closure).
-        # set_neo4j_driver() was implemented but never called — dead wiring.
+        # set_neo4j_driver() was implemented but never called - dead wiring.
         if infra.neo4j is not None:
             fovea.set_neo4j_driver(infra.neo4j, config.instance_id)
             logger.info(
@@ -365,7 +365,7 @@ class SystemRegistry:
         # Wire Neo4j into Telos for I-history persistence + instance_id capture.
         # MUST be called after wire_intelligence_loops() because set_logos() (which
         # creates the LogosMetricsAdapter) runs inside that function.
-        # set_neo4j() was implemented but never called — dead wiring that silently
+        # set_neo4j() was implemented but never called - dead wiring that silently
         # disabled cross-restart growth history and broke RE training episode IDs.
         if infra.neo4j is not None:
             telos.set_neo4j(infra.neo4j, config.instance_id)
@@ -383,7 +383,7 @@ class SystemRegistry:
         # instantiated and injected here so Axon's MEVAnalyzer can receive per-block
         # gas/competition snapshots. Only enabled when mev_config.enabled is True.
         # set_block_competition_monitor() was implemented in AxonService but never
-        # called from the wiring layer — dead wiring that silently disabled MEV timing.
+        # called from the wiring layer - dead wiring that silently disabled MEV timing.
         if config.mev.enabled:
             try:
                 from systems.fovea.block_competition import BlockCompetitionMonitor as _BCM
@@ -543,7 +543,7 @@ class SystemRegistry:
         except Exception as _as_exc:
             logger.warning("adapter_sharer_construction_failed", error=str(_as_exc))
 
-        # get_adapter_path_fn: deferred lambda — CLO is initialised in Phase 11 which
+        # get_adapter_path_fn: deferred lambda - CLO is initialised in Phase 11 which
         # runs after wire_mitosis_phase. The lambda reads app.state at call time.
         # _reproductive_fitness_loop first fires ≥1h after startup, so CLO is always
         # ready before the first actual invocation.
@@ -582,7 +582,7 @@ class SystemRegistry:
         # Phantom Liquidity
         await self._init_phantom_liquidity(config, infra, atune, oikos, synapse, app)
 
-        # Skia — pass live system references so VitalityCoordinator is fully wired
+        # Skia - pass live system references so VitalityCoordinator is fully wired
         # and snapshots include the constitutional genome.
         await self._init_skia(
             config, infra, synapse, app,
@@ -593,7 +593,7 @@ class SystemRegistry:
             telos=telos,
         )
 
-        # Functional self-model (§8.6) — wired after Skia so VitalityCoordinator exists
+        # Functional self-model (§8.6) - wired after Skia so VitalityCoordinator exists
         self._init_self_model(config, memory, synapse, app)
 
         # Platform connectors
@@ -602,7 +602,7 @@ class SystemRegistry:
         # GitHub connector + bounty submission
         self._init_github_connector(config, infra, synapse, axon, oikos, app)
 
-        # Token refresh scheduler — proactively refreshes OAuth2 connector tokens
+        # Token refresh scheduler - proactively refreshes OAuth2 connector tokens
         # 24h before expiry so hot-path get_access_token() never blocks on refresh.
         try:
             from systems.identity.connector import TokenRefreshScheduler
@@ -627,7 +627,7 @@ class SystemRegistry:
         except Exception as _trs_exc:
             logger.warning("token_refresh_scheduler_init_failed", error=str(_trs_exc))
 
-        # IMAP scanner — polls email inbox for inbound OTP/verification codes
+        # IMAP scanner - polls email inbox for inbound OTP/verification codes
         try:
             from systems.identity.communication import IMAPScanner
 
@@ -646,7 +646,7 @@ class SystemRegistry:
         except Exception as _imap_exc:
             logger.warning("imap_scanner_init_failed", error=str(_imap_exc))
 
-        # AccountProvisioner — autonomous platform identity provisioning
+        # AccountProvisioner - autonomous platform identity provisioning
         try:
             from systems.identity.account_provisioner import AccountProvisioner
             from systems.identity.vault import IdentityVault as _ProvVault
@@ -684,7 +684,7 @@ class SystemRegistry:
             logger.warning("account_provisioner_init_failed", error=str(_ap_exc))
             app.state.account_provisioner = None
 
-        # EmailClient — wire into SendEmailExecutor
+        # EmailClient - wire into SendEmailExecutor
         try:
             from clients.email_client import EmailClient
 
@@ -734,7 +734,7 @@ class SystemRegistry:
                 if _send_tg_executor is not None and hasattr(_send_tg_executor, "set_telegram_connector"):
                     _send_tg_executor.set_telegram_connector(_tg_connector)
 
-                # Command handler — responds to /ping, /status, /help from admin chat
+                # Command handler - responds to /ping, /status, /help from admin chat
                 _tg_cmd_handler = TelegramCommandHandler(
                     connector=_tg_connector,
                     synapse=synapse,
@@ -753,7 +753,7 @@ class SystemRegistry:
                         secret_token=_webhook_secret,
                     )
                 else:
-                    # No public URL — delete any stale webhook and start long-polling
+                    # No public URL - delete any stale webhook and start long-polling
                     await _tg_connector.delete_webhook()
                     _tg_poller = TelegramPollingLoop(
                         connector=_tg_connector,
@@ -935,7 +935,7 @@ class SystemRegistry:
             source_system="telemetry",
         )
 
-        # Infrastructure Cost Poller — autonomously queries RunPod GraphQL
+        # Infrastructure Cost Poller - autonomously queries RunPod GraphQL
         # API for real-time pod costs; feeds MetabolicTracker burn rate.
         from systems.synapse.infra_cost_poller import InfrastructureCostPoller
 
@@ -947,7 +947,7 @@ class SystemRegistry:
         app.state.infra_cost_poller = infra_cost_poller
         logger.info("infra_cost_poller_started")
 
-        # RE Training Exporter — collects RE_TRAINING_EXAMPLE events from all
+        # RE Training Exporter - collects RE_TRAINING_EXAMPLE events from all
         # systems and ships hourly batches to S3 + Neo4j for CLoRA fine-tuning.
         from core.re_training_exporter import RETrainingExporter
 
@@ -969,7 +969,7 @@ class SystemRegistry:
         )
         logger.info("re_training_exporter_started", interval_s=3600)
 
-        # RE Post-Training Evaluator — replays prompts through the live RE model
+        # RE Post-Training Evaluator - replays prompts through the live RE model
         # after every training export cycle and on a 24h safety-net schedule.
         # Measures per-category pass rates, compares to stored baselines, emits
         # KPI events so Benchmarks and Thread can observe the organism learning.
@@ -997,7 +997,7 @@ class SystemRegistry:
         )
         logger.info("re_evaluator_started", interval_s=86400)
 
-        # Continual Learning Orchestrator — extract → format → train → deploy
+        # Continual Learning Orchestrator - extract → format → train → deploy
         # Tier 2 incremental LoRA training; daily trigger check.
         if re_service is not None and infra.neo4j is not None:
             try:
@@ -1025,11 +1025,11 @@ class SystemRegistry:
                 if _thymos is not None and hasattr(_thymos, "set_clo"):
                     _thymos.set_clo(_cl_orchestrator)
 
-                # Training trigger loop — checks immediately on boot, then every 6h.
+                # Training trigger loop - checks immediately on boot, then every 6h.
                 # Sleeping 24h before the first check meant the organism could accumulate
                 # 300+ quality examples and sit idle for up to a day before learning.
                 # 6-hour interval means: boot-check fires at T+0, T+6h, T+12h, T+18h, T+24h.
-                # should_train() is idempotent — safe to call frequently; it gates on
+                # should_train() is idempotent - safe to call frequently; it gates on
                 # data volume / days-since-train / Thompson drop thresholds internally.
                 async def _train_check_loop() -> None:
                     import asyncio as _asyncio
@@ -1058,7 +1058,7 @@ class SystemRegistry:
                 reason="RE service not available or Neo4j not connected",
             )
 
-        # Domain Specialization Orchestrator — skill acquisition pipeline.
+        # Domain Specialization Orchestrator - skill acquisition pipeline.
         # Checks hourly whether a domain-specific LoRA adapter should be trained
         # (success_rate > 0.70 for ≥100 domain examples).  Operates independently
         # of the RE CLO above (which trains the generalist model).
@@ -1111,7 +1111,7 @@ class SystemRegistry:
                 note="Domain specialization disabled; organism continues as generalist",
             )
 
-        # Tier 3 quarterly cron — fires independently of data volume.
+        # Tier 3 quarterly cron - fires independently of data volume.
         # Checks every 7 days whether 90 days have elapsed since last Tier 3.
         # Decouples Tier 3 from the should_train() data-volume gate.
         if re_service is not None and infra.neo4j is not None:
@@ -1150,7 +1150,7 @@ class SystemRegistry:
                     note="Tier 3 cron disabled; quarterly retrain will only fire via should_train()",
                 )
 
-        # Red-team monthly evaluation — Tier 2 kill switch check (Bible §7.3).
+        # Red-team monthly evaluation - Tier 2 kill switch check (Bible §7.3).
         # Runs every 30 days regardless of whether continual learning is active.
         # Never crashes the organism on failure; non-fatal throughout.
         if re_service is not None:
@@ -1283,7 +1283,7 @@ class SystemRegistry:
         if hasattr(app.state, "alive_ws") and app.state.alive_ws is not None:
             soma.set_alive(app.state.alive_ws)
         soma.set_voxis(voxis)
-        # Identity wired for cryptographic event signing (optional — no-op if absent)
+        # Identity wired for cryptographic event signing (optional - no-op if absent)
         if hasattr(app.state, "identity") and app.state.identity is not None:
             soma.set_identity(app.state.identity)
 
@@ -1306,14 +1306,14 @@ class SystemRegistry:
         )
 
         # ── Self-Modification Layer (Spec 10 §SM, 9 Mar 2026) ───────────────
-        # Wired last in Phase 11 — requires Nova, Simula, Axon, Equor, Synapse,
+        # Wired last in Phase 11 - requires Nova, Simula, Axon, Equor, Synapse,
         # and optionally Neo4j to all be live first.
         #
         # Components:
-        #   HotDeployment   — writes + imports + registers new executors at runtime
-        #   CapabilityAuditor — monitors NOVEL_ACTION_REQUESTED / execution failures
+        #   HotDeployment   - writes + imports + registers new executors at runtime
+        #   CapabilityAuditor - monitors NOVEL_ACTION_REQUESTED / execution failures
         #                       and emits CAPABILITY_GAP_IDENTIFIED
-        #   SelfModificationPipeline — gap → drive deliberation → Equor review →
+        #   SelfModificationPipeline - gap → drive deliberation → Equor review →
         #                              Simula code gen → HotDeployment → live test →
         #                              RE training example
         try:
@@ -1360,7 +1360,7 @@ class SystemRegistry:
                 note="Self-modification disabled; organism continues without recursive self-improvement",
             )
 
-        # ── Observatory — Diagnostic Observability ─────────────
+        # ── Observatory - Diagnostic Observability ─────────────
         from observatory.tracer import EventTracer
         from observatory.closure_tracker import ClosureLoopTracker
         from observatory.spec_checker import SpecComplianceChecker
@@ -1532,7 +1532,7 @@ class SystemRegistry:
         Checks:
         1. Whether the system object exists on app.state.
         2. Whether associated background tasks (keyed by name) are alive.
-        3. Last heartbeat via `system.health()` if available (sync probe only —
+        3. Last heartbeat via `system.health()` if available (sync probe only -
            returns None rather than awaiting to keep this method sync).
 
         Returns a dict with keys:
@@ -1727,7 +1727,7 @@ class SystemRegistry:
         prewarm_config = SACMPreWarmConfig()
         prewarm_engine = PreWarmingEngine(oracle=oracle, config=prewarm_config)
 
-        # MigrationExecutor + CostTriggeredMigrationMonitor — were fully implemented
+        # MigrationExecutor + CostTriggeredMigrationMonitor - were fully implemented
         # but never instantiated in registry.py (noted as Known Issue #5 in CLAUDE.md).
         # Requires config.compute_arbitrage (ComputeArbitrageConfig), config.skia
         # (SkiaConfig), and infra.redis.  Guards against missing config/infra gracefully
@@ -1758,7 +1758,7 @@ class SystemRegistry:
             logger.warning(
                 "sacm_migration_executor_init_failed",
                 error=str(_mig_exc),
-                note="SACM migration disabled — non-fatal",
+                note="SACM migration disabled - non-fatal",
             )
 
         return {
@@ -1793,7 +1793,7 @@ class SystemRegistry:
         """
         Initialize the local Reasoning Engine (vLLM wrapper).
 
-        Completely optional — if vLLM is not running or ECODIAOS_RE_ENABLED=false,
+        Completely optional - if vLLM is not running or ECODIAOS_RE_ENABLED=false,
         returns None and the organism operates in Claude-only mode.
         """
         import os
@@ -1854,7 +1854,7 @@ class SystemRegistry:
             else:
                 logger.info(
                     "nova_re_disabled",
-                    reason="RE not available or disabled — Claude-only mode",
+                    reason="RE not available or disabled - Claude-only mode",
                 )
 
             # Always store RE service ref on Nova so the RE_ENGINE_STATUS_CHANGED
@@ -1898,7 +1898,7 @@ class SystemRegistry:
         await evo.initialize()
         evo.schedule_consolidation_loop()
         # Wire Redis so PatternContext counters survive restarts between
-        # consolidation cycles (Spec §III gap fix — set_redis() was implemented
+        # consolidation cycles (Spec §III gap fix - set_redis() was implemented
         # but never called, silently losing up to 6h of accumulated detector state).
         if infra.redis is not None:
             evo.set_redis(infra.redis)
@@ -2081,7 +2081,7 @@ class SystemRegistry:
         kairos.set_event_bus(synapse.event_bus)
         kairos.set_logos(logos)
         oneiros.set_kairos(kairos)
-        # Start the periodic pipeline loop — this is what makes events actually fire.
+        # Start the periodic pipeline loop - this is what makes events actually fire.
         # run_pipeline() is never called on inbound events alone; the loop is required.
         kairos.start_pipeline_loop()
         return kairos
@@ -2292,7 +2292,7 @@ class SystemRegistry:
         oikos.bounty_hunter.set_platforms_config(config.external_platforms)
 
         # Wire Neo4j into OikosService for M2 immutable economic event audit trail.
-        # set_neo4j() was implemented (service.py:383) but never called — all
+        # set_neo4j() was implemented (service.py:383) but never called - all
         # _audit_economic_event() Neo4j writes were silently no-oping.
         if getattr(infra, "neo4j", None) is not None:
             oikos.set_neo4j(infra.neo4j)
@@ -2348,10 +2348,10 @@ class SystemRegistry:
             logger.warning(
                 "mitosis_fleet_service_construction_failed",
                 error=str(_fleet_exc),
-                note="Fleet management disabled — genome inheritance, health monitoring, and dividends will not run",
+                note="Fleet management disabled - genome inheritance, health monitoring, and dividends will not run",
             )
 
-        # Start SnapshotWriter — Redis ring buffer + TimescaleDB + hourly Neo4j CostSnapshot
+        # Start SnapshotWriter - Redis ring buffer + TimescaleDB + hourly Neo4j CostSnapshot
         from systems.oikos.snapshot_writer import SnapshotWriter
 
         snapshot_writer = SnapshotWriter(oikos=oikos, redis=infra.redis)
@@ -2509,7 +2509,7 @@ class SystemRegistry:
     ) -> None:
         """Instantiate SelfModelService and wire it into VitalityCoordinator.
 
-        The self-model is additive — it does NOT modify cryptographic identity.
+        The self-model is additive - it does NOT modify cryptographic identity.
         Non-fatal: if Skia or VitalityCoordinator is unavailable, log and skip.
         """
         try:
@@ -2662,7 +2662,7 @@ class SystemRegistry:
             bounty_submission_capable=has_creds,
         )
         if not has_creds:
-            logger.warning("GITHUB_CREDENTIALS_MISSING — bounty PR submission disabled")
+            logger.warning("GITHUB_CREDENTIALS_MISSING - bounty PR submission disabled")
 
     async def _init_benchmarks(
         self,
@@ -2732,7 +2732,7 @@ class SystemRegistry:
         # rather than starting with EcodiaOS defaults.
         # event_bus is not available this early in startup (Synapse not yet
         # initialized), so GENOME_EXTRACT_REQUEST broadcast is deferred to when
-        # the bus comes online — memory.seed_genome() is the primary restore path.
+        # the bus comes online - memory.seed_genome() is the primary restore path.
         await restore_from_ipfs(
             cid=restore_cid,
             neo4j=infra.neo4j,
@@ -2817,7 +2817,7 @@ class SystemRegistry:
                 {
                     "description": (
                         "Learn about my community"
-                        " — understand who I serve and what they need"
+                        " - understand who I serve and what they need"
                     ),
                     "source": "epistemic",
                     "priority": 0.6,
@@ -2832,7 +2832,7 @@ class SystemRegistry:
                 {
                     "description": (
                         "Develop self-understanding"
-                        " — explore my capabilities and how my drives shape my behaviour"
+                        " - explore my capabilities and how my drives shape my behaviour"
                     ),
                     "source": "self_generated",
                     "priority": 0.5,

@@ -1,12 +1,12 @@
 """
-EcodiaOS — Remote Compute Executor (SACM Bridge)
+EcodiaOS - Remote Compute Executor (SACM Bridge)
 
 Axon executor that bridges action execution to the SACM pipeline.
 Receives action_type="remote_compute" intents from Nova and dispatches
 them to SACMClient.submit_and_await() for remote execution.
 
 Owned by Axon (it is an Axon Executor). SACMClient is injected at
-registration time — no runtime SACM service coupling.
+registration time - no runtime SACM service coupling.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ class RemoteComputeExecutor(Executor):
 
     action_type: str = "remote_compute"
     description: str = "Execute a workload on a remote compute substrate via SACM"
-    required_autonomy: int = 2  # At least PARTNER level — remote execution is visible
+    required_autonomy: int = 2  # At least PARTNER level - remote execution is visible
     reversible: bool = False
     max_duration_ms: int = 600_000  # 10 minutes
     rate_limit: RateLimit = RateLimit.per_minute(10)

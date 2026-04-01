@@ -1,16 +1,16 @@
 """
-EcodiaOS — Platform Connector ABCs (Phase 16h: External Identity Layer)
+EcodiaOS - Platform Connector ABCs (Phase 16h: External Identity Layer)
 
 Abstract base classes and Pydantic schemas that standardise how EcodiaOS
 authenticates with external platforms (Google, GitHub, X/Twitter, etc.).
 
 Every connector implements the same OAuth2 lifecycle:
-  1. authorize_url()   — Build the consent URL for the human operator.
-  2. exchange_code()   — Swap the authorization code for tokens.
-  3. refresh_token()   — Refresh an expired access token.
-  4. revoke()          — Revoke a token (best-effort).
+  1. authorize_url()   - Build the consent URL for the human operator.
+  2. exchange_code()   - Swap the authorization code for tokens.
+  3. refresh_token()   - Refresh an expired access token.
+  4. revoke()          - Revoke a token (best-effort).
 
-Connectors never touch raw secrets directly — they receive an IdentityVault
+Connectors never touch raw secrets directly - they receive an IdentityVault
 reference and operate on SealedEnvelopes. The connector ABC is deliberately
 transport-agnostic: HTTP client injection happens at construction time so
 concrete implementations can use httpx, aiohttp, or any async client.
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from systems.synapse.event_bus import EventBus
 logger = structlog.get_logger("identity.connector")
 
-# One asyncio.Lock per platform_id — shared across all connector instances in the process.
+# One asyncio.Lock per platform_id - shared across all connector instances in the process.
 # Prevents concurrent refresh storms: only one coroutine executes the OAuth refresh
 # while others wait for the result already stored in the cache / credentials.
 _REFRESH_LOCKS: dict[str, asyncio.Lock] = {}
@@ -107,7 +107,7 @@ class OAuthClientConfig(EOSBaseModel):
     """Platform's token exchange endpoint."""
 
     revoke_url: str = ""
-    """Platform's token revocation endpoint (optional — not all platforms support it)."""
+    """Platform's token revocation endpoint (optional - not all platforms support it)."""
 
     redirect_uri: str = ""
     """OAuth redirect URI registered with the platform."""
@@ -126,7 +126,7 @@ class OAuthTokenSet(EOSBaseModel):
     """
     The token set returned by a successful OAuth2 exchange or refresh.
 
-    This is the plaintext representation — it is encrypted into a
+    This is the plaintext representation - it is encrypted into a
     SealedEnvelope before storage and never persisted raw.
     """
 
@@ -161,7 +161,7 @@ class OAuthTokenSet(EOSBaseModel):
 class ConnectorCredentials(Identified, Timestamped):
     """
     Per-platform credential record. Stored in the database with encrypted
-    envelopes — never raw tokens.
+    envelopes - never raw tokens.
 
     The connector_id is a stable identifier for this particular OAuth
     connection (e.g. 'google:user@example.com' or 'github:org-bot').
@@ -295,7 +295,7 @@ class PlatformConnector(ABC):
         self._event_bus: EventBus | None = None
         self._redis: RedisClient | None = None
         self._credentials: ConnectorCredentials | None = None
-        # In-memory envelope cache — populated whenever a token is encrypted so
+        # In-memory envelope cache - populated whenever a token is encrypted so
         # _decrypt_current_tokens() can access the SealedEnvelope without a DB
         # round-trip.  Persists for the lifetime of the process; the DB is the
         # authoritative store on restart (callers must call set_token_envelope).
@@ -429,7 +429,7 @@ class PlatformConnector(ABC):
 
         Hot path (Redis cache hit):
           1. Check Redis for a cached OAuthTokenSet with >60 s remaining.
-          2. Return access_token immediately — no DB query, no decryption.
+          2. Return access_token immediately - no DB query, no decryption.
 
         Warm path (cache miss or near-expiry):
           1. Decrypt from vault (DB query + Fernet).
@@ -456,7 +456,7 @@ class PlatformConnector(ABC):
         if token_set.remaining_seconds < _CACHE_EXPIRY_GUARD_S:
             lock = self._get_refresh_lock()
             async with lock:
-                # Re-check cache inside lock — another waiter may have refreshed
+                # Re-check cache inside lock - another waiter may have refreshed
                 cached_after_wait = await self._read_token_cache()
                 if (
                     cached_after_wait is not None
@@ -467,7 +467,7 @@ class PlatformConnector(ABC):
                 result = await self.refresh_token()
                 if not result.success or result.token_set is None:
                     self._logger.warning("auto_refresh_failed", error=result.error)
-                    # Token is expired and refresh failed — emit on Synapse so
+                    # Token is expired and refresh failed - emit on Synapse so
                     # Thymos/Identity can trigger re-authentication flow.
                     await self._emit_event(
                         "connector_token_expired",
@@ -536,7 +536,7 @@ class PlatformConnector(ABC):
                 ttl=ttl,
             )
         except Exception as exc:
-            # Cache write failure is non-fatal — the vault is the source of truth.
+            # Cache write failure is non-fatal - the vault is the source of truth.
             self._logger.debug("token_cache_write_error", error=str(exc))
 
     async def _invalidate_token_cache(self) -> None:
@@ -631,7 +631,7 @@ class PlatformConnector(ABC):
                 "consecutive_health_failures": self._consecutive_health_failures,
                 "error": "health_check_threshold_exceeded",
             }
-            # CONNECTOR_ERROR — tracked by observatory spec_checker
+            # CONNECTOR_ERROR - tracked by observatory spec_checker
             await self._event_bus.emit(SynapseEvent(
                 event_type=SynapseEventType.CONNECTOR_ERROR,
                 source_system="identity",
@@ -785,7 +785,7 @@ class TokenRefreshScheduler:
 
     async def run(self) -> None:
         """
-        Infinite loop — waits ``check_interval_seconds`` then checks every
+        Infinite loop - waits ``check_interval_seconds`` then checks every
         connector.  Designed to be started via ``supervised_task()``.
         """
         import asyncio
@@ -850,7 +850,7 @@ class TokenRefreshScheduler:
         # Use the per-platform lock to prevent races with inline refreshes
         lock = connector._get_refresh_lock()
         async with lock:
-            # Re-check inside the lock — another path may have already refreshed
+            # Re-check inside the lock - another path may have already refreshed
             token_set_after = connector._decrypt_current_tokens()
             if token_set_after is not None and token_set_after.remaining_seconds > self._REFRESH_AHEAD_S:
                 return

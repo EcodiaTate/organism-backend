@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma Interoceptive Predictor
+EcodiaOS - Soma Interoceptive Predictor
 
 Multi-horizon generative model predicting future interoceptive states.
-Pure numerical computation — NOT an LLM call. Total prediction budget: 1ms.
+Pure numerical computation - NOT an LLM call. Total prediction budget: 1ms.
 
 The predictor maintains:
   - A trajectory ring buffer (~150s at 150ms/tick)
@@ -143,7 +143,7 @@ class InteroceptivePredictor(BaseSomaPredictor):
         current_errors: dict[InteroceptiveDimension, float],
     ) -> dict[InteroceptiveDimension, float]:
         """
-        Compute d(error)/dt — is each dimension's error growing or shrinking?
+        Compute d(error)/dt - is each dimension's error growing or shrinking?
 
         Positive rate = getting worse (alarm)
         Negative rate = resolving (relief)
@@ -338,7 +338,7 @@ class InteroceptivePredictor(BaseSomaPredictor):
           - etc.
         """
         n = len(ALL_DIMENSIONS)
-        # Start with identity — each dimension carries its own velocity
+        # Start with identity - each dimension carries its own velocity
         matrix = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
         # Named indices for readability

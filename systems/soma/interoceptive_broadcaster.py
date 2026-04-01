@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma Interoceptive Broadcaster
+EcodiaOS - Soma Interoceptive Broadcaster
 
 Mirrors Atune's broadcast architecture for internal percepts. Composes
-all Phase A analysis results into InteroceptivePercepts — internal
+all Phase A analysis results into InteroceptivePercepts - internal
 sensations that enter the Global Workspace alongside external percepts.
 
 Percepts compete for attention normally. A minor internal anomaly during
@@ -69,28 +69,28 @@ class BroadcasterThresholds:
 
 _SENSATION_TEMPLATES: dict[str, str] = {
     "velocity_spike": (
-        "I feel a rapid change in {system} — {feature} is moving at "
+        "I feel a rapid change in {system} - {feature} is moving at "
         "{rate:.2f} units/cycle, {scale_label} dynamics are unstable"
     ),
     "acceleration_spike": (
-        "I feel accelerating change in {system} — the rate of change itself "
+        "I feel accelerating change in {system} - the rate of change itself "
         "is changing rapidly ({rate:.2f}), suggesting an exponential trend"
     ),
     "jerk_spike": (
-        "I feel a sudden jolt in {system} — the trajectory has become "
+        "I feel a sudden jolt in {system} - the trajectory has become "
         "rough and unpredictable (jerk norm {rate:.2f})"
     ),
     "error_surge": (
-        "I feel pain in {system} — error rate has surged to "
+        "I feel pain in {system} - error rate has surged to "
         "{rate:.1%}, something is failing"
     ),
     "fast_slow_divergence": (
-        "I feel fragmented — my fast dynamics ({fast_system}) diverge from "
+        "I feel fragmented - my fast dynamics ({fast_system}) diverge from "
         "my slow dynamics ({slow_system}). Short-term and long-term "
         "trajectories are misaligned"
     ),
     "entropy_anomaly": (
-        "I feel {system} behaving unusually — event diversity has shifted "
+        "I feel {system} behaving unusually - event diversity has shifted "
         "to {entropy:.2f} bits, suggesting a change in operating mode"
     ),
 }
@@ -247,7 +247,7 @@ class InteroceptiveBroadcaster:
     ) -> InteroceptivePercept | None:
         """Detect when fast-scale dynamics diverge from slow-scale dynamics.
 
-        This is the multi-scale dissonance signal — short-term behavior
+        This is the multi-scale dissonance signal - short-term behavior
         doesn't match long-term trends.
         """
         fast_norm = deriv.organism_velocity_norm.get("fast", 0.0)

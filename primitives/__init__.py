@@ -1,5 +1,5 @@
 """
-EcodiaOS — Shared Primitives
+EcodiaOS - Shared Primitives
 
 The lingua franca of the organism. Every system communicates through these types.
 """

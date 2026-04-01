@@ -1,5 +1,5 @@
 """
-EcodiaOS — Autonomous Loop Verifier
+EcodiaOS - Autonomous Loop Verifier
 ====================================
 Diagnostic script. No code changes. Read-only static analysis of the two
 critical autonomous loops. Prints a structured report to stdout.
@@ -77,7 +77,7 @@ EVO_SVC = _read("systems/evo/service.py")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Loop 1 checks — Economic Survival
+# Loop 1 checks - Economic Survival
 # ──────────────────────────────────────────────────────────────────────────────
 
 def check_loop1() -> list[dict]:
@@ -154,7 +154,7 @@ def check_loop1() -> list[dict]:
         "fallback_steps=[" in NOVA_POLICY
     fallback_line = _find_line(NOVA_POLICY, 'procedure.get("fallback_steps"')
     checks.append(_check(
-        "2c. fallback_steps wired in procedure_to_policy — store_insight fallback active",
+        "2c. fallback_steps wired in procedure_to_policy - store_insight fallback active",
         ok=fallback_wired,
         note=(
             "procedure_to_policy() reads procedure.get('fallback_steps', []) and attaches "
@@ -280,7 +280,7 @@ def check_loop1() -> list[dict]:
         file_line=f"systems/oikos/service.py:{credit_line}",
     ))
 
-    # economic_delta in ACTION_COMPLETED — now reads from step_outcomes too
+    # economic_delta in ACTION_COMPLETED - now reads from step_outcomes too
     economic_delta_from_steps = _contains(AXON_SVC, "economic_delta_usd")
     economic_delta_line = _find_line(AXON_SVC, "economic_delta_usd")
     checks.append(_check(
@@ -298,7 +298,7 @@ def check_loop1() -> list[dict]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Loop 2 checks — Self-Healing
+# Loop 2 checks - Self-Healing
 # ──────────────────────────────────────────────────────────────────────────────
 
 def check_loop2() -> list[dict]:
@@ -392,15 +392,15 @@ def check_loop2() -> list[dict]:
         file_line=f"systems/thymos/service.py:{simula_none_line}",
     ))
 
-    # ── Step 5: simula.propose_repair() — DOES NOT EXIST ─────────────────
+    # ── Step 5: simula.propose_repair() - DOES NOT EXIST ─────────────────
     process_proposal_line = _find_line(THYMOS_SVC, "process_proposal")
     checks.append(_check(
-        "5a. propose_repair() does NOT exist — actual call is process_proposal()",
+        "5a. propose_repair() does NOT exist - actual call is process_proposal()",
         ok=True,  # ok=True because this is confirming expected behavior (no stub)
         note=(
             "Thymos builds an EvolutionProposal and calls self._simula.process_proposal(proposal). "
             "There is no method named 'propose_repair' anywhere in the codebase. "
-            "The call is not stubbed — process_proposal is a full pipeline."
+            "The call is not stubbed - process_proposal is a full pipeline."
         ),
         file_line=f"systems/thymos/service.py:{process_proposal_line}",
     ))
@@ -463,7 +463,7 @@ def check_loop2() -> list[dict]:
     feed_evo_line = _find_line(THYMOS_SVC, "_feed_repair_to_evo")
     process_ep_line = _find_line(EVO_SVC, "def process_episode")
     checks.append(_check(
-        "8a. _feed_repair_to_evo() → evo.process_episode() — path exists",
+        "8a. _feed_repair_to_evo() → evo.process_episode() - path exists",
         ok=bool(feed_evo_line) and bool(process_ep_line),
         note=(
             "Called from _learn_from_success() and _learn_from_failure(). "
@@ -481,7 +481,7 @@ def check_loop2() -> list[dict]:
         note=(
             "_learn_from_failure(incident, repair) called BEFORE escalation when "
             "_apply_repair returns False. Evo accumulates negative evidence from every "
-            "failed healing attempt — the learning arc is now closed."
+            "failed healing attempt - the learning arc is now closed."
         ),
         file_line=f"systems/thymos/service.py:{learn_line}",
     ))
@@ -514,11 +514,11 @@ TOP_GAPS = [
         "title": "Heartbeat (starvation trigger) routes to hunt_bounties not bounty_hunt",
         "detail": (
             "Nova._heartbeat_beat() uses executor='hunt_bounties' (BountyHunterExecutor). "
-            "This is discovery-only — no solution generation, no BOUNTY_SOLUTION_PENDING. "
+            "This is discovery-only - no solution generation, no BOUNTY_SOLUTION_PENDING. "
             "The full BountyHuntExecutor (bounty_hunt) is only reached via broadcast fast-path "
             "AND only if the bounty procedure template wins over the epistemic template "
             "(success_rate 0.55 vs 0.83). "
-            "The starvation-driven heartbeat — the primary economic trigger — never completes "
+            "The starvation-driven heartbeat - the primary economic trigger - never completes "
             "the survival loop. It is structurally broken as an autonomous cycle."
         ),
         "file_line": "systems/nova/service.py (_heartbeat_beat, executor='hunt_bounties')",
@@ -534,7 +534,7 @@ TOP_GAPS = [
             "_learn_from_failure is called. EvoService.process_episode is never invoked. "
             "The hypothesis engine accumulates no negative evidence from failed repairs. "
             "In practice this means EOS cannot learn which repair strategies fail for "
-            "recurring incident types — the self-healing loop cannot close its learning arc."
+            "recurring incident types - the self-healing loop cannot close its learning arc."
         ),
         "file_line": "systems/thymos/service.py (process_incident, line after _apply_repair returns False)",
     },
@@ -547,7 +547,7 @@ TOP_GAPS = [
 
 def _verdict(checks: list[dict]) -> str:
     failed = [c for c in checks if not c["status"]]
-    return "CLOSED" if not failed else f"OPEN — {len(failed)} break point(s)"
+    return "CLOSED" if not failed else f"OPEN - {len(failed)} break point(s)"
 
 
 def print_report() -> None:
@@ -558,7 +558,7 @@ def print_report() -> None:
 
     print()
     print(sep)
-    print("  EcodiaOS — Autonomous Loop Verification Report")
+    print("  EcodiaOS - Autonomous Loop Verification Report")
     print(sep)
 
     # ── Loop 1 ──

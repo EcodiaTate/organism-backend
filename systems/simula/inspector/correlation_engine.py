@@ -1,12 +1,12 @@
 """
-EcodiaOS — Inspector Phase 8: Correlation Engine
+EcodiaOS - Inspector Phase 8: Correlation Engine
 
 Three-component engine for Phase 8 cross-layer correlation:
 
-  CausalGraphBuilder       — constructs EventNode graph from Phase 3–7 artifacts
-  CausalChainAssembler     — DFS path-finding to produce end-to-end CausalChains
-  PropagationMotifMiner    — pattern mining for recurring sub-graph motifs
-  SynthesisBuilder         — narrative assembly for the FinalSynthesis
+  CausalGraphBuilder       - constructs EventNode graph from Phase 3–7 artifacts
+  CausalChainAssembler     - DFS path-finding to produce end-to-end CausalChains
+  PropagationMotifMiner    - pattern mining for recurring sub-graph motifs
+  SynthesisBuilder         - narrative assembly for the FinalSynthesis
 
 Design
 ------
@@ -80,7 +80,7 @@ class CausalGraphBuilder:
 
     Parameters
     ----------
-    min_edge_weight  — minimum confidence to include an edge (default 0.3)
+    min_edge_weight  - minimum confidence to include an edge (default 0.3)
     """
 
     def __init__(self, min_edge_weight: float = 0.3) -> None:
@@ -507,9 +507,9 @@ class CausalChainAssembler:
 
     Parameters
     ----------
-    max_depth     — maximum chain length in hops (default 8)
-    min_layers    — minimum distinct layers a chain must span (default 2)
-    max_chains    — maximum chains to return (default 30)
+    max_depth     - maximum chain length in hops (default 8)
+    min_layers    - minimum distinct layers a chain must span (default 2)
+    max_chains    - maximum chains to return (default 30)
     """
 
     def __init__(
@@ -685,8 +685,8 @@ class PropagationMotifMiner:
 
     Parameters
     ----------
-    min_occurrences  — minimum chain count for a motif (default 2)
-    max_motif_len    — maximum motif pattern length (default 4)
+    min_occurrences  - minimum chain count for a motif (default 2)
+    max_motif_len    - maximum motif pattern length (default 4)
     """
 
     def __init__(
@@ -1008,7 +1008,7 @@ class SynthesisBuilder:
         return (
             f"Across {n_chains} cross-layer causal chains spanning {n_layers} distinct "
             f"analysis layers, {n_findings} recurring propagation patterns were identified. "
-            f"The dominant pattern — {top.claim[:120]} — "
+            f"The dominant pattern - {top.claim[:120]} - "
             f"appears in {top.chain_ids[0][:8] if top.chain_ids else 'multiple'} chains "
             f"with confidence {top.confidence:.2f}. "
             f"{sec_note}"

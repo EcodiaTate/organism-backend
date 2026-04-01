@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Genetic Memory: Evolution Genome Extraction & Seeding
+EcodiaOS - Simula Genetic Memory: Evolution Genome Extraction & Seeding
 
 Implements the mechanism to serialize a parent's accumulated Simula
 knowledge into a SimulaGenome and deserialize it into a child instance.

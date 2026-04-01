@@ -1,5 +1,5 @@
 """
-EcodiaOS — Axon Executor ABC
+EcodiaOS - Axon Executor ABC
 
 All action executors implement this interface.
 
@@ -12,7 +12,7 @@ It knows:
 
 Executors are registered with the ExecutorRegistry at startup.
 They receive an ExecutionContext that carries credentials, intent, and affect
-state — but they must not mutate it.
+state - but they must not mutate it.
 
 Design principle: an Executor does exactly one thing, precisely, reliably.
 The deliberation (what to do) happens in Nova. The judgement (whether to do it)
@@ -41,7 +41,7 @@ class Executor(ABC):
     """
 
     # ── Identity ─────────────────────────────────────────────────
-    action_type: str = ""           # Must be unique — used as registry key
+    action_type: str = ""           # Must be unique - used as registry key
     description: str = ""           # Human-readable capability description
 
     # ── Safety ───────────────────────────────────────────────────
@@ -52,12 +52,12 @@ class Executor(ABC):
 
     # ── Budget / Atune participation ─────────────────────────────
     # Internal executors (store_insight, observe, wait, store) should not
-    # consume the per-cycle action budget — the budget exists to throttle
+    # consume the per-cycle action budget - the budget exists to throttle
     # external actions (GitHub, LLM, financial).  Set to False on internal
     # executors so they never starve external work like hunt_bounties.
     counts_toward_budget: bool = True
     # Internal executors should not broadcast their outcomes back into
-    # Atune's workspace — doing so creates a tight feedback loop where
+    # Atune's workspace - doing so creates a tight feedback loop where
     # every store_insight triggers a new broadcast → deliberation → store_insight.
     emits_to_atune: bool = True
 
@@ -71,7 +71,7 @@ class Executor(ABC):
         Perform the action described by params.
 
         Must complete within max_duration_ms.
-        Must not raise — return ExecutionResult(success=False, error=...) on failure.
+        Must not raise - return ExecutionResult(success=False, error=...) on failure.
         May return new_observations that will be fed back as Percepts.
         """
         ...
@@ -82,7 +82,7 @@ class Executor(ABC):
         Validate that params are sufficient and well-formed for this executor.
 
         Called before rate-limit checks, before context assembly, before execution.
-        Must be fast (synchronous-level latency) — no I/O.
+        Must be fast (synchronous-level latency) - no I/O.
         """
         ...
 
@@ -95,7 +95,7 @@ class Executor(ABC):
         Attempt to undo a previously completed execution.
 
         Override this if reversible=True. The default returns not-supported,
-        which is correct for most executors — only data mutation actions
+        which is correct for most executors - only data mutation actions
         (create_record, update_record, schedule_event) should implement this.
         """
         return RollbackResult(success=False, reason="Rollback not supported by this executor")

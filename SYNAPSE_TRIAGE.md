@@ -1,6 +1,6 @@
-# EcodiaOS Synapse Event Triage — 2026-03-09
+# EcodiaOS Synapse Event Triage - 2026-03-09
 
-> **Scope**: Every UNWIRED enum entry (218 events — in enum, neither emitted nor subscribed) and every DANGLING subscriber (86 events — subscribed but nothing emits via enum). Each classified as **IMPLEMENT**, **DELETE**, or **DEFER** with spec evidence.
+> **Scope**: Every UNWIRED enum entry (218 events - in enum, neither emitted nor subscribed) and every DANGLING subscriber (86 events - subscribed but nothing emits via enum). Each classified as **IMPLEMENT**, **DELETE**, or **DEFER** with spec evidence.
 
 ---
 
@@ -64,14 +64,14 @@
 | FEDERATION_LINK_ESTABLISHED | IMPLEMENT | Emitted after mTLS handshake + Equor PERMIT | Spec 11 event table | Federation, Telos |
 | FEDERATION_PEER_BLACKLISTED | IMPLEMENT | Mitosis CLAUDE.md documents emission for fleet blacklist | Spec 26 (Mitosis blacklist) | Mitosis, Federation |
 | FEDERATION_PEER_DISCONNECTED | IMPLEMENT | Mitosis spec lists it as subscribed event with handler | Spec 26 (subscribe_to_events) | Federation, Mitosis |
-| FEDERATION_TASK_ACCEPTED | IMPLEMENT | Code in task_delegation.py:205 (string literal — needs enum fix) | Federation CLAUDE.md | Federation |
-| FEDERATION_TASK_COMPLETED | IMPLEMENT | Code in task_delegation.py:276 (string literal — needs enum fix) | Federation CLAUDE.md | Federation |
-| FEDERATION_TASK_DECLINED | IMPLEMENT | Code in task_delegation.py:237 (string literal — needs enum fix) | Federation CLAUDE.md | Federation |
+| FEDERATION_TASK_ACCEPTED | IMPLEMENT | Code in task_delegation.py:205 (string literal - needs enum fix) | Federation CLAUDE.md | Federation |
+| FEDERATION_TASK_COMPLETED | IMPLEMENT | Code in task_delegation.py:276 (string literal - needs enum fix) | Federation CLAUDE.md | Federation |
+| FEDERATION_TASK_DECLINED | IMPLEMENT | Code in task_delegation.py:237 (string literal - needs enum fix) | Federation CLAUDE.md | Federation |
 | FEDERATION_TASK_OFFERED | IMPLEMENT | Listed as emitted event | Federation CLAUDE.md | Federation |
-| FEDERATION_TASK_PAYMENT | IMPLEMENT | Code in task_delegation.py:368 (string literal — needs enum fix) | Federation CLAUDE.md | Federation, Oikos |
+| FEDERATION_TASK_PAYMENT | IMPLEMENT | Code in task_delegation.py:368 (string literal - needs enum fix) | Federation CLAUDE.md | Federation, Oikos |
 | FEDERATION_TOPOLOGY_CHANGED | IMPLEMENT | Listed as new SynapseEventType entry | Spec 09 (v1.2 additions) | Synapse, Federation |
 | FEDERATION_TRUST_UPDATED | IMPLEMENT | Thymos emits on speciation event quarantine | Spec 11 event table | Federation, Thymos |
-| FEDERATION_WORK_ROUTED | IMPLEMENT | Code in work_router.py:156 (string literal — needs enum fix) | Federation CLAUDE.md | Federation |
+| FEDERATION_WORK_ROUTED | IMPLEMENT | Code in work_router.py:156 (string literal - needs enum fix) | Federation CLAUDE.md | Federation |
 | FORAGING_CYCLE_COMPLETE | DEFER | No spec section describes payload or lifecycle | None found | Oikos |
 
 ### Skia / Vitality / Degradation
@@ -153,11 +153,11 @@
 | DIVERGENCE_PRESSURE | IMPLEMENT | Emitted when instance triangulation weight falls below 0.4 | Spec 19 | Nexus, Evo, Thread |
 | DREAM_INSIGHT | IMPLEMENT | REM DreamGenerator produces coherence ≥ 0.70 | Spec 13 §12; Spec 14 | Oneiros, Thread, Evo, Nova |
 | FRAGMENT_SHARED | IMPLEMENT | Nexus core event emitted during federation sessions | Spec 19 | Nexus, Federation |
-| NARRATIVE_CHAPTER_CLOSED | DELETE | Duplicate/alias of CHAPTER_CLOSED; Spec 09 added separately from Spec 15's canonical name | Spec 09 vs Spec 15 — naming collision | Thread |
+| NARRATIVE_CHAPTER_CLOSED | DELETE | Duplicate/alias of CHAPTER_CLOSED; Spec 09 added separately from Spec 15's canonical name | Spec 09 vs Spec 15 - naming collision | Thread |
 | NARRATIVE_COHERENCE_SHIFT | IMPLEMENT | DiachronicCoherenceMonitor detects coherence state change | Spec 15 | Thread, Soma, Nova |
 | REPUTATION_SNAPSHOT | DEFER | No spec section defines event contract; Oikos Level 7 unimplemented | None found; Oikos Spec 17 Level 7 | Oikos |
 | REPUTATION_UPDATED | DEFER | No spec section defines it; Oikos Level 7 not yet built | None found; Oikos Spec 17 Level 7 | Oikos |
-| SCHEMA_CHALLENGED | IMPLEMENT | Part of IdentitySchemaEngine — disconfirming evidence | Spec 15 | Thread, Evo, Oneiros |
+| SCHEMA_CHALLENGED | IMPLEMENT | Part of IdentitySchemaEngine - disconfirming evidence | Spec 15 | Thread, Evo, Oneiros |
 | SCHEMA_EVOLVED | IMPLEMENT | Emitted via promote_schema() fire-and-forget | Spec 15 | Thread, Evo, Nexus |
 | SCHEMA_FORMED | IMPLEMENT | Emitted by form_schema_from_pattern() | Spec 15 | Thread, Evo |
 | SELF_MODIFICATION_PROPOSED | IMPLEMENT | Nova approving gap closure aligned with drives | types.py; links to Spec 10 | Nova, Simula, Equor |
@@ -256,7 +256,7 @@
 | PROOF_FAILED | IMPLEMENT | Emitted by Simula service.py for proof lifecycle | Simula service.py | Simula |
 | PROOF_FOUND | IMPLEMENT | Emitted by Simula service.py for proof lifecycle | Simula service.py | Simula |
 | PROOF_TIMEOUT | IMPLEMENT | Emitted by Simula service.py for proof lifecycle | Simula service.py | Simula |
-| SIMULA_EVOLUTION_APPLIED | DELETE | Duplicate/alias of EVOLUTION_APPLIED; Spec 10 §21 canonical name | Spec 10 §21 — alias | Simula |
+| SIMULA_EVOLUTION_APPLIED | DELETE | Duplicate/alias of EVOLUTION_APPLIED; Spec 10 §21 canonical name | Spec 10 §21 - alias | Simula |
 | SIMULA_SANDBOX_REQUESTED | IMPLEMENT | Thymos correlation-based request/reply with 30s timeout, fail-closed | Spec 12 (sandbox validation gate) | Thymos, Simula |
 | VULNERABILITY_CONFIRMED | IMPLEMENT | Emitted by simula/service.py:1549; Axon/Thymos should subscribe | Simula CLAUDE.md | Simula, Axon, Thymos |
 
@@ -283,8 +283,8 @@
 | EXTERNAL_TASK_STARTED | DEFER | Likely Axon Spec 06 or Oikos | None in read specs | Axon, Oikos |
 | HEALING_STORM_ENTERED | DEFER | Thymos Spec 12 | None in read specs | Thymos |
 | HEALING_STORM_EXITED | DEFER | Thymos Spec 12 | None in read specs | Thymos |
-| HOMEOSTASIS_ADJUSTED | IMPLEMENT | Thymos M8 — HomeostasisController.check_drift_warnings() emits with warn_only=True | MEMORY.md Thymos M8 | Thymos, Nova, Telos |
-| INCIDENT_ESCALATED | IMPLEMENT | Thymos SG4 — _try_federation_escalation() emits with federation_broadcast=True | MEMORY.md Thymos SG4 | Thymos, Federation |
+| HOMEOSTASIS_ADJUSTED | IMPLEMENT | Thymos M8 - HomeostasisController.check_drift_warnings() emits with warn_only=True | MEMORY.md Thymos M8 | Thymos, Nova, Telos |
+| INCIDENT_ESCALATED | IMPLEMENT | Thymos SG4 - _try_federation_escalation() emits with federation_broadcast=True | MEMORY.md Thymos SG4 | Thymos, Federation |
 | INPUT_CHANNEL_REGISTERED | DEFER | Likely Atune Spec 03 or Axon | None in read specs | Atune, Axon |
 | NICHE_ASSIGNED | DEFER | NicheRegistry exists but event not listed as Synapse event | None in Spec 07 | Evo |
 | ONEIROS_GENOME_READY | DEFER | Oneiros Spec 13/14 | None in read specs | Oneiros |
@@ -301,7 +301,7 @@
 | Event | Category | Reason | Spec Reference | System(s) Involved |
 |-------|----------|--------|----------------|---------------------|
 | CHILD_CERTIFICATE_INSTALLED | IMPLEMENT | CertificateManager emits; Oikos subscribes for citizenship tax | Spec 23 §2.2, Oikos CLAUDE.md | Identity, Oikos |
-| EQUOR_HITL_APPROVED | IMPLEMENT | Equor emits (string literal not enum — BUG-1); Identity/EIS subscribe | Spec 02 v1.3, Spec 23 | Equor, Identity, EIS, Axon |
+| EQUOR_HITL_APPROVED | IMPLEMENT | Equor emits (string literal not enum - BUG-1); Identity/EIS subscribe | Spec 02 v1.3, Spec 23 | Equor, Identity, EIS, Axon |
 | IDENTITY_CERTIFICATE_ROTATED | IMPLEMENT | Federation must refresh mTLS channel credentials | Spec 11 event table | Identity, Federation |
 | VAULT_DECRYPT_FAILED | IMPLEMENT | Vault _fire_event() emits; Spec 23 marks RESOLVED | Spec 23 (vault events), GAP_REMEDIATION_PROMPTS | Identity |
 | VAULT_KEY_ROTATION_FAILED | IMPLEMENT | Vault rotation path emits | GAP_REMEDIATION_PROMPTS | Identity |
@@ -349,8 +349,8 @@
 
 | Event | Category | Reason | Spec Reference | System(s) Involved |
 |-------|----------|--------|----------------|---------------------|
-| PHANTOM_PRICE_OBSERVATION | IMPLEMENT | Fleet consensus uses 2σ median aggregation (string literal emit — BUG-1) | Spec 28 §22, §24 gap 7 | Phantom |
-| PHANTOM_PRICE_UPDATE | IMPLEMENT | Core price distribution; Nova subscribes (string literal emit — BUG-1) | Spec 28 §6.2, §22 | Phantom, Atune, Nova |
+| PHANTOM_PRICE_OBSERVATION | IMPLEMENT | Fleet consensus uses 2σ median aggregation (string literal emit - BUG-1) | Spec 28 §22, §24 gap 7 | Phantom |
+| PHANTOM_PRICE_UPDATE | IMPLEMENT | Core price distribution; Nova subscribes (string literal emit - BUG-1) | Spec 28 §6.2, §22 | Phantom, Atune, Nova |
 
 ### Evo
 
@@ -373,7 +373,7 @@
 | GOAL_ABANDONED | IMPLEMENT | Spec 05 §20 Nova-emitted; Thread subscribes; conditional assignment pattern (audit false positive) | Spec 05 §20 | Nova, Thread |
 | GOAL_ACHIEVED | IMPLEMENT | Spec 05 §20 Nova-emitted; Thread subscribes; conditional assignment pattern (audit false positive) | Spec 05 §20 | Nova, Thread |
 | GOAL_OVERRIDE | IMPLEMENT | External goal injection consumed by Nova | Spec 05 §20, §22 #4 | Governance/Federation, Nova |
-| HYPOTHESIS_UPDATE | IMPLEMENT | Tournament results — update EFE weight priors | Spec 05 §20 | Evo, Nova |
+| HYPOTHESIS_UPDATE | IMPLEMENT | Tournament results - update EFE weight priors | Spec 05 §20 | Evo, Nova |
 | NOVEL_ACTION_CREATED | DEFER | No spec reference for this event | None in read specs | Evo, Nova |
 | NOVEL_ACTION_REQUESTED | DEFER | Not in Spec 10 consumed events | None in Spec 10 | Nova, Simula |
 | NOVA_INTENT_REQUESTED | DEFER | Not in Spec 05 consumed events | None in Spec 05 | Nova |
@@ -383,7 +383,7 @@
 
 | Event | Category | Reason | Spec Reference | System(s) Involved |
 |-------|----------|--------|----------------|---------------------|
-| EQUOR_AMENDMENT_AUTO_ADOPTED | IMPLEMENT | Per-drive drift auto-proposals auto-approved at confidence ≥ 0.8; may alias DRIVE_AMENDMENT_APPLIED — verify | Spec 02 §19 SG5 | Equor, Thread |
+| EQUOR_AMENDMENT_AUTO_ADOPTED | IMPLEMENT | Per-drive drift auto-proposals auto-approved at confidence ≥ 0.8; may alias DRIVE_AMENDMENT_APPLIED - verify | Spec 02 §19 SG5 | Equor, Thread |
 | EQUOR_BUDGET_OVERRIDE | DEFER | Not found in Spec 02 §17.1 | None in Spec 02 | Equor, Axon |
 | EQUOR_DRIVE_WEIGHTS_UPDATED | IMPLEMENT | Emitted after amendment applied; Kairos subscribes | Spec 02 §17.1 | Equor, Kairos |
 | MEMORY_PRESSURE | DEFER | Not found in any read spec | None found | Memory, Equor |
@@ -417,28 +417,28 @@
 | Event | Category | Reason | Spec Reference | System(s) Involved |
 |-------|----------|--------|----------------|---------------------|
 | ASSET_DEV_REQUEST | DEFER | Not found in read specs; Oikos Spec 17 | None in read specs | Oikos |
-| BENCHMARK_REGRESSION_DETECTED | IMPLEMENT | Simula subscribes per Spec 10 §21; name mismatch with BENCHMARK_REGRESSION — needs rename fix | Spec 10 §21 (name mismatch) | Benchmarks, Simula |
+| BENCHMARK_REGRESSION_DETECTED | IMPLEMENT | Simula subscribes per Spec 10 §21; name mismatch with BENCHMARK_REGRESSION - needs rename fix | Spec 10 §21 (name mismatch) | Benchmarks, Simula |
 | CERTIFICATE_RENEWAL_REQUESTED | IMPLEMENT | Added to SynapseEventType; Oikos subscribes | MEMORY.md Identity gap closure | Identity, Oikos |
 | CHILD_DIED | IMPLEMENT | Core Mitosis lifecycle event; Telos + Oikos + Skia consume | Spec 26 §7, §12, §14; Spec 18; Spec 29 | Mitosis, Telos, Oikos, Skia |
 | COMMUNITY_ENGAGEMENT_COMPLETED | DEFER | Not found in read specs | None in read specs | Oikos |
 | CONTENT_ENGAGEMENT_REPORT | DEFER | Not found in read specs | None in read specs | Oikos |
 | CONTENT_PUBLISHED | DEFER | Not found in read specs | None in read specs | Oikos |
 | EMPIRICAL_INVARIANT_CONFIRMED | DEFER | Likely Kairos Spec 22 | None in read specs | Kairos, Nexus |
-| EQUOR_AMENDMENT_PROPOSED | IMPLEMENT | severity ≥ 0.9 for 3 consecutive drift checks → auto-proposal; emitted but no subscriber — acceptable as audit trail | Spec 02 §19 SG5 | Equor |
-| EQUOR_DRIFT_WARNING | IMPLEMENT | Moderate drift (0.2 ≤ severity < 0.5); emitted but no subscriber — acceptable as telemetry | Spec 02 §17.1, §8.3 | Equor |
+| EQUOR_AMENDMENT_PROPOSED | IMPLEMENT | severity ≥ 0.9 for 3 consecutive drift checks → auto-proposal; emitted but no subscriber - acceptable as audit trail | Spec 02 §19 SG5 | Equor |
+| EQUOR_DRIFT_WARNING | IMPLEMENT | Moderate drift (0.2 ≤ severity < 0.5); emitted but no subscriber - acceptable as telemetry | Spec 02 §17.1, §8.3 | Equor |
 | EQUOR_HITL_ESCALATED | DEFER | Not in Spec 02 §17.1 emitted events; possible alias of EQUOR_ESCALATED_TO_HUMAN | Not in Spec 02 emitted list | Equor |
 | ETHICAL_DRIFT_RECORDED | DEFER | Not in Spec 02; Equor uses CONSTITUTIONAL_DRIFT_DETECTED instead | None in Spec 02 | Equor |
-| EVOLUTION_AWAITING_GOVERNANCE | IMPLEMENT | Emitted when proposal routed to community vote; no subscriber — acceptable as audit event | Spec 10 §21, §23 | Simula |
-| EVOLUTION_REJECTED | IMPLEMENT | Emitted on validation/simulation/governance rejection; no subscriber — acceptable as audit event | Spec 10 §21, §23 | Simula |
+| EVOLUTION_AWAITING_GOVERNANCE | IMPLEMENT | Emitted when proposal routed to community vote; no subscriber - acceptable as audit event | Spec 10 §21, §23 | Simula |
+| EVOLUTION_REJECTED | IMPLEMENT | Emitted on validation/simulation/governance rejection; no subscriber - acceptable as audit event | Spec 10 §21, §23 | Simula |
 | EXTERNAL_TASK_COMPLETED | DEFER | Not found in read specs; likely Axon or Oikos | None in read specs | Axon, Oikos |
 | GROUND_TRUTH_CANDIDATE | DEFER | Likely Nexus Spec 19 or Kairos Spec 22 | None in read specs | Nexus, Kairos |
-| INCIDENT_RESOLVED | IMPLEMENT | Telos subscribes for confabulation rate metric; Federation + Nexus also subscribe. Thymos emits via string literal — needs enum fix | Spec 18 §XIII | Thymos, Telos, Federation, Nexus |
+| INCIDENT_RESOLVED | IMPLEMENT | Telos subscribes for confabulation rate metric; Federation + Nexus also subscribe. Thymos emits via string literal - needs enum fix | Spec 18 §XIII | Thymos, Telos, Federation, Nexus |
 | INSTANCE_RETIRED | IMPLEMENT | Nexus garbage-collects remote profiles; Logos also consumes | Spec 19; Spec 21 | Mitosis, Nexus, Logos |
 | INSTANCE_SPAWNED | IMPLEMENT | Nexus creates InstanceDivergenceProfile; Logos triggers world model snapshot | Spec 19; Spec 21 | Mitosis, Nexus, Logos |
 | NEXUS_CERTIFIED_FOR_FEDERATION | DEFER | Nexus Spec 19 | None in read specs | Nexus, Federation |
 | NEXUS_CONVERGENCE_METABOLIC_SIGNAL | DEFER | Nexus Spec 19 | None in read specs | Nexus, Oikos |
 | NEXUS_EPISTEMIC_VALUE | IMPLEMENT | Benchmarks evolutionary observables; Benchmarks + Federation subscribe | MEMORY.md Nexus overhaul | Nexus, Benchmarks, Federation |
-| ONEIROS_CONSOLIDATION_COMPLETE | IMPLEMENT | **CRITICAL**: 8 subscribers, emitted only as string literal — needs enum fix | Spec 05 §20, Spec 10 §21 | Oneiros → Nova, Simula + 6 others |
+| ONEIROS_CONSOLIDATION_COMPLETE | IMPLEMENT | **CRITICAL**: 8 subscribers, emitted only as string literal - needs enum fix | Spec 05 §20, Spec 10 §21 | Oneiros → Nova, Simula + 6 others |
 | SIMULA_SANDBOX_RESULT | DEFER | Not in Spec 10 §21 | None in Spec 10 | Simula, Thymos |
 | THREAT_ADVISORY_RECEIVED | DEFER | Likely EIS Spec 25 or Federation | None in read specs | EIS, Oikos |
 | WAKE_ONSET | DEFER | Likely Oneiros Spec 13/14 or Synapse | None in read specs | Oneiros, Axon |
@@ -450,7 +450,7 @@
 | Category | Count | Description |
 |----------|-------|-------------|
 | **IMPLEMENT** | 180 | Spec requires this event in a working loop; needs wiring |
-| **DELETE** | 2 | Dead weight — duplicate or alias of another event |
+| **DELETE** | 2 | Dead weight - duplicate or alias of another event |
 | **DEFER** | 122 | Spec mentions concept but system not built yet, or no spec evidence found |
 | **Total** | 304 | 218 UNWIRED + 86 DANGLING |
 
@@ -461,7 +461,7 @@
 | `SIMULA_EVOLUTION_APPLIED` | Alias of `EVOLUTION_APPLIED` (Spec 10 §21 canonical name) |
 | `NARRATIVE_CHAPTER_CLOSED` | Duplicate of `CHAPTER_CLOSED` (Spec 09 added separately from Spec 15's canonical name) |
 
-### Top-priority IMPLEMENT items (dangling — subscribed but deaf)
+### Top-priority IMPLEMENT items (dangling - subscribed but deaf)
 
 | Priority | Event | Subscribers | Fix |
 |----------|-------|-------------|-----|

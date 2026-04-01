@@ -1,15 +1,15 @@
 """
-EcodiaOS — Axon Observation Executors
+EcodiaOS - Axon Observation Executors
 
-Observation executors are Level 1 (ADVISOR autonomy) — they read and analyse
+Observation executors are Level 1 (ADVISOR autonomy) - they read and analyse
 without modifying world state. They are the lowest-risk executors in the system:
 reversible in the sense that they have no side effects to reverse.
 
-ObserveExecutor    — records an observation to Memory (episodic store)
-QueryMemoryExecutor — retrieves information from the Memory system
-AnalyseExecutor    — runs LLM-based analysis on a topic or dataset
-SearchExecutor     — searches web via WebIntelligenceClient (Brave/SerpAPI/DDG)
-ScrapePageExecutor — fetches a URL, extracts content, stores in Memory
+ObserveExecutor    - records an observation to Memory (episodic store)
+QueryMemoryExecutor - retrieves information from the Memory system
+AnalyseExecutor    - runs LLM-based analysis on a topic or dataset
+SearchExecutor     - searches web via WebIntelligenceClient (Brave/SerpAPI/DDG)
+ScrapePageExecutor - fetches a URL, extracts content, stores in Memory
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ class ObserveExecutor(Executor):
     Record an observation without acting on it.
 
     Use this when EOS notices something meaningful and wants to commit
-    it to episodic memory for future recall. It is not a passive action —
+    it to episodic memory for future recall. It is not a passive action -
     choosing to observe and record is itself a cognitive act.
 
     Required params:
@@ -113,7 +113,7 @@ class ObserveExecutor(Executor):
                     error=f"Memory write failed: {exc}",
                 )
         else:
-            # No memory service — log and succeed (observation still happened)
+            # No memory service - log and succeed (observation still happened)
             self._logger.info(
                 "observe_no_memory",
                 content=content[:100],
@@ -166,7 +166,7 @@ class QueryMemoryExecutor(Executor):
     Retrieve information from the Memory system.
 
     Performs hybrid retrieval (semantic + keyword + graph traversal) and
-    returns matching memory traces as new observations — which flow back
+    returns matching memory traces as new observations - which flow back
     as Percepts into Atune for the next cycle.
 
     Required params:
@@ -265,7 +265,7 @@ class AnalyseExecutor(Executor):
     """
     Run LLM-based analysis on a topic, question, or dataset.
 
-    This is epistemic action — EOS actively reducing uncertainty by
+    This is epistemic action - EOS actively reducing uncertainty by
     reasoning about something. The analysis result is returned as a new
     observation, feeding back into the workspace for the next cycle.
 
@@ -326,7 +326,7 @@ class AnalyseExecutor(Executor):
             return ExecutionResult(
                 success=True,
                 data={"analysis": f"[No LLM] Analysis of '{topic}': {question}"},
-                new_observations=[f"Analysis requested on: {topic} — {question}"],
+                new_observations=[f"Analysis requested on: {topic} - {question}"],
             )
 
         try:
@@ -353,7 +353,7 @@ class AnalyseExecutor(Executor):
                 from clients.llm import Message
                 response = await self._llm.generate(
                     system_prompt=(
-                        "You are EOS — a community care organism. "
+                        "You are EOS - a community care organism. "
                         "Be honest about uncertainty."
                     ),
                     messages=[Message("user", prompt)],
@@ -392,7 +392,7 @@ def _build_analysis_prompt(
     )
     ctx_section = f"\n\nAdditional context:\n{context_data}" if context_data else ""
     return (
-        f"You are EOS — a community care organism. Analyse the following:\n\n"
+        f"You are EOS - a community care organism. Analyse the following:\n\n"
         f"Topic: {topic}\n"
         f"Question: {question}"
         f"{ctx_section}\n\n"
@@ -746,7 +746,7 @@ class ScrapePageExecutor(Executor):
         if self._web is None:
             return ExecutionResult(
                 success=False,
-                error="WebIntelligenceClient not configured — set ECODIAOS_SEARCH__PROVIDER",
+                error="WebIntelligenceClient not configured - set ECODIAOS_SEARCH__PROVIDER",
             )
 
         # ── robots.txt check ──────────────────────────────────────────────────

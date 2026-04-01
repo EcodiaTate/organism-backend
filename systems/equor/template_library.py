@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Constitutional Template Library
+EcodiaOS - Equor Constitutional Template Library
 
 Read-only template library for the Arbitrage Reflex Arc.
 

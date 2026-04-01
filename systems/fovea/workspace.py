@@ -1,9 +1,9 @@
 """
-Fovea — Global Workspace.
+Fovea - Global Workspace.
 
 Implements the computational Global Workspace (Baars 1988, Dehaene 2003):
 competitive selection of the most salient content, followed by broadcast
-to all cognitive systems.  Only **one** winner per cycle — the unitary
+to all cognitive systems.  Only **one** winner per cycle - the unitary
 consciousness principle.
 
 The workspace cycle operates on a theta rhythm (~150 ms) driven by
@@ -21,7 +21,7 @@ from typing import Any, Protocol
 
 import structlog
 
-from primitives.affect import AffectState  # noqa: TC001 — Pydantic needs at runtime
+from primitives.affect import AffectState  # noqa: TC001 - Pydantic needs at runtime
 from primitives.percept import Percept
 
 from .types import (
@@ -38,7 +38,7 @@ logger = structlog.get_logger("systems.fovea.workspace")
 
 
 # ---------------------------------------------------------------------------
-# Subscriber protocol — every system that receives broadcasts
+# Subscriber protocol - every system that receives broadcasts
 # ---------------------------------------------------------------------------
 
 
@@ -91,12 +91,12 @@ class GlobalWorkspace:
     Each cycle:
     1. Candidates enter the workspace buffer.
     2. Candidates compete based on salience.
-    3. The winner triggers "ignition" — broadcast to all systems.
+    3. The winner triggers "ignition" - broadcast to all systems.
     4. All systems receive the broadcast and may contribute to the next cycle.
 
     Only ONE winner per cycle (unitary consciousness principle from GWT).
 
-    Buffer sizes scale dynamically with Soma arousal — higher arousal opens a
+    Buffer sizes scale dynamically with Soma arousal - higher arousal opens a
     wider perceptual window.  Curiosity parameters (spontaneous recall probability,
     cooldown, boost) are Evo-evolvable and genome-heritable.
     """
@@ -122,7 +122,7 @@ class GlobalWorkspace:
         self._current_arousal: float = 0.4    # updated via update_arousal()
         self._recent_broadcasts: deque[WorkspaceBroadcast] = deque(maxlen=20)
 
-        # Queues — sizes recomputed each time arousal updates
+        # Queues - sizes recomputed each time arousal updates
         percept_q, contrib_q, broadcast_h = self._compute_buffer_sizes(self._current_arousal)
         self._percept_queue: deque[WorkspaceCandidate] = deque(maxlen=percept_q)
         self._contribution_queue: deque[WorkspaceContribution] = deque(maxlen=contrib_q)

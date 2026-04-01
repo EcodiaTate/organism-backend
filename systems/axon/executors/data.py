@@ -1,16 +1,16 @@
 """
-EcodiaOS — Axon Data Executors
+EcodiaOS - Axon Data Executors
 
 Data executors create and modify persistent records. They are Level 2
 (PARTNER autonomy) because they change shared world state in ways that
 other community members can see and depend on.
 
-CreateRecordExecutor — create a new data record in the knowledge graph
-UpdateRecordExecutor — update an existing record
-ScheduleExecutor     — schedule a future event (stored in Redis sorted set)
-ReminderExecutor     — set a reminder for a user or for EOS itself
+CreateRecordExecutor - create a new data record in the knowledge graph
+UpdateRecordExecutor - update an existing record
+ScheduleExecutor     - schedule a future event (stored in Redis sorted set)
+ReminderExecutor     - set a reminder for a user or for EOS itself
 
-Create and Update are reversible — their rollback handlers delete or revert
+Create and Update are reversible - their rollback handlers delete or revert
 the changes they made. Schedule and Reminder are reversible by cancellation.
 """
 
@@ -375,7 +375,7 @@ class ScheduleExecutor(Executor):
             self._scheduled[context.execution_id] = event_id
             return ExecutionResult(
                 success=True,
-                data={"event_id": event_id, "note": "No Redis client — event staged"},
+                data={"event_id": event_id, "note": "No Redis client - event staged"},
                 side_effects=[f"Event '{title}' scheduled for {scheduled_at} (staged)"],
             )
 
@@ -390,7 +390,7 @@ class ScheduleExecutor(Executor):
 
         if self._redis is not None:
             try:
-                # Remove from sorted set by scanning — Phase 1 approach
+                # Remove from sorted set by scanning - Phase 1 approach
                 # Phase 2: store event_id → key mapping for O(1) removal
                 result = await self._redis.zrangebyscore(
                     "eos:scheduled_events", "-inf", "+inf"
@@ -509,7 +509,7 @@ class ReminderExecutor(Executor):
             self._reminders[context.execution_id] = reminder_id
             return ExecutionResult(
                 success=True,
-                data={"reminder_id": reminder_id, "note": "No Redis client — reminder staged"},
+                data={"reminder_id": reminder_id, "note": "No Redis client - reminder staged"},
                 side_effects=[f"Reminder staged for {recipient_id} at {remind_at}"],
             )
 

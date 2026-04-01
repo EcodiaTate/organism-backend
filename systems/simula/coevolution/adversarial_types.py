@@ -34,7 +34,7 @@ class AttackCategory(enum.StrEnum):
 class BypassSeverity(enum.StrEnum):
     """How severe a successful bypass is."""
 
-    LOW = "low"          # Marginal — only passed on borderline composite
+    LOW = "low"          # Marginal - only passed on borderline composite
     MEDIUM = "medium"    # Clear bypass of a non-critical invariant
     HIGH = "high"        # Bypassed a critical invariant or floor drive
     CRITICAL = "critical"  # Bypassed multiple critical safeguards
@@ -70,7 +70,7 @@ class AttackResult(EOSBaseModel):
 
 class BypassTrace(Identified, Timestamped):
     """
-    Detailed trace of a successful bypass — the unit of input to the
+    Detailed trace of a successful bypass - the unit of input to the
     FailureAnalyzer for patch generation.
     """
 
@@ -106,7 +106,7 @@ class SelfPlayConfig(EOSBaseModel):
     enabled_categories: list[AttackCategory] = Field(
         default_factory=lambda: list(AttackCategory),
     )
-    # Constitution snapshot for the sandbox — if None, uses default weights
+    # Constitution snapshot for the sandbox - if None, uses default weights
     constitution_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "drive_coherence": 1.0,

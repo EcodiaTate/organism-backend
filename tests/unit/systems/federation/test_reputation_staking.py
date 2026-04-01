@@ -615,7 +615,7 @@ class TestBondRecovery:
 
         bond = await manager.create_bond(item, link, claim_certainty=0.8)
         assert bond is not None
-        # Bond expires in 90 days — should NOT be recovered
+        # Bond expires in 90 days - should NOT be recovered
 
         recovered = await manager.recover_expired_bonds()
 

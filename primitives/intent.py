@@ -1,5 +1,5 @@
 """
-EcodiaOS — Intent Primitive
+EcodiaOS - Intent Primitive
 
 The fundamental unit of planned action.
 """

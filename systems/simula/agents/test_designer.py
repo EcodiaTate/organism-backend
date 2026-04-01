@@ -7,7 +7,7 @@ implementation. This is the first agent in the AgentCoder pipeline:
   TestDesigner → Coder → TestExecutor → iterate
 
 The adversarial separation ensures tests aren't biased toward the
-implementation — they test the specification, not the code.
+implementation - they test the specification, not the code.
 
 The agent uses a read-only subset of the code agent's tools:
   - read_file: read existing codebase files for context
@@ -157,7 +157,7 @@ _SPEC_FILE_MAP: dict[str, str] = {
 }
 
 
-_SYSTEM_PROMPT = """You are the TestDesigner agent — part of EcodiaOS Simula's AgentCoder pipeline.
+_SYSTEM_PROMPT = """You are the TestDesigner agent - part of EcodiaOS Simula's AgentCoder pipeline.
 
 Your job is to generate comprehensive test files for a proposed change WITHOUT seeing
 the implementation. You test the specification, not the code. This adversarial separation
@@ -277,7 +277,7 @@ class TestDesignerAgent:
 
             # Check for tool calls
             if not response.tool_calls:
-                # LLM is done — extract test files from the response
+                # LLM is done - extract test files from the response
                 break
 
             # Execute tool calls and feed results back
@@ -420,7 +420,7 @@ class TestDesignerAgent:
         except TimeoutError:
             return "Error: Search timed out"
         except FileNotFoundError:
-            # grep not available — fall back to Python search
+            # grep not available - fall back to Python search
             return await self._python_search(pattern, search_dir)
         except Exception as exc:
             return f"Error: {exc}"

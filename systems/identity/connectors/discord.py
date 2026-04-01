@@ -1,23 +1,23 @@
 """
-EcodiaOS — Discord Bot Connector (Spec 23, §14.x: Discord Channel)
+EcodiaOS - Discord Bot Connector (Spec 23, §14.x: Discord Channel)
 
-Discord uses Bot Token authentication — there is no OAuth2 flow for bots.
+Discord uses Bot Token authentication - there is no OAuth2 flow for bots.
 The bot token is provisioned once via Discord Developer Portal and never expires
 (though it can be regenerated or revoked via the Portal).
 
 Differences from OAuth2 connectors:
-  - No authorization URL or code exchange — token is injected at config time.
+  - No authorization URL or code exchange - token is injected at config time.
   - `authenticate()` validates the token via GET /users/@me and stores it in vault.
   - `refresh_token()` re-validates health (tokens don't expire).
   - `revoke()` is a no-op (Discord doesn't have a logout API for bots).
-  - `check_health()` calls GET /users/@me — O(1), no side effects.
+  - `check_health()` calls GET /users/@me - O(1), no side effects.
 
 Bot token storage:
   vault.encrypt_token_json({"access_token": token}, platform_id="discord")
 
 Environment variables:
-  ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN      — required
-  ECODIAOS_DISCORD_CHANNEL_ID                  — optional, for status broadcasts
+  ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN      - required
+  ECODIAOS_DISCORD_CHANNEL_ID                  - optional, for status broadcasts
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ class DiscordConnector(PlatformConnector):
     Discord Bot Token connector.
 
     Discord bots authenticate via a static token issued by Discord Developer Portal.
-    There is no OAuth2 flow — the token is validated once on `authenticate()`,
+    There is no OAuth2 flow - the token is validated once on `authenticate()`,
     stored encrypted in the IdentityVault, and re-validated on `check_health()`.
 
     Construction pattern:
@@ -84,7 +84,7 @@ class DiscordConnector(PlatformConnector):
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         super().__init__(client_config, vault)
-        # Raw token injected at construction — stored to vault on authenticate().
+        # Raw token injected at construction - stored to vault on authenticate().
         self._bot_token: str = bot_token.strip()
         self._http = http_client or httpx.AsyncClient(timeout=15.0)
 
@@ -117,7 +117,7 @@ class DiscordConnector(PlatformConnector):
         """
         Validate the bot token and store it in the vault.
 
-        Calls GET /users/@me — Discord returns user info on success (HTTP 200)
+        Calls GET /users/@me - Discord returns user info on success (HTTP 200)
         or error JSON on invalid token. Token is stored as the `access_token`
         field of an OAuthTokenSet so the base-class infrastructure works
         without modification.
@@ -228,7 +228,7 @@ class DiscordConnector(PlatformConnector):
 
         Discord bot tokens do not expire, but a token can be revoked via the
         Developer Portal. We call GET /users/@me to confirm the token is still
-        active. No new token is issued — the existing vault entry is preserved.
+        active. No new token is issued - the existing vault entry is preserved.
         """
         token = self._resolve_token()
         if not token:

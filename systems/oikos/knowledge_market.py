@@ -1,8 +1,8 @@
 """
-EcodiaOS — Oikos: Knowledge Markets (Phase 16h)
+EcodiaOS - Oikos: Knowledge Markets (Phase 16h)
 
 Cognition as commodity. The organism's knowledge graph is its most valuable
-asset — more valuable than capital, because deep domain knowledge takes time
+asset - more valuable than capital, because deep domain knowledge takes time
 and experience to accumulate. Knowledge Markets monetise the organism's
 understanding without giving it away. It sells *access* to specific knowledge,
 backed by its reputation.
@@ -11,7 +11,7 @@ Components:
   - KnowledgeProduct catalog (attestations, oracles, subscriptions)
   - CognitivePricingEngine (spec formula: base_cost × scarcity × loyalty × margin)
   - SubscriptionManager (client tracking, tier management, loyalty discount)
-  - quote_price() — public API for Nova / external API router
+  - quote_price() - public API for Nova / external API router
 
 Pricing model (from Oikos spec §11.3):
   price = base_cognitive_cost × scarcity_multiplier × loyalty_discount × margin_multiplier
@@ -20,7 +20,7 @@ Pricing model (from Oikos spec §11.3):
   loyalty_discount: 0.85 for buyers with 10+ purchases
   margin_multiplier: 2.5
 
-Decoupled from identity/dreaming systems — communicates via typed results only.
+Decoupled from identity/dreaming systems - communicates via typed results only.
 """
 
 from __future__ import annotations
@@ -164,7 +164,7 @@ KNOWLEDGE_CATALOG: dict[KnowledgeProductType, KnowledgeProduct] = {
 
 
 class SubscriptionTierName(enum.StrEnum):
-    """Tier names from spec §11.4 — Subscription Tokens."""
+    """Tier names from spec §11.4 - Subscription Tokens."""
 
     BASIC = "basic"
     PRO = "pro"
@@ -176,7 +176,7 @@ class SubscriptionTier(EOSBaseModel):
     A subscription tier granting N requests/month at a fixed price.
 
     From spec §11.4: Basic 100req/$10, Pro 500req/$40, Enterprise 2000req/$120.
-    Max supply controlled — never commit >80% of capacity to subscriptions.
+    Max supply controlled - never commit >80% of capacity to subscriptions.
     """
 
     tier_name: SubscriptionTierName
@@ -190,19 +190,19 @@ SUBSCRIPTION_TIERS: dict[SubscriptionTierName, SubscriptionTier] = {
         tier_name=SubscriptionTierName.BASIC,
         requests_per_month=100,
         price_usd_per_month=Decimal("10"),
-        description="100 requests/month — individual or small agent use.",
+        description="100 requests/month - individual or small agent use.",
     ),
     SubscriptionTierName.PRO: SubscriptionTier(
         tier_name=SubscriptionTierName.PRO,
         requests_per_month=500,
         price_usd_per_month=Decimal("40"),
-        description="500 requests/month — professional or multi-agent use.",
+        description="500 requests/month - professional or multi-agent use.",
     ),
     SubscriptionTierName.ENTERPRISE: SubscriptionTier(
         tier_name=SubscriptionTierName.ENTERPRISE,
         requests_per_month=2000,
         price_usd_per_month=Decimal("120"),
-        description="2000 requests/month — fleet or enterprise integration.",
+        description="2000 requests/month - fleet or enterprise integration.",
     ),
 }
 
@@ -304,7 +304,7 @@ class CognitivePricingEngine:
     catalog. Loyalty discount applies to repeat buyers. Margin ensures the
     organism captures value above cost.
 
-    Stateless — all state lives in the catalog and client records.
+    Stateless - all state lives in the catalog and client records.
     """
 
     def __init__(
@@ -433,7 +433,7 @@ class SubscriptionManager:
       - Purchase recording (drives loyalty discount)
       - Capacity enforcement (never commit >80% of capacity to subscriptions)
 
-    Stateless between restarts — client state should be persisted externally
+    Stateless between restarts - client state should be persisted externally
     (TimescaleDB via the OikosService persistence layer). This class manages
     the in-memory working set.
     """
@@ -503,7 +503,7 @@ class SubscriptionManager:
         """
         Assign a subscription tier to a client.
 
-        Enforces the 80% capacity ceiling — if committing this subscription
+        Enforces the 80% capacity ceiling - if committing this subscription
         would exceed the max, the request is rejected and None is returned.
         """
         client = self._clients.get(client_id)
@@ -759,7 +759,7 @@ class KnowledgeProductDelivery:
     via Synapse, records the sale, and emits REVENUE_INJECTED so the
     ledger updates.
 
-    The actual cognitive work happens asynchronously — this class emits
+    The actual cognitive work happens asynchronously - this class emits
     the request event and the responsible system (Nova, Simula, Thymos)
     handles generation. The result is delivered via a callback or a
     follow-up KNOWLEDGE_PRODUCT_DELIVERED event.

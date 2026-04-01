@@ -1,12 +1,12 @@
 """
-EcodiaOS — Soma Type Definitions
+EcodiaOS - Soma Type Definitions
 
 All data types for the interoceptive predictive substrate: dimensions,
 states, signals, markers, attractors, bifurcations, and counterfactuals.
 
 Soma is the body the organism never had. It predicts internal states,
 computes allostatic errors, and emits the signals that make every other
-system care about staying viable. Pure numerical computation — no LLM,
+system care about staying viable. Pure numerical computation - no LLM,
 no DB, no network calls. 5ms budget per theta cycle.
 """
 
@@ -19,7 +19,7 @@ from typing import Any
 
 from pydantic import Field
 
-from primitives.affect import InteroceptiveDimension  # canonical — defined in primitives
+from primitives.affect import InteroceptiveDimension  # canonical - defined in primitives
 from primitives.common import EOSBaseModel, new_id, utc_now
 
 # ─── Enums ────────────────────────────────────────────────────────
@@ -28,11 +28,11 @@ from primitives.common import EOSBaseModel, new_id, utc_now
 class DevelopmentalStage(enum.StrEnum):
     """Maturation stages governing which Soma capabilities are active."""
 
-    REFLEXIVE = "reflexive"        # Boot to hours — basic sensing, reactive
-    ASSOCIATIVE = "associative"    # Hours to days — cross-system coordination
-    DELIBERATIVE = "deliberative"  # Days to weeks — Nova allostatic deliberation
-    REFLECTIVE = "reflective"      # Weeks to months — full phase-space + counterfactuals
-    GENERATIVE = "generative"      # Months+ — novel cognitive strategies
+    REFLEXIVE = "reflexive"        # Boot to hours - basic sensing, reactive
+    ASSOCIATIVE = "associative"    # Hours to days - cross-system coordination
+    DELIBERATIVE = "deliberative"  # Days to weeks - Nova allostatic deliberation
+    REFLECTIVE = "reflective"      # Weeks to months - full phase-space + counterfactuals
+    GENERATIVE = "generative"      # Months+ - novel cognitive strategies
 
 
 # Stage ordering for comparison
@@ -57,15 +57,15 @@ NUM_DIMENSIONS: int = len(ALL_DIMENSIONS)
 
 # Prediction horizons: name -> seconds offset
 HORIZONS: dict[str, float] = {
-    "immediate": 0.15,       # 150ms — this theta cycle
-    "moment": 5.0,           # 5s — current interaction beat
-    "episode": 60.0,         # 1min — current episode
-    "session": 3600.0,       # 1hr — current session
-    "circadian": 86400.0,    # 24hr — sleep/wake cycle
-    "narrative": 604800.0,   # 1wk — narrative arc
-    "lunar": 2592000.0,      # 30d — monthly planning horizon
-    "seasonal": 7776000.0,   # 90d — quarterly strategic horizon
-    "annual": 31536000.0,    # 365d — annual existential horizon
+    "immediate": 0.15,       # 150ms - this theta cycle
+    "moment": 5.0,           # 5s - current interaction beat
+    "episode": 60.0,         # 1min - current episode
+    "session": 3600.0,       # 1hr - current session
+    "circadian": 86400.0,    # 24hr - sleep/wake cycle
+    "narrative": 604800.0,   # 1wk - narrative arc
+    "lunar": 2592000.0,      # 30d - monthly planning horizon
+    "seasonal": 7776000.0,   # 90d - quarterly strategic horizon
+    "annual": 31536000.0,    # 365d - annual existential horizon
 }
 
 # Horizons available at each developmental stage
@@ -82,7 +82,7 @@ STAGE_HORIZONS: dict[DevelopmentalStage, list[str]] = {
     DevelopmentalStage.GENERATIVE: list(HORIZONS.keys()),  # All 9 horizons including annual
 }
 
-# Default allostatic setpoints — where the organism wants to be
+# Default allostatic setpoints - where the organism wants to be
 DEFAULT_SETPOINTS: dict[InteroceptiveDimension, float] = {
     InteroceptiveDimension.ENERGY: 0.60,
     InteroceptiveDimension.AROUSAL: 0.40,
@@ -119,7 +119,7 @@ SETPOINT_CONTEXTS: dict[str, dict[InteroceptiveDimension, float]] = {
     },
 }
 
-# ATP metabolic cost table — units spent per operation
+# ATP metabolic cost table - units spent per operation
 ATP_COSTS: dict[str, float] = {
     "llm_inference_small": 50.0,
     "llm_inference_medium": 150.0,
@@ -154,7 +154,7 @@ DIMENSION_RANGES: dict[InteroceptiveDimension, tuple[float, float]] = {
     InteroceptiveDimension.TEMPORAL_PRESSURE: (0.0, 1.0),
 }
 
-# Seed attractors — initial regions of interoceptive state space
+# Seed attractors - initial regions of interoceptive state space
 SEED_ATTRACTORS: list[dict[str, Any]] = [
     {
         "label": "flow",
@@ -218,7 +218,7 @@ SEED_ATTRACTORS: list[dict[str, Any]] = [
     },
 ]
 
-# Canonical emotion region definitions — patterns in allostatic error space
+# Canonical emotion region definitions - patterns in allostatic error space
 EMOTION_REGIONS: dict[str, dict[str, Any]] = {
     "anxiety": {
         "description": "Predicted metabolic shortfall with rising activation",
@@ -358,7 +358,7 @@ class AllostaticSignal(EOSBaseModel):
     def default(cls) -> AllostaticSignal:
         """
         Default signal emitted when Soma is degraded or not yet initialized.
-        All dimensions at setpoint, urgency 0 — systems fall back to pre-Soma behaviour.
+        All dimensions at setpoint, urgency 0 - systems fall back to pre-Soma behaviour.
         """
         state = InteroceptiveState(
             sensed={d: DEFAULT_SETPOINTS[d] for d in ALL_DIMENSIONS},
@@ -374,7 +374,7 @@ class SomaticMarker(EOSBaseModel):
     """
     Interoceptive snapshot attached to memory traces for embodied retrieval.
 
-    The organism remembers not just what happened, but how it felt —
+    The organism remembers not just what happened, but how it felt -
     enabling state-congruent recall and somatic reranking.
     """
 
@@ -395,7 +395,7 @@ class Attractor(EOSBaseModel):
     A region of interoceptive state space the organism tends to settle into.
 
     Discovered via online clustering (k-means / DBSCAN) over the trajectory buffer.
-    Attractors are the organism's "moods" — stable basins in the 9D landscape.
+    Attractors are the organism's "moods" - stable basins in the 9D landscape.
     """
 
     id: str = Field(default_factory=new_id)
@@ -423,7 +423,7 @@ class Bifurcation(EOSBaseModel):
     A boundary where interoceptive dynamics qualitatively change.
 
     Crossing a bifurcation moves the organism from one attractor basin
-    to another — like tipping from calm into anxiety.
+    to another - like tipping from calm into anxiety.
     """
 
     id: str = Field(default_factory=new_id)
@@ -482,7 +482,7 @@ class Bifurcation(EOSBaseModel):
 
 class CounterfactualTrace(EOSBaseModel):
     """
-    Generated during Oneiros REM replay — what would have happened
+    Generated during Oneiros REM replay - what would have happened
     if the organism had chosen differently?
     """
 
@@ -551,7 +551,7 @@ class SignalSource(enum.StrEnum):
 
 
 class SomaSignal(EOSBaseModel):
-    """A single interoceptive signal — one sample from the organism's internal state."""
+    """A single interoceptive signal - one sample from the organism's internal state."""
 
     timestamp: float  # monotonic time (time.monotonic())
     source: SignalSource
@@ -658,7 +658,7 @@ from primitives.soma import InteroceptiveAction as InteroceptiveAction  # noqa: 
 
 
 class InteroceptivePercept(EOSBaseModel):
-    """An internal sensation — the organism feeling its own state.
+    """An internal sensation - the organism feeling its own state.
 
     Structurally parallel to Atune's Percept for external sensations.
     Broadcast through Synapse as INTEROCEPTIVE_PERCEPT events.

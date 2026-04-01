@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova Belief Updater
+EcodiaOS - Nova Belief Updater
 
 Maintains and updates the structured belief state from workspace broadcasts.
 
@@ -48,7 +48,7 @@ _MAX_ENTITY_BELIEFS = 200
 #
 # Tracks high-priority belief entity keys.  When any monitored belief's
 # confidence changes by more than _URGENCY_THRESHOLD, the registered
-# callback fires immediately — enabling Nova to replan within 50ms rather
+# callback fires immediately - enabling Nova to replan within 50ms rather
 # than waiting for the next theta heartbeat.
 #
 # This closes the gap where Nova updated beliefs passively (beliefs were
@@ -95,7 +95,7 @@ class BeliefUrgencyMonitor:
         If entity_id is a priority key and delta > threshold, fire callback.
 
         Called synchronously from BeliefUpdater after each entity update.
-        Must complete in <1ms — no I/O, no blocking.
+        Must complete in <1ms - no I/O, no blocking.
         """
         if entity_id not in _PRIORITY_BELIEF_KEYS:
             return
@@ -122,14 +122,14 @@ class BeliefUrgencyMonitor:
             urgency=round(urgency, 3),
         )
 
-        # Fire-and-forget — never block the belief update path
+        # Fire-and-forget - never block the belief update path
         import asyncio
         try:
             asyncio.get_event_loop().create_task(  # type: ignore[attr-defined]
                 self._callback(reason=reason, urgency=urgency),
             )
         except RuntimeError:
-            # No running event loop (e.g. unit tests) — skip
+            # No running event loop (e.g. unit tests) - skip
             pass
 # Confidence decay per cycle for unobserved entities (forgetting)
 _CONFIDENCE_DECAY = 0.005
@@ -141,7 +141,7 @@ class BeliefUpdater:
     """
     Maintains Nova's belief state and updates it from workspace broadcasts.
 
-    The belief state is Nova's map of the world — what it knows, how confident
+    The belief state is Nova's map of the world - what it knows, how confident
     it is, and where the prediction errors are. This drives deliberation:
     which goals are relevant, which policies can work.
     """
@@ -175,7 +175,7 @@ class BeliefUpdater:
         delta = BeliefDelta()
         precision = broadcast.precision
 
-        # ── EIS threat attenuation (integration.py — belief_update_weight) ──
+        # ── EIS threat attenuation (integration.py - belief_update_weight) ──
         # If the percept was screened by EIS, attenuate the belief update precision
         # proportional to the threat score.  A clean percept passes through at 1.0×;
         # a high-threat percept is discounted toward BELIEF_FLOOR so adversarial
@@ -304,7 +304,7 @@ class BeliefUpdater:
     def decay_unobserved_entities(self) -> None:
         """
         Apply confidence decay to entities not observed in this cycle.
-        This is the 'forgetting' mechanism — beliefs weaken without evidence.
+        This is the 'forgetting' mechanism - beliefs weaken without evidence.
         Prune entities below the minimum confidence threshold.
         """
         updated: dict[str, EntityBelief] = {}

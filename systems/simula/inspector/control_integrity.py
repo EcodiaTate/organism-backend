@@ -1,19 +1,19 @@
 """
-EcodiaOS — Inspector Phase 2: Control Integrity Scorer
+EcodiaOS - Inspector Phase 2: Control Integrity Scorer
 
-Computes the "Control Integrity Score" (CIS) — a continuous metric in [0, 1]
+Computes the "Control Integrity Score" (CIS) - a continuous metric in [0, 1]
 that quantifies how much a run's execution deviated from the baseline set of
 normal runs.
 
 Score semantics
 ---------------
-1.0  — Fully intact: call graph exactly matches baseline; no exception exits;
+1.0  - Fully intact: call graph exactly matches baseline; no exception exits;
        no faults; no anomalous branches.
-0.0  — Complete divergence: every transition was novel; multiple faults; deep
+0.0  - Complete divergence: every transition was novel; multiple faults; deep
        stack unwinding.
-0.3–0.7 — Partial influence: execution reshaped by external inputs but
+0.3–0.7 - Partial influence: execution reshaped by external inputs but
           did not crash.  This is the "interesting" range for steerability
-          modelling — the program was influenced but remained alive.
+          modelling - the program was influenced but remained alive.
 
 The score is intentionally NOT a security metric.  It is a continuous label
 for the steerability model: "how much did the observed execution deviate from
@@ -67,7 +67,7 @@ from systems.simula.inspector.runtime_types import (
 
 logger = structlog.get_logger().bind(system="simula.inspector.control_integrity")
 
-# Score component weights — must sum to 1.0.
+# Score component weights - must sum to 1.0.
 _W_EDGES = 0.35   # new call edges (primary signal)
 _W_EXC   = 0.20   # exception-exit fraction
 _W_FAULT = 0.30   # fault count
@@ -94,8 +94,8 @@ def _build_normal_baseline(
     """
     Return (baseline_edges, baseline_functions) from all NORMAL runs.
 
-    baseline_edges    — set of (caller, callee) pairs seen in ANY normal run
-    baseline_functions — set of function names entered in ANY normal run
+    baseline_edges    - set of (caller, callee) pairs seen in ANY normal run
+    baseline_functions - set of function names entered in ANY normal run
     """
     baseline_edges: set[tuple[str, str]] = set()
     baseline_functions: set[str] = set()
@@ -183,7 +183,7 @@ def _score_run(
     for caller, callee in trace.call_sequence:
         edge = (caller, callee)
         if edge in seen_transitions:
-            continue  # de-duplicate — report each novel edge once
+            continue  # de-duplicate - report each novel edge once
 
         is_new = edge in new_edges
         is_pre_fault = edge in pre_fault_edges

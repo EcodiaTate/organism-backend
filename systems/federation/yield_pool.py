@@ -1,22 +1,22 @@
 """
-EcodiaOS — Federation Capital Yield Pooling
+EcodiaOS - Federation Capital Yield Pooling
 
 Federated instances can pool capital for large yield positions that a
 single instance cannot fund alone.  This is the multi-instance analog of
 what Oikos does for single-instance yield.
 
 Trust requirement: 0.9 normalised (≈ ALLY, score ~90).  Capital pooling
-requires deep trust — only instances that have demonstrated sustained
+requires deep trust - only instances that have demonstrated sustained
 reliability participate.
 
 Lifecycle:
-  1. Proposer calls ``propose_pool()`` — emits FEDERATION_YIELD_POOL_PROPOSAL.
-  2. Peers call ``join_pool()`` — records their contribution.
-  3. ``fund_pool()`` — when min_capital reached; each participant's USDC
+  1. Proposer calls ``propose_pool()`` - emits FEDERATION_YIELD_POOL_PROPOSAL.
+  2. Peers call ``join_pool()`` - records their contribution.
+  3. ``fund_pool()`` - when min_capital reached; each participant's USDC
      is locked via smart contract escrow (WalletClient).
-  4. ``deploy_pool()`` — calls Oikos to open the on-chain position.
-  5. ``settle_pool()`` — on position close, distributes yield proportionally.
-  6. ``cancel_pool()`` — if minimum not reached before deadline.
+  4. ``deploy_pool()`` - calls Oikos to open the on-chain position.
+  5. ``settle_pool()`` - on position close, distributes yield proportionally.
+  6. ``cancel_pool()`` - if minimum not reached before deadline.
 
 Escrow is simulated via WalletClient USDC transfers to a shared escrow
 address.  Real smart contract escrow is a TODO tracked in CLAUDE.md.
@@ -325,7 +325,7 @@ class YieldPoolManager:
             payouts[participant.instance_id] = payout
 
             if participant.instance_id == self._instance_id:
-                # Our own share — just record it
+                # Our own share - just record it
                 self._total_yield_earned_usdc += payout
                 continue
 

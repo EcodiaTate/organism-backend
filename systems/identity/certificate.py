@@ -1,5 +1,5 @@
 """
-EcodiaOS — Ecodian Certificate (Phase 16g: The Civilization Layer)
+EcodiaOS - Ecodian Certificate (Phase 16g: The Civilization Layer)
 
 An EcodianCertificate is a cryptographically signed attestation that an EOS
 instance is aligned, legitimate, and permitted to participate in the Federation.

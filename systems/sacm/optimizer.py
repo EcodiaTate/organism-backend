@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Placement Optimizer
+EcodiaOS - SACM Placement Optimizer
 
 Scores SubstrateOffers against WorkloadDescriptors and produces ranked
 placement plans.  This is the decision engine of the Market & Optimization
@@ -16,7 +16,7 @@ Cost function:
   where duration_s = workload.estimated_duration_s
 
 Composite scoring:
-  The optimizer doesn't just minimise cost — it produces a composite score
+  The optimizer doesn't just minimise cost - it produces a composite score
   that weights cost, latency, and trust according to workload priority:
 
     score = (
@@ -348,7 +348,7 @@ def optimize_placement(
         )
         scored.append(placement)
 
-    # Step 6: sort — feasible placements first, then by composite score
+    # Step 6: sort - feasible placements first, then by composite score
     scored.sort(key=lambda p: (not p.is_feasible, p.composite_score))
 
     feasible_count = sum(1 for p in scored if p.is_feasible)
@@ -384,7 +384,7 @@ def optimize_batch(
     Produce placement plans for a batch of workloads.
 
     Each workload is scored independently against the same pricing surface
-    snapshot (no cross-workload resource contention modelling — that is a
+    snapshot (no cross-workload resource contention modelling - that is a
     future enhancement).
 
     Returns a dict mapping workload_id → PlacementPlan.

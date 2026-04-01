@@ -1,5 +1,5 @@
 """
-EcodiaOS — InstanceAdapterRegistry
+EcodiaOS - InstanceAdapterRegistry
 
 Tracks which LoRA adapters this instance has available and which one is
 currently loaded by the inference server.
@@ -11,7 +11,7 @@ Architecture
 - Persists adapter metadata to Neo4j for audit trail and cross-restart continuity.
 - Emits ADAPTER_LOAD_REQUESTED on Synapse when the active adapter changes, so
   the inference server (out-of-process) can hot-swap the LoRA weights.
-- Never deletes adapters — only accumulates them (constraint from the spec).
+- Never deletes adapters - only accumulates them (constraint from the spec).
 
 Adapter precedence
 ------------------

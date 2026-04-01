@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Primitives
+EcodiaOS - Soma Primitives
 
 Shared soma/interoception types used across systems.
 Moved from systems/soma/types.py so Thymos and other systems can import

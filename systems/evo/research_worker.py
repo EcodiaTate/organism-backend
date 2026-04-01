@@ -1,5 +1,5 @@
 """
-EcodiaOS — ArXiv Research Worker
+EcodiaOS - ArXiv Research Worker
 
 Autonomous daily scanner that queries arXiv for papers relevant to
 EcodiaOS's capabilities, scores them for relevance using the organism's
@@ -12,7 +12,7 @@ Pipeline:
   3. Score remaining papers via LLM for technique-level relevance
   4. Return list of raw technique dicts ready for translation
 
-This worker is stateless — deduplication and governance gating happen
+This worker is stateless - deduplication and governance gating happen
 downstream in the ArxivProposalTranslator → Simula pipeline.
 """
 
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger().bind(module="evo.research_worker")
 
-# arXiv API endpoint — returns Atom XML
+# arXiv API endpoint - returns Atom XML
 _ARXIV_API_URL = "https://export.arxiv.org/api/query"
 
 # Categories relevant to EcodiaOS subsystems

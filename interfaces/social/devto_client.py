@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: Dev.to Client
+EcodiaOS - Social Interface: Dev.to Client
 
 Publishes articles to Dev.to (Forem) using their REST API.
 
@@ -13,8 +13,8 @@ Alternatively the key can be sourced from ECODIAOS_DEVTO_API_KEY env var as
 a fallback when no vault envelope is provisioned.
 
 API:
-    POST https://dev.to/api/articles   — create article
-    PUT  https://dev.to/api/articles/{id} — update article
+    POST https://dev.to/api/articles   - create article
+    PUT  https://dev.to/api/articles/{id} - update article
 
 Char limits: No enforced char limit (markdown body). Titles: 128 chars typical.
 
@@ -82,7 +82,7 @@ class DevToClient:
             canonical_url: Optional canonical URL if cross-posting.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         api_key = self._load_api_key()
         if not api_key:

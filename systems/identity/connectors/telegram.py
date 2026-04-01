@@ -1,23 +1,23 @@
 """
-EcodiaOS — Telegram Bot Connector (Spec 23, §14.x: Telegram Channel)
+EcodiaOS - Telegram Bot Connector (Spec 23, §14.x: Telegram Channel)
 
-Telegram uses Bot Token authentication — there is no OAuth2 flow.
+Telegram uses Bot Token authentication - there is no OAuth2 flow.
 The bot token is provisioned once via @BotFather and never expires
 (though it can be regenerated via revokeToken or revoked via logOut).
 
 Differences from OAuth2 connectors:
-  - No authorization URL or code exchange — token is injected at config time.
+  - No authorization URL or code exchange - token is injected at config time.
   - `authenticate()` validates the token via getMe and stores it in vault.
   - `refresh_token()` re-validates health (tokens don't expire).
   - `revoke()` calls the Telegram logOut API.
-  - `check_health()` calls getMe — O(1), no side effects.
+  - `check_health()` calls getMe - O(1), no side effects.
 
 Bot token storage:
   vault.encrypt_token_json({"bot_token": token}, platform_id="telegram")
 
 Environment variables:
-  ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN      — required
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  — optional, for status broadcasts
+  ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN      - required
+  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - optional, for status broadcasts
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ logger = structlog.get_logger("identity.telegram")
 
 _TELEGRAM_API_BASE = "https://api.telegram.org"
 
-# Sentinel OAuthClientConfig fields — Telegram doesn't use OAuth2 URLs,
+# Sentinel OAuthClientConfig fields - Telegram doesn't use OAuth2 URLs,
 # but we must still accept the base-class constructor signature.
 _TELEGRAM_EMPTY_CONFIG_FIELDS = ("authorize_url", "token_url", "revoke_url")
 
@@ -64,7 +64,7 @@ class TelegramConnector(PlatformConnector):
     Telegram Bot Token connector.
 
     Telegram bots authenticate via a static token issued by @BotFather.
-    There is no OAuth2 flow — the token is validated once on `authenticate()`,
+    There is no OAuth2 flow - the token is validated once on `authenticate()`,
     stored encrypted in the IdentityVault, and re-validated on `check_health()`.
 
     Construction pattern:
@@ -93,7 +93,7 @@ class TelegramConnector(PlatformConnector):
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         super().__init__(client_config, vault)
-        # Raw token injected at construction — stored to vault on authenticate().
+        # Raw token injected at construction - stored to vault on authenticate().
         self._bot_token: str = bot_token.strip()
         self._http = http_client or httpx.AsyncClient(timeout=15.0)
 
@@ -126,7 +126,7 @@ class TelegramConnector(PlatformConnector):
         """
         Validate the bot token and store it in the vault.
 
-        Calls GET /getMe — Telegram returns bot info on success (HTTP 200)
+        Calls GET /getMe - Telegram returns bot info on success (HTTP 200)
         or {"ok": false} on invalid token. Token is stored as the
         `access_token` field of an OAuthTokenSet so the base-class
         infrastructure (credential CRUD, event emissions, health tracking)
@@ -235,7 +235,7 @@ class TelegramConnector(PlatformConnector):
 
         Telegram bot tokens do not expire, but a token can be revoked by the
         operator via BotFather. We call getMe to confirm the token is still
-        active. No new token is issued — the existing vault entry is preserved.
+        active. No new token is issued - the existing vault entry is preserved.
         """
         token = self._resolve_token()
         if not token:

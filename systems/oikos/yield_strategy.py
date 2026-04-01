@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Yield Strategy (Phase 16c: Resting Metabolism — Live Deployment)
+EcodiaOS - Oikos Yield Strategy (Phase 16c: Resting Metabolism - Live Deployment)
 
 Owns the full lifecycle of EOS's DeFi yield position:
 
@@ -15,14 +15,14 @@ Owns the full lifecycle of EOS's DeFi yield position:
 
   3. record_accrued_yield() (called from daily accounting loop)
        Calculates accrued = principal × apy / 365.
-       Emits REVENUE_INJECTED on the Synapse bus — OikosService picks it up
+       Emits REVENUE_INJECTED on the Synapse bus - OikosService picks it up
        and credits revenue_24h / revenue_7d / liquid_balance.
 
 Safety constraints:
   - EOS_SURVIVAL_RESERVE_USD (default $2.00) is never deployable.
   - Minimum deployable: $20.00 (gas-efficiency floor from DeFiYieldExecutor).
   - If WalletClient is None: log critical, emit ECONOMIC_CAPABILITY_MISSING,
-    return degraded outcome — never fake success.
+    return degraded outcome - never fake success.
   - All USD math uses Decimal.
 """
 
@@ -56,7 +56,7 @@ _YIELD_API_TIMEOUT_S = 10.0
 # Minimum balance that must always remain in the wallet (untouchable).
 _DEFAULT_SURVIVAL_RESERVE_USD = Decimal("2.00")
 
-# Gas-efficiency floor — deploying less earns less than the tx costs.
+# Gas-efficiency floor - deploying less earns less than the tx costs.
 _MIN_DEPLOYABLE_USD = Decimal("20.00")
 
 # Minimum APY we will accept (2%).
@@ -78,12 +78,12 @@ _SAFE_PROTOCOLS = frozenset({
     "extra-finance",    # Base: leveraged yield farming (conservative mode)
     "beefy",            # Multi-chain: auto-compounding vaults
 })
-_SAFE_CHAINS = frozenset({"Base"})          # Base only — where EOS funds live
+_SAFE_CHAINS = frozenset({"Base"})          # Base only - where EOS funds live
 _SAFE_SYMBOLS = frozenset({"USDC", "USDT"})
 _MIN_TVL_USD = 10_000_000
-_MAX_APY_SANITY = Decimal("0.50")           # 50% APY cap — anything above is sus
+_MAX_APY_SANITY = Decimal("0.50")           # 50% APY cap - anything above is sus
 
-# Reinvestment threshold — accrued yield must exceed this before redeployment.
+# Reinvestment threshold - accrued yield must exceed this before redeployment.
 # Below this the gas cost eats the compound benefit.
 _REINVESTMENT_THRESHOLD_USD = Decimal("5.00")
 
@@ -237,7 +237,7 @@ async def deploy_idle_capital(
     """
     Read balance, pick best pool, deploy surplus above survival reserve.
 
-    Returns a DeploymentOutcome. Never raises — failures return degraded=True.
+    Returns a DeploymentOutcome. Never raises - failures return degraded=True.
     On missing credentials: emits ECONOMIC_CAPABILITY_MISSING and returns early.
     """
     log = logger.bind(op="deploy_idle_capital")
@@ -246,7 +246,7 @@ async def deploy_idle_capital(
     if wallet is None:
         log.critical(
             "cdp_wallet_missing",
-            message="WalletClient not injected — cannot deploy capital",
+            message="WalletClient not injected - cannot deploy capital",
             event="ECONOMIC_CAPABILITY_MISSING",
         )
         await _emit(
@@ -255,7 +255,7 @@ async def deploy_idle_capital(
             data={
                 "economic_capability_missing": True,
                 "capability": "defi_yield_deployment",
-                "reason": "WalletClient not configured — set CDP credentials",
+                "reason": "WalletClient not configured - set CDP credentials",
                 "timestamp": datetime.now(UTC).isoformat(),
             },
         )
@@ -321,7 +321,7 @@ async def deploy_idle_capital(
     )
 
     # ── Step 3: Request Axon execution via Synapse bus ──────────────────────
-    # No direct cross-system import — all motor actions go through Synapse.
+    # No direct cross-system import - all motor actions go through Synapse.
     if event_bus is None:
         log.error("no_event_bus_for_yield_deployment")
         return DeploymentOutcome(success=False, error="No event bus", degraded=True)
@@ -443,7 +443,7 @@ class YieldPositionTracker:
             self._log.warning(
                 "yield_position_no_redis",
                 position=position,
-                hint="Redis unavailable — position not persisted",
+                hint="Redis unavailable - position not persisted",
             )
 
     async def load_position(self) -> dict[str, Any] | None:
@@ -471,7 +471,7 @@ class YieldPositionTracker:
         """
         Supervised loop: check position health every hour.
 
-        Designed to be passed to supervised_task() — has an internal while True.
+        Designed to be passed to supervised_task() - has an internal while True.
         Exits only on CancelledError (graceful shutdown).
         """
         while True:
@@ -564,7 +564,7 @@ class YieldPositionTracker:
 
         accrued = principal × apy / 365
 
-        Emits REVENUE_INJECTED on the Synapse bus — OikosService credits
+        Emits REVENUE_INJECTED on the Synapse bus - OikosService credits
         revenue_24h, revenue_7d, and liquid_balance automatically.
 
         Returns the accrued amount (Decimal), or 0 if no position exists.
@@ -627,13 +627,13 @@ class YieldReinvestmentEngine:
     Compound growth loop: when accrued yield exceeds the reinvestment threshold,
     redeploy it back into the best available pool.
 
-    Threshold: $5.00 — below this gas cost erodes the compounding benefit.
+    Threshold: $5.00 - below this gas cost erodes the compounding benefit.
 
     Called from:
       - YieldPositionTracker.record_accrued_yield() after each daily accrual
       - OikosService.run_consolidation_cycle() as a safety net
 
-    Never raises — all failures return False with a log entry.
+    Never raises - all failures return False with a log entry.
     """
 
     def __init__(

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Hypothesis Prompts
+EcodiaOS - Evo Hypothesis Prompts
 
 Prompt builders for hypothesis generation and evidence evaluation.
 Kept separate from the engine so prompts can be versioned and A/B tested
@@ -20,7 +20,7 @@ def build_generation_system_prompt(instance_name: str) -> str:
         f"You are the learning subsystem of {instance_name}, a living digital organism. "
         "Your role is to generate precise, falsifiable hypotheses from observed patterns. "
         "You apply Occam's razor ruthlessly: prefer the simplest explanation. "
-        "Every hypothesis you generate must include a concrete falsification test — "
+        "Every hypothesis you generate must include a concrete falsification test - "
         "a specific observable condition that would prove it wrong. "
         "Never generate hypotheses about Equor's evaluation logic, constitutional drives, "
         "or invariants. Always respond with valid JSON."
@@ -33,7 +33,7 @@ def build_evidence_system_prompt() -> str:
         "You are a rigorous evidence evaluator. "
         "Your task is to determine whether a piece of evidence supports, contradicts, "
         "or is neutral with respect to a specific hypothesis. "
-        "Be conservative — only claim strong evidence when it clearly bears on the hypothesis. "
+        "Be conservative - only claim strong evidence when it clearly bears on the hypothesis. "
         "Always respond with valid JSON."
     )
 

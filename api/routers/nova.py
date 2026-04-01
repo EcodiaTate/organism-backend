@@ -1,20 +1,20 @@
 """
-EcodiaOS — Nova (Deliberation / Goal Management) API Router
+EcodiaOS - Nova (Deliberation / Goal Management) API Router
 
 Exposes Nova internal state, deliberation metrics, belief model, goal lifecycle,
 EFE scoring, free energy budget, and decision record audit trail.
 
-  GET  /api/v1/nova/health          — Service health + observability counters
-  GET  /api/v1/nova/beliefs         — Current belief state snapshot
-  GET  /api/v1/nova/goals           — All goals by status
-  GET  /api/v1/nova/goals/{goal_id} — Single goal detail
-  GET  /api/v1/nova/decisions       — Recent deliberation cycle records
-  GET  /api/v1/nova/fe-budget       — Free energy budget state
-  GET  /api/v1/nova/efe-weights     — Current EFE component weights
-  GET  /api/v1/nova/pending-intents — Intents awaiting execution outcome
-  GET  /api/v1/nova/config          — Active Nova configuration parameters
-  POST /api/v1/nova/efe-weights     — Update EFE weights (Evo tuning)
-  POST /api/v1/nova/goals           — Inject a goal (governance/testing)
+  GET  /api/v1/nova/health          - Service health + observability counters
+  GET  /api/v1/nova/beliefs         - Current belief state snapshot
+  GET  /api/v1/nova/goals           - All goals by status
+  GET  /api/v1/nova/goals/{goal_id} - Single goal detail
+  GET  /api/v1/nova/decisions       - Recent deliberation cycle records
+  GET  /api/v1/nova/fe-budget       - Free energy budget state
+  GET  /api/v1/nova/efe-weights     - Current EFE component weights
+  GET  /api/v1/nova/pending-intents - Intents awaiting execution outcome
+  GET  /api/v1/nova/config          - Active Nova configuration parameters
+  POST /api/v1/nova/efe-weights     - Update EFE weights (Evo tuning)
+  POST /api/v1/nova/goals           - Inject a goal (governance/testing)
 """
 
 from __future__ import annotations

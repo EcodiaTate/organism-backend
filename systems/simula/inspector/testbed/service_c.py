@@ -1,8 +1,8 @@
 """
-Testbed Service C — DB / Sink Layer
+Testbed Service C - DB / Sink Layer
 
 Receives "query" payloads from Service B and logs them. Simulates a database
-service that executes whatever query string it receives — the taint token
+service that executes whatever query string it receives - the taint token
 (TAINT=<uuid>;) is visible here if it propagated through the chain.
 
 This is the terminal sink: if the taint token appears in C's logs, the
@@ -88,7 +88,7 @@ class DBHandler(BaseHTTPRequestHandler):
         else:
             print("[C]   no taint detected", flush=True)
 
-        # Simulate query execution — echo back as "results"
+        # Simulate query execution - echo back as "results"
         self._json_response(200, {
             "status": "executed",
             "service": "C",

@@ -1,22 +1,22 @@
 """
-EcodiaOS — Thymos (Immune System) API Router
+EcodiaOS - Thymos (Immune System) API Router
 
 Exposes the Thymos immune system for observability and control:
 
-  GET  /api/v1/thymos/health                — Full health snapshot: counters, budget, drive state
-  GET  /api/v1/thymos/stats                 — Lightweight synchronous stats
-  GET  /api/v1/thymos/incidents             — Incident ring buffer (most recent first)
-  GET  /api/v1/thymos/incidents/{id}        — Full incident detail by ID
-  GET  /api/v1/thymos/antibodies            — Antibody library (active + retired)
-  GET  /api/v1/thymos/repairs               — Repair records derived from incident buffer
-  GET  /api/v1/thymos/homeostasis           — Homeostasis & healing mode summary
-  GET  /api/v1/thymos/homeostasis/metrics   — Per-metric values within optimal ranges
-  GET  /api/v1/thymos/drive-state           — Constitutional drive pressure snapshot
-  GET  /api/v1/thymos/config                — Active Thymos configuration parameters
-  GET  /api/v1/thymos/prophylactic          — Prophylactic scan results & aggregate stats
-  GET  /api/v1/thymos/causal-graph          — Causal dependency graph + recent chains
-  GET  /api/v1/thymos/stream                — SSE real-time incident stream
-  POST /api/v1/thymos/report                — Manually report an exception for processing
+  GET  /api/v1/thymos/health                - Full health snapshot: counters, budget, drive state
+  GET  /api/v1/thymos/stats                 - Lightweight synchronous stats
+  GET  /api/v1/thymos/incidents             - Incident ring buffer (most recent first)
+  GET  /api/v1/thymos/incidents/{id}        - Full incident detail by ID
+  GET  /api/v1/thymos/antibodies            - Antibody library (active + retired)
+  GET  /api/v1/thymos/repairs               - Repair records derived from incident buffer
+  GET  /api/v1/thymos/homeostasis           - Homeostasis & healing mode summary
+  GET  /api/v1/thymos/homeostasis/metrics   - Per-metric values within optimal ranges
+  GET  /api/v1/thymos/drive-state           - Constitutional drive pressure snapshot
+  GET  /api/v1/thymos/config                - Active Thymos configuration parameters
+  GET  /api/v1/thymos/prophylactic          - Prophylactic scan results & aggregate stats
+  GET  /api/v1/thymos/causal-graph          - Causal dependency graph + recent chains
+  GET  /api/v1/thymos/stream                - SSE real-time incident stream
+  POST /api/v1/thymos/report                - Manually report an exception for processing
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ class ThymosHealthOut(EOSBaseModel):
     # Prophylactic
     prophylactic_scans: int = 0
     prophylactic_warnings: int = 0
-    # Derived — computed server-side so the UI doesn't duplicate logic
+    # Derived - computed server-side so the UI doesn't duplicate logic
     immune_health_score: float = 100.0
     repair_success_rate: float = 0.0
     # Budget
@@ -614,7 +614,7 @@ async def get_homeostasis(request: Request) -> HomeostasisOut:
 async def get_drive_state(request: Request) -> DriveStateOut:
     """
     Constitutional drive pressure from accumulated incidents and Equor rejections.
-    Drives: coherence, care, growth, honesty — each 0.0 to 1.0.
+    Drives: coherence, care, growth, honesty - each 0.0 to 1.0.
     """
     thymos = getattr(request.app.state, "thymos", None)
     if thymos is None:

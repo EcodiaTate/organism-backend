@@ -1,5 +1,5 @@
 """
-EcodiaOS — Cross-System Wiring
+EcodiaOS - Cross-System Wiring
 
 All ``set_*()`` calls, event bus subscriptions, and dependency
 declarations that connect the 29 cognitive systems into a single
@@ -71,7 +71,7 @@ def create_expression_feedback_callback(atune: Any, nova: Any) -> Any:
 
 # ─── Phase 1: Core Systems Wiring ──────────────────────────────────
 # Called after Memory, Equor, Atune, EIS, Voxis, Nova, Axon are initialized.
-# NOTE: wire_core_systems() was removed — its logic is done inline in
+# NOTE: wire_core_systems() was removed - its logic is done inline in
 # registry.py (steps 9–11 of startup).  Kept the phase header for clarity.
 
 
@@ -164,15 +164,15 @@ def wire_synapse_phase(
     sacm_compute_manager.set_synapse(synapse)
     sacm_client.set_synapse(synapse)
     synapse.register_system(sacm_compute_manager)
-    # sacm_accounting.set_synapse() was implemented but never called — dead wiring.
+    # sacm_accounting.set_synapse() was implemented but never called - dead wiring.
     # Without this, SACM_COMPUTE_STRESS, EVO_HYPOTHESIS_CONFIRMED/REFUTED, and
     # FOVEA_INTERNAL_PREDICTION_ERROR events are never emitted (all three guards
     # check self._synapse is None before emitting).
     sacm_accounting.set_synapse(synapse)
-    # sacm_prewarm_engine.set_synapse() was implemented but never called — dead wiring.
+    # sacm_prewarm_engine.set_synapse() was implemented but never called - dead wiring.
     # Without this, SACM_PRE_WARM_PROVISIONED events are silently dropped.
     sacm_prewarm_engine.set_synapse(synapse)
-    # sacm_compute_manager.set_pre_warming() was implemented but never called — dead wiring.
+    # sacm_compute_manager.set_pre_warming() was implemented but never called - dead wiring.
     # Without this, ORGANISM_SLEEP / WAKE / METABOLIC_EMERGENCY cannot pause or resume
     # the pre-warm loop because ComputeResourceManager holds the only reference path.
     sacm_compute_manager.set_pre_warming(sacm_prewarm_engine)
@@ -486,8 +486,8 @@ def wire_intelligence_loops(
     # Loop 4: Oneiros → Axon (sleep safety gate)
     axon.set_oneiros(oneiros)
 
-    # Loop 6: Fovea → Thread — via FOVEA_INTERNAL_PREDICTION_ERROR Synapse subscription
-    # Loop 7: Oneiros → Thread — via ONEIROS_CONSOLIDATION_COMPLETE / LUCID_DREAM_RESULT Synapse subscriptions
+    # Loop 6: Fovea → Thread - via FOVEA_INTERNAL_PREDICTION_ERROR Synapse subscription
+    # Loop 7: Oneiros → Thread - via ONEIROS_CONSOLIDATION_COMPLETE / LUCID_DREAM_RESULT Synapse subscriptions
     # (No set_* calls needed; Thread uses bus-mediated integration only)
 
     logger.info(
@@ -519,15 +519,15 @@ def wire_intelligence_loops(
     # Wire Atune into Evo so learned head-weight adjustments (atune.head.*
     # parameters tuned by ParameterTuner) are pushed back to Atune's
     # MetaAttentionController after each consolidation cycle.
-    # set_atune() was implemented in EvoService but never called — dead wiring.
+    # set_atune() was implemented in EvoService but never called - dead wiring.
     evo.set_atune(atune)
 
-    # Loop 6 — Soma ↔ Telos bidirectional
+    # Loop 6 - Soma ↔ Telos bidirectional
     soma.set_telos(telos)
     telos.set_soma(soma)
 
     # AUTONOMY: Wire cross-system telemetry into Soma interoceptor.
-    # Closes critical blind spots — the organism can now feel:
+    # Closes critical blind spots - the organism can now feel:
     #   Fovea → prediction error distribution → CONFIDENCE
     #   Simula → self-repair effectiveness → INTEGRITY
     #   Axon → compute cost per action → ENERGY
@@ -562,7 +562,7 @@ def wire_oikos_phase(
     # gated (check_metabolic_gate(GROWTH) before running expensive tuning) and
     # NicheRegistry starvation state is updated from Oikos signals.
     # wire_oikos() was implemented in EvoService but wire_oikos_phase() never
-    # passed evo — dead wiring that silently bypassed the metabolic gate.
+    # passed evo - dead wiring that silently bypassed the metabolic gate.
     if evo is not None:
         evo.wire_oikos(oikos)
     sacm_accounting.wire_oikos(oikos)
@@ -605,7 +605,7 @@ def wire_mitosis_phase(
     6. Optionally wires AdapterSharer into fleet_service for cross-instance LoRA
        adapter merging (Share 2025 framework).
 
-    Must be called AFTER wire_oikos_phase() — requires oikos.fleet to be populated.
+    Must be called AFTER wire_oikos_phase() - requires oikos.fleet to be populated.
     app must be passed so fleet_service can be retrieved from app.state.
     """
     import asyncio as _asyncio
@@ -613,19 +613,19 @@ def wire_mitosis_phase(
     # ── Step 0: Retrieve fleet_service from app.state ─────────────────────────
     # MitosisFleetService was constructed in _init_oikos() and stored on app.state.
     # Previously this function tried to get it from spawn_executor._fleet_service
-    # which was always None — all downstream wiring silently no-oped.
+    # which was always None - all downstream wiring silently no-oped.
     fleet_service: Any = None
     if app is not None:
         fleet_service = getattr(app.state, "fleet_service", None)
         if fleet_service is None:
             logger.warning(
                 "mitosis_fleet_service_not_on_app_state",
-                note="MitosisFleetService was not constructed in _init_oikos — fleet management disabled",
+                note="MitosisFleetService was not constructed in _init_oikos - fleet management disabled",
             )
     else:
         logger.warning(
             "wire_mitosis_phase_no_app",
-            note="app not passed to wire_mitosis_phase — fleet_service cannot be retrieved",
+            note="app not passed to wire_mitosis_phase - fleet_service cannot be retrieved",
         )
 
     spawn_executor: Any = None
@@ -706,11 +706,11 @@ def wire_mitosis_phase(
         logger.warning("wire_mitosis_oikos_callbacks_failed", error=str(exc))
 
     # ── Step 2: Activate all 9 Synapse subscriptions ──────────────────────────
-    # subscribe_to_events() was implemented but never called — the starvation
+    # subscribe_to_events() was implemented but never called - the starvation
     # level cache, blacklist mirror, and genome cache were all permanently empty.
     if fleet_service is not None:
         try:
-            # subscribe_to_events() is async — schedule as fire-and-forget task
+            # subscribe_to_events() is async - schedule as fire-and-forget task
             # so wire_mitosis_phase() can remain synchronous.
             _asyncio.ensure_future(fleet_service.subscribe_to_events())
             logger.info("mitosis_fleet_service_subscribe_to_events_scheduled")
@@ -718,7 +718,7 @@ def wire_mitosis_phase(
             logger.warning("mitosis_fleet_service_subscribe_failed", error=str(exc))
 
     # ── Step 3: Start the 4 background loops ─────────────────────────────────
-    # start_health_monitor() was implemented but never called — health timeout,
+    # start_health_monitor() was implemented but never called - health timeout,
     # dividend, fleet eval, and reproductive fitness loops never started.
     if fleet_service is not None:
         try:

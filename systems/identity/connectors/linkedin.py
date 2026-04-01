@@ -1,5 +1,5 @@
 """
-EcodiaOS — LinkedIn v2 Connector
+EcodiaOS - LinkedIn v2 Connector
 
 Implements the PlatformConnector ABC for LinkedIn OAuth 2.0.
 
@@ -7,7 +7,7 @@ LinkedIn specifics:
   - Access tokens expire in 60 days (5,184,000 seconds).
   - Refresh tokens are issued alongside access tokens (~365 day TTL).
   - LinkedIn rotates both tokens on each refresh call.
-  - Confidential client flow — no PKCE.
+  - Confidential client flow - no PKCE.
 """
 
 from __future__ import annotations
@@ -176,7 +176,7 @@ class LinkedInConnector(PlatformConnector):
         data = resp.json()
         new_token_set = OAuthTokenSet(
             access_token=data["access_token"],
-            # LinkedIn rotates the refresh token — fall back to old one if absent.
+            # LinkedIn rotates the refresh token - fall back to old one if absent.
             refresh_token=data.get("refresh_token", current.refresh_token),
             token_type=data.get("token_type", "Bearer"),
             expires_in=data.get("expires_in", _LINKEDIN_ACCESS_TOKEN_TTL),

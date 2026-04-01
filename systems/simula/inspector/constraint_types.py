@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 4: Constraint Reasoning Types
+EcodiaOS - Inspector Phase 4: Constraint Reasoning Types
 
 All domain models for the formal steerability analysis layer.
 
@@ -11,13 +11,13 @@ deterministic execution become influence-permissive?"
 It converts Phase 2/3 observations into a *formal state model* that can be
 queried symbolically:
 
-  StateModel          — the set of state variables that govern control flow
-  InvariantSet        — pre/post-conditions the program must satisfy to behave normally
-  ConstraintSet       — logical constraints encoding what must break for steerability
-  SteerabilityModel   — per-target formalisation of the deterministic→permissive shift
-  ConditionSet        — a concrete, testable set of invariant violations → new reachable region
-  TransitionExplanation — structured narrative: broken invariants → relaxed constraints → new region
-  Phase4Result        — top-level Phase 4 output
+  StateModel          - the set of state variables that govern control flow
+  InvariantSet        - pre/post-conditions the program must satisfy to behave normally
+  ConstraintSet       - logical constraints encoding what must break for steerability
+  SteerabilityModel   - per-target formalisation of the deterministic→permissive shift
+  ConditionSet        - a concrete, testable set of invariant violations → new reachable region
+  TransitionExplanation - structured narrative: broken invariants → relaxed constraints → new region
+  Phase4Result        - top-level Phase 4 output
 
 Layer map
 ---------
@@ -25,14 +25,14 @@ Layer map
   │  Phase 2 (ControlIntegrityScore, FaultObservation)                       │
   │  Phase 3 (ExecutionAtlas, FailureAdjacentRegion, CodeFragment)           │
   │    ↓  StateModelExtractor                                                │
-  │  StateModel   — typed state variables (registers, memory, object state…) │
+  │  StateModel   - typed state variables (registers, memory, object state…) │
   │    ↓  ConstraintEngine                                                   │
-  │  ConstraintSet — transition preconditions, reachability constraints       │
+  │  ConstraintSet - transition preconditions, reachability constraints       │
   │    ↓                                                                     │
-  │  SteerabilityModel — per-target class characterisation                   │
+  │  SteerabilityModel - per-target class characterisation                   │
   │    ↓                                                                     │
-  │  ConditionSet  — concrete invariant violation → steerable region mapping  │
-  │  TransitionExplanation — human-readable structured explanation             │
+  │  ConditionSet  - concrete invariant violation → steerable region mapping  │
+  │  TransitionExplanation - human-readable structured explanation             │
   └──────────────────────────────────────────────────────────────────────────┘
 
 Exit criterion
@@ -62,7 +62,7 @@ class StateVariableKind(enum.StrEnum):
     High-level category of a tracked state variable.
 
     These categories mirror the state dimensions that matter for control-flow
-    steerability — i.e., variables whose values determine which CFG branch is
+    steerability - i.e., variables whose values determine which CFG branch is
     taken.
     """
 
@@ -83,27 +83,27 @@ class InvariantStrength(enum.StrEnum):
     """
     How strictly the program relies on an invariant remaining true.
 
-    MUST — the program crashes / panics if this is violated.
-    SHOULD — violation causes incorrect behaviour but not necessarily a crash.
-    MAY — soft assumption; violation causes divergence from the happy path.
+    MUST - the program crashes / panics if this is violated.
+    SHOULD - violation causes incorrect behaviour but not necessarily a crash.
+    MAY - soft assumption; violation causes divergence from the happy path.
     """
 
-    MUST   = "must"    # Safety invariant — violation = crash / assertion
-    SHOULD = "should"  # Correctness invariant — violation = logic error
-    MAY    = "may"     # Liveness invariant — violation = unexpected path
+    MUST   = "must"    # Safety invariant - violation = crash / assertion
+    SHOULD = "should"  # Correctness invariant - violation = logic error
+    MAY    = "may"     # Liveness invariant - violation = unexpected path
 
 
 class ConstraintKind(enum.StrEnum):
     """
     The logical role of a constraint in the steerability model.
 
-    PRECONDITION      — must hold *before* a transition fires.
-    POSTCONDITION     — must hold *after* a transition fires.
-    REACHABILITY      — structural: block B is reachable only if C holds.
-    EXCLUSION         — structural: blocks A and B cannot both be reachable.
-    TAINT_PROPAGATION — taint label X reaches variable Y under condition C.
-    LIFETIME          — object O must be alive at point P.
-    ORDERING          — event A must precede event B.
+    PRECONDITION      - must hold *before* a transition fires.
+    POSTCONDITION     - must hold *after* a transition fires.
+    REACHABILITY      - structural: block B is reachable only if C holds.
+    EXCLUSION         - structural: blocks A and B cannot both be reachable.
+    TAINT_PROPAGATION - taint label X reaches variable Y under condition C.
+    LIFETIME          - object O must be alive at point P.
+    ORDERING          - event A must precede event B.
     """
 
     PRECONDITION      = "precondition"
@@ -119,14 +119,14 @@ class SteerabilityClass(enum.StrEnum):
     """
     Classification of how externally steerable a target (or region) is.
 
-    DETERMINISTIC        — no external influence can alter the control-flow path.
-    CONDITIONALLY_STEERABLE — steerability requires ≥1 invariant violation.
-    INFLUENCE_PERMISSIVE — external input can select among CFG continuations
+    DETERMINISTIC        - no external influence can alter the control-flow path.
+    CONDITIONALLY_STEERABLE - steerability requires ≥1 invariant violation.
+    INFLUENCE_PERMISSIVE - external input can select among CFG continuations
                            with non-negligible probability, without invariant
                            violation.
-    FULLY_STEERABLE      — attacker has high-probability control over
+    FULLY_STEERABLE      - attacker has high-probability control over
                            multiple independent continuation choices.
-    UNKNOWN              — insufficient evidence to classify.
+    UNKNOWN              - insufficient evidence to classify.
     """
 
     DETERMINISTIC            = "deterministic"
@@ -140,7 +140,7 @@ class ViolationMechanism(enum.StrEnum):
     """
     How a state invariant could be violated in practice.
 
-    These are *observed* or *inferred* mechanisms — not exploit templates.
+    These are *observed* or *inferred* mechanisms - not exploit templates.
     """
 
     BOUNDARY_VIOLATION  = "boundary_violation"   # Index/offset outside valid range
@@ -221,7 +221,7 @@ class Invariant(EOSBaseModel):
         description="One-sentence description, e.g. 'ptr must not be NULL when entering allocate()'",
     )
 
-    # Formal predicate (optional — symbolic representation)
+    # Formal predicate (optional - symbolic representation)
     # Format: free-form Python/Z3-style expression string, e.g. "0 <= index < len(buf)"
     formal_predicate: str = Field(default="")
 
@@ -415,7 +415,7 @@ class SteerableRegion(EOSBaseModel):
     A CFG sub-region that becomes reachable under specific invariant violations.
 
     This is the 'new reachable region' that defines what steerability means
-    concretely for this target — the difference between normal and permissive
+    concretely for this target - the difference between normal and permissive
     execution space.
     """
 
@@ -474,7 +474,7 @@ class ConditionSet(EOSBaseModel):
     A ConditionSet is essentially a rule: "if ALL of these state conditions
     hold, then the execution enters the steerable region."
 
-    These are the deliverables the research calls for — testable predictions
+    These are the deliverables the research calls for - testable predictions
     of when normal execution becomes externally redirectable.
     """
 

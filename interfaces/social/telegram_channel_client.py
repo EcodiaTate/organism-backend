@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: Telegram Channel Client
+EcodiaOS - Social Interface: Telegram Channel Client
 
 Posts messages and images to a public Telegram channel on behalf of the organism.
 
@@ -11,7 +11,7 @@ containing:
     }
 
 Env var fallback:
-    ECODIAOS_TELEGRAM_CHANNEL_ID — public channel username (e.g. @ecodiaos) or numeric id
+    ECODIAOS_TELEGRAM_CHANNEL_ID - public channel username (e.g. @ecodiaos) or numeric id
 
 API:
     POST https://api.telegram.org/bot{token}/sendMessage
@@ -48,7 +48,7 @@ _MAX_CAPTION_CHARS = 1_024
 
 class TelegramChannelClient:
     """
-    Thin async HTTP client for Telegram Bot API — channel posting.
+    Thin async HTTP client for Telegram Bot API - channel posting.
 
     Credentials resolved from vault first, env var second.
     """
@@ -82,7 +82,7 @@ class TelegramChannelClient:
             disable_web_page_preview: Suppress link previews.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -121,7 +121,7 @@ class TelegramChannelClient:
             parse_mode: "Markdown" | "HTML" | "MarkdownV2".
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -200,7 +200,7 @@ class TelegramChannelClient:
         Resolve (bot_token, channel_id): vault envelope → env vars.
 
         Returns:
-            (bot_token, channel_id) — both empty strings on failure.
+            (bot_token, channel_id) - both empty strings on failure.
         """
         token = ""
         channel_id = ""

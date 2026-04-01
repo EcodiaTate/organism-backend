@@ -1,5 +1,5 @@
 """
-EcodiaOS — Benchmark Service
+EcodiaOS - Benchmark Service
 
 Collects five KPIs from live system health/stats endpoints on a configurable
 interval, persists snapshots to TimescaleDB, and fires BENCHMARK_REGRESSION
@@ -7,7 +7,7 @@ Synapse events when any metric regresses > threshold% from its rolling average.
 
 Design
 ──────
-• Pulls data from health() / stats endpoints — no direct imports of system internals.
+• Pulls data from health() / stats endpoints - no direct imports of system internals.
 • Each KPI collector is an isolated coroutine that handles its own errors.
 • Rolling average is computed from the last N snapshots stored in TimescaleDB.
 • Alert fires once per regression, then re-arms when the metric recovers.
@@ -198,13 +198,13 @@ class BenchmarkService:
         self._total_runs: int = 0
         self._total_regressions_fired: int = 0
 
-        # RE performance tracking — rolling 7-day window of per-decision outcomes.
+        # RE performance tracking - rolling 7-day window of per-decision outcomes.
         # Populated by _on_re_decision_outcome (RE_DECISION_OUTCOME subscription).
         self._re_outcomes: list[dict[str, Any]] = []
         # Total slow-path decisions in the 7-day window (for RE usage_pct).
         # Incremented each time any RE_DECISION_OUTCOME arrives (RE or Claude).
         self._total_decisions_7d: int = 0
-        # Latest computed RE performance snapshot — included in monthly eval payload.
+        # Latest computed RE performance snapshot - included in monthly eval payload.
         self._re_performance: dict[str, Any] = {
             "success_rate": 0.0,
             "usage_pct": 0.0,
@@ -247,11 +247,11 @@ class BenchmarkService:
 
         # ── Longitudinal tracker ──────────────────────────────────────────────
         # Captures Month 1 baseline and enables Month 1 vs Month N comparison.
-        # This is §6.4 — "the single most important result for the paper."
+        # This is §6.4 - "the single most important result for the paper."
         self._longitudinal = LongitudinalTracker(
             memory=None, instance_id=instance_id  # memory injected later
         )
-        # Monotonic month counter — independent of calendar month so that
+        # Monotonic month counter - independent of calendar month so that
         # Month 1 is always the first evaluation regardless of when it runs.
         self._current_month: int = 1
 
@@ -264,7 +264,7 @@ class BenchmarkService:
         )
 
         # ── Pillars 1–4 + §6.3 Memorization (Round 6) ────────────────────────
-        # Direct pillar evaluation using pillars.py — runs alongside (not replacing)
+        # Direct pillar evaluation using pillars.py - runs alongside (not replacing)
         # the EvaluationProtocol. Adds pillar1_* / pillar2_* / pillar3_* /
         # pillar4_* / memorization_* keys to result_dict each month.
         # Set via set_reasoning_engine() after initialize().
@@ -288,7 +288,7 @@ class BenchmarkService:
         self._re_training_batches_exported: int = 0
         self._re_training_episodes_total: int = 0
         self._re_training_last_mean_quality: float = 0.0
-        # Pillar 2 training embedding cache — populated once per monthly eval.
+        # Pillar 2 training embedding cache - populated once per monthly eval.
         self._cached_training_embeddings: list | None = None
 
         # ── Nexus epistemic KPI state ─────────────────────────────────────────
@@ -334,7 +334,7 @@ class BenchmarkService:
         self._crash_patterns_resolved: int = 0
         self._crash_pattern_confidence_sum: float = 0.0  # Running sum for rolling avg
 
-        # RE model health score trajectory — rolling 30-entry window of
+        # RE model health score trajectory - rolling 30-entry window of
         # (timestamp_iso, health_score) tuples.  Populated by BENCHMARK_RE_PROGRESS
         # events where kpi_name == "re_model.health_score".
         from collections import deque as _deque2
@@ -379,7 +379,7 @@ class BenchmarkService:
         # Fleet genome cache for Bedau-Packard monthly computation
         if hasattr(SynapseEventType, "CHILD_SPAWNED"):
             bus.subscribe(SynapseEventType.CHILD_SPAWNED, self._on_child_spawned_genome)
-        # Async genome response from organs/children — refreshes _fleet_genomes
+        # Async genome response from organs/children - refreshes _fleet_genomes
         if hasattr(SynapseEventType, "GENOME_EXTRACT_RESPONSE"):
             bus.subscribe(SynapseEventType.GENOME_EXTRACT_RESPONSE, self._on_genome_extract_response)
         # Live genome state refresh from child health reports
@@ -388,26 +388,26 @@ class BenchmarkService:
         # Domain episode ingestion → DomainKPICalculator
         if hasattr(SynapseEventType, "DOMAIN_EPISODE_RECORDED"):
             bus.subscribe(SynapseEventType.DOMAIN_EPISODE_RECORDED, self._on_domain_episode_recorded)
-        # Nexus epistemic value — accumulate per-observable-type scores for KPI tracking
+        # Nexus epistemic value - accumulate per-observable-type scores for KPI tracking
         if hasattr(SynapseEventType, "NEXUS_EPISTEMIC_VALUE"):
             bus.subscribe(SynapseEventType.NEXUS_EPISTEMIC_VALUE, self._on_nexus_epistemic_value)
-        # RE training export volume KPIs — RETrainingExporter emits this each hour
+        # RE training export volume KPIs - RETrainingExporter emits this each hour
         if hasattr(SynapseEventType, "RE_TRAINING_EXPORT_COMPLETE"):
             bus.subscribe(SynapseEventType.RE_TRAINING_EXPORT_COMPLETE, self._on_re_training_export_complete)
-        # Evo belief consolidation frequency — evolutionary fitness KPI
+        # Evo belief consolidation frequency - evolutionary fitness KPI
         if hasattr(SynapseEventType, "EVO_BELIEF_CONSOLIDATED"):
             bus.subscribe(SynapseEventType.EVO_BELIEF_CONSOLIDATED, self._on_evo_belief_consolidated)
-        # Evo genome extraction events — population genetics KPI
+        # Evo genome extraction events - population genetics KPI
         if hasattr(SynapseEventType, "EVO_GENOME_EXTRACTED"):
             bus.subscribe(SynapseEventType.EVO_GENOME_EXTRACTED, self._on_evo_genome_extracted)
-        # Economic gate denial rate — economic health KPI
+        # Economic gate denial rate - economic health KPI
         if hasattr(SynapseEventType, "ECONOMIC_ACTION_DEFERRED"):
             bus.subscribe(SynapseEventType.ECONOMIC_ACTION_DEFERRED, self._on_economic_action_deferred)
-        # Autonomous threshold adjustment — Evo (or any system) can push new sensitivity
+        # Autonomous threshold adjustment - Evo (or any system) can push new sensitivity
         # values via this event rather than requiring a code change or restart.
         if hasattr(SynapseEventType, "BENCHMARK_THRESHOLD_UPDATE"):
             bus.subscribe(SynapseEventType.BENCHMARK_THRESHOLD_UPDATE, self._on_threshold_update)
-        # PHANTOM_SUBSTRATE_OBSERVABLE — Bedau-Packard evolutionary observables
+        # PHANTOM_SUBSTRATE_OBSERVABLE - Bedau-Packard evolutionary observables
         # from Phantom Liquidity LP maintenance cycles. Each emission contains
         # pool-level activity counts that feed into the adaptive-activity measure.
         if hasattr(SynapseEventType, "PHANTOM_SUBSTRATE_OBSERVABLE"):
@@ -415,7 +415,7 @@ class BenchmarkService:
                 SynapseEventType.PHANTOM_SUBSTRATE_OBSERVABLE,
                 self._on_phantom_substrate_observable,
             )
-        # Learning trajectory KPIs — crash patterns + RE model health trajectory
+        # Learning trajectory KPIs - crash patterns + RE model health trajectory
         if hasattr(SynapseEventType, "CRASH_PATTERN_CONFIRMED"):
             bus.subscribe(
                 SynapseEventType.CRASH_PATTERN_CONFIRMED,
@@ -426,7 +426,7 @@ class BenchmarkService:
                 SynapseEventType.CRASH_PATTERN_RESOLVED,
                 self._on_crash_pattern_resolved,
             )
-        # RE model health trajectory — RE_TRAINING_EXPORT_COMPLETE triggers evaluation
+        # RE model health trajectory - RE_TRAINING_EXPORT_COMPLETE triggers evaluation
         # which re-emits BENCHMARK_RE_PROGRESS; subscribe to track health_score window
         # and compute learning_velocity.
         if hasattr(SynapseEventType, "BENCHMARK_RE_PROGRESS"):
@@ -515,7 +515,7 @@ class BenchmarkService:
         """Run a 5-pillar evaluation synchronously without advancing _current_month.
 
         Used by AblationOrchestrator to capture baseline and ablated scores.
-        Does NOT emit MONTHLY_EVALUATION_COMPLETE — this is a silent, on-demand call.
+        Does NOT emit MONTHLY_EVALUATION_COMPLETE - this is a silent, on-demand call.
         Returns a LongitudinalSnapshot with available pillar scores.
 
         Falls back gracefully if evaluation protocol is not initialised (stubs).
@@ -813,7 +813,7 @@ class BenchmarkService:
         """
         data = getattr(event, "data", {}) or {}
         system = str(data.get("system", "simula"))
-        # Strip 'system' key — remainder is the metrics payload
+        # Strip 'system' key - remainder is the metrics payload
         metrics = {k: v for k, v in data.items() if k != "system"}
         if metrics:
             await self.record_kpi(system=system, metrics=metrics)
@@ -903,7 +903,7 @@ class BenchmarkService:
         self._nexus_epistemic_totals[obs_type][1] += 1
         self._nexus_epistemic_cycle_total += value
 
-        # "local_epistemic_state" is emitted unconditionally every cycle —
+        # "local_epistemic_state" is emitted unconditionally every cycle -
         # use it as the end-of-cycle marker to emit the KPI snapshot.
         if obs_type != "local_epistemic_state":
             return
@@ -951,7 +951,7 @@ class BenchmarkService:
             except Exception as exc:
                 self._logger.debug("nexus_epistemic_kpi_emit_failed", error=str(exc))
 
-        # Roll over cycle totals — keep per-type accumulators (long-term means)
+        # Roll over cycle totals - keep per-type accumulators (long-term means)
         # but reset the within-cycle counter for the next divergence cycle.
         self._nexus_epistemic_prev_cycle_total = epistemic_value_per_cycle
         self._nexus_epistemic_cycle_total = 0.0
@@ -1067,7 +1067,7 @@ class BenchmarkService:
         """Track EVO_BELIEF_CONSOLIDATED as an evolutionary fitness KPI.
 
         Evo emits this at the end of Phase 2.75 (belief hardening). Each
-        consolidation compresses belief state — frequency and compression ratio
+        consolidation compresses belief state - frequency and compression ratio
         are Bedau-Packard-eligible evolutionary fitness signals.
 
         Payload: beliefs_consolidated (int), foundation_conflicts (int),
@@ -1206,12 +1206,12 @@ class BenchmarkService:
         Any field omitted from the payload leaves the corresponding threshold unchanged.
 
         Payload fields (all optional):
-          re_progress_min_improvement_pct (float) — min % drop in llm_dependency to emit
+          re_progress_min_improvement_pct (float) - min % drop in llm_dependency to emit
               BENCHMARK_RE_PROGRESS. Valid [0.5, 20.0]. Default 5.0.
-          metabolic_degradation_fraction (float) — how far below rolling mean triggers
+          metabolic_degradation_fraction (float) - how far below rolling mean triggers
               metabolic BENCHMARK_REGRESSION. Valid [0.02, 0.50]. Default 0.10.
-          source (str) — system that requested the change (audit log).
-          reason (str) — free-text rationale (audit log).
+          source (str) - system that requested the change (audit log).
+          reason (str) - free-text rationale (audit log).
         """
         data = getattr(event, "data", {}) or {}
         source = str(data.get("source", "unknown"))
@@ -1255,7 +1255,7 @@ class BenchmarkService:
             il_detections = int(data.get("il_detections", 0))
 
             # Contribute to the Bedau-Packard adaptive-activity accumulator.
-            # Each rebalance/detection counts as a distinct "state transition" —
+            # Each rebalance/detection counts as a distinct "state transition" -
             # the substrate-level activity measure Bedau-Packard quantifies.
             if hasattr(self._evo_tracker, "record_substrate_activity"):
                 await self._evo_tracker.record_substrate_activity(
@@ -1452,10 +1452,10 @@ class BenchmarkService:
         """Emit Synapse events when domain KPIs cross meaningful thresholds.
 
         Thresholds:
-          DOMAIN_MASTERY_DETECTED   — success_rate > 0.75
-          DOMAIN_PROFITABILITY_CONFIRMED — revenue_per_hour > $10
-          DOMAIN_PERFORMANCE_DECLINING  — declining trend with magnitude > 0.15
-          DOMAIN_KPI_SNAPSHOT       — always emitted for each active domain
+          DOMAIN_MASTERY_DETECTED   - success_rate > 0.75
+          DOMAIN_PROFITABILITY_CONFIRMED - revenue_per_hour > $10
+          DOMAIN_PERFORMANCE_DECLINING  - declining trend with magnitude > 0.15
+          DOMAIN_KPI_SNAPSHOT       - always emitted for each active domain
         """
         if self._event_bus is None:
             return
@@ -1557,7 +1557,7 @@ class BenchmarkService:
                     self._logger.debug("domain_decline_emit_failed", domain=domain, error=str(exc))
 
     async def _persist_domain_kpis_neo4j(self, domain_kpis: dict[str, Any]) -> None:
-        """Persist (:DomainKPI) nodes to Neo4j — one node per domain per day.
+        """Persist (:DomainKPI) nodes to Neo4j - one node per domain per day.
 
         Fire-and-forget: any exception is silently swallowed to not block the run loop.
         """
@@ -1727,7 +1727,7 @@ class BenchmarkService:
           1. Extract per-instance drive-weight vectors from the distribution data.
           2. Fingerprint each configuration (rounded to 2dp for stability).
           3. adaptive_activity_A = configs that are BOTH novel (not in prev snapshot)
-             AND still present (in current snapshot) — Bedau & Packard's definition
+             AND still present (in current snapshot) - Bedau & Packard's definition
              of adaptive, persistent novelty.
           4. constitutional_phenotype_divergence = mean per-drive variance across fleet.
           5. Persist a (:BedauPackardSample) node to Neo4j.
@@ -1915,10 +1915,10 @@ class BenchmarkService:
                 await self._check_sustained_llm_dependency()
                 await self._tag_episodes_for_re_training(snapshot)
                 await self._persist_regressed_to_redis()
-                # Domain KPI signals — emit threshold events + Neo4j persistence
+                # Domain KPI signals - emit threshold events + Neo4j persistence
                 await self._emit_domain_signals(snapshot.domain_kpis)
                 await self._persist_domain_kpis_neo4j(snapshot.domain_kpis)
-                # Domain pivot detection — notify Thread when primary domain changes
+                # Domain pivot detection - notify Thread when primary domain changes
                 if snapshot.primary_domain != self._prev_primary_domain:
                     self._logger.info(
                         "primary_domain_changed",
@@ -1933,7 +1933,7 @@ class BenchmarkService:
                                 data={
                                     "goal_description": (
                                         f"Primary specialization domain shifted to "
-                                        f"'{snapshot.primary_domain}' — "
+                                        f"'{snapshot.primary_domain}' - "
                                         f"adjust goal priorities accordingly"
                                     ),
                                     "priority": 0.6,
@@ -1971,13 +1971,13 @@ class BenchmarkService:
         """Run the full 5-pillar evaluation pipeline immediately.
 
         Used by AblationOrchestrator and manual CLI invocations.
-        Does NOT increment self._current_month — this is a read-only
+        Does NOT increment self._current_month - this is a read-only
         evaluation pass that does not advance the monotonic counter.
 
         Returns a LongitudinalSnapshot on success; raises on failure.
         """
         if self._evaluation_protocol is None or self._test_set_manager is None:
-            raise RuntimeError("BenchmarkService not fully initialized — call initialize() first")
+            raise RuntimeError("BenchmarkService not fully initialized - call initialize() first")
 
         eval_month = month if month is not None else self._current_month
         test_sets = await self._test_set_manager.load_all()
@@ -1987,7 +1987,7 @@ class BenchmarkService:
         )
 
         # Build LongitudinalSnapshot without persisting (non-destructive evaluation pass).
-        # We pass re_performance but do not write to Neo4j — that only happens in the
+        # We pass re_performance but do not write to Neo4j - that only happens in the
         # scheduled monthly loop which increments _current_month.
         snap = await self._longitudinal.record_month(
             month=eval_month,
@@ -2270,7 +2270,7 @@ class BenchmarkService:
 
                 # ── Longitudinal tracking (§6.4) ──────────────────────────
                 # Record this month's snapshot and compare to Month 1 baseline.
-                # Returns {"no_baseline": True} on first month — graceful.
+                # Returns {"no_baseline": True} on first month - graceful.
                 try:
                     long_snap = await self._longitudinal.record_month(
                         month=self._current_month,
@@ -2297,7 +2297,7 @@ class BenchmarkService:
                     result_dict.setdefault("longitudinal_comparison", {"no_baseline": True})
 
                 # ── Pillars 1–4 + §6.3 Memorization (bible §6.2–6.3) ─────────
-                # Direct evaluation via pillars.py — additive alongside EvaluationProtocol.
+                # Direct evaluation via pillars.py - additive alongside EvaluationProtocol.
                 # All pillar calls are non-fatal: any exception logged, monthly eval continues.
                 if self._reasoning_engine and self._test_sets:
                     try:
@@ -2305,7 +2305,7 @@ class BenchmarkService:
                         if self._test_sets.get("domain_test") and self._test_sets.get("general_test"):
                             spec = await measure_specialization(
                                 self._reasoning_engine,
-                                self._reasoning_engine,  # custom vs base (same — Claude fallback exposed internally)
+                                self._reasoning_engine,  # custom vs base (same - Claude fallback exposed internally)
                                 self._test_sets["domain_test"],
                                 self._test_sets["general_test"],
                             )
@@ -2452,7 +2452,7 @@ class BenchmarkService:
     ) -> None:
         """Fire-and-forget: write (:MonthlyEvaluation) node to Neo4j.
 
-        Never blocks the monthly eval loop — any exception is swallowed.
+        Never blocks the monthly eval loop - any exception is swallowed.
         """
         try:
             neo4j = getattr(self._memory, "_neo4j", None)
@@ -2534,7 +2534,7 @@ class BenchmarkService:
             "consolidation_count": 0,
         }
 
-        # Domain KPIs — computed from accumulated EpisodeRecord history
+        # Domain KPIs - computed from accumulated EpisodeRecord history
         domain_data = await self._collect_domain_kpis()
         domain_kpis = domain_data["domain_kpis"]
         primary_domain = domain_data["primary_domain"]
@@ -2615,7 +2615,7 @@ class BenchmarkService:
         except InvalidOperation:
             raise ValueError(f"Oikos returned non-numeric values: {raw}")
         if costs == Decimal("0"):
-            return None, raw  # No expenses yet — ratio undefined
+            return None, raw  # No expenses yet - ratio undefined
         return float(round(revenue / costs, 4)), raw
 
     async def _collect_learning_rate(self) -> tuple[float | None, dict[str, Any]]:
@@ -2640,13 +2640,13 @@ class BenchmarkService:
         # Read previous cumulative value from TimescaleDB
         prev = await self._latest_raw_value("learning_rate_cumulative")
         if prev is None:
-            # First run — store baseline, return 0 (no confirmed in this window)
+            # First run - store baseline, return 0 (no confirmed in this window)
             await self._store_auxiliary("learning_rate_cumulative", float(supported_total))
             return 0.0, raw
 
         prev_int = int(prev)
         if supported_total < prev_int:
-            # Evo was restarted — counter reset. Re-baseline without penalising.
+            # Evo was restarted - counter reset. Re-baseline without penalising.
             await self._store_auxiliary("learning_rate_cumulative", float(supported_total))
             raw["evo_restart_detected"] = True
             raw["delta"] = 0
@@ -2680,7 +2680,7 @@ class BenchmarkService:
 
     async def _collect_effective_intelligence_ratio(self) -> tuple[float | None, dict[str, Any]]:
         """
-        Telos effective_I — nominal_I scaled by all four drive multipliers.
+        Telos effective_I - nominal_I scaled by all four drive multipliers.
 
         Telos.health() exposes last_effective_I directly.
         """
@@ -2758,7 +2758,7 @@ class BenchmarkService:
     async def _ensure_schema(self) -> None:
         """Create benchmark_snapshots table (and hypertable if TimescaleDB available).
 
-        Spec ref: Appendix A — includes bedau_packard and evolutionary_fitness columns.
+        Spec ref: Appendix A - includes bedau_packard and evolutionary_fitness columns.
         Uses ALTER TABLE ADD COLUMN IF NOT EXISTS to handle existing tables that
         pre-date these columns.
         """
@@ -2899,7 +2899,7 @@ class BenchmarkService:
                 )
                 await self._fire_regression_event(regression)
             elif not is_regressed and kpi in self._regressed:
-                # Metric has recovered — re-arm and emit recovery event
+                # Metric has recovered - re-arm and emit recovery event
                 regressed_since = self._regressed_at.pop(kpi, 0.0)
                 duration = time.monotonic() - regressed_since if regressed_since else 0.0
                 self._regressed.discard(kpi)
@@ -3033,7 +3033,7 @@ class BenchmarkService:
 
         # No decline means recent >= older (llm_dependency not going down)
         if recent_avg >= older_avg:
-            # Only fire once — check if already in _regressed
+            # Only fire once - check if already in _regressed
             stall_key = "llm_dependency_trend"
             if stall_key not in self._regressed:
                 self._regressed.add(stall_key)
@@ -3053,7 +3053,7 @@ class BenchmarkService:
                     snapshots=len(values),
                 )
         else:
-            # RE is improving — re-arm
+            # RE is improving - re-arm
             stall_key = "llm_dependency_trend"
             if stall_key in self._regressed:
                 regressed_since = self._regressed_at.pop(stall_key, 0.0)
@@ -3198,9 +3198,9 @@ class BenchmarkService:
 
         Parameters
         ──────────
-        metric  — one of the five KPI names
-        since   — optional start time (defaults to 7 days ago)
-        limit   — max number of points (newest first)
+        metric  - one of the five KPI names
+        since   - optional start time (defaults to 7 days ago)
+        limit   - max number of points (newest first)
         """
         if metric not in _KPI_NAMES:
             raise ValueError(f"Unknown benchmark metric: {metric!r}. Valid: {_KPI_NAMES}")
@@ -3275,12 +3275,12 @@ class BenchmarkService:
         Non-numeric values in the batch dict are stored as their hash modulo 1_000_000
         so the DOUBLE PRECISION column can accept them.
 
-        Spec ref: §26.2 — fixes batch callers whose data was silently discarded.
+        Spec ref: §26.2 - fixes batch callers whose data was silently discarded.
         """
         pairs: list[tuple[str, float]] = []
 
         if metrics is not None:
-            # Batch path — Simula and Synapse
+            # Batch path - Simula and Synapse
             for k, v in metrics.items():
                 if isinstance(v, bool):
                     pairs.append((f"{system}.{k}", float(v)))
@@ -3291,7 +3291,7 @@ class BenchmarkService:
                     pairs.append((f"{system}.{k}", float(abs(hash(v)) % 1_000_000)))
                 # None / complex types skipped silently
         elif metric is not None and value is not None:
-            # Single-metric path — Soma
+            # Single-metric path - Soma
             pairs.append((f"{system}.{metric}", float(value)))
 
         for key, fval in pairs:

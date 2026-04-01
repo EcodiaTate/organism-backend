@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Topological Analyzer (Persistent Homology)
+EcodiaOS - Soma Topological Analyzer (Persistent Homology)
 
 The persistence diagram encodes the *shape* of healthy behavior. Novel
 pathologies that have never been seen before still register as topological

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Allostatic Feedback Loop Definitions
+EcodiaOS - Soma Allostatic Feedback Loop Definitions
 
 Defines the 15 allostatic feedback loops from Spec Section XI.
 
@@ -8,7 +8,7 @@ Each loop follows the pattern:
   error change → propagate to System Y
 
 This module ONLY defines the loop topology and the error signals each
-consuming system would use. It does NOT wire the other systems — the
+consuming system would use. It does NOT wire the other systems - the
 executive rewiring step (Step 4 in the EcodiaOS roadmap) handles the
 receiving end. Soma's job is to expose the loop definitions and emit
 the right error signals on each cycle.

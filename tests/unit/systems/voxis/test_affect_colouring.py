@@ -144,7 +144,7 @@ class TestHonestyCheck:
     ) -> None:
         affect = make_affect(valence=0.6, coherence_stress=0.1)
         passed, detail = engine.check_authenticity(
-            "That's wonderful news — I'm really glad to hear it.", affect
+            "That's wonderful news - I'm really glad to hear it.", affect
         )
         assert passed is True
         assert detail is None

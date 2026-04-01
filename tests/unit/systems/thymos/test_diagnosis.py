@@ -86,7 +86,7 @@ class TestCausalAnalyzer:
         # Record a memory incident first
         mem_incident = _make_incident(source_system="memory")
         analyzer.record_incident(mem_incident)
-        # Now trace nova failure — memory is upstream of nova
+        # Now trace nova failure - memory is upstream of nova
         nova_incident = _make_incident(source_system="nova")
         chain = await analyzer.trace_root_cause(nova_incident)
         assert chain.root_system == "memory"
@@ -141,7 +141,7 @@ class TestTemporalCorrelator:
             details="Memory restarted",
             system_id="memory",
         )
-        # Create an incident at "now" — the event should correlate
+        # Create an incident at "now" - the event should correlate
         incident = _make_incident()
         result = correlator.correlate(incident, window_s=60.0)
         assert len(result) >= 1

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Developmental Stage System
+EcodiaOS - Soma Developmental Stage System
 
 Manages the organism's maturation through five stages, each unlocking
 progressively more sophisticated interoceptive capabilities.
@@ -10,7 +10,7 @@ Stage transitions are triggered by measurable milestones:
   DELIBERATIVE → REFLECTIVE:  cycle_count > 1M AND bifurcation_count >= 2
   REFLECTIVE → GENERATIVE:    manual_promotion OR novel_attractor_discovered
 
-Stages never regress — once the organism reaches a stage, it stays.
+Stages never regress - once the organism reaches a stage, it stays.
 """
 
 from __future__ import annotations

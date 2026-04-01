@@ -136,7 +136,7 @@ def _is_stale_maintenance_goal(
     """
     Return True if this goal should be suppressed on load.
 
-    A maintenance goal is stale — and should not enter active memory — when:
+    A maintenance goal is stale - and should not enter active memory - when:
       1. source = MAINTENANCE
       2. created_at is older than `stale_minutes`
       3. the target system is currently healthy (per Synapse's last known record)
@@ -152,12 +152,12 @@ def _is_stale_maintenance_goal(
     if age.total_seconds() < stale_minutes * 60:
         return False
     if health_records is None:
-        # Can't confirm health — load the goal conservatively.
+        # Can't confirm health - load the goal conservatively.
         return False
     from systems.synapse.types import SystemStatus
     record = health_records.get(goal.target_domain)
     if record is None:
-        # Unknown system — suppress (no active incident to monitor).
+        # Unknown system - suppress (no active incident to monitor).
         return True
     return record.status == SystemStatus.HEALTHY
 
@@ -170,7 +170,7 @@ async def load_active_goals(
     Load active and suspended goals from Neo4j on startup.
 
     Maintenance goals older than 30 minutes whose target system is currently
-    healthy are filtered out before returning — they represent stale recovery
+    healthy are filtered out before returning - they represent stale recovery
     monitors from prior sessions and must not fill active capacity.
     Suppressed goals are immediately marked completed in Neo4j so they don't
     re-appear on the next boot.

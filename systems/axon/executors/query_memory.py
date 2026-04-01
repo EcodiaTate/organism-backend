@@ -1,5 +1,5 @@
 """
-EcodiaOS — Query Memory Executor
+EcodiaOS - Query Memory Executor
 
 Queries the organism's Neo4j memory graph for knowledge retrieval.
 This is a read-only executor that retrieves structured knowledge
@@ -98,7 +98,7 @@ class QueryMemoryGraphExecutor(Executor):
                 raw = await self._memory.recent_episodes(limit=limit)
                 results = raw if isinstance(raw, list) else []
 
-            # RE trace only — AXON_EXECUTION_RESULT is the canonical aggregate.
+            # RE trace only - AXON_EXECUTION_RESULT is the canonical aggregate.
             await self._emit_re_trace(context, params, success=True, result_count=len(results))
 
             return ExecutionResult(
@@ -162,7 +162,7 @@ class QueryMemoryGraphExecutor(Executor):
                 quality_reason = "query succeeded with results"
             elif success and result_count == 0:
                 quality = 0.5
-                quality_reason = "query succeeded but returned no results — possible knowledge gap"
+                quality_reason = "query succeeded but returned no results - possible knowledge gap"
             else:
                 quality = 0.0
                 quality_reason = f"query failed: {error[:80]}"
@@ -182,7 +182,7 @@ class QueryMemoryGraphExecutor(Executor):
                 )
             if result_count == 0 and success:
                 alternatives.append(
-                    "Alternative: broaden query constraints or use semantic fallback — zero results may indicate memory gap or overly specific filters"
+                    "Alternative: broaden query constraints or use semantic fallback - zero results may indicate memory gap or overly specific filters"
                 )
                 alternatives.append(
                     "Alternative: trigger memory consolidation (trigger_consolidation executor) if episodic → schema compression may have removed relevant nodes"
@@ -203,7 +203,7 @@ class QueryMemoryGraphExecutor(Executor):
                 counterfactual = (
                     f"If the memory query had succeeded, the organism would have retrieved grounded "
                     f"context to inform its next action. Failure means the subsequent step proceeds "
-                    f"from prior belief alone — increasing the risk of a hallucinated or stale response."
+                    f"from prior belief alone - increasing the risk of a hallucinated or stale response."
                 )
 
             equor_alignment = getattr(context.equor_check, "drive_alignment", None) if context.equor_check is not None else None

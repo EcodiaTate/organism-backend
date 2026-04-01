@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Knowledge Exchange
+EcodiaOS - Federation Knowledge Exchange
 
 Orchestrates the consent-based sharing of knowledge between federated
 instances. All sharing follows a request-response protocol:
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from systems.federation.reputation_staking import ReputationStakingManager
     from systems.memory.service import MemoryService
 
-# Lazy import — exchange collectors live in the same federation package.
+# Lazy import - exchange collectors live in the same federation package.
 # We defer to avoid circular imports at module load time.
 def _get_exchange_collectors() -> tuple[Any, Any]:
     from systems.federation.exchange import collect_hypotheses, collect_procedures  # noqa: PLC0415
@@ -419,7 +419,7 @@ class KnowledgeExchangeManager:
         """
         Retrieve learned procedures from Evo via the IIEP collector.
 
-        Delegates to ``collect_procedures()`` in exchange.py — single source of
+        Delegates to ``collect_procedures()`` in exchange.py - single source of
         truth for procedure serialisation.  Returns ``[]`` if Evo is not wired.
 
         References: Spec 11b §5.1 (PROCEDURES knowledge type), §VIII Fix #11
@@ -436,7 +436,7 @@ class KnowledgeExchangeManager:
             )
             items: list[KnowledgeItem] = []
             for p in payloads:
-                # domain filter — skip if domain provided and doesn't match
+                # domain filter - skip if domain provided and doesn't match
                 if domain and p.domain and domain.lower() not in p.domain.lower():
                     continue
                 items.append(KnowledgeItem(
@@ -456,7 +456,7 @@ class KnowledgeExchangeManager:
         """
         Retrieve active hypotheses from Evo via the IIEP collector.
 
-        Delegates to ``collect_hypotheses()`` in exchange.py — single source of
+        Delegates to ``collect_hypotheses()`` in exchange.py - single source of
         truth for hypothesis serialisation.  Returns ``[]`` if Evo is not wired.
 
         References: Spec 11b §5.1 (HYPOTHESES knowledge type), §VIII Fix #11

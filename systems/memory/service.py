@@ -1,5 +1,5 @@
 """
-EcodiaOS — Memory Service
+EcodiaOS - Memory Service
 
 The single interface to the knowledge graph. Every other system
 reads from and writes to memory through this service.
@@ -79,19 +79,19 @@ class MemoryService:
         self._neo4j = neo4j
         self._embedding = embedding_client
         self._instance_id: str | None = None
-        # Episode sequence tracking — links consecutive episodes with FOLLOWED_BY
+        # Episode sequence tracking - links consecutive episodes with FOLLOWED_BY
         self._last_episode_id: str | None = None
         self._last_episode_time: float | None = None  # monotonic seconds
         # P4: track last percept event_time for event_time-based gap calculation
         self._last_event_time: Any = None  # datetime | None
         # Soma for somatic marker stamping and reranking
         self._soma: Any = None
-        # Event bus — wired after Synapse is up via set_event_bus()
+        # Event bus - wired after Synapse is up via set_event_bus()
         self._event_bus: Any = None
-        # Financial encoder — wired after Synapse is up via set_event_bus()
+        # Financial encoder - wired after Synapse is up via set_event_bus()
         self._financial_encoder = FinancialEncoder(neo4j, embedding_client)
 
-        # Metabolic starvation level — AUSTERITY: halt consolidation,
+        # Metabolic starvation level - AUSTERITY: halt consolidation,
         # EMERGENCY: read-only, CRITICAL: cache-only
         self._starvation_level: str = "nominal"
 
@@ -132,7 +132,7 @@ class MemoryService:
             SynapseEventType.EQUOR_CONSTITUTIONAL_SNAPSHOT,
             self._on_equor_constitutional_snapshot,
         )
-        # Degradation Engine §8.2 — stub subscription.
+        # Degradation Engine §8.2 - stub subscription.
         # Round 2 will implement: apply fidelity_loss_rate decay to Episode.salience
         # for all unconsolidated episodes older than affected_episode_age_hours.
         event_bus.subscribe(
@@ -203,7 +203,7 @@ class MemoryService:
         Actions:
           1. Write a (:ConstitutionalSnapshot) node linked to (:Self) in Neo4j
              so Thread can walk constitutional evolution history.
-          2. Track compliance drift — if the new overall_compliance_score drops
+          2. Track compliance drift - if the new overall_compliance_score drops
              more than 0.1 below the last seen value, emit SELF_STATE_DRIFTED so
              Equor can acknowledge the constitutional health decline.
         """
@@ -277,12 +277,12 @@ class MemoryService:
         self._last_compliance_score = compliance_score
 
     async def _on_memory_degradation(self, event: Any) -> None:
-        """Degradation Engine §8.2 — decay salience on old unconsolidated episodes.
+        """Degradation Engine §8.2 - decay salience on old unconsolidated episodes.
 
         Queries Neo4j for episodes older than affected_episode_age_hours that have
         not yet been consolidated (is_compressed=false). Multiplies their salience
         by (1 - fidelity_loss_rate). Episodes that fall below 0.01 are soft-deleted
-        (decayed=true) — the organism has genuinely forgotten them.
+        (decayed=true) - the organism has genuinely forgotten them.
         """
         data = getattr(event, "data", {}) or {}
         fidelity_loss_rate = float(data.get("fidelity_loss_rate", 0.0))
@@ -432,7 +432,7 @@ class MemoryService:
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply modulation directives from VitalityCoordinator.
 
-        Memory directive: {"mode": "read_only"} — suspend all writes to the
+        Memory directive: {"mode": "read_only"} - suspend all writes to the
         knowledge graph to protect the substrate during austerity.
         """
         mode = directives.get("mode")
@@ -1077,8 +1077,8 @@ class MemoryService:
         identity substrate records the affective history of its own conscience.
 
         Fields written:
-          last_conscience_activation — ISO timestamp of the most recent Equor review
-          avg_compliance_score       — rolling 24h mean composite alignment (EMA, α=0.05)
+          last_conscience_activation - ISO timestamp of the most recent Equor review
+          avg_compliance_score       - rolling 24h mean composite alignment (EMA, α=0.05)
 
         The EMA keeps the score stable across high-volume review cycles while
         remaining sensitive to sustained constitutional drift.
@@ -1114,7 +1114,7 @@ class MemoryService:
         Update the Self node's personality vector based on confirmed Evo hypothesis
         outcomes and Equor drive drift.
 
-        Personality is not static — it is the organism's learned behavioral
+        Personality is not static - it is the organism's learned behavioral
         tendency, shaped by what actually works (hypothesis confirmation) and
         what the drives reward (constitutional alignment deltas).
 
@@ -1122,10 +1122,10 @@ class MemoryService:
         and by Equor/Telos when drive alignment drift exceeds a threshold.
 
         `hypothesis_outcome` keys:
-            - drive_deltas: dict[str, float]  — Coherence/Care/Growth/Honesty deltas
-            - personality_dims: dict[str, float] — named dims to nudge (optional)
-            - confidence: float — weighting of the update (0–1)
-            - source: str — "evo_hypothesis" | "equor_drift"
+            - drive_deltas: dict[str, float]  - Coherence/Care/Growth/Honesty deltas
+            - personality_dims: dict[str, float] - named dims to nudge (optional)
+            - confidence: float - weighting of the update (0–1)
+            - source: str - "evo_hypothesis" | "equor_drift"
 
         The update is recorded as a DriveWeightHistoryEntry on the Self node
         so `export_genome()` can export the full drift history.
@@ -1307,7 +1307,7 @@ class MemoryService:
             except Exception:
                 logger.debug("belief_consolidated_emit_failed", exc_info=True)
 
-        # Emit MEMORY_CONSOLIDATED — Logos subscribes for distillation rescoring
+        # Emit MEMORY_CONSOLIDATED - Logos subscribes for distillation rescoring
         if self._event_bus is not None:
             try:
                 import uuid as _uuid
@@ -1426,7 +1426,7 @@ class MemoryService:
 
         return examples
 
-    # ─── Expression Episodes (AV3 — Voxis public API) ─────────────
+    # ─── Expression Episodes (AV3 - Voxis public API) ─────────────
 
     async def store_expression_episode(
         self,
@@ -1443,7 +1443,7 @@ class MemoryService:
 
         Replaces direct `from systems.memory.episodic import store_episode` calls
         in voxis/service.py (AV3). Provides somatic stamping, temporal chain
-        linking, and EPISODE_STORED emission — all missing when Voxis bypassed
+        linking, and EPISODE_STORED emission - all missing when Voxis bypassed
         the service layer.
 
         Returns the episode ID.
@@ -1536,7 +1536,7 @@ class MemoryService:
 
         return episode_id
 
-    # ─── Counterfactual Episodes (AV4 — Nova public API) ──────────
+    # ─── Counterfactual Episodes (AV4 - Nova public API) ──────────
 
     async def store_counterfactual_episode(self, record: Any) -> str:
         """
@@ -1634,7 +1634,7 @@ class MemoryService:
             result.append((ep, entities, causal_refs))
         return result
 
-    # ─── Read Queries (AV6 — API router public API) ────────────────
+    # ─── Read Queries (AV6 - API router public API) ────────────────
 
     async def get_recent_episodes(
         self,
@@ -1701,7 +1701,7 @@ class MemoryService:
         from systems.memory.semantic import get_entity as _get_entity
         return await _get_entity(self._neo4j, entity_id)
 
-    # ─── Genome Export (SG1 — Mitosis public API) ─────────────────
+    # ─── Genome Export (SG1 - Mitosis public API) ─────────────────
 
     async def export_genome(self) -> dict[str, Any]:
         """
@@ -1737,7 +1737,7 @@ class MemoryService:
 
         return segment.model_dump(mode="json")
 
-    # ─── Re-embedding (P9 — placeholder episodes) ────────────────
+    # ─── Re-embedding (P9 - placeholder episodes) ────────────────
 
     async def reembed_pending_nodes(self, batch_size: int = 50) -> int:
         """
@@ -1849,7 +1849,7 @@ class MemoryService:
             node_count = graph_stats.get("node_count", 0)
             hyp_count = graph_stats.get("hypothesis_count", 0)
 
-            # Episode utilization — fraction of capacity used (pressure_threshold = 10000)
+            # Episode utilization - fraction of capacity used (pressure_threshold = 10000)
             utilization = min(1.0, ep_count / 10000.0)
 
             await self._emit_evolutionary_observable(
@@ -1904,7 +1904,7 @@ class MemoryService:
     def get_neo4j(self) -> Any:
         """
         Return the raw Neo4j client for use by Nova's internal persistence
-        modules (GoalStore, BeliefUpdater). Do not call from other systems —
+        modules (GoalStore, BeliefUpdater). Do not call from other systems -
         all cross-system writes must go through MemoryService public methods.
         """
         return self._neo4j

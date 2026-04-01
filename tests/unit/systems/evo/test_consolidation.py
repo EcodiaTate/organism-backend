@@ -155,7 +155,7 @@ class TestShouldRun:
         ) is True
 
 
-# ─── Tests: Phase 2 — Hypothesis Review ──────────────────────────────────────
+# ─── Tests: Phase 2 - Hypothesis Review ──────────────────────────────────────
 
 
 class TestHypothesisReview:
@@ -244,7 +244,7 @@ class TestHypothesisReview:
         assert archived == 1
 
 
-# ─── Tests: Phase 5 — Parameter Optimisation ─────────────────────────────────
+# ─── Tests: Phase 5 - Parameter Optimisation ─────────────────────────────────
 
 
 class TestParameterOptimisation:

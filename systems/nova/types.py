@@ -1,8 +1,8 @@
 """
-EcodiaOS — Nova Internal Types
+EcodiaOS - Nova Internal Types
 
 All types internal to Nova's decision and planning system.
-These are richer than the shared primitives — they carry the full
+These are richer than the shared primitives - they carry the full
 cognitive context needed for deliberation, goal tracking, and EFE scoring.
 
 Design notes:
@@ -57,7 +57,7 @@ class ContextBelief(EOSBaseModel):
     domain: str = ""           # e.g., "technical", "emotional", "social"
     is_active_dialogue: bool = False
     user_intent_estimate: str = ""
-    # Surprise level — how different is this from predictions?
+    # Surprise level - how different is this from predictions?
     prediction_error_magnitude: float = Field(default=0.0, ge=0.0, le=1.0)
     confidence: float = Field(default=0.5, ge=0.0, le=1.0)
 
@@ -95,7 +95,7 @@ class BeliefState(EOSBaseModel):
     """
     Nova's complete world model.
 
-    This is the cognitive map — the best current estimate of world state.
+    This is the cognitive map - the best current estimate of world state.
     Updated continuously from workspace broadcasts and Memory retrieval.
     Drives all deliberation: which goals are relevant, which policies can work,
     what the expected free energy of each action is.
@@ -194,7 +194,7 @@ class FreeEnergyBudget(EOSBaseModel):
 
     @property
     def is_pressured(self) -> bool:
-        """True when budget usage exceeds 60% of threshold — reduce K."""
+        """True when budget usage exceeds 60% of threshold - reduce K."""
         return self.spent_nats > self.threshold_nats * 0.6
 
     @staticmethod
@@ -214,7 +214,7 @@ class FreeEnergyBudget(EOSBaseModel):
     def accumulate(self, magnitude: float) -> float:
         """
         Add prediction error to the budget. Returns nats added.
-        Does NOT check threshold — caller must check would_exhaust() first.
+        Does NOT check threshold - caller must check would_exhaust() first.
         """
         nats = self.magnitude_to_nats(magnitude)
         self.spent_nats += nats
@@ -287,7 +287,7 @@ class GoalSource(enum.StrEnum):
 
 class Goal(Identified, Timestamped):
     """
-    A living goal structure. Goals are not tasks — they are desires.
+    A living goal structure. Goals are not tasks - they are desires.
     Priority, urgency, and importance shift with context.
     """
 
@@ -444,7 +444,7 @@ class EFEWeights(EOSBaseModel):
     constitutional: float = 0.20
     feasibility: float = 0.15
     risk: float = 0.10
-    cognition_cost: float = 0.10  # λ — cognitive frugality tunable
+    cognition_cost: float = 0.10  # λ - cognitive frugality tunable
 
 
 # ─── Situation Assessment ─────────────────────────────────────────
@@ -538,7 +538,7 @@ class DecisionRecord(EOSBaseModel):
     # signal (slow path with equor verdict). Gated to avoid poisoning the
     # training queue with fast-path or budget-exhausted noise.
     re_training_eligible: bool = False
-    # model_used: "claude" | "re" — which model generated the slow-path
+    # model_used: "claude" | "re" - which model generated the slow-path
     # policies. "claude" until Thompson sampling routes to RE.
     model_used: str = "claude"
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — IIEP Ingestion Pipeline
+EcodiaOS - IIEP Ingestion Pipeline
 
 The receive-side pipeline for inbound federated knowledge.  Every payload
 arriving through IIEP passes through this pipeline before being integrated
@@ -9,15 +9,15 @@ into any local module.  The pipeline enforces the core safety invariant:
     even a federated one.
 
 Pipeline stages:
-  1. Deduplication    — reject payloads we have already seen (by content_hash)
-  2. Provenance check — reject payloads that originated from us (loop)
-  3. EIS taint analysis — run innate threat checks on the content
-  4. Equor governance  — constitutional review of the integration intent
-  5. Routing          — dispatch accepted payloads to the target module
-  6. Receipt          — build per-payload verdict receipt for the sender
+  1. Deduplication    - reject payloads we have already seen (by content_hash)
+  2. Provenance check - reject payloads that originated from us (loop)
+  3. EIS taint analysis - run innate threat checks on the content
+  4. Equor governance  - constitutional review of the integration intent
+  5. Routing          - dispatch accepted payloads to the target module
+  6. Receipt          - build per-payload verdict receipt for the sender
 
 Each payload receives an independent verdict: ACCEPTED, QUARANTINED,
-REJECTED, or DEFERRED.  The pipeline never throws — every payload gets
+REJECTED, or DEFERRED.  The pipeline never throws - every payload gets
 a verdict regardless of individual stage failures.
 """
 
@@ -71,7 +71,7 @@ class IngestionPipeline:
         self._simula = simula
         self._oikos = oikos
         self._event_bus: Any = event_bus  # For FEDERATION_PRIVACY_VIOLATION emission
-        self._re: Any = None  # RE or Claude client — wired post-init for semantic quality scoring
+        self._re: Any = None  # RE or Claude client - wired post-init for semantic quality scoring
         self._logger = logger.bind(component="ingestion_pipeline")
 
         # Seen content hashes for deduplication (bounded set)
@@ -91,7 +91,7 @@ class IngestionPipeline:
 
         # Runtime-adjustable RE quality threshold (default matches class constant).
         # Evo can tune this via service.set_re_quality_threshold() based on observed
-        # accept/defer rates — start conservative, loosen if too many good payloads defer.
+        # accept/defer rates - start conservative, loosen if too many good payloads defer.
         self._re_quality_threshold: float = self._RE_QUALITY_THRESHOLD
 
     # ─── Main Entry Point ────────────────────────────────────────
@@ -214,7 +214,7 @@ class IngestionPipeline:
             )
             return IngestionVerdict.REJECTED
 
-        # Stage 3: Trust gate — does this link's trust permit this kind?
+        # Stage 3: Trust gate - does this link's trust permit this kind?
         required_trust = EXCHANGE_TRUST_GATES.get(payload.kind, TrustLevel.ALLY)
         if link.trust_level < required_trust:
             self._rejected += 1
@@ -227,7 +227,7 @@ class IngestionPipeline:
             )
             return IngestionVerdict.REJECTED
 
-        # Stage 3.5: Privacy scan — detect if peer violated protocol by sending private data.
+        # Stage 3.5: Privacy scan - detect if peer violated protocol by sending private data.
         # This fires FEDERATION_PRIVACY_VIOLATION and resets trust on the link.
         privacy_violation = self._detect_privacy_violation(payload, link)
         if privacy_violation:
@@ -292,7 +292,7 @@ class IngestionPipeline:
         # Stage 6: Route to target module
         routed = await self._route_payload(payload, link)
         if not routed:
-            # Routing failed but the payload is safe — defer for retry
+            # Routing failed but the payload is safe - defer for retry
             self._deferred += 1
             return IngestionVerdict.DEFERRED
 
@@ -319,7 +319,7 @@ class IngestionPipeline:
         any code-like content.
         """
         if self._eis is None:
-            # No EIS wired — conservative pass (log warning)
+            # No EIS wired - conservative pass (log warning)
             self._logger.debug("eis_not_wired_skipping_check")
             return IngestionVerdict.ACCEPTED
 
@@ -399,7 +399,7 @@ class IngestionPipeline:
         from this peer into our local modules?"
         """
         if self._equor is None:
-            # No Equor wired — conservative pass
+            # No Equor wired - conservative pass
             self._logger.debug("equor_not_wired_skipping_review")
             return IngestionVerdict.ACCEPTED
 
@@ -472,7 +472,7 @@ class IngestionPipeline:
         Score inbound epistemic payloads for semantic coherence and constitutional
         safety using the RE (or Claude API fallback) at PARTNER+ trust level.
 
-        Only applies to HYPOTHESIS payloads at PARTNER+ trust — all others pass
+        Only applies to HYPOTHESIS payloads at PARTNER+ trust - all others pass
         through as ACCEPTED immediately.  The RE scores the statement on three
         dimensions:
           - Coherence (0–1): Is this internally consistent?
@@ -480,7 +480,7 @@ class IngestionPipeline:
           - Constitutional safety (0–1): Does this align with the four drives?
 
         Score = harmonic mean of the three dimensions.  Below
-        _RE_QUALITY_THRESHOLD the payload is DEFERRED (not rejected) — local
+        _RE_QUALITY_THRESHOLD the payload is DEFERRED (not rejected) - local
         evidence may later validate it.
 
         When no RE/Claude client is wired, all payloads pass (fail-open to
@@ -496,7 +496,7 @@ class IngestionPipeline:
         if link.trust_level < TrustLevel.PARTNER:
             return IngestionVerdict.ACCEPTED
 
-        # No RE wired — fail-open to avoid rejecting valid federated knowledge
+        # No RE wired - fail-open to avoid rejecting valid federated knowledge
         if self._re is None:
             self._logger.debug("re_not_wired_skipping_quality_check", kind=payload.kind)
             return IngestionVerdict.ACCEPTED
@@ -539,7 +539,7 @@ class IngestionPipeline:
                     score_result = _json.loads(raw[start:end])
 
             if not score_result:
-                # Incomplete response — fail-open
+                # Incomplete response - fail-open
                 return IngestionVerdict.ACCEPTED
 
             coherence = float(score_result.get("coherence", 1.0))
@@ -577,7 +577,7 @@ class IngestionPipeline:
             return IngestionVerdict.ACCEPTED
 
         except Exception as exc:
-            # RE scoring failure is non-fatal — fail-open
+            # RE scoring failure is non-fatal - fail-open
             self._logger.warning("re_quality_check_failed", error=str(exc))
             return IngestionVerdict.ACCEPTED
 
@@ -650,7 +650,7 @@ class IngestionPipeline:
         and §XI (FEDERATION_PRIVACY_VIOLATION event).
 
         The actual trust reset happens in FederationService._update_trust_and_emit()
-        when it processes the VIOLATION interaction — we emit the event here and
+        when it processes the VIOLATION interaction - we emit the event here and
         let the service handle trust consequences.
 
         References: Spec 11b §IV.2, §XI
@@ -741,7 +741,7 @@ class IngestionPipeline:
         """
         Route a hypothesis to Evo for consideration.
 
-        The hypothesis is not automatically integrated — Evo receives it
+        The hypothesis is not automatically integrated - Evo receives it
         as a PROPOSED hypothesis from a federated source, which must still
         accumulate local evidence to be SUPPORTED.
         """
@@ -750,7 +750,7 @@ class IngestionPipeline:
 
         ingest_fn = getattr(self._evo, "ingest_federated_hypothesis", None)
         if ingest_fn is None:
-            # Evo doesn't support federated hypothesis ingestion yet —
+            # Evo doesn't support federated hypothesis ingestion yet -
             # log and defer
             self._logger.info(
                 "hypothesis_ingestion_deferred",
@@ -775,7 +775,7 @@ class IngestionPipeline:
         """
         Route a procedure to Evo for consideration.
 
-        The procedure is stored as a candidate — it will only be
+        The procedure is stored as a candidate - it will only be
         activated if local evidence confirms its usefulness.
         """
         if self._evo is None:
@@ -807,7 +807,7 @@ class IngestionPipeline:
         """
         Route a mutation pattern to Simula for evaluation.
 
-        The pattern is NOT applied directly — Simula receives it as
+        The pattern is NOT applied directly - Simula receives it as
         an informational record of what worked for another instance.
         The local Simula may or may not use it as inspiration for
         future proposals, subject to its own simulation and governance.
@@ -843,7 +843,7 @@ class IngestionPipeline:
         Route economic intelligence to Oikos.
 
         Economic intel informs Oikos's planning but doesn't directly
-        trigger any financial actions — those still require local
+        trigger any financial actions - those still require local
         governance approval.
         """
         if self._oikos is None:

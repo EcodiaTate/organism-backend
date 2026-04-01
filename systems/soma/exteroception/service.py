@@ -1,5 +1,5 @@
 """
-EcodiaOS — Exteroception Service
+EcodiaOS - Exteroception Service
 
 Top-level coordinator for the Cross-Modal Synesthesia layer. Manages a
 set of exteroceptive adapters, routes their readings through the mapping
@@ -12,11 +12,11 @@ Architecture:
   ExteroceptiveMappingEngine which produces an ExteroceptivePressure.
   This pressure is injected into SomaService via two channels:
 
-  1. ``inject_external_stress(ambient_stress)`` — the existing scalar
+  1. ``inject_external_stress(ambient_stress)`` - the existing scalar
      channel, maintaining backward compatibility with the original
      ExternalVolatilitySensor.
 
-  2. ``inject_exteroceptive_pressure(pressure)`` — a new method on
+  2. ``inject_exteroceptive_pressure(pressure)`` - a new method on
      SomaService that applies per-dimension pressure deltas to the
      interoceptor's next sense() pass.
 
@@ -27,7 +27,7 @@ Architecture:
 Iron Rules:
   - Never called from the theta cycle.
   - All adapter fetches are bounded by per-adapter timeout.
-  - Any adapter failure is isolated — other adapters continue.
+  - Any adapter failure is isolated - other adapters continue.
   - No LLM calls, no DB writes.
   - The entire poll-and-map pass must complete within _OUTER_TIMEOUT_S.
 

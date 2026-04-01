@@ -1,5 +1,5 @@
 """
-Fovea — Precision Weight Computer
+Fovea - Precision Weight Computer
 
 Implements the precision weighting from active inference.
 
@@ -39,13 +39,13 @@ class PrecisionWeightComputer:
     Derives per-dimension precision weights from the world model's
     per-dimension historical accuracy and context stability.
 
-    Spec 20 §3.4 — P1: each error dimension gets an independent precision weight:
+    Spec 20 §3.4 - P1: each error dimension gets an independent precision weight:
         precision_i = dim_accuracy(context_type, dim_i) ** 2 + stability_bonus
         stability_bonus = min(context_age / 1000, 0.3)
 
     Different prediction types have different historical accuracy within the same
     context: content errors may be 70% accurate while causal errors are 30%.
-    Uniform precision would over-discount reliable dimensions — per-dimension
+    Uniform precision would over-discount reliable dimensions - per-dimension
     tracking correctly amplifies precise dimensions and dampens noisy ones.
     """
 

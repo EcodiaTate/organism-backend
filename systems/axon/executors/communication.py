@@ -1,18 +1,18 @@
 """
-EcodiaOS — Axon Communication Executors
+EcodiaOS - Axon Communication Executors
 
 Communication executors send messages to people. They range from Level 1
 (responding in an active conversation) to Level 2 (pushing unsolicited notifications).
 
-RespondTextExecutor  — (Level 1) route text response through Voxis for personality rendering
-NotificationExecutor — (Level 2) send a push notification to a user or group
-PostMessageExecutor  — (Level 2) post to X or LinkedIn via sovereign IdentityVault connectors
+RespondTextExecutor  - (Level 1) route text response through Voxis for personality rendering
+NotificationExecutor - (Level 2) send a push notification to a user or group
+PostMessageExecutor  - (Level 2) post to X or LinkedIn via sovereign IdentityVault connectors
 
-These executors are not reversible — you cannot un-send a message.
+These executors are not reversible - you cannot un-send a message.
 This asymmetry is intentional: communication has real effects in the world.
 Nova and Equor bear full responsibility for approving communication intents.
 
-All communication is routed through Voxis for personality rendering —
+All communication is routed through Voxis for personality rendering -
 Axon never sends raw text directly to users.
 """
 
@@ -151,7 +151,7 @@ class NotificationExecutor(Executor):
     Send a push notification to a user or group of users.
 
     Level 2: Sending unsolicited notifications requires PARTNER autonomy.
-    EOS should use these sparingly — notification overload undermines trust
+    EOS should use these sparingly - notification overload undermines trust
     and Care. Equor should scrutinise notification intents carefully.
 
     Required params:
@@ -169,7 +169,7 @@ class NotificationExecutor(Executor):
     required_autonomy = 2
     reversible = False
     max_duration_ms = 5000
-    rate_limit = RateLimit.per_hour(10)  # Strict — notification spam is harmful
+    rate_limit = RateLimit.per_hour(10)  # Strict - notification spam is harmful
 
     def __init__(self, redis_client: Any = None) -> None:
         self._redis = redis_client
@@ -438,7 +438,7 @@ class PostMessageExecutor(Executor):
                 return ExecutionResult(success=False, error=err)
 
             if resp.status_code == 401 and attempt == 1:
-                # ── Self-healing: token was rejected — refresh and retry ──
+                # ── Self-healing: token was rejected - refresh and retry ──
                 self._logger.warning(
                     "post_message_401_refreshing",
                     platform=platform,
@@ -517,7 +517,7 @@ class PostMessageExecutor(Executor):
                 ],
             )
 
-        # Should be unreachable — the loop always returns on attempt 2.
+        # Should be unreachable - the loop always returns on attempt 2.
         return ExecutionResult(success=False, error="Unexpected retry exhaustion")
 
     # ── Helpers ───────────────────────────────────────────────────

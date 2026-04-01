@@ -369,7 +369,7 @@ class TestMEVAnalyzerProperties:
     async def test_analyze_returns_report_on_error(self):
         """Even if internal analysis raises, a conservative report is returned."""
         analyzer = make_analyzer()
-        # This should not raise — errors are caught internally
+        # This should not raise - errors are caught internally
         report = await analyzer.analyze(
             to="",  # Invalid but shouldn't crash
             data="",

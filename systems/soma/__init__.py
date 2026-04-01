@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma (Interoceptive Predictive Substrate)
+EcodiaOS - Soma (Interoceptive Predictive Substrate)
 
 The organism's felt sense of being alive. Predicts internal states,
 computes allostatic errors, and emits signals that drive regulation.

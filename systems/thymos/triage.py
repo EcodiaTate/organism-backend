@@ -1,10 +1,10 @@
 """
-EcodiaOS — Thymos Triage Layer (Classification & Prioritization)
+EcodiaOS - Thymos Triage Layer (Classification & Prioritization)
 
 When sentinels produce Incidents, Triage determines what to do with them:
-  1. Deduplicate — same fingerprint within a window → increment, don't duplicate
-  2. Score severity — composite scoring using blast radius, recurrence, impact
-  3. Route response — severity → initial repair tier
+  1. Deduplicate - same fingerprint within a window → increment, don't duplicate
+  2. Score severity - composite scoring using blast radius, recurrence, impact
+  3. Route response - severity → initial repair tier
 """
 
 from __future__ import annotations
@@ -32,11 +32,11 @@ logger = structlog.get_logger()
 # Per-class dedup windows: how long before the same fingerprint
 # creates a new incident instead of incrementing the existing one
 _DEDUP_WINDOWS: dict[IncidentClass, float] = {
-    IncidentClass.CRASH: 60.0,  # 1 minute — crashes are loud
-    IncidentClass.DEGRADATION: 300.0,  # 5 minutes — slow issues need observation
-    IncidentClass.CONTRACT_VIOLATION: 30.0,  # 30 seconds — may be transient
-    IncidentClass.LOOP_SEVERANCE: 3600.0,  # 1 hour — structural, slow to resolve
-    IncidentClass.DRIFT: 3600.0,  # 1 hour — drift is slow by definition
+    IncidentClass.CRASH: 60.0,  # 1 minute - crashes are loud
+    IncidentClass.DEGRADATION: 300.0,  # 5 minutes - slow issues need observation
+    IncidentClass.CONTRACT_VIOLATION: 30.0,  # 30 seconds - may be transient
+    IncidentClass.LOOP_SEVERANCE: 3600.0,  # 1 hour - structural, slow to resolve
+    IncidentClass.DRIFT: 3600.0,  # 1 hour - drift is slow by definition
     IncidentClass.PREDICTION_FAILURE: 300.0,  # 5 minutes
     IncidentClass.RESOURCE_EXHAUSTION: 120.0,  # 2 minutes
     IncidentClass.COGNITIVE_STALL: 600.0,  # 10 minutes
@@ -119,7 +119,7 @@ class IncidentDeduplicator:
             age_s = (incident.timestamp - last_seen).total_seconds()
 
             if age_s <= window_s:
-                # Duplicate — increment existing
+                # Duplicate - increment existing
                 existing_incident.occurrence_count += 1
                 self._active[incident.fingerprint] = (
                     existing_incident,
@@ -150,7 +150,7 @@ class IncidentDeduplicator:
 
                 return None
             else:
-                # Window expired — treat as new, but carry forward history
+                # Window expired - treat as new, but carry forward history
                 incident.first_seen = existing_incident.first_seen or existing_incident.timestamp
                 incident.occurrence_count = existing_incident.occurrence_count + 1
 
@@ -200,11 +200,11 @@ class SeverityScorer:
     Composite severity scoring that refines the sentinel's initial assessment.
 
     Considers:
-    1. Blast radius (0.25) — fraction of systems affected
-    2. Recurrence velocity (0.20) — how fast is occurrence_count growing?
-    3. Constitutional impact (0.25) — max impact across all four drives
-    4. User visibility (0.15) — binary but high weight
-    5. Self-healing potential (0.15) — inverse of how likely auto-fix is
+    1. Blast radius (0.25) - fraction of systems affected
+    2. Recurrence velocity (0.20) - how fast is occurrence_count growing?
+    3. Constitutional impact (0.25) - max impact across all four drives
+    4. User visibility (0.15) - binary but high weight
+    5. Self-healing potential (0.15) - inverse of how likely auto-fix is
     """
 
     def __init__(self) -> None:
@@ -260,7 +260,7 @@ class SeverityScorer:
         """
         history = self._recurrence_history.get(incident.fingerprint, [])
         if len(history) < 2:
-            # Single event — low velocity unless high count
+            # Single event - low velocity unless high count
             return min(1.0, incident.occurrence_count / 100.0)
 
         first_ts, first_count = history[0]
@@ -278,14 +278,14 @@ class SeverityScorer:
         """
         How likely can we auto-fix this? Higher = easier to heal.
 
-        Based on incident class — some classes are inherently easier
+        Based on incident class - some classes are inherently easier
         to fix automatically than others.
         """
         potentials: dict[IncidentClass, float] = {
             IncidentClass.CRASH: 0.3,  # Need diagnosis, often novel
             IncidentClass.DEGRADATION: 0.5,  # Parameter tweaks often work
             IncidentClass.CONTRACT_VIOLATION: 0.6,  # Often transient
-            IncidentClass.LOOP_SEVERANCE: 0.2,  # Structural — hard to auto-fix
+            IncidentClass.LOOP_SEVERANCE: 0.2,  # Structural - hard to auto-fix
             IncidentClass.DRIFT: 0.7,  # Parameter adjustments
             IncidentClass.PREDICTION_FAILURE: 0.4,  # Needs model update
             IncidentClass.RESOURCE_EXHAUSTION: 0.8,  # Rebalance resources
@@ -345,7 +345,7 @@ class ResponseRouter:
 
         # Masking-loop detection: an incident that has occurred more than
         # _RECURRENCE_T4_THRESHOLD times and whose first_seen is within the
-        # recurrence window is not being resolved — low-tier "fixes" are only
+        # recurrence window is not being resolved - low-tier "fixes" are only
         # masking it.  Force T4 so Simula gets a chance to patch the root cause.
         #
         # For internal AttributeErrors (structural bugs that won't self-resolve),

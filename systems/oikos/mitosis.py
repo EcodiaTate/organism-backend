@@ -1,5 +1,5 @@
 """
-EcodiaOS — Mitosis Engine (Phase 16e: Speciation & Fleet Growth)
+EcodiaOS - Mitosis Engine (Phase 16e: Speciation & Fleet Growth)
 
 Reproduction is not a quantity play. Each child instance exists because there
 is a SPECIFIC ECOLOGICAL NICHE it is adapted to fill.
@@ -12,7 +12,7 @@ The MitosisEngine:
   4. Tracks child health, dividend payments, rescue events, and independence.
 
 Architecture:
-  - The engine is stateless logic — all state lives in OikosService's
+  - The engine is stateless logic - all state lives in OikosService's
     EconomicState (child_instances list) and DividendRecord history.
   - The niche-identification strategy is neuroplastic: Evo can hot-swap
     BaseMitosisStrategy subclasses at runtime via NeuroplasticityBus.
@@ -168,7 +168,7 @@ class MitosisEngine:
     """
     Evaluates reproductive fitness, scores niches, and builds seed configs.
 
-    This is pure logic — no I/O, no wallet calls, no container orchestration.
+    This is pure logic - no I/O, no wallet calls, no container orchestration.
     The actual spawning is handled by SpawnChildExecutor in Axon.
     """
 
@@ -483,7 +483,7 @@ class MitosisEngine:
         if child.current_runway_days < struggling_threshold:
             if child.is_rescuable:
                 return ChildStatus.STRUGGLING
-            return ChildStatus.DEAD  # Unrescuable — graceful death
+            return ChildStatus.DEAD  # Unrescuable - graceful death
 
         return ChildStatus.ALIVE
 

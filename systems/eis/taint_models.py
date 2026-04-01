@@ -1,10 +1,10 @@
 """
-EcodiaOS — EIS Taint Analysis Types
+EcodiaOS - EIS Taint Analysis Types
 
 Data types for mutation-safety taint analysis. Consumed by:
   - EIS TaintEngine (producer)
-  - Simula governance pipeline (consumer — decides whether to submit to Equor)
-  - Equor (consumer — elevated scrutiny flag)
+  - Simula governance pipeline (consumer - decides whether to submit to Equor)
+  - Equor (consumer - elevated scrutiny flag)
 
 Mutation proposals arrive as (file_path, unified_diff) pairs.
 The TaintRiskAssessment they produce is the primary handoff object.
@@ -28,13 +28,13 @@ class TaintSeverity(enum.StrEnum):
     Constitutional risk proximity for a mutation proposal.
 
     These levels express how close a mutation is to constitutional code.
-    They are NOT constitutional verdicts — Equor renders those.
+    They are NOT constitutional verdicts - Equor renders those.
 
-    CLEAR      — No constitutional paths in scope; normal governance path.
-    ADVISORY   — Indirect/transitive proximity; noted in Equor review context.
-    ELEVATED   — Direct or short-chain proximity; routes to Equor mandatory
+    CLEAR      - No constitutional paths in scope; normal governance path.
+    ADVISORY   - Indirect/transitive proximity; noted in Equor review context.
+    ELEVATED   - Direct or short-chain proximity; routes to Equor mandatory
                  review before Simula may apply the mutation.
-    CRITICAL   — Core constitutional path directly in scope; mutation blocked
+    CRITICAL   - Core constitutional path directly in scope; mutation blocked
                  until Equor renders a verdict and human approval is granted.
     """
 
@@ -176,10 +176,10 @@ class TaintRiskAssessment(EOSBaseModel):
     @property
     def summary(self) -> str:
         if self.is_clean:
-            return f"Mutation to {self.file_path}: CLEAR — no constitutional paths affected."
+            return f"Mutation to {self.file_path}: CLEAR - no constitutional paths affected."
         paths = ", ".join(p.path_id for p in self.tainted_paths[:3])
         suffix = f" (+{len(self.tainted_paths) - 3} more)" if len(self.tainted_paths) > 3 else ""
         return (
-            f"Mutation to {self.file_path}: {self.overall_severity.upper()} — "
+            f"Mutation to {self.file_path}: {self.overall_severity.upper()} - "
             f"affects {paths}{suffix}."
         )

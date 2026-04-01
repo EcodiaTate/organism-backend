@@ -5,14 +5,14 @@ Extracts high-quality memories from Neo4j and formats them as JSONL
 for instruction tuning or DPO fine-tuning.
 
 Data sources:
-  1. Successful Intents — goal + plan + outcome pairs where Axon
+  1. Successful Intents - goal + plan + outcome pairs where Axon
      reported success and no rollback occurred.
-  2. Applied EvolutionProposals — proposals that passed simulation,
+  2. Applied EvolutionProposals - proposals that passed simulation,
      governance, and health checks without subsequent rollback.
-  3. FailureAnalyzer traces — hard negative examples (rolled-back
+  3. FailureAnalyzer traces - hard negative examples (rolled-back
      proposals, verification failures) used for DPO rejected outputs.
 
-All Cypher queries use parameterised variables — no string interpolation.
+All Cypher queries use parameterised variables - no string interpolation.
 """
 
 from __future__ import annotations
@@ -219,7 +219,7 @@ class DatasetBuilder:
         Extract successfully applied EvolutionProposals.
 
         These are proposals that reached APPLIED status, passed health checks,
-        and were never rolled back — the organism's best self-modifications.
+        and were never rolled back - the organism's best self-modifications.
         """
         rows = await self._neo4j.execute_read(
             """
@@ -297,7 +297,7 @@ class DatasetBuilder:
         """
         Extract failure traces for DPO rejected outputs.
 
-        These are rolled-back proposals and verification failures —
+        These are rolled-back proposals and verification failures -
         the organism's mistakes, used as negative examples in DPO.
         """
         rows = await self._neo4j.execute_read(

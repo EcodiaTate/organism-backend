@@ -1,5 +1,5 @@
 """
-EcodiaOS — Thread Diachronic Coherence Monitor
+EcodiaOS - Thread Diachronic Coherence Monitor
 
 Detects whether the organism's identity is drifting or growing.
 Uses 29-dimensional behavioural fingerprints and Wasserstein distance
@@ -11,11 +11,11 @@ it aligns with active schemas and recent turning points, but "drift" if
 it contradicts commitments with no narrative explanation.
 
 Fingerprint layout (29D):
-  [0:9]   personality        — from Voxis (9D)
-  [9:13]  drive_alignment    — from Equor/Soma (4D)
-  [13:19] affect             — from Atune (6D)
-  [19:24] goal_profile       — from Nova goals (5D)
-  [24:29] economic_identity  — from Oikos events (5D, new)
+  [0:9]   personality        - from Voxis (9D)
+  [9:13]  drive_alignment    - from Equor/Soma (4D)
+  [13:19] affect             - from Atune (6D)
+  [19:24] goal_profile       - from Nova goals (5D)
+  [24:29] economic_identity  - from Oikos events (5D, new)
     [24] economic_strategy       [-1=capital preservation, +1=aggressive growth]
     [25] economic_risk_tolerance [0=conservative, 1=risk-seeking]
     [26] revenue_stream_diversity [0=single source, 1=fully diversified]
@@ -118,7 +118,7 @@ class DiachronicCoherenceMonitor:
 
     @property
     def baseline_fingerprint(self) -> BehavioralFingerprint | None:
-        """The earliest fingerprint in the buffer — the comparison baseline."""
+        """The earliest fingerprint in the buffer - the comparison baseline."""
         return self._fingerprints[0] if self._fingerprints else None
 
     async def compute_fingerprint(
@@ -385,7 +385,7 @@ class DiachronicCoherenceMonitor:
 
         total = conservative_count + risky_count
         if total == 0:
-            return 0.5  # Unknown — default to neutral
+            return 0.5  # Unknown - default to neutral
         return min(1.0, risky_count / total)
 
     def _compute_diversification_dimension(

@@ -1,17 +1,17 @@
 """
-EcodiaOS — Federation System
+EcodiaOS - Federation System
 
-The Federation Protocol governs how EOS instances relate to each other —
+The Federation Protocol governs how EOS instances relate to each other -
 as sovereign entities that can choose to share knowledge, coordinate action,
 and build relationships.
 
 Work Pooling (Phase 2):
-  TaskDelegationManager — delegate discrete tasks to trusted peers with USDC payment
-  BountySplitter        — decompose large bounties into N sub-tasks for co-solving
-  ResourceSharingManager — compute offloading when CPU > 85%
-  YieldPoolManager      — pool capital for large yield positions (trust ≥ 0.9)
-  FederationMarketplace — post/bid/rate tasks via Redis pub/sub
-  WorkRouter            — Nexus-aware specialisation-based task routing
+  TaskDelegationManager - delegate discrete tasks to trusted peers with USDC payment
+  BountySplitter        - decompose large bounties into N sub-tasks for co-solving
+  ResourceSharingManager - compute offloading when CPU > 85%
+  YieldPoolManager      - pool capital for large yield positions (trust ≥ 0.9)
+  FederationMarketplace - post/bid/rate tasks via Redis pub/sub
+  WorkRouter            - Nexus-aware specialisation-based task routing
 """
 
 from systems.federation.bounty_splitting import BountySplitter

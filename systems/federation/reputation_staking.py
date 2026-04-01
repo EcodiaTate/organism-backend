@@ -1,17 +1,17 @@
 """
-EcodiaOS — Federation Reputation Staking
+EcodiaOS - Federation Reputation Staking
 
 Manages cryptoeconomic bonds attached to federated knowledge claims.
 When this instance shares knowledge outbound, a USDC bond proportional
 to claim certainty is escrowed on-chain. If a remote instance later
-contradicts the claim with evidence, the bond is forfeited — turning
+contradicts the claim with evidence, the bond is forfeited - turning
 the Honesty drive into a Schelling-point economic mechanism.
 
 Bond lifecycle:
-  1. CREATE  — knowledge shared → USDC transferred to escrow address
-  2. ACTIVE  — bond lives until expiry or contradiction
-  3. FORFEIT — contradiction detected → USDC sent to remote instance
-  4. RECOVER — bond expires without contradiction → USDC returned to treasury
+  1. CREATE  - knowledge shared → USDC transferred to escrow address
+  2. ACTIVE  - bond lives until expiry or contradiction
+  3. FORFEIT - contradiction detected → USDC sent to remote instance
+  4. RECOVER - bond expires without contradiction → USDC returned to treasury
 
 This is the enforcement arm of the Honesty drive in the federation
 context. It makes truthfulness economically rational by creating a
@@ -266,7 +266,7 @@ class ReputationStakingManager:
             )
 
             if similarity < self._contradiction_similarity_threshold:
-                continue  # Different topic — not a contradiction
+                continue  # Different topic - not a contradiction
 
             # Same topic detected. Check for content divergence.
             # If the content hash is identical, it's reinforcement.
@@ -537,7 +537,7 @@ class ReputationStakingManager:
         """
         Compute bond amount: base_bond * certainty * tier_discount.
 
-        Higher trust levels get a discount — honest behavior is rewarded
+        Higher trust levels get a discount - honest behavior is rewarded
         with lower bonding costs.
         """
         tier_key = link.trust_level.name
@@ -570,7 +570,7 @@ class ReputationStakingManager:
     def _extract_words(content: dict[str, Any]) -> set[str]:
         """Extract unique lowercase words from a content dict for overlap analysis."""
         text = json.dumps(content, default=str).lower()
-        # Simple word extraction — split on non-alphanumeric
+        # Simple word extraction - split on non-alphanumeric
         words: set[str] = set()
         current: list[str] = []
         for ch in text:

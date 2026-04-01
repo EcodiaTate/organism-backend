@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nova EFE Evaluator
+EcodiaOS - Nova EFE Evaluator
 
 Computes Expected Free Energy for each candidate policy.
 
@@ -12,12 +12,12 @@ The full EFE decomposition (from the spec and Friston et al.):
 All positive components are negated (lower total = preferred).
 
 The six components:
-1. Pragmatic value    (0.35) — probability of achieving the goal state
-2. Epistemic value    (0.20) — expected information gain (Growth drive)
-3. Constitutional     (0.20) — alignment with drive weights (constitutional fit)
-4. Feasibility        (0.15) — can we actually do this given our capabilities?
-5. Risk               (0.10) — expected harm if we're wrong (positive = increases EFE)
-6. Cognition cost (λ) (0.10) — metabolic cost of deliberating (positive = increases EFE)
+1. Pragmatic value    (0.35) - probability of achieving the goal state
+2. Epistemic value    (0.20) - expected information gain (Growth drive)
+3. Constitutional     (0.20) - alignment with drive weights (constitutional fit)
+4. Feasibility        (0.15) - can we actually do this given our capabilities?
+5. Risk               (0.10) - expected harm if we're wrong (positive = increases EFE)
+6. Cognition cost (λ) (0.10) - metabolic cost of deliberating (positive = increases EFE)
 
 Weights start at spec defaults; Evo adjusts them over time as evidence accumulates.
 
@@ -100,7 +100,7 @@ class EFEEvaluator:
         self._optimized = isinstance(llm, OptimizedLLMProvider)
         self._heuristics = EFEHeuristics()
         self._validator = OutputValidator()
-        # Logos world model — used to ground pragmatic/epistemic evaluation
+        # Logos world model - used to ground pragmatic/epistemic evaluation
         # in the organism's actual generative model predictions
         self._logos: Any = None
 
@@ -357,7 +357,7 @@ class EFEEvaluator:
                 )
                 # Assign a neutral EFE on failure so it doesn't block selection
                 safe_score = EFEScore(
-                    total=0.0, reasoning="Evaluation failed — using neutral score"
+                    total=0.0, reasoning="Evaluation failed - using neutral score"
                 )
             else:
                 safe_score = score
@@ -611,5 +611,3 @@ def _identify_uncertain_domains(beliefs: BeliefState) -> str:
         if ib.valence_confidence < 0.3:
             uncertain.append(f"emotional state of {iid}")
     return "; ".join(uncertain) if uncertain else "no specific uncertainties identified"
-
-

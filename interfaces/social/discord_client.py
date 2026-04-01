@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: Discord Channel Client
+EcodiaOS - Social Interface: Discord Channel Client
 
 Posts messages and images to a Discord channel on behalf of the organism.
 
@@ -11,8 +11,8 @@ containing:
     }
 
 Env var fallback:
-    ECODIAOS_DISCORD_CHANNEL_ID — Discord channel ID (numeric)
-    ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN — bot token
+    ECODIAOS_DISCORD_CHANNEL_ID - Discord channel ID (numeric)
+    ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN - bot token
 
 API:
     POST https://discord.com/api/v10/channels/{channel_id}/messages
@@ -49,7 +49,7 @@ _MAX_EMBED_DESCRIPTION = 4_096
 
 class DiscordClient:
     """
-    Thin async HTTP client for Discord Bot API — channel posting.
+    Thin async HTTP client for Discord Bot API - channel posting.
 
     Credentials resolved from vault first, env var second.
     """
@@ -78,7 +78,7 @@ class DiscordClient:
             channel_id: Discord channel ID (numeric). Falls back to ECODIAOS_DISCORD_CHANNEL_ID.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -112,7 +112,7 @@ class DiscordClient:
             channel_id: Discord channel ID; falls back to env var.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -156,7 +156,7 @@ class DiscordClient:
             duration_hours: Poll duration in hours (1-168, default 24).
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -210,7 +210,7 @@ class DiscordClient:
             channel_id: Discord channel ID; falls back to env var.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token, default_channel = self._load_credentials()
         if not token:
@@ -224,7 +224,7 @@ class DiscordClient:
             text = text[: _MAX_MESSAGE_CHARS - 1] + "…"
 
         # For file attachments from URL, Discord requires downloading and re-uploading.
-        # This is a limitation of Discord's API — we'll use an embed link instead.
+        # This is a limitation of Discord's API - we'll use an embed link instead.
         # If you need actual file uploads, the bot would need to download from file_url first.
         payload: dict[str, Any] = {
             "content": text,
@@ -298,7 +298,7 @@ class DiscordClient:
         Resolve (bot_token, channel_id): vault envelope → env vars.
 
         Returns:
-            (bot_token, channel_id) — both empty strings on failure.
+            (bot_token, channel_id) - both empty strings on failure.
         """
         token = ""
         channel_id = ""

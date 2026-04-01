@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Contradiction Detector
+EcodiaOS - Equor Contradiction Detector
 
 Before approving any intent, check whether its goal and plan contradict
 high-confidence hypotheses that Evo has accumulated.
@@ -11,15 +11,15 @@ A contradiction is detected when:
     goal/plan and the hypothesis statement or formal_test.
 
 Design constraints:
-  - Pure CPU, no I/O — called on the hot path inside compute_verdict().
+  - Pure CPU, no I/O - called on the hot path inside compute_verdict().
   - Hypotheses are passed in from EquorService (cached; not fetched here).
-  - Returns a list of ContradictionResult — one per detected conflict.
+  - Returns a list of ContradictionResult - one per detected conflict.
   - A non-empty return causes the caller to downgrade APPROVED → DEFERRED
     (not BLOCKED, because the hypothesis may itself be wrong).
 
 Terminology:
-  "hypothesis" — a tested belief from Evo with evidence_score > threshold.
-  "contradiction" — the intent goal/plan is logically inconsistent with
+  "hypothesis" - a tested belief from Evo with evidence_score > threshold.
+  "contradiction" - the intent goal/plan is logically inconsistent with
     the hypothesis statement.
 """
 
@@ -148,7 +148,7 @@ def check_contradictions(
       - formal_test: str
       - evidence_score: float
       - supporting_episodes: list[str]  (or supporting_episode_count: int)
-      - status: str  — "supported" | "integrated"
+      - status: str  - "supported" | "integrated"
 
     Returns a (possibly empty) list of ContradictionResults.
     Called from compute_verdict() before the Stage 7 APPROVED decision.

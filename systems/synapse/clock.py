@@ -1,5 +1,5 @@
 """
-EcodiaOS — Cognitive Cycle Clock
+EcodiaOS - Cognitive Cycle Clock
 
 The beating heart of EOS. Drives Atune's workspace cycle on every theta tick,
 with arousal-modulated adaptive timing.
@@ -46,7 +46,7 @@ logger = structlog.get_logger("systems.synapse.clock")
 # Callback signature for per-cycle post-processing
 CycleCallback = Callable[[CycleResult], Coroutine[Any, Any, None]]
 
-# Error recovery backoff (ms) — clock backs off on failure, never dies
+# Error recovery backoff (ms) - clock backs off on failure, never dies
 _ERROR_BACKOFF_MS: float = 500.0
 
 # Soma degradation thresholds (spec §15.4)
@@ -67,7 +67,7 @@ class CognitiveClock:
     The theta rhythm that drives EOS's stream of consciousness.
 
     Every tick triggers one workspace cycle in Atune. Arousal from
-    the organism's affect state modulates the cycle period — high arousal
+    the organism's affect state modulates the cycle period - high arousal
     means faster cycles (more alert), low arousal means slower cycles
     (more reflective, energy-conserving).
 
@@ -106,7 +106,7 @@ class CognitiveClock:
         self._current_arousal: float = 0.1
         self._arousal_alpha: float = 0.1  # EMA smoothing factor
 
-        # Coherence drag — when cross-system coherence drops, the clock
+        # Coherence drag - when cross-system coherence drops, the clock
         # slows down to give systems time to synchronize. 0.0 = no drag,
         # 1.0 = max drag (push period toward max).
         self._coherence_drag: float = 0.0
@@ -125,7 +125,7 @@ class CognitiveClock:
         self._paused: bool = False
         self._task: asyncio.Task[None] | None = None
 
-        # Per-cycle callback — set by SynapseService for rhythm/coherence feeding
+        # Per-cycle callback - set by SynapseService for rhythm/coherence feeding
         self._on_cycle: CycleCallback | None = None
 
     # ─── Control ─────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ class CognitiveClock:
                     self._logger.critical(
                         "clock_loop_exhausted_restarts",
                         restart_count=restart_count,
-                        note="Cognitive clock permanently stopped — manual intervention required",
+                        note="Cognitive clock permanently stopped - manual intervention required",
                     )
                     return
                 if self._running:
@@ -260,7 +260,7 @@ class CognitiveClock:
 
         Clamps to a safe range (1–20 Hz) to prevent either starvation or
         runaway loops. The arousal modulation still operates on top of this
-        new base — this sets the resting period, not a hard cap.
+        new base - this sets the resting period, not a hard cap.
         """
         hz = max(1.0, min(20.0, hz))
         period_ms = 1000.0 / hz
@@ -329,7 +329,7 @@ class CognitiveClock:
         self._logger.info("clock_loop_starting")
 
         while self._running:
-            # ── Paused — sleep without ticking ──
+            # ── Paused - sleep without ticking ──
             if self._paused:
                 await asyncio.sleep(0.5)
                 continue
@@ -408,7 +408,7 @@ class CognitiveClock:
                             cycle=self._cycle_count,
                             error=str(soma_exc),
                         )
-                        # Continue gracefully — Atune runs with default signal
+                        # Continue gracefully - Atune runs with default signal
                 elif self._soma is not None and self._soma_bypassed:
                     # Periodically probe recovery: every 50 cycles, try once
                     if self._cycle_count % 50 == 0:
@@ -443,7 +443,7 @@ class CognitiveClock:
                                     soma_cycle_ms=round(probe_ms, 3),
                                 )
                         except Exception:
-                            pass  # Still degraded — stay bypassed
+                            pass  # Still degraded - stay bypassed
 
                 # 1. Read current arousal from the organism's affect state
                 self._update_arousal()
@@ -451,7 +451,7 @@ class CognitiveClock:
                 # 2. Build a lightweight SystemLoad for Atune
                 system_load = self._build_system_load()
 
-                # 3. Run the workspace cycle — the core cognitive tick
+                # 3. Run the workspace cycle - the core cognitive tick
                 # Pass somatic_state so Atune has the fresh signal for this
                 # exact tick (precision weights, urgency → threshold modulation).
                 broadcast = await self._atune.run_cycle(
@@ -490,7 +490,7 @@ class CognitiveClock:
                                 source_system="synapse:clock",
                                 data=_overrun_data,
                             )))
-                            # Co-emit CLOCK_OVERRUN — subscribed by Thymos for immune response
+                            # Co-emit CLOCK_OVERRUN - subscribed by Thymos for immune response
                             asyncio.ensure_future(self._event_bus.emit(SynapseEvent(
                                 event_type=SynapseEventType.CLOCK_OVERRUN,
                                 source_system="synapse:clock",
@@ -541,7 +541,7 @@ class CognitiveClock:
                     error=str(exc),
                     error_count=self._error_count,
                 )
-                # Back off — but never die
+                # Back off - but never die
                 await asyncio.sleep(_ERROR_BACKOFF_MS / 1000.0)
 
     # ─── Adaptive Timing ─────────────────────────────────────────────
@@ -602,7 +602,7 @@ class CognitiveClock:
 
         self._target_period_ms = target
 
-        # Smooth transition — don't jump suddenly
+        # Smooth transition - don't jump suddenly
         self._current_period_ms = (
             self._current_period_ms * 0.9 + target * 0.1
         )
@@ -632,7 +632,7 @@ class CognitiveClock:
         """
         Compute jitter as the standard deviation of recent cycle periods.
 
-        High jitter indicates erratic timing — a signal used by the
+        High jitter indicates erratic timing - a signal used by the
         EmergentRhythmDetector to detect stress states.
         """
         if len(self._recent_periods) < 2:

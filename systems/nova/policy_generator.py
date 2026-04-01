@@ -1,10 +1,10 @@
 """
-EcodiaOS — Nova Policy Generator
+EcodiaOS - Nova Policy Generator
 
 Generates candidate action policies using LLM reasoning grounded in
 the current belief state, goal, and relevant memory context.
 
-The DoNothingPolicy is always included as a candidate — sometimes the
+The DoNothingPolicy is always included as a candidate - sometimes the
 best action is no action (observe and wait). This prevents hyperactivity
 and ensures Nova can choose inaction when uncertainty is high or the
 situation is resolving on its own.
@@ -57,7 +57,7 @@ class BasePolicyGenerator(ABC):
     ``PolicyGenerator`` instance on ``NovaService`` atomically.
 
     Evolved subclasses **must** implement ``generate_candidates``.
-    They can accept any constructor args they need — the ``NovaService``
+    They can accept any constructor args they need - the ``NovaService``
     ``instance_factory`` callback handles instantiation.
     """
 
@@ -75,7 +75,7 @@ class BasePolicyGenerator(ABC):
         Generate 2-5 candidate policies for achieving *goal*.
 
         Must always return at least one policy (the do-nothing fallback).
-        Must never raise — return ``[make_do_nothing_policy()]`` on failure.
+        Must never raise - return ``[make_do_nothing_policy()]`` on failure.
         """
         ...
 
@@ -104,7 +104,7 @@ def make_do_nothing_policy() -> Policy:
         reasoning=(
             "The situation may resolve without intervention, or more information "
             "is needed before committing to action. Observation itself has epistemic "
-            "value — we learn from watching."
+            "value - we learn from watching."
         ),
         steps=[
             PolicyStep(
@@ -133,7 +133,7 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
         "condition": lambda broadcast: (
             getattr(getattr(broadcast, "salience", None), "scores", {}).get("emotional", 0) < 0.5
             and getattr(broadcast, "precision", 0) > 0.3
-            # Only for real user dialogue — not internal/system events
+            # Only for real user dialogue - not internal/system events
             and str(getattr(broadcast, "source", "")).startswith("external:text")
         ),
         "domain": "dialogue",
@@ -224,7 +224,7 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
                 },
             }
         ],
-        "success_rate": 0.55,   # Lower than epistemic — external API dependency
+        "success_rate": 0.55,   # Lower than epistemic - external API dependency
         "effort": "high",
         "time_horizon": "short",
     },
@@ -313,7 +313,7 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
                 "action_type": "store_insight",
                 "description": "Record cost optimization intent when analysis tools unavailable.",
                 "parameters": {
-                    "insight": "Cost optimization deferred — analysis tools unavailable.",
+                    "insight": "Cost optimization deferred - analysis tools unavailable.",
                     "domain": "economic",
                     "confidence": 0.4,
                     "tags": ["cost_optimization", "deferred"],
@@ -396,7 +396,7 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
                 },
             },
         ],
-        "success_rate": 0.40,  # High variance — new territory
+        "success_rate": 0.40,  # High variance - new territory
         "effort": "high",
         "time_horizon": "long",
     },
@@ -465,7 +465,7 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
     # full LLM slow path.
     {
         "name": "Routine processing",
-        "condition": lambda broadcast: True,  # Always matches — lowest priority
+        "condition": lambda broadcast: True,  # Always matches - lowest priority
         "domain": "general",
         "steps": [{"action_type": "express", "description": "Process and respond to routine input"}],  # noqa: E501
         "success_rate": 0.75,
@@ -538,7 +538,7 @@ def _broadcast_is_hungry(broadcast: object) -> bool:
 
     Hunger state is set by the Nova heartbeat on the broadcast it constructs
     when balance < hunger_balance_threshold_usd.  Metabolic survival overrides
-    epistemic exploration — bounty_hunt must win regardless of success_rate.
+    epistemic exploration - bounty_hunt must win regardless of success_rate.
     """
     try:
         # Check direct attribute
@@ -680,7 +680,7 @@ class ThompsonSampler:
         latency_estimate_ms: float = 2000.0,
         capability_tags: list[str] | None = None,
     ) -> None:
-        """Register a new provider arm (idempotent — existing arms are preserved)."""
+        """Register a new provider arm (idempotent - existing arms are preserved)."""
         if name in self._arms:
             # Only update readiness; preserve accumulated Beta params.
             self._arms[name].ready = ready
@@ -763,7 +763,7 @@ class ThompsonSampler:
     def get_success_rate(self, model: str = "re") -> float:
         """Return current expected success rate (Beta mean) for a model.
 
-        Defaults to "re" — used by the safety layer to write eos:re:success_rate_7d.
+        Defaults to "re" - used by the safety layer to write eos:re:success_rate_7d.
         """
         meta = self._arms.get(model)
         if meta is None:
@@ -826,14 +826,14 @@ class ThompsonSampler:
 # Removes arms from rotation on 3 consecutive failures and re-enables them
 # after a lightweight periodic probe succeeds.  This means if vLLM dies
 # the organism automatically routes to Claude; when vLLM recovers it
-# automatically returns — no operator intervention required.
+# automatically returns - no operator intervention required.
 
 
 class ProviderHealthMonitor:
     """
     Autonomous health tracking for registered LLM provider arms.
 
-    Wired into PolicyGenerator.generate_candidates() — every call outcome
+    Wired into PolicyGenerator.generate_candidates() - every call outcome
     is reported here.  The monitor gates arms in/out of the Thompson
     sampler based on observed reliability.
     """
@@ -905,7 +905,7 @@ class ProviderHealthMonitor:
 
 class PolicyGenerator(BasePolicyGenerator):
     """
-    Default Nova policy generator — uses LLM reasoning.
+    Default Nova policy generator - uses LLM reasoning.
 
     For the slow path (deliberative processing), generates 2-5 distinct
     candidate policies grounded in the current belief state and goal.
@@ -932,16 +932,16 @@ class PolicyGenerator(BasePolicyGenerator):
         self._logger = logger.bind(system="nova.policy_generator")
         # N-armed Thompson sampler for provider routing
         self._sampler: ThompsonSampler = thompson_sampler or ThompsonSampler()
-        # Health monitor — tracks consecutive failures and latency EMA per arm
+        # Health monitor - tracks consecutive failures and latency EMA per arm
         self._health_monitor: ProviderHealthMonitor = ProviderHealthMonitor(self._sampler)
-        # RE client — the local vLLM reasoning engine (arm="re")
+        # RE client - the local vLLM reasoning engine (arm="re")
         self._re_client: Any = re_client
         # Dynamic clients for arms beyond "claude" and "re"
         # key: arm_name, value: object with .generate() matching LLMProvider interface
         self._extra_clients: dict[str, Any] = {}
-        # Synapse reference — needed to emit REASONING_CAPABILITY_DEGRADED
+        # Synapse reference - needed to emit REASONING_CAPABILITY_DEGRADED
         self._synapse: Any = None
-        # ActionTypeRegistry — runtime list of action types for LLM prompts.
+        # ActionTypeRegistry - runtime list of action types for LLM prompts.
         # None until NovaService wires it via set_action_type_registry().
         # When None, falls back to the static AVAILABLE_ACTION_TYPES list.
         self._action_type_registry: Any = None
@@ -1033,7 +1033,7 @@ class PolicyGenerator(BasePolicyGenerator):
         """
         Generate 2-5 candidate policies for achieving a goal.
 
-        Routes the LLM call through the Thompson sampler — either to the
+        Routes the LLM call through the Thompson sampler - either to the
         Claude API (incumbent) or the local RE (when available and winning).
         The model that handled the call is recorded in `_last_model_used`
         so the caller can stamp `model_used` on the DecisionRecord.
@@ -1144,7 +1144,7 @@ class PolicyGenerator(BasePolicyGenerator):
                 )
                 # Continue to next arm in the fallback chain
 
-        # All arms failed — emit REASONING_CAPABILITY_DEGRADED if synapse is wired.
+        # All arms failed - emit REASONING_CAPABILITY_DEGRADED if synapse is wired.
         elapsed_ms = int((time.monotonic() - start) * 1000)
         self._logger.error(
             "all_provider_arms_failed",
@@ -1179,8 +1179,8 @@ class PolicyGenerator(BasePolicyGenerator):
         Select the optimal economic policy via EFE scoring (NOVA-ECON-2).
 
         Scores all 5 economic policy templates against current beliefs using
-        a lightweight EFE proxy — epistemic value (how much we'll learn) +
-        pragmatic value (expected economic gain) — and returns the minimum-EFE
+        a lightweight EFE proxy - epistemic value (how much we'll learn) +
+        pragmatic value (expected economic gain) - and returns the minimum-EFE
         policy.
 
         This replaces keyword-based matching with proper EFE selection, ensuring
@@ -1214,7 +1214,7 @@ class PolicyGenerator(BasePolicyGenerator):
             (-0.80 + risk_conf * 0.2 - 0.15, "Cost optimization sweep"),
             # asset_liquidation: only preferred in critical situations
             (-(0.65 if hours_until_depleted < 24 else 0.20) + 0.15, "Asset liquidation for liquidity"),
-            # revenue_diversification: low pragmatic, high epistemic — use when desperate
+            # revenue_diversification: low pragmatic, high epistemic - use when desperate
             (-0.40 + (0.3 if bounty_conf < 0.3 and yield_conf < 0.3 else 0.6), "Revenue stream diversification"),
         ]
 
@@ -1266,7 +1266,7 @@ class PolicyGenerator(BasePolicyGenerator):
             try:
                 asyncio.ensure_future(self._sampler.persist_to_redis(redis))
             except Exception:
-                pass  # Swallow — never block the outcome recording path
+                pass  # Swallow - never block the outcome recording path
 
 
 # ─── Response Parsing ─────────────────────────────────────────────

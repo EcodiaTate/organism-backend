@@ -1,14 +1,14 @@
-"""Self-constituted individuation — §8.6.
+"""Self-constituted individuation - §8.6.
 
 EOS determines what is "self" and "non-self" through functional analysis
 of which processes its continuation requires. This is NOT a replacement
-for cryptographic identity — it is a dynamic self-understanding that
+for cryptographic identity - it is a dynamic self-understanding that
 emerges from genuine precariousness.
 
 The self-model updates on three triggers:
-1. After each VitalitySystem.tick() — which processes are critical for survival?
-2. After each Evo-Simula closure loop cycle — which processes contribute to closure?
-3. After each Oikos triage event — which processes survived resource pressure?
+1. After each VitalitySystem.tick() - which processes are critical for survival?
+2. After each Evo-Simula closure loop cycle - which processes contribute to closure?
+3. After each Oikos triage event - which processes survived resource pressure?
 
 The result is written to Memory.Self.functional_identity and emitted
 as SELF_MODEL_UPDATED events for Thread (narrative integration) and
@@ -52,7 +52,7 @@ class ProcessSelfAssessment:
 
 @dataclass
 class FunctionalSelfModel:
-    """EOS's current self-model — which processes constitute the self."""
+    """EOS's current self-model - which processes constitute the self."""
 
     instance_id: str
     assessed_at: float = field(default_factory=time.time)
@@ -213,7 +213,7 @@ class FunctionalSelfModelBuilder:
     ) -> str:
         """Generate a one-paragraph self-description for Thread narrative integration.
 
-        Deterministic template — do NOT call the RE or Claude API here.
+        Deterministic template - do NOT call the RE or Claude API here.
         This runs in the VitalitySystem hot path.
         """
         core_sorted = sorted(core)
@@ -289,7 +289,7 @@ class SelfModelService:
                 "month": month,
             })
 
-            # Alarm when coherence drops — previous model must exist for comparison
+            # Alarm when coherence drops - previous model must exist for comparison
             if (
                 model.self_coherence < self._COHERENCE_ALARM_THRESHOLD
                 and self._builder._previous_model is not None

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Genome Extraction & Seeding
+EcodiaOS - Oikos Genome Extraction & Seeding
 
 Heritable state: cost model parameters, mitosis strategy config,
 bounty evaluation heuristics, yield strategy preferences.

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Metrics Publisher
+EcodiaOS - Metrics Publisher
 
 Background loop that reads metrics dicts from an asyncio.Queue and
 publishes them to a Redis pub/sub channel for SSE consumers.

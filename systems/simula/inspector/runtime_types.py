@@ -1,12 +1,12 @@
 """
-EcodiaOS — Inspector Phase 2: Runtime Behaviour Instrumentation Types
+EcodiaOS - Inspector Phase 2: Runtime Behaviour Instrumentation Types
 
 All data models for runtime observation, trace datasets, fault classification,
 and the "control integrity score" metric.
 
 Design philosophy
 -----------------
-Phase 2 operates at the *observation* layer — it records what happens, labels
+Phase 2 operates at the *observation* layer - it records what happens, labels
 what went wrong, and produces a numeric steerability signal.  It intentionally
 does NOT produce exploit code or attempt to reproduce faults outside a
 controlled context.
@@ -55,23 +55,23 @@ class FaultClass(enum.StrEnum):
     """
     Fault taxonomy for runtime failures.
 
-    These are *labels* inferred from trace and crash evidence — they describe
+    These are *labels* inferred from trace and crash evidence - they describe
     the category of the control-integrity violation, not the mechanism to
     reproduce it.
 
-    OOB         — out-of-bounds read or write (index error, buffer overrun)
-    UAF         — use-after-free / dangling reference
-    LIFETIME    — object used outside its valid lifetime (not UAF-specific;
+    OOB         - out-of-bounds read or write (index error, buffer overrun)
+    UAF         - use-after-free / dangling reference
+    LIFETIME    - object used outside its valid lifetime (not UAF-specific;
                   covers e.g. iterator invalidation, borrowed-ref escape)
-    TYPE        — type confusion (object treated as a different type)
-    UNHANDLED_EXC — unhandled exception propagated to the top level
-    SIGNAL_ABORT  — process terminated by SIGABRT / assertion failure
-    SIGNAL_SEGV   — process terminated by SIGSEGV
-    SIGNAL_BUS    — process terminated by SIGBUS
-    SIGNAL_FPE    — arithmetic exception (div-by-zero, float)
-    SIGNAL_OTHER  — any other fatal signal
-    LOGIC         — logical invariant violated (detected by assertion)
-    UNKNOWN       — insufficient evidence to classify
+    TYPE        - type confusion (object treated as a different type)
+    UNHANDLED_EXC - unhandled exception propagated to the top level
+    SIGNAL_ABORT  - process terminated by SIGABRT / assertion failure
+    SIGNAL_SEGV   - process terminated by SIGSEGV
+    SIGNAL_BUS    - process terminated by SIGBUS
+    SIGNAL_FPE    - arithmetic exception (div-by-zero, float)
+    SIGNAL_OTHER  - any other fatal signal
+    LOGIC         - logical invariant violated (detected by assertion)
+    UNKNOWN       - insufficient evidence to classify
     """
 
     OOB = "oob"
@@ -103,7 +103,7 @@ class TraceEvent(EOSBaseModel):
     """
     One instrumentation event emitted by the RuntimeTracer.
 
-    Kept intentionally lightweight — a single run may produce thousands of
+    Kept intentionally lightweight - a single run may produce thousands of
     events; callers that want aggregated views should use ControlFlowTrace.
     """
 
@@ -122,7 +122,7 @@ class TraceEvent(EOSBaseModel):
     callee: str = Field(default="", description="Called function name (for CALL events)")
     return_value_type: str = Field(
         default="",
-        description="Type name of the return value (for RETURN events — type visibility only)",
+        description="Type name of the return value (for RETURN events - type visibility only)",
     )
 
     # Branch / basic-block payload
@@ -189,7 +189,7 @@ class ControlFlowTrace(EOSBaseModel):
     run_id: str
     run_category: RunCategory
 
-    # Ordered list of (caller, callee) tuples — function-level call graph
+    # Ordered list of (caller, callee) tuples - function-level call graph
     # observed during this run.  Stored as list-of-pairs for Pydantic compat.
     call_sequence: list[tuple[str, str]] = Field(default_factory=list)
 
@@ -329,7 +329,7 @@ class InfluencePermissiveTransition(EOSBaseModel):
     - OR the transition is anomalous relative to normal runs (new call edge, new BB),
     - OR the transition immediately precedes a fault.
 
-    These are observed phenomena — labelling for the steerability model.
+    These are observed phenomena - labelling for the steerability model.
     """
 
     transition_id: str = Field(default_factory=new_id)
@@ -376,15 +376,15 @@ class ControlIntegrityScore(EOSBaseModel):
 
     Score interpretation
     --------------------
-    1.0  — Perfect integrity: execution matched baseline exactly; no anomalous
+    1.0  - Perfect integrity: execution matched baseline exactly; no anomalous
            transitions; no faults.
-    0.0  — Complete loss of integrity: every transition was anomalous; multiple
+    0.0  - Complete loss of integrity: every transition was anomalous; multiple
            faults; deep divergence.
-    0.5–0.8 — Partial deviation: some new edges but no crash (interesting for
-               steerability — external influence reshaped the call graph without
+    0.5–0.8 - Partial deviation: some new edges but no crash (interesting for
+               steerability - external influence reshaped the call graph without
                breaking execution).
 
-    The score intentionally does NOT measure "security" — it measures how much
+    The score intentionally does NOT measure "security" - it measures how much
     the observed execution deviated from baseline.  The steerability model uses
     this as a continuous training signal.
     """
@@ -426,7 +426,7 @@ class ControlIntegrityScore(EOSBaseModel):
     )
     permissive_transition_count: int = Field(
         default=0,
-        description="len(permissive_transitions) — denormalised for fast queries.",
+        description="len(permissive_transitions) - denormalised for fast queries.",
     )
 
     scored_at: datetime = Field(default_factory=utc_now)

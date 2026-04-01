@@ -1,12 +1,12 @@
 """
-EcodiaOS — Inspector Taint Flow Linker
+EcodiaOS - Inspector Taint Flow Linker
 
 User-space observer component that links inbound taint observations to
 outbound taint observations by application-level token identity.
 
 While TaintCorrelator operates on raw payload hashes (FNV-1a of bytes),
 TaintFlowLinker operates on structured token strings (e.g. ``TAINT=<uuid>;``)
-that are visible in payload content — bridging the gap between kernel-level
+that are visible in payload content - bridging the gap between kernel-level
 byte observations and application-level request chains.
 
 Architecture
@@ -14,7 +14,7 @@ Architecture
 
 TaintRegistry
     key: (pid, token) or (service_id, token)
-    value: TaintEntryPoint — when/where the token was first seen, socket tuple
+    value: TaintEntryPoint - when/where the token was first seen, socket tuple
 
 TaintFlowLinker
     Ingests observations (inbound and outbound) carrying tokens.
@@ -44,7 +44,7 @@ Usage::
                            src_tuple=("external", 0, "10.0.0.1", 80),
                            timestamp=time.time())
 
-    # Service B receives from A and forwards to C — outbound carries same token
+    # Service B receives from A and forwards to C - outbound carries same token
     linker.observe_outbound("service_b", pid=200, token="TAINT=abc;",
                             dst_tuple=("10.0.0.2", 8080, "10.0.0.3", 9090),
                             timestamp=time.time())
@@ -155,14 +155,14 @@ class StreamBuffer:
 
     Design goals
     ------------
-    * Correctness — token strings that arrive split across two or more TCP
+    * Correctness - token strings that arrive split across two or more TCP
       segments are found by concatenating payloads before scanning.
-    * Bounded memory — each connection buffer is capped at
+    * Bounded memory - each connection buffer is capped at
       ``_STREAM_BUFFER_MAX_BYTES`` (4 KB); the oldest bytes are discarded
       when the cap is exceeded so scanning can still find tokens in the tail.
-    * Bounded connections — an LRU dict with ``_STREAM_BUFFER_MAX_CONNS``
+    * Bounded connections - an LRU dict with ``_STREAM_BUFFER_MAX_CONNS``
       capacity evicts the least-recently-used connection entry automatically.
-    * Automatic eviction — connections idle longer than
+    * Automatic eviction - connections idle longer than
       ``_STREAM_BUFFER_TTL_S`` are reaped on every ``feed()`` call.
 
     Thread-safety
@@ -174,7 +174,7 @@ class StreamBuffer:
 
         buf = StreamBuffer()
         tokens = buf.feed(conn_key, payload_bytes)
-        # tokens: list[str] — all "TAINT=<uuid>;" strings found in the
+        # tokens: list[str] - all "TAINT=<uuid>;" strings found in the
         #         reassembled stream since the last scan, de-duplicated
         #         across segment boundaries.
 
@@ -345,8 +345,8 @@ class TaintRegistry:
     """
     Taint token registry.
 
-    key:   (service_id, token) or (pid, token) — both are supported
-    value: TaintEntryPoint — first-seen metadata (when, where, how it entered)
+    key:   (service_id, token) or (pid, token) - both are supported
+    value: TaintEntryPoint - first-seen metadata (when, where, how it entered)
 
     Thread-safe.  Entries are never evicted (the graph must remain complete
     for replay); callers can call ``clear()`` between test runs.
@@ -376,7 +376,7 @@ class TaintRegistry:
         Record first-seen metadata for *token*.
 
         If the (service_id, token) pair was already registered, returns the
-        existing entry without overwriting (first-writer wins — this preserves
+        existing entry without overwriting (first-writer wins - this preserves
         the true entry point if the same token passes through multiple services).
         """
         svc_key = (service_id, token)
@@ -664,7 +664,7 @@ class TaintFlowLinker:
     3. Call ``chain_for_token`` / ``emit_json`` / ``write_sqlite`` on the
        graph to inspect or persist results.
 
-    The linker is intentionally stateless beyond its registry + graph — it
+    The linker is intentionally stateless beyond its registry + graph - it
     does not buffer pending observations or speculate about future hops.
 
     Parameters
@@ -796,7 +796,7 @@ class TaintFlowLinker:
         # Ensure outbound service is in the registry as an observer
         outbound_entry = self.registry.lookup_by_service(service_id, token)
         if outbound_entry is None:
-            # Token not yet seen inbound at this service — register it now
+            # Token not yet seen inbound at this service - register it now
             # so downstream hops can link back to it
             outbound_entry = self.registry.register(
                 token,
@@ -811,7 +811,7 @@ class TaintFlowLinker:
         new_edges: list[TaintEdge] = []
 
         # ── Edge 1: delivering hop (inbound_service → service_id) ──────────
-        # Find where the token originally arrived — the service that received
+        # Find where the token originally arrived - the service that received
         # it before the current one forwarded it.
         all_entries = self.registry.all_entries_for_token(token)
         # Choose the entry at *this* service (the one currently forwarding)

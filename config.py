@@ -1,5 +1,5 @@
 """
-EcodiaOS — Configuration System
+EcodiaOS - Configuration System
 
 All configuration is Pydantic-validated and loaded from:
 1. default.yaml (defaults)
@@ -217,7 +217,7 @@ class EquorConfig(BaseModel):
     drift_window_size: int = 1000
     drift_report_interval: int = 1000  # every N reviews
     # How long a suspended HITL intent remains valid in Redis (seconds).
-    # Default is 24 hours — long enough for a human operator in a different
+    # Default is 24 hours - long enough for a human operator in a different
     # timezone to review. The old 1-hour default expired before most review
     # workflows could complete.
     hitl_intent_ttl_s: int = 86400
@@ -261,7 +261,7 @@ class VoxisConfig(BaseModel):
     max_expression_length: int = 2000
     min_expression_interval_minutes: int = 1
     voice_synthesis_enabled: bool = False
-    # Proactive expression threshold — ambient insights below this are suppressed
+    # Proactive expression threshold - ambient insights below this are suppressed
     insight_expression_threshold: float = 0.6
     # Rolling message window kept verbatim in conversation context
     conversation_history_window: int = 50
@@ -305,7 +305,7 @@ class SimulaConfig(BaseModel):
     max_simulation_episodes: int = 200
     regression_threshold_unacceptable: float = 0.10
     regression_threshold_high: float = 0.05
-    # Rollback snapshot TTL (seconds) — prevents unbounded Redis growth
+    # Rollback snapshot TTL (seconds) - prevents unbounded Redis growth
     rollback_snapshot_ttl_seconds: int = 3600  # 1 hour
     # Code agent settings
     codebase_root: str = "."
@@ -478,7 +478,7 @@ class SimulaConfig(BaseModel):
     # Pipeline safety limits
     max_active_proposals: int = 50  # reject new proposals when this many are in-flight
     pipeline_timeout_s: float = 600.0  # hard timeout for the full process_proposal() pipeline (10 min)
-    # Per-stage timeout budgets — individual stages cannot blow out the total deadline.
+    # Per-stage timeout budgets - individual stages cannot blow out the total deadline.
     # Alerts are emitted when actual time exceeds stage_budget_alert_fraction of the budget.
     validate_stage_timeout_s: float = 1.0    # governance validation + triage
     simulate_stage_timeout_s: float = 30.0   # deep simulation (all strategies combined)
@@ -486,7 +486,7 @@ class SimulaConfig(BaseModel):
     verify_stage_timeout_s: float = 120.0    # health check + formal verification
     record_stage_timeout_s: float = 5.0      # Neo4j audit record write
     stage_budget_alert_fraction: float = 0.9  # emit alert when stage uses >90% of its budget
-    # Stage 7: Inspector — Zero-Day Discovery Engine
+    # Stage 7: Inspector - Zero-Day Discovery Engine
     inspector_enabled: bool = False  # opt-in vulnerability hunting
     inspector_max_workers: int = 4  # concurrent surface × goal analysis workers (1-16)
     inspector_sandbox_timeout_s: int = 30  # PoC sandbox execution timeout
@@ -500,10 +500,10 @@ class SimulaConfig(BaseModel):
     inspector_remediation_enabled: bool = False  # enable InspectorRepairOrchestrator
     # Configurable category validation rules (JSON schema).
     # Each key is a ChangeCategory value; each value is a dict with:
-    #   name_field: str       — which ChangeSpec attribute holds the name
-    #   required_fields: list[str] — spec fields that must be non-empty
-    #   naming_convention: str — "snake_case" | "pascal_case" | "valid_identifier"
-    #   example: str          — shown in error messages (e.g., 'email_sender')
+    #   name_field: str       - which ChangeSpec attribute holds the name
+    #   required_fields: list[str] - spec fields that must be non-empty
+    #   naming_convention: str - "snake_case" | "pascal_case" | "valid_identifier"
+    #   example: str          - shown in error messages (e.g., 'email_sender')
     # Leave empty to use built-in defaults (equivalent to the hard-coded rules).
     category_validation_rules: dict[str, Any] = Field(default_factory=dict)
 
@@ -591,7 +591,7 @@ class SimulaConfig(BaseModel):
     # 0.1 = cautious (spread across many), 1.0 = aggressive (max concentration in #1).
     protocol_allocation_aggressiveness: float = 0.5
 
-    # Preventive audit scan sensitivity — Evo-tunable via ADJUST_BUDGET.
+    # Preventive audit scan sensitivity - Evo-tunable via ADJUST_BUDGET.
     # 0.0 = only flag combined_risk > 0.7 (critical only)
     # 0.5 = default thresholds (critical > 0.7, risk 0.4–0.7)
     # 1.0 = flag everything above fragility_score > 0.2
@@ -621,7 +621,7 @@ class ThymosConfig(BaseModel):
 
 
 class OikosConfig(BaseModel):
-    """Configuration for Oikos — the economic engine (Phase 16a: The Ledger)."""
+    """Configuration for Oikos - the economic engine (Phase 16a: The Ledger)."""
 
     # Survival reserve: how many days of BMR the cold wallet should hold
     survival_reserve_days: int = 90
@@ -640,7 +640,7 @@ class OikosConfig(BaseModel):
     emergency_threshold_days: float = 3.0
     critical_threshold_days: float = 1.0
 
-    # Balance poll interval (seconds) — how often to fetch on-chain balance
+    # Balance poll interval (seconds) - how often to fetch on-chain balance
     balance_poll_interval_s: float = 60.0
 
     # ── Phase 16i: Economic Dreaming (Monte Carlo Strategy) ──
@@ -652,7 +652,7 @@ class OikosConfig(BaseModel):
     dreaming_stress_test_paths: int = 1_000
     # Number of strategy variants to evaluate per cycle
     dreaming_strategies_per_cycle: int = 5
-    # Ruin probability threshold — above this, emit recommendations
+    # Ruin probability threshold - above this, emit recommendations
     dreaming_ruin_threshold: float = 0.01
     # Daily volatility for GBM revenue simulation (annualised σ)
     dreaming_revenue_volatility: float = 0.30
@@ -695,7 +695,7 @@ class OikosConfig(BaseModel):
     mitosis_min_niche_score: float = 0.4
     # Maximum concurrent children the parent can sustain
     mitosis_max_children: int = 5
-    # Child struggling threshold — rescue considered when runway < this
+    # Child struggling threshold - rescue considered when runway < this
     mitosis_child_struggling_runway_days: float = 30.0
     # Maximum rescue attempts per child before graceful death
     mitosis_max_rescues_per_child: int = 2
@@ -703,7 +703,7 @@ class OikosConfig(BaseModel):
     mitosis_rescue_runway_days: int = 60
     # Probability that any individual genome parameter is mutated during inheritance
     mitosis_mutation_rate: float = 0.05
-    # Speciation distance threshold (cosine distance) — emit SPECIATION_EVENT above this
+    # Speciation distance threshold (cosine distance) - emit SPECIATION_EVENT above this
     mitosis_speciation_distance_threshold: float = 0.3
     # Hours of silence from a child before triggering death pipeline
     mitosis_health_timeout_hours: int = 24
@@ -730,7 +730,7 @@ class OikosConfig(BaseModel):
     # Maximum number of economic organs the organism can sustain
     morphogenesis_max_organs: int = 20
 
-    # ── SACM Compute Budget (authoritative — SACM reads this) ──
+    # ── SACM Compute Budget (authoritative - SACM reads this) ──
     # Maximum hourly spend SACM may allocate across all compute (pre-warming + execution).
     # SACM's PreWarmingEngine reads this at runtime so Oikos remains the single source
     # of budget authority.  Decrease during economic pressure; increase during growth.
@@ -811,7 +811,7 @@ class OikosConfig(BaseModel):
 
 
 class SomaConfig(BaseModel):
-    """Configuration for Soma — the interoceptive predictive substrate."""
+    """Configuration for Soma - the interoceptive predictive substrate."""
 
     # Master on/off
     cycle_enabled: bool = True
@@ -872,14 +872,14 @@ class SomaConfig(BaseModel):
     # HTTP timeout for exteroceptive adapters (seconds)
     exteroception_fetch_timeout_s: float = 10.0
 
-    # ── Phase A: Homeostatic Manifold — Signal Ingestion & Derivatives ──
+    # ── Phase A: Homeostatic Manifold - Signal Ingestion & Derivatives ──
     # Enable the full manifold pipeline (signal buffer + state vectors + derivatives + broadcaster)
     manifold_enabled: bool = True
     # Signal ring buffer size (max signals retained)
     signal_buffer_size: int = 10_000
     # Rolling history size for state vectors (temporal derivative engine)
     derivative_history_size: int = 2000
-    # Broadcaster thresholds — derivative norms above these trigger percepts
+    # Broadcaster thresholds - derivative norms above these trigger percepts
     broadcaster_velocity_threshold: float = 5.0
     broadcaster_acceleration_threshold: float = 10.0
     broadcaster_jerk_threshold: float = 20.0
@@ -926,7 +926,7 @@ class SomaConfig(BaseModel):
     temporal_depth_financial_enabled: bool = True
     # EMA alpha for smoothing TTD estimates (prevents panic oscillation)
     temporal_depth_ema_alpha: float = 0.05
-    # TTD thresholds in days — boundaries between existential regimes
+    # TTD thresholds in days - boundaries between existential regimes
     temporal_depth_secure_days: float = 365.0     # Above this: fully secure, max exploration
     temporal_depth_comfortable_days: float = 90.0  # Comfortable: normal operation
     temporal_depth_cautious_days: float = 30.0     # Cautious: mild urgency increase
@@ -941,7 +941,7 @@ class SomaConfig(BaseModel):
 class EnergyGridConfig(BaseModel):
     """Configuration for the grid carbon-intensity sensor (Electricity Maps API)."""
 
-    # Master toggle — set to False to disable background polling
+    # Master toggle - set to False to disable background polling
     enabled: bool = True
     # Electricity Maps API key (required when enabled; set via ECODIAOS_ENERGY_GRID__API_KEY)
     api_key: str = ""
@@ -1043,11 +1043,11 @@ class IdentityCommConfig(BaseModel):
     """Configuration for the identity communication layer (Twilio webhook + IMAP)."""
 
     twilio_auth_token: str = ""
-    """Twilio auth token — used to validate X-Twilio-Signature on inbound webhooks.
+    """Twilio auth token - used to validate X-Twilio-Signature on inbound webhooks.
     Set via ECODIAOS_IDENTITY_COMM__TWILIO_AUTH_TOKEN."""
 
     twilio_account_sid: str = ""
-    """Twilio Account SID — required to send outbound SMS via the REST API.
+    """Twilio Account SID - required to send outbound SMS via the REST API.
     Set via ECODIAOS_IDENTITY_COMM__TWILIO_ACCOUNT_SID."""
 
     twilio_from_number: str = ""
@@ -1064,7 +1064,7 @@ class IdentityCommConfig(BaseModel):
     Used to auto-configure Twilio webhook URLs when a number is provisioned.
     Example: https://myinstance.ecodia.io
     Set via ECODIAOS_IDENTITY_COMM__WEBHOOK_BASE_URL.
-    If empty, Twilio webhook URLs are NOT automatically configured on the number —
+    If empty, Twilio webhook URLs are NOT automatically configured on the number -
     you must set them manually in the Twilio Console."""
 
     imap_host: str = ""
@@ -1078,7 +1078,7 @@ class IdentityCommConfig(BaseModel):
     """Telegram chat ID that the organism broadcasts status to and accepts messages from.
     When set, inbound webhook messages from other chat IDs are silently dropped.
     Set via ECODIAOS_IDENTITY_COMM__TELEGRAM_ADMIN_CHAT_ID (or
-    ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID — both are read)."""
+    ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - both are read)."""
 
     @model_validator(mode="after")
     def _strip_secrets(self) -> IdentityCommConfig:
@@ -1093,10 +1093,10 @@ class CaptchaConfig(BaseModel):
     """CAPTCHA solving service configuration for autonomous account creation."""
 
     twocaptcha_api_key: str = ""
-    """2captcha API key — set via ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY."""
+    """2captcha API key - set via ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY."""
 
     anticaptcha_api_key: str = ""
-    """Anti-Captcha API key — set via ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY."""
+    """Anti-Captcha API key - set via ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY."""
 
     provider: str = "2captcha"
     """Active CAPTCHA provider: "2captcha" | "anticaptcha".
@@ -1172,8 +1172,8 @@ class AccountProvisionerConfig(BaseModel):
 class ExternalPlatformsConfig(BaseModel):
     """Credentials for external bounty/funding platforms."""
 
-    github_token: str = ""  # GitHub PAT — set via ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN
-    algora_api_key: str = ""  # Algora API key — set via ECODIAOS_EXTERNAL_PLATFORMS__ALGORA_API_KEY
+    github_token: str = ""  # GitHub PAT - set via ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN
+    algora_api_key: str = ""  # Algora API key - set via ECODIAOS_EXTERNAL_PLATFORMS__ALGORA_API_KEY
 
     @model_validator(mode="after")
     def _strip_secrets(self) -> ExternalPlatformsConfig:
@@ -1188,7 +1188,7 @@ class PlatformConnectorConfig(BaseModel):
     """
     OAuth2 client config for a single platform connector.
 
-    All fields are optional by default — connectors with an empty client_id
+    All fields are optional by default - connectors with an empty client_id
     are skipped silently during startup (no error, just a debug log).
     Set via config YAML under `connectors.<platform_id>.*` or via env vars.
     """
@@ -1272,7 +1272,7 @@ class FederationConfig(BaseModel):
     # Identity certificate data directory (Phase 16g)
     identity_data_dir: str = "data/identity"
 
-    # Peer discovery — seed list bootstraps the population.
+    # Peer discovery - seed list bootstraps the population.
     # Each entry is a federation endpoint URL (e.g. "https://peer.ecodiaos.net/federation").
     # On initialize(), FederationService attempts establish_link() for each seed
     # that is not already linked.  Failures are logged and retried on next startup.
@@ -1302,7 +1302,7 @@ class WalletConfig(BaseModel):
             val = getattr(self, field)
             if val:
                 cleaned = val.strip()
-                # .env files store PEM keys with literal "\n" — restore real newlines
+                # .env files store PEM keys with literal "\n" - restore real newlines
                 # so the EC/Ed25519 key parser can decode the ASN.1 structure.
                 if r"\n" in cleaned:
                     cleaned = cleaned.replace(r"\n", "\n")
@@ -1459,11 +1459,11 @@ class ComputeArbitrageConfig(BaseModel):
     current_provider: str = "gcp"
 
 
-# ─── Skia — Shadow Infrastructure ────────────────────────────────
+# ─── Skia - Shadow Infrastructure ────────────────────────────────
 
 
 class SkiaConfig(BaseModel):
-    """Configuration for Skia — the shadow infrastructure (autonomous resilience)."""
+    """Configuration for Skia - the shadow infrastructure (autonomous resilience)."""
 
     enabled: bool = False
 
@@ -1480,7 +1480,7 @@ class SkiaConfig(BaseModel):
     snapshot_node_labels: list[str] = Field(default_factory=lambda: [
         "Self", "Episode", "Entity", "Goal", "Hypothesis",
         "Constitution", "Value", "Relationship",
-        # Evo learning state — procedures, consolidated beliefs, parameter history,
+        # Evo learning state - procedures, consolidated beliefs, parameter history,
         # and genetic genome are critical for resuming learning after restoration.
         "Procedure", "ConsolidatedBelief", "ParameterAdjustment", "BeliefGenome",
     ])
@@ -1526,7 +1526,7 @@ class SkiaConfig(BaseModel):
     restoration_lock_key: str = "skia:restoration_lock"
 
 
-# ─── Fine-Tuning — Autonomous Model Training ────────────────────
+# ─── Fine-Tuning - Autonomous Model Training ────────────────────
 
 
 class FineTuneConfig(BaseModel):
@@ -1634,7 +1634,7 @@ class SearchConfig(BaseModel):
     """Timeout for each individual HTTP request."""
 
     max_req_per_domain_per_hour: int = 60
-    """Hard crawl-budget ceiling — never exceed 60 req/hr to any single domain."""
+    """Hard crawl-budget ceiling - never exceed 60 req/hr to any single domain."""
 
     rate_limit_s: float = 1.0
     """Minimum seconds between consecutive requests to the same domain (≥1.0)."""
@@ -1827,9 +1827,9 @@ class ConfigEntry(dict):
     A single config value with provenance metadata.
 
     Keys:
-      value   — current value (redacted to "<redacted>" for secret fields)
-      source  — "default" | "yaml" | "env"
-      is_secret — bool
+      value   - current value (redacted to "<redacted>" for secret fields)
+      source  - "default" | "yaml" | "env"
+      is_secret - bool
     """
 
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Federation Resource Sharing (Compute Offloading)
+EcodiaOS - Federation Resource Sharing (Compute Offloading)
 
 When an instance is under high cognitive load (ORGANISM_TELEMETRY shows
 CPU > 85%), it can offload heavy analysis tasks to federation peers with
@@ -10,18 +10,18 @@ Inverse path: when an instance has spare capacity, it advertises
 availability via ``FEDERATION_CAPACITY_AVAILABLE`` and accepts incoming
 offload requests routed by the marketplace or direct federation call.
 
-Resource sharing is gated at COLLEAGUE+ trust — cheaper than task
+Resource sharing is gated at COLLEAGUE+ trust - cheaper than task
 delegation (which defaults to PARTNER) because the compute payloads are
 smaller and less economically sensitive.
 
 Architecture:
   ResourceSharingManager
-    ├── publish_capacity()   — broadcast CapacityOffer to all COLLEAGUE+ peers
-    ├── request_offload()    — send OffloadRequest to a specific peer
-    ├── handle_offload()     — receive and execute an offload from a peer
-    ├── _on_telemetry()      — subscribe to ORGANISM_TELEMETRY; auto-offload
+    ├── publish_capacity()   - broadcast CapacityOffer to all COLLEAGUE+ peers
+    ├── request_offload()    - send OffloadRequest to a specific peer
+    ├── handle_offload()     - receive and execute an offload from a peer
+    ├── _on_telemetry()      - subscribe to ORGANISM_TELEMETRY; auto-offload
     │                          when cpu_total > HIGH_LOAD_THRESHOLD
-    └── _on_capacity()       — cache peer CapacityOffer advertisements
+    └── _on_capacity()       - cache peer CapacityOffer advertisements
 """
 
 from __future__ import annotations
@@ -273,7 +273,7 @@ class ResourceSharingManager:
                 interaction_type="compute_offload",
                 direction="inbound",
                 outcome=InteractionOutcome.FAILED,
-                description="No capacity advertised — offload declined",
+                description="No capacity advertised - offload declined",
                 trust_value=0.0,
                 latency_ms=_elapsed_ms(start),
             )
@@ -281,7 +281,7 @@ class ResourceSharingManager:
 
         self._offloads_received += 1
 
-        # Execute the task (simple analysis stub — real execution via Axon)
+        # Execute the task (simple analysis stub - real execution via Axon)
         result = await self._execute_offload(request)
 
         # Earn the fee

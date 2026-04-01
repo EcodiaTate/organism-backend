@@ -1,14 +1,14 @@
 """
-EcodiaOS — Telos: Drive Topology Integrator
+EcodiaOS - Telos: Drive Topology Integrator
 
 Computes the effective intelligence ratio accounting for all four drives.
-This is the actual measure of EOS's intelligence — not the nominal I.
+This is the actual measure of EOS's intelligence - not the nominal I.
 
 effective_I = nominal_I * care_coverage_multiplier
                         * coherence_penalty (1/bonus)
                         * honesty_validity_coefficient
 
-Growth doesn't multiply I — it multiplies dI/dt:
+Growth doesn't multiply I - it multiplies dI/dt:
 effective_dI_dt = effective_I * growth_score
 """
 
@@ -111,7 +111,7 @@ class DriveTopologyIntegrator:
         self._last_honesty_report = honesty_report
 
         # Effective I = nominal_I * care * (1/coherence_bonus) * honesty
-        # coherence_compression_bonus >= 1.0 — represents how much I would
+        # coherence_compression_bonus >= 1.0 - represents how much I would
         # IMPROVE if incoherence were resolved. We invert it to penalize
         # the current incoherent state.
         coherence_penalty = 1.0 / max(coherence_report.coherence_compression_bonus, 1.0)

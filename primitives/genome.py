@@ -1,11 +1,11 @@
 """
-EcodiaOS — Organism Genome Primitives
+EcodiaOS - Organism Genome Primitives
 
 Universal genome protocol for Mitosis inheritance. Every system implements
 GenomeExtractionProtocol so the organism can snapshot its complete heritable
 state and seed new child instances.
 
-Previously only Simula and Evo had genome concepts — this makes the genome
+Previously only Simula and Evo had genome concepts - this makes the genome
 organism-wide, giving Mitosis a single interface to extract and inject
 genetic material across all 29 systems.
 """
@@ -29,7 +29,7 @@ from primitives.common import (
 
 class OrganGenomeSegment(EOSBaseModel):
     """
-    One system's heritable state — the genetic material for a single organ.
+    One system's heritable state - the genetic material for a single organ.
 
     The payload is opaque to Mitosis: each system serialises its own
     heritable configuration into a dict. The payload_hash ensures integrity
@@ -47,7 +47,7 @@ class OrganGenomeSegment(EOSBaseModel):
 
 class OrganismGenome(Identified, Timestamped):
     """
-    The complete genome across all organs — a full snapshot of the organism's
+    The complete genome across all organs - a full snapshot of the organism's
     heritable state at a point in time.
 
     Used by Mitosis to birth child instances and by Benchmarks to track

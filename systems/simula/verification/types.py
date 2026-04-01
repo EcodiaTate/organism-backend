@@ -12,7 +12,7 @@ Pydantic models for the formal verification core:
   - Stage 4A: Lean 4 proof generation (DeepSeek-Prover-V2 pattern)
   - Stage 4B: GRPO domain fine-tuning (self-improvement via execution feedback)
   - Stage 4C: Diffusion-based code repair (last-mile denoising)
-  - Stage 5B: Neural program repair (SRepair pattern — separate diagnosis from generation)
+  - Stage 5B: Neural program repair (SRepair pattern - separate diagnosis from generation)
   - Stage 6A: Cryptographic auditability (hash chains, C2PA, verifiable credentials)
   - Stage 6B: Co-evolving agents (hard negatives, adversarial testing)
   - Stage 6C: Formal spec generation (Dafny, TLA+, Alloy, Self-Spec DSL)
@@ -286,8 +286,8 @@ class VerificationCacheStatus(enum.StrEnum):
 class VerificationCacheTier(enum.StrEnum):
     """Which cache layer holds the result."""
 
-    HOT = "hot"       # Redis — fast, ephemeral
-    COLD = "cold"     # Neo4j — durable, slower
+    HOT = "hot"       # Redis - fast, ephemeral
+    COLD = "cold"     # Neo4j - durable, slower
     NONE = "none"     # Not cached
 
 
@@ -518,7 +518,7 @@ class LeanProofAttempt(EOSBaseModel):
 class ProvenLemma(EOSBaseModel):
     """
     A proven Lean lemma stored in the proof library.
-    Reusable across proposals — linked to :EvolutionRecord in Neo4j.
+    Reusable across proposals - linked to :EvolutionRecord in Neo4j.
     """
 
     name: str  # Lean lemma name (e.g., "risk_score_bounded")
@@ -661,7 +661,7 @@ class GRPOTrainingRun(EOSBaseModel):
       5. Continuous: execution feedback → periodic retraining on idle compute
 
     The reward signal is binary correctness from Simula's own
-    test/verify pipeline — no human labeling needed.
+    test/verify pipeline - no human labeling needed.
     """
 
     status: GRPOTrainingStatus = GRPOTrainingStatus.PENDING
@@ -814,7 +814,7 @@ class FaultLocation(EOSBaseModel):
 
 
 class DiagnosisResult(EOSBaseModel):
-    """Output of the DIAGNOSE phase — reasoning-model analysis of the failure."""
+    """Output of the DIAGNOSE phase - reasoning-model analysis of the failure."""
 
     error_category: str = ""  # "syntax"|"type"|"logic"|"runtime"|"test"|"import"
     root_cause_hypothesis: str = ""
@@ -826,7 +826,7 @@ class DiagnosisResult(EOSBaseModel):
 
 
 class LocalizationResult(EOSBaseModel):
-    """Output of the LOCALIZE phase — narrowing down fault locations."""
+    """Output of the LOCALIZE phase - narrowing down fault locations."""
 
     fault_locations: list[FaultLocation] = Field(default_factory=list)
     search_tools_used: list[str] = Field(default_factory=list)
@@ -836,7 +836,7 @@ class LocalizationResult(EOSBaseModel):
 
 
 class FixGenerationResult(EOSBaseModel):
-    """Output of the GENERATE_FIX phase — code model produces a patch."""
+    """Output of the GENERATE_FIX phase - code model produces a patch."""
 
     fix_description: str = ""
     files_modified: list[str] = Field(default_factory=list)

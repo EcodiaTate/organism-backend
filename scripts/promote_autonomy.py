@@ -1,5 +1,5 @@
 """
-EcodiaOS — Promote instance autonomy level to PARTNER (level 2).
+EcodiaOS - Promote instance autonomy level to PARTNER (level 2).
 
 Bounty hunting requires autonomy level 2 (PARTNER).  Run this once after
 initial deployment to bootstrap the Self node so Equor stops blocking

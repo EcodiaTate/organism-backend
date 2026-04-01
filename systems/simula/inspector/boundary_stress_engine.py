@@ -1,30 +1,30 @@
 """
-EcodiaOS — Inspector Phase 6: Boundary Stress Engine
+EcodiaOS - Inspector Phase 6: Boundary Stress Engine
 
 Generates StressScenarios and produces BoundaryFailure / FailureAtBoundaryEntry
 records by replaying scenarios against the FSM model.
 
 Two stages
 ----------
-Stage A — Scenario Generation
+Stage A - Scenario Generation
   BoundaryStressEngine takes a list of ProtocolFsm instances and, for each
   boundary path identified by BoundaryTransitionEngine, applies the
   MutationStrategy to generate a StressScenario.  The scenario encodes the
   full state trace (StateStep sequence) needed to reach the boundary
   condition.
 
-  The generated scenarios are *valid* — they follow the protocol FSM — but
+  The generated scenarios are *valid* - they follow the protocol FSM - but
   they exercise conditions that implementations tend to handle inconsistently:
   counter overflow, timer expiry at zero slack, layer-interpretation crossing,
   version downgrade, etc.
 
-Stage B — Scenario Replay + Failure Detection
+Stage B - Scenario Replay + Failure Detection
   ScenarioReplayer executes each scenario step by step against the FSM,
   mutating counter and timer state according to the MutationStrategy.  It
   detects two classes of failure:
-    1. BoundaryFailure — a transition guard is violated (counter overflow,
+    1. BoundaryFailure - a transition guard is violated (counter overflow,
        timer fires unexpectedly, layer desync detected).
-    2. InterpretationMismatch — two consecutive transitions in the same
+    2. InterpretationMismatch - two consecutive transitions in the same
        scenario belong to different interpretation layers with no declared
        layer-crossing transition bridging them.
 
@@ -80,8 +80,8 @@ class BoundaryStressEngine:
 
     Parameters
     ----------
-    max_scenarios_per_fsm  — cap on scenarios generated per FSM (default 20)
-    confidence_floor       — minimum scenario confidence to include (default 0.3)
+    max_scenarios_per_fsm  - cap on scenarios generated per FSM (default 20)
+    confidence_floor       - minimum scenario confidence to include (default 0.3)
     """
 
     def __init__(
@@ -315,7 +315,7 @@ class BoundaryStressEngine:
         live_counters: dict[str, FsmCounter], state: ProtocolFsmState
     ) -> None:
         for c in live_counters.values():
-            # One past the maximum — overflow / wrap
+            # One past the maximum - overflow / wrap
             c.current_value = c.max_value + 1 if not c.wraps else c.min_value
 
     @staticmethod
@@ -325,7 +325,7 @@ class BoundaryStressEngine:
         for c in live_counters.values():
             # Drive to mid-range, then reset to zero
             c.current_value = c.max_value // 2
-            # Signal the reset — the replay engine records this as a mid-session reset
+            # Signal the reset - the replay engine records this as a mid-session reset
             c.current_value = 0
 
     @staticmethod
@@ -492,7 +492,7 @@ class ScenarioReplayer:
     Replays a ScenarioLibrary against the FSM model, detecting boundary
     failures and interpretation mismatches.
 
-    This is a *model-level* replayer — it walks the FSM state machine and
+    This is a *model-level* replayer - it walks the FSM state machine and
     checks guards, counter/timer invariants, and layer-interpretation
     consistency at each step.  It does not execute real network code.
 

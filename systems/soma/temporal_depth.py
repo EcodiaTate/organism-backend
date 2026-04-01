@@ -1,12 +1,12 @@
 """
-EcodiaOS — Soma Temporal Depth (Expanded)
+EcodiaOS - Soma Temporal Depth (Expanded)
 
 Multi-scale prediction coordination, temporal dissonance computation,
 and financial trajectory projection.
 
 Original scope (preserved):
   Works with the predictor to manage forecasts at all horizons and compute
-  the organism's sense of temporal coherence — whether its short-term and
+  the organism's sense of temporal coherence - whether its short-term and
   long-term trajectories are aligned or in conflict.
 
 Temporal Depth Expansion (new):
@@ -19,7 +19,7 @@ Temporal Depth Expansion (new):
   - TTD < 2 weeks: Urgency and Arousal spike, Valence tanks.
     The organism pivots to Tollbooth/revenue tasks.
 
-  All transitions are EMA-smoothed to prevent panic oscillation — the
+  All transitions are EMA-smoothed to prevent panic oscillation - the
   organism doesn't thrash between exploration and survival on every
   balance update.
 
@@ -57,7 +57,7 @@ class FinancialSnapshot:
     """
     Minimal financial state consumed by the TrajectoryPredictor.
 
-    Populated from Oikos EconomicState without importing heavy models —
+    Populated from Oikos EconomicState without importing heavy models -
     Soma never calls the database or network during a cycle. The snapshot
     is refreshed periodically by the SomaService (outside the 5ms budget).
     """
@@ -169,7 +169,7 @@ class TrajectoryPredictor:
           desperate for 30+ cycles after a large Stripe payment has already
           restored its runway.
 
-          Downward shocks (panic onset) are intentionally NOT fast-tracked —
+          Downward shocks (panic onset) are intentionally NOT fast-tracked -
           the slow EMA is a feature there, preventing a single bad day from
           triggering maximum panic.
         """
@@ -242,7 +242,7 @@ class TTDAffectMapper:
       CURIOSITY_DRIVE  ↑   (organism explores freely)
       TEMPORAL_PRESSURE ↓   (no time horizon compression)
       VALENCE          ↑   (positive outlook)
-      AROUSAL          —   (baseline)
+      AROUSAL          -   (baseline)
 
     Critical (TTD < critical_days):
       CURIOSITY_DRIVE  ↓   (no luxury of exploration)
@@ -251,7 +251,7 @@ class TTDAffectMapper:
       AROUSAL          ↑   (hyperactivation for survival)
       ENERGY (conserved) ↑  (hoard remaining resources)
 
-    The mapping is additive bias, not an override — Soma's existing
+    The mapping is additive bias, not an override - Soma's existing
     sensed state is the baseline; the financial projection nudges it.
     """
 
@@ -365,7 +365,7 @@ class FinancialHorizonWeights:
 
     PANIC_THROTTLE_TTD_DAYS: float = 3.0   # Below this: throttle fires
     PANIC_REVENUE_BOOST_CAP: float = 1.15  # Revenue boost ceiling during panic
-                                           # (not 1.4 — avoids hyper-polling)
+                                           # (not 1.4 - avoids hyper-polling)
 
     # Attractor labels associated with exploration vs revenue
     EXPLORATION_ATTRACTORS: frozenset[str] = frozenset({
@@ -383,7 +383,7 @@ class FinancialHorizonWeights:
         Returns:
             exploration_boost: multiplier for exploration-tagged memories
             revenue_boost:     multiplier for revenue-tagged memories (capped during panic)
-            panic_throttle:    True when TTD is critical — callers must rate-limit tasks
+            panic_throttle:    True when TTD is critical - callers must rate-limit tasks
 
         exploration_boost and revenue_boost are in [1.0, 1.0 + max_bias] normally,
         but revenue_boost is hard-capped at PANIC_REVENUE_BOOST_CAP during panic
@@ -495,7 +495,7 @@ class TemporalDepthManager:
         """
         Accept a new financial snapshot from Oikos (via SomaService).
 
-        Called outside the 5ms theta cycle budget — the SomaService
+        Called outside the 5ms theta cycle budget - the SomaService
         refreshes this periodically (every N cycles) by reading the
         EconomicState in-memory.
         """
@@ -678,7 +678,7 @@ class TemporalDepthManager:
         Used by the extended somatic_rerank() to boost exploration
         or revenue memories depending on TTD.
 
-        Always includes ``panic_throttle`` (bool) — Nova and AxonService
+        Always includes ``panic_throttle`` (bool) - Nova and AxonService
         must check this before approving high-compute revenue tasks during
         critical TTD windows to avoid the Panic Spiral.
         """
@@ -730,7 +730,7 @@ def build_financial_snapshot_from_oikos(
     Build a FinancialSnapshot from an Oikos EconomicState.
 
     Accepts `object` to avoid importing the heavy Oikos model into
-    Soma's hot path. Uses getattr for safety — if the EconomicState
+    Soma's hot path. Uses getattr for safety - if the EconomicState
     structure changes, we degrade to zero rather than crash.
     """
     def _dec_to_float(val: object) -> float:

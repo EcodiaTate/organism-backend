@@ -1,5 +1,5 @@
 """
-EcodiaOS — Synapse Resource Allocator
+EcodiaOS - Synapse Resource Allocator
 
 Adaptive resource allocation across cognitive systems. Tracks actual
 resource consumption and rebalances budgets based on system load.
@@ -53,7 +53,7 @@ class ResourceAllocator(BaseResourceAllocator):
     1. Snapshot: capture current process-level resource utilisation
     2. Rebalance: adjust per-system allocations based on observed load
 
-    The allocator is passive — it computes allocations but does not enforce them.
+    The allocator is passive - it computes allocations but does not enforce them.
     Systems are expected to respect their budgets voluntarily.
     """
 

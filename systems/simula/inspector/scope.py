@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Scope Enforcement
+EcodiaOS - Inspector Scope Enforcement
 
 Provides BountyScope and ScopeEnforcer to restrict TargetIngestor scanning to
 paths explicitly authorised by Bug Bounty Rules of Engagement.
@@ -62,7 +62,7 @@ class BountyScope(EOSBaseModel):
     @field_validator("in_scope_paths", "out_of_scope_paths", mode="before")
     @classmethod
     def _reject_empty_patterns(cls, patterns: list[str]) -> list[str]:
-        """Blank pattern strings cause re.search to match everything — reject them."""
+        """Blank pattern strings cause re.search to match everything - reject them."""
         for p in patterns:
             if not p or not p.strip():
                 raise ValueError(
@@ -82,7 +82,7 @@ class BountyScope(EOSBaseModel):
                 re.compile(pattern)
             except re.error as exc:
                 raise ValueError(
-                    f"Invalid regex pattern in BountyScope: {pattern!r} — {exc}"
+                    f"Invalid regex pattern in BountyScope: {pattern!r} - {exc}"
                 ) from exc
         return self
 
@@ -147,5 +147,5 @@ class ScopeEnforcer:
         if not self._in_scope_compiled:
             return True
 
-        # Rule 3: explicit allowlist — must match at least one pattern.
+        # Rule 3: explicit allowlist - must match at least one pattern.
         return any(pattern.search(normalised) for pattern in self._in_scope_compiled)

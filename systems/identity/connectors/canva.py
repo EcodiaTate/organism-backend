@@ -1,17 +1,17 @@
 """
-EcodiaOS — Canva Connect API Connector
+EcodiaOS - Canva Connect API Connector
 
 Implements the PlatformConnector ABC for Canva's OAuth 2.0 PKCE flow
 using the Canva Connect API.
 
 Canva specifics:
-  - Public client — PKCE (S256) is required.
+  - Public client - PKCE (S256) is required.
   - Access tokens expire in 4 hours (14,400 seconds).
   - Refresh tokens are long-lived and do not expire as long as they are used.
   - Canva token requests use JSON body, not form-encoded.
   - Required scopes for asset creation and design uploading:
-      asset:write          — upload and manage assets
-      design:content:read  — read design content (required alongside write ops)
+      asset:write          - upload and manage assets
+      design:content:read  - read design content (required alongside write ops)
   - Revocation via the standard OAuth 2.0 revocation endpoint (RFC 7009).
 """
 

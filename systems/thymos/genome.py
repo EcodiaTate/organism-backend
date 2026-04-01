@@ -1,10 +1,10 @@
 """
-EcodiaOS — Thymos Genome Extraction & Seeding
+EcodiaOS - Thymos Genome Extraction & Seeding
 
 Heritable state: antibody library (known-bad patterns + fixes),
 incident pattern history, healing strategy effectiveness scores.
 
-Child starts with parent's immune memory — knows what threats look like.
+Child starts with parent's immune memory - knows what threats look like.
 """
 
 from __future__ import annotations

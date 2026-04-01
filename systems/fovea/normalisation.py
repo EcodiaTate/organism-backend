@@ -1,5 +1,5 @@
 """
-Fovea — Input Normalisation.
+Fovea - Input Normalisation.
 
 Converts raw input from any :class:`InputChannel` into the standard
 :class:`Percept` format and produces a :class:`NormalisedPercept` with
@@ -221,7 +221,7 @@ async def _extract_entities_llm(
 
 
 class ChannelNormaliser:
-    """Base normaliser — subclass per channel for custom logic."""
+    """Base normaliser - subclass per channel for custom logic."""
 
     modality: str = "text"
     default_salience_hint: float = 0.5
@@ -436,7 +436,7 @@ async def normalise_enriched(
     :class:`NormalisedPercept` with LLM-derived enrichment.
 
     Runs LLM-based sentiment analysis and entity extraction. The
-    ``threat_annotations`` list is initialised empty — EIS populates it
+    ``threat_annotations`` list is initialised empty - EIS populates it
     before Fovea prediction error evaluation.
 
     Parameters
@@ -478,7 +478,7 @@ async def normalise_enriched(
 
     normalised = NormalisedPercept(
         percept_id=percept.id,
-        threat_annotations=[],  # Empty — EIS fast-path populates this
+        threat_annotations=[],  # Empty - EIS fast-path populates this
         evidence_tags=evidence_tags,
         confidence_score=confidence_score,
         sentiment=sentiment,

@@ -1,14 +1,14 @@
 """
-EcodiaOS — SimulaProxy + InspectorProxy
+EcodiaOS - SimulaProxy + InspectorProxy
 
 Drop-in replacements that offload heavy pipelines to an out-of-process
 worker via Redis Streams.
 
-SimulaProxy  — proxies ``process_proposal()`` (evolution pipeline)
-InspectorProxy — proxies ``hunt_external_repo()`` (Zero-Day Hunt / Inspector)
+SimulaProxy  - proxies ``process_proposal()`` (evolution pipeline)
+InspectorProxy - proxies ``hunt_external_repo()`` (Zero-Day Hunt / Inspector)
 
 Both push tasks to Redis Streams and await results without blocking the
-Synapse 150ms event loop — an asyncio.Future is parked per in-flight
+Synapse 150ms event loop - an asyncio.Future is parked per in-flight
 request and resolved by a background listener task that consumes the
 results stream.
 """
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Redis stream keys (un-prefixed — the proxy uses the raw redis client
+# Redis stream keys (un-prefixed - the proxy uses the raw redis client
 # so the worker and proxy agree on the exact key without coupling to the
 # RedisClient prefix logic).
 TASKS_STREAM = "eos:simula:tasks"
@@ -57,7 +57,7 @@ RESULTS_GROUP = "simula-proxy"
 INSPECTOR_RESULTS_GROUP = "inspector-proxy"
 
 # How long to wait for a result before declaring the worker dead.
-DEFAULT_TIMEOUT_S = 600.0  # 10 minutes — matches pipeline_timeout_s
+DEFAULT_TIMEOUT_S = 600.0  # 10 minutes - matches pipeline_timeout_s
 
 
 class SimulaProxy:
@@ -128,7 +128,7 @@ class SimulaProxy:
             )
         except Exception as exc:
             if "BUSYGROUP" in str(exc):
-                pass  # Group already exists — that's fine.
+                pass  # Group already exists - that's fine.
             else:
                 self._logger.error(
                     "results_group_create_failed",
@@ -162,7 +162,7 @@ class SimulaProxy:
         """
         Enqueue the proposal for the Simula worker and wait for the result.
 
-        This method is fully non-blocking — the calling coroutine yields
+        This method is fully non-blocking - the calling coroutine yields
         control while waiting on an ``asyncio.Future``, so the Synapse
         clock is never stalled.
         """
@@ -226,7 +226,7 @@ class SimulaProxy:
 
         Pushes an approval message onto ``eos:simula:governance``.  The worker
         picks it up, calls ``SimulaService.approve_governed_proposal()``, and
-        publishes the final ``ProposalResult`` onto ``eos:simula:results`` — the
+        publishes the final ``ProposalResult`` onto ``eos:simula:results`` - the
         same stream the proxy's listener already watches.  A future parked under
         the same ``proposal_id`` key ensures we resolve correctly.
         """
@@ -349,7 +349,7 @@ class SimulaProxy:
     # ─── Query Interface ────────────────────────────────────────────
     # health/stats satisfy the Synapse interface.  Read-only queries
     # (history, version chain) go directly to Neo4j via the
-    # EvolutionHistoryManager — no round-trip to the worker needed.
+    # EvolutionHistoryManager - no round-trip to the worker needed.
 
     async def health(self) -> dict[str, Any]:
         pending = len(self._pending)
@@ -408,7 +408,7 @@ class SimulaProxy:
 
         In proxy mode the worker process doesn't have Synapse wired, so
         Thymos' SIMULA_SANDBOX_REQUESTED events would be lost.  We handle
-        them inline — the check is lightweight (Iron Rule + conservative
+        them inline - the check is lightweight (Iron Rule + conservative
         approval) and doesn't need the full ChangeSimulator.
         """
         self._synapse = synapse
@@ -456,7 +456,7 @@ class SimulaProxy:
         reason = "unknown"
 
         try:
-            # Iron Rule check — reject repairs that touch protected systems
+            # Iron Rule check - reject repairs that touch protected systems
             protected = {"simula", "constitution", "invariant"}
             action_lower = (repair_action or "").lower()
             target_lower = (target_system or "").lower()
@@ -476,12 +476,12 @@ class SimulaProxy:
                 if violation:
                     reason = f"iron_rule_violation: parameter '{violation}' touches protected system"
                 else:
-                    # No simulator in proxy mode — approve lower tiers conservatively
+                    # No simulator in proxy mode - approve lower tiers conservatively
                     if repair_tier in ("PARAMETER", "RESTART", "KNOWN_FIX"):
                         approved = True
                         reason = "proxy_conservative_approve"
                     else:
-                        # NOVEL_FIX and higher — approve with advisory
+                        # NOVEL_FIX and higher - approve with advisory
                         # (full simulation not available in proxy mode)
                         approved = True
                         reason = "proxy_no_simulator_approve"
@@ -564,7 +564,7 @@ class SimulaProxy:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# InspectorProxy — offloads hunt_external_repo() to the worker
+# InspectorProxy - offloads hunt_external_repo() to the worker
 # ═══════════════════════════════════════════════════════════════════════
 
 
@@ -652,7 +652,7 @@ class InspectorProxy:
         """
         Enqueue a hunt for the worker and wait for the ``InspectionResult``.
 
-        Fully non-blocking — the calling coroutine yields control while
+        Fully non-blocking - the calling coroutine yields control while
         waiting on an ``asyncio.Future``, so the Synapse clock is never
         stalled.
         """

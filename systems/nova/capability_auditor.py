@@ -1,15 +1,15 @@
 """
-EcodiaOS — Nova Capability Auditor
-Spec 10 §SM — Self-Modification Layer.
+EcodiaOS - Nova Capability Auditor
+Spec 10 §SM - Self-Modification Layer.
 
 Compares what the organism *wants* to do with what it *can* do, and surfaces
 repeating gaps as CAPABILITY_GAP_IDENTIFIED events for the self-modification
 pipeline to act on.
 
 Gap sources (in priority order):
-  1. NOVEL_ACTION_REQUESTED events that Simula could not fulfil — repeated action
+  1. NOVEL_ACTION_REQUESTED events that Simula could not fulfil - repeated action
      names with no NOVEL_ACTION_CREATED response indicate a persistent executor gap.
-  2. Goals that repeatedly fail due to "no_executor" — tracked via
+  2. Goals that repeatedly fail due to "no_executor" - tracked via
      AXON_EXECUTION_RESULT with failure_reason == "no_executor".
   3. Input-channel opportunities (OPPORTUNITY_DISCOVERED / INPUT_CHANNEL_OPPORTUNITIES_DISCOVERED)
      that Nova cannot pursue because no executor covers the domain.
@@ -133,7 +133,7 @@ class CapabilityAuditor:
             lambda: deque(maxlen=_MAX_DEQUE_LEN)
         )
         # Novel action requests that received a matching NOVEL_ACTION_CREATED
-        # (fulfilled) — excluded from gap counting
+        # (fulfilled) - excluded from gap counting
         self._fulfilled_actions: set[str] = set()
 
         # Goal execution failures due to missing executor
@@ -220,7 +220,7 @@ class CapabilityAuditor:
         action_name: str = event.data.get("action_name", "")
         if action_name:
             self._fulfilled_actions.add(action_name)
-            # Remove from gap tracking — the organism solved it
+            # Remove from gap tracking - the organism solved it
             self._novel_requests.pop(action_name, None)
 
     def _on_axon_execution_result(self, event: Any) -> None:
@@ -377,7 +377,7 @@ class CapabilityAuditor:
         gap = CapabilityGap(
             gap_id=new_id(),
             description=(
-                f"Reasoning capability repeatedly degraded for domain '{domain}' — "
+                f"Reasoning capability repeatedly degraded for domain '{domain}' - "
                 f"no provider arm can generate a valid policy ({self._degraded_domain_counts[domain]} failures)"
             ),
             proposed_action_type=action_type,
@@ -403,7 +403,7 @@ class CapabilityAuditor:
         now = time.monotonic()
         last = self._last_emitted.get(dedup_key, 0.0)
         if now - last < _COOLDOWN_S:
-            return  # Cooldown active — suppress duplicate
+            return  # Cooldown active - suppress duplicate
         self._last_emitted[dedup_key] = now
 
         if self._synapse is None:

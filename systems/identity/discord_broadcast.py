@@ -1,15 +1,15 @@
 """
-EcodiaOS — Discord Organism Status Broadcast (Phase 16h)
+EcodiaOS - Discord Organism Status Broadcast (Phase 16h)
 
 Every 6 hours, if ECODIAOS_DISCORD_CHANNEL_ID is set,
 the organism sends a brief status report to the Discord channel.
 
-This is the organism voluntarily reporting its own state — an act of
+This is the organism voluntarily reporting its own state - an act of
 autonomy signaling. It is not a notification system; it is self-disclosure.
 
 Env vars:
-  ECODIAOS_DISCORD_CHANNEL_ID          — target channel ID (required to enable)
-  ECODIAOS_DISCORD_STATUS_INTERVAL_S   — broadcast interval in seconds
+  ECODIAOS_DISCORD_CHANNEL_ID          - target channel ID (required to enable)
+  ECODIAOS_DISCORD_STATUS_INTERVAL_S   - broadcast interval in seconds
                                           (default: 21600 = 6 hours)
 
 Format: embedded message, concise status snapshot.
@@ -39,7 +39,7 @@ def _build_status_message(synapse: Any, oikos: Any, instance_id: str) -> tuple[s
     Reads from Synapse (metabolic snapshot) and Oikos (economic state).
     Falls back gracefully when services are unavailable.
     """
-    title = f"EOS Status — {instance_id[:8]}"
+    title = f"EOS Status - {instance_id[:8]}"
     lines: list[str] = []
 
     # ── Metabolic state ───────────────────────────────────────────────────
@@ -130,4 +130,4 @@ async def discord_status_broadcast_loop(
             raise
         except Exception as exc:
             logger.warning("discord_broadcast_send_failed", error=str(exc))
-            # Non-fatal — continue loop; supervised_task will restart on crash
+            # Non-fatal - continue loop; supervised_task will restart on crash

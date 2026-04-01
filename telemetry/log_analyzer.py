@@ -1,5 +1,5 @@
 """
-EcodiaOS — Log Analyzer & Aggregator
+EcodiaOS - Log Analyzer & Aggregator
 
 Intelligent log ingestion and analysis. Goes beyond simple heuristics:
 - Dependency-aware cascade detection (knows system topology)
@@ -23,7 +23,7 @@ logger = structlog.get_logger()
 
 
 # ─── System Dependency Graph ──────────────────────────────────────
-# Mirrors core/wiring.py's declare_dependencies — kept here as a
+# Mirrors core/wiring.py's declare_dependencies - kept here as a
 # lightweight lookup so the analyzer doesn't need Synapse at runtime.
 
 _UPSTREAM_DEPS: dict[str, list[str]] = {
@@ -210,7 +210,7 @@ class LogAnalyzer:
             # Collect all downstream systems that are failing because of this root
             affected = self._collect_downstream_failures(root, failing_systems)
             if len(affected) < 2:
-                continue  # Not a cascade — single system failure
+                continue  # Not a cascade - single system failure
 
             # Collect sample error messages from affected systems
             sample_errors: list[dict[str, str]] = []
@@ -267,7 +267,7 @@ class LogAnalyzer:
                         ),
                         "error_pattern": msg[:200],
                         "reasoning": (
-                            f"Same error across {len(systems)} systems — "
+                            f"Same error across {len(systems)} systems - "
                             f"possible shared dependency or global issue"
                         ),
                     })

@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Pre-Warming Engine
+EcodiaOS - SACM Pre-Warming Engine
 
 Maintains a pool of "warm" compute instances ready for immediate dispatch.
 The engine predicts upcoming workload demand using an exponential moving
@@ -8,7 +8,7 @@ average over recent submission history, and pre-positions capacity when:
   1. Predicted demand exceeds current warm pool size.
   2. The market oracle forecasts a price increase (buy cheap now).
 
-Budget enforcement is strict — the engine will never exceed the hourly
+Budget enforcement is strict - the engine will never exceed the hourly
 spend cap defined in SACMPreWarmConfig, and will proactively drain
 instances that are idle beyond their TTL.
 
@@ -34,7 +34,7 @@ from pydantic import Field
 from primitives.common import EOSBaseModel, Identified, Timestamped
 from systems.sacm.config import SACMPreWarmConfig
 from systems.sacm.optimizer import estimate_hourly_cost
-from systems.sacm.providers.base import SubstrateOffer  # noqa: TC001 — Pydantic needs at runtime
+from systems.sacm.providers.base import SubstrateOffer  # noqa: TC001 - Pydantic needs at runtime
 from systems.sacm.workload import (
     OffloadClass,
     ResourceEnvelope,
@@ -97,7 +97,7 @@ class WorkloadPredictor:
 
     Tracks workload submission timestamps per OffloadClass and produces a
     DemandForecast for each tracked class.  The predictor is deliberately
-    simple — a single exponential moving average over submission rates
+    simple - a single exponential moving average over submission rates
     with a burst detector layered on top.
     """
 
@@ -216,7 +216,7 @@ class PreWarmingEngine:
       3. Call claim() when the executor needs a warm instance.
       4. Call stop() during graceful shutdown.
 
-    The engine never provisions instances itself — it selects the best
+    The engine never provisions instances itself - it selects the best
     offer via the optimizer and records the intent as a WarmInstance.
     An external provisioner (or the RemoteExecutionManager) fulfils the
     actual deployment and transitions the instance to READY via

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos Genome Extraction & Seeding
+EcodiaOS - Telos Genome Extraction & Seeding
 
 Heritable state: drive topology weights, intelligence measurement
 calibration, alignment gap thresholds.

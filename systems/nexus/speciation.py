@@ -1,9 +1,9 @@
 """
-EcodiaOS — Nexus: Speciation Detection and Invariant Bridge
+EcodiaOS - Nexus: Speciation Detection and Invariant Bridge
 
 Phase C of epistemic triangulation. When two instances diverge beyond
 the speciation threshold (overall divergence >= 0.8), they become
-"alien kinds" — normal fragment sharing is no longer possible because
+"alien kinds" - normal fragment sharing is no longer possible because
 their structural languages are incompatible.
 
 Post-speciation, only the most compressed structures (causal invariants)
@@ -11,13 +11,13 @@ can cross the boundary via InvariantBridge. These are stripped of ALL
 domain context and compared at the purest structural level.
 
 Convergence across speciated instances is the strongest possible evidence
-for ground truth — two alien-kind instances with incompatible structural
+for ground truth - two alien-kind instances with incompatible structural
 languages independently arrived at the same abstract form.
 
 Components:
-  SpeciationDetector  — monitors divergence scores for speciation threshold
-  InvariantBridge     — communication channel between speciated instances
-  SpeciationRegistry  — tracks all speciation events, cognitive kinds, bridges
+  SpeciationDetector  - monitors divergence scores for speciation threshold
+  InvariantBridge     - communication channel between speciated instances
+  SpeciationRegistry  - tracks all speciation events, cognitive kinds, bridges
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class SpeciationDetector:
 
     Speciation occurs when overall divergence between two instances
     reaches >= 0.8 (ALIEN_KIND classification). Once speciated,
-    normal fragment sharing is blocked — only InvariantBridge remains.
+    normal fragment sharing is blocked - only InvariantBridge remains.
     """
 
     def __init__(self, *, config: NexusConfig | None = None) -> None:
@@ -74,7 +74,7 @@ class SpeciationDetector:
         instance_a = divergence.instance_a_id
         instance_b = divergence.instance_b_id
 
-        # Already speciated — no duplicate events
+        # Already speciated - no duplicate events
         if registry.are_speciated(instance_a, instance_b):
             return None
 
@@ -101,7 +101,7 @@ class InvariantBridge:
 
     Normal fragment sharing is impossible post-speciation (incompatible
     structural languages). The InvariantBridge strips ALL domain context
-    and compares at the purest structural level — causal invariants only.
+    and compares at the purest structural level - causal invariants only.
 
     When two invariants from alien-kind instances match abstractly,
     this constitutes the strongest possible evidence for ground truth.
@@ -222,7 +222,7 @@ class SpeciationRegistry:
         kind_b = self._instance_to_kind.get(event.instance_b_id)
 
         if kind_a is None and kind_b is None:
-            # Neither has a kind — create two new ones
+            # Neither has a kind - create two new ones
             new_kind_a = CognitiveKindEntry(
                 member_instance_ids=[event.instance_a_id],
                 founding_speciation_event_id=event.id,
@@ -239,7 +239,7 @@ class SpeciationRegistry:
             self._instance_to_kind[event.instance_b_id] = new_kind_b.kind_id
             event.new_cognitive_kind_registered = True
         elif kind_a == kind_b and kind_a is not None:
-            # Same kind — split instance_b into a new kind
+            # Same kind - split instance_b into a new kind
             old_kind = self._find_kind(kind_a)
             if old_kind is not None and event.instance_b_id in old_kind.member_instance_ids:
                 old_kind.member_instance_ids.remove(event.instance_b_id)
@@ -252,7 +252,7 @@ class SpeciationRegistry:
             self._instance_to_kind[event.instance_b_id] = new_kind.kind_id
             event.new_cognitive_kind_registered = True
         elif kind_a is None:
-            # Only b has a kind — create a new kind for a
+            # Only b has a kind - create a new kind for a
             new_kind = CognitiveKindEntry(
                 member_instance_ids=[event.instance_a_id],
                 founding_speciation_event_id=event.id,
@@ -262,7 +262,7 @@ class SpeciationRegistry:
             self._instance_to_kind[event.instance_a_id] = new_kind.kind_id
             event.new_cognitive_kind_registered = True
         elif kind_b is None:
-            # Only a has a kind — create a new kind for b
+            # Only a has a kind - create a new kind for b
             new_kind = CognitiveKindEntry(
                 member_instance_ids=[event.instance_b_id],
                 founding_speciation_event_id=event.id,
@@ -271,7 +271,7 @@ class SpeciationRegistry:
             self._state.cognitive_kinds.append(new_kind)
             self._instance_to_kind[event.instance_b_id] = new_kind.kind_id
             event.new_cognitive_kind_registered = True
-        # else: already in different kinds — speciation is consistent
+        # else: already in different kinds - speciation is consistent
 
         logger.info(
             "speciation_registered",
@@ -327,7 +327,7 @@ def _extract_causal_invariants(
     """
     Extract causal invariants from a Logos world model.
 
-    Invariants are the most compressed structures — schemas with high
+    Invariants are the most compressed structures - schemas with high
     causal link density relative to their size. Only these can cross
     speciation boundaries.
     """
@@ -347,7 +347,7 @@ def _extract_causal_invariants(
         if not inv_list:
             continue
 
-        # Build a stripped fragment — no domain context, pure structure.
+        # Build a stripped fragment - no domain context, pure structure.
         # Use schema_id as fragment_id so the caller can map converged
         # invariants back to the original schema in the fragment store.
         fragment = ShareableWorldModelFragment(
@@ -462,7 +462,7 @@ def _are_abstractly_equivalent(
     that match at the purest structural level.
 
     When invariant sets are populated, uses strict Jaccard >= 0.7 comparison
-    (original behavior preserved — no reduced specificity).
+    (original behavior preserved - no reduced specificity).
 
     When invariant sets are empty (most Logos schemas), falls back to a
     weighted topology+domain+edge similarity score with threshold > 0.7.
@@ -477,7 +477,7 @@ def _are_abstractly_equivalent(
     has_invariants = bool(inv_a) and bool(inv_b)
 
     if has_invariants:
-        # Strict invariant Jaccard — original behavior unchanged
+        # Strict invariant Jaccard - original behavior unchanged
         union = len(inv_a | inv_b)
         intersection = len(inv_a & inv_b)
         if union == 0:
@@ -499,7 +499,7 @@ def _are_abstractly_equivalent(
             score += 0.25 * node_sim
             total_weight += 0.25
         elif nodes_a == nodes_b == 0:
-            # Both unknown — neutral
+            # Both unknown - neutral
             pass
         else:
             total_weight += 0.25  # one has nodes, other doesn't → 0 similarity
@@ -517,7 +517,7 @@ def _are_abstractly_equivalent(
                 score += 0.35 * edge_sim
                 total_weight += 0.35
         elif not edges_a and not edges_b:
-            pass  # Both missing — neutral
+            pass  # Both missing - neutral
         else:
             total_weight += 0.35
 
@@ -565,7 +565,7 @@ def _are_abstractly_equivalent(
         if pair not in related:
             return False
 
-    # Node count compatibility (within 50% tolerance) — applies to both paths
+    # Node count compatibility (within 50% tolerance) - applies to both paths
     if has_invariants:
         nodes_a = struct_a.get("nodes", 0)
         nodes_b = struct_b.get("nodes", 0)

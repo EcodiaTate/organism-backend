@@ -1,14 +1,14 @@
 """
-EcodiaOS — Thread Identity Schema Engine
+EcodiaOS - Thread Identity Schema Engine
 
 Maintains the organism's core self-beliefs: the "I am the kind of entity
 that..." statements that create narrative coherence.
 
-This is Ricoeur's *idem* — structural sameness across time.
+This is Ricoeur's *idem* - structural sameness across time.
 
 Schema formation requires evidence: at least 5 supporting episodes spanning
 48+ hours. CORE schemas require 50+ confirmations AND 180+ days of age.
-Schemas can never be fabricated — every schema earns its place through
+Schemas can never be fabricated - every schema earns its place through
 lived experience.
 
 Velocity-limited to prevent identity instability:
@@ -228,12 +228,12 @@ class IdentitySchemaEngine:
             if sim < self._config.schema_relevance_threshold:
                 return ("irrelevant", 0.0)
         else:
-            # No embeddings available — assume potentially relevant
+            # No embeddings available - assume potentially relevant
             sim = 0.5
 
         # For clearly relevant or ambiguous episodes, use LLM evaluation
         if sim >= self._config.schema_evidence_ambiguity_threshold:
-            # High similarity — likely confirms, no need for LLM
+            # High similarity - likely confirms, no need for LLM
             return ("confirms", min(1.0, sim))
 
         # Slow path: LLM evaluation
@@ -333,7 +333,7 @@ class IdentitySchemaEngine:
     async def check_decay(self) -> list[str]:
         """
         Check for inactive schemas and reduce their strength.
-        Never deletes schemas — history matters.
+        Never deletes schemas - history matters.
         """
         decayed: list[str] = []
         threshold = timedelta(days=self._config.schema_inactive_days_before_decay)

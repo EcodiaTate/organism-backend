@@ -1,5 +1,5 @@
 """
-EcodiaOS — MEV Analyzer Types (Prompt #12: Predator Detection)
+EcodiaOS - MEV Analyzer Types (Prompt #12: Predator Detection)
 
 Types for MEV risk analysis and transaction protection routing.
 
@@ -18,7 +18,7 @@ import enum
 
 from pydantic import Field
 
-from primitives.blockchain import BlockCompetitionSnapshot as BlockCompetitionSnapshot  # noqa: F401 — re-export; do not remove
+from primitives.blockchain import BlockCompetitionSnapshot as BlockCompetitionSnapshot  # noqa: F401 - re-export; do not remove
 from primitives.common import EOSBaseModel
 
 
@@ -99,4 +99,3 @@ class MEVReport(EOSBaseModel):
             f"vulnerable_steps={vuln_count} "
             f"protection={protection}"
         )
-

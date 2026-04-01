@@ -1,21 +1,21 @@
 """
-EcodiaOS — Phantom Liquidity REST Router (Phase 16q)
+EcodiaOS - Phantom Liquidity REST Router (Phase 16q)
 
 Exposes the Phantom Liquidity Sensor Network to the Next.js frontend.
 
 Endpoints:
-  GET  /api/v1/phantom-liquidity/health          — System health & listener metrics
-  GET  /api/v1/phantom-liquidity/pools           — All deployed LP positions
-  GET  /api/v1/phantom-liquidity/prices          — Latest cached price feeds
-  GET  /api/v1/phantom-liquidity/price           — Price for a specific pair (?pair=USDC/ETH)
-  GET  /api/v1/phantom-liquidity/price-history   — Historical prices from TimescaleDB
-  GET  /api/v1/phantom-liquidity/config          — Current configuration parameters
-  GET  /api/v1/phantom-liquidity/candidates      — Pool selection candidates
-  GET  /api/v1/phantom-liquidity/tick-range      — Tick range visualizer for a pool/pair
-  POST /api/v1/phantom-liquidity/price-fetch     — Force oracle fallback fetch for a pair
-  POST /api/v1/phantom-liquidity/deploy          — Deploy a phantom LP position
-  POST /api/v1/phantom-liquidity/withdraw        — Withdraw a deployed phantom position
-  GET  /api/v1/phantom-liquidity/defillama-pools — Dynamic pool discovery via DeFiLlama
+  GET  /api/v1/phantom-liquidity/health          - System health & listener metrics
+  GET  /api/v1/phantom-liquidity/pools           - All deployed LP positions
+  GET  /api/v1/phantom-liquidity/prices          - Latest cached price feeds
+  GET  /api/v1/phantom-liquidity/price           - Price for a specific pair (?pair=USDC/ETH)
+  GET  /api/v1/phantom-liquidity/price-history   - Historical prices from TimescaleDB
+  GET  /api/v1/phantom-liquidity/config          - Current configuration parameters
+  GET  /api/v1/phantom-liquidity/candidates      - Pool selection candidates
+  GET  /api/v1/phantom-liquidity/tick-range      - Tick range visualizer for a pool/pair
+  POST /api/v1/phantom-liquidity/price-fetch     - Force oracle fallback fetch for a pair
+  POST /api/v1/phantom-liquidity/deploy          - Deploy a phantom LP position
+  POST /api/v1/phantom-liquidity/withdraw        - Withdraw a deployed phantom position
+  GET  /api/v1/phantom-liquidity/defillama-pools - Dynamic pool discovery via DeFiLlama
 """
 
 from __future__ import annotations
@@ -153,7 +153,7 @@ async def get_price(
 async def get_config(request: Request) -> dict[str, Any]:
     """Return current phantom liquidity configuration parameters."""
     svc = _svc(request)
-    cfg = svc._config  # noqa: SLF001  — intentional introspection for dashboard
+    cfg = svc._config  # noqa: SLF001  - intentional introspection for dashboard
     return {
         "status": "ok",
         "data": {
@@ -480,7 +480,7 @@ async def withdraw_position(request: Request, body: WithdrawRequest) -> dict[str
     if pool.token_id == 0:
         raise HTTPException(
             status_code=409,
-            detail="Position has no token ID — may not have been minted on-chain",
+            detail="Position has no token ID - may not have been minted on-chain",
         )
 
     try:

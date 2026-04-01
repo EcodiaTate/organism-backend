@@ -1,7 +1,7 @@
 """
-EcodiaOS — Oneiros: Circadian Clock & Sleep Stage Controller
+EcodiaOS - Oneiros: Circadian Clock & Sleep Stage Controller
 
-The CircadianClock tracks sleep pressure — the organism's accumulating
+The CircadianClock tracks sleep pressure - the organism's accumulating
 need for rest. Like adenosine in biological brains, pressure builds from
 four independent sources during wakefulness.
 
@@ -155,7 +155,7 @@ class CircadianClock:
         return self._pressure.composite_pressure >= self._pressure.threshold
 
     def must_sleep(self) -> bool:
-        """Pressure has crossed the CRITICAL threshold — forced sleep."""
+        """Pressure has crossed the CRITICAL threshold - forced sleep."""
         return self._pressure.composite_pressure >= self._pressure.critical_threshold
 
     def reset_after_sleep(self, quality: SleepQuality) -> None:

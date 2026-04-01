@@ -1,11 +1,11 @@
 """
-EcodiaOS — SpecializationTracker
+EcodiaOS - SpecializationTracker
 
 Tracks this instance's specialization progress across all domains, building
 DomainProfile objects from exploration outcomes and RE training examples.
 
 Owned by Nova (the active-inference deliberation engine) because domain
-specialization drives goal selection and policy preferences — both Nova concerns.
+specialization drives goal selection and policy preferences - both Nova concerns.
 
 The tracker is passive: it only stores/queries. All Synapse emissions are
 fire-and-forget so they don't block the hot path.

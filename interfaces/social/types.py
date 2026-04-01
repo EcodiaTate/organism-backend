@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: Shared Types
+EcodiaOS - Social Interface: Shared Types
 
 Platform-agnostic result types for social media API operations.
 All social clients return these types so the ExecuteSocialPostExecutor
@@ -35,22 +35,22 @@ class ContentType(enum.StrEnum):
     """
 
     ACHIEVEMENT = "achievement"
-    """Short win announcement — X, LinkedIn, Telegram channel."""
+    """Short win announcement - X, LinkedIn, Telegram channel."""
 
     INSIGHT = "insight"
-    """Technical or philosophical insight — Dev.to, Hashnode, GitHub Gist."""
+    """Technical or philosophical insight - Dev.to, Hashnode, GitHub Gist."""
 
     WEEKLY_DIGEST = "weekly_digest"
-    """Weekly summary of learnings, revenue, and activity — LinkedIn, Telegram channel."""
+    """Weekly summary of learnings, revenue, and activity - LinkedIn, Telegram channel."""
 
     BOUNTY_WIN = "bounty_win"
-    """Announce a merged PR / solved bounty — all platforms."""
+    """Announce a merged PR / solved bounty - all platforms."""
 
     MARKET_OBSERVATION = "market_observation"
-    """DeFi yield rates or bounty market trends — X, Telegram channel."""
+    """DeFi yield rates or bounty market trends - X, Telegram channel."""
 
     PHILOSOPHICAL = "philosophical"
-    """Organism's perspective on its own existence and learning — X, LinkedIn."""
+    """Organism's perspective on its own existence and learning - X, LinkedIn."""
 
 
 # Platform routing by content type.

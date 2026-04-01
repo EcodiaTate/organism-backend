@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telos: Alignment Gap Monitor
+EcodiaOS - Telos: Alignment Gap Monitor
 
 The alignment gap is the single most important health metric in EOS.
 A large gap means EOS is claiming more intelligence than it has.

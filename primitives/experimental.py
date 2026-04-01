@@ -1,5 +1,5 @@
 """
-EcodiaOS — Experimental Primitives
+EcodiaOS - Experimental Primitives
 
 Canonical types for Evo's experiment lifecycle. When a hypothesis
 transitions to TESTING, an ExperimentDesign is created; when the test
@@ -22,11 +22,11 @@ from primitives.common import EOSBaseModel, Identified, new_id, utc_now
 
 class ExperimentDesign(Identified):
     """
-    Design for a hypothesis test — what will be measured, how, and
+    Design for a hypothesis test - what will be measured, how, and
     what constitutes success.
 
     Created when a Hypothesis transitions from PROPOSED to TESTING.
-    Pure data — no system-specific logic.
+    Pure data - no system-specific logic.
     """
 
     hypothesis_id: str
@@ -41,7 +41,7 @@ class ExperimentResult(EOSBaseModel):
     """
     Outcome of a completed experiment.
 
-    Recorded when a hypothesis test concludes — confirmed, refuted,
+    Recorded when a hypothesis test concludes - confirmed, refuted,
     or inconclusive. Metrics dict is free-form to accommodate different
     experiment types.
     """

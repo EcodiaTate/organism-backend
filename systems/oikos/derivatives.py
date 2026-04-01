@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos: Cognitive Derivatives (Phase 16k)
+EcodiaOS - Oikos: Cognitive Derivatives (Phase 16k)
 
 The organism sells forward contracts on its future cognitive capacity,
 converting uncertain future revenue into guaranteed present commitments.
@@ -7,7 +7,7 @@ Buyers get discounted access; the organism gets revenue certainty and
 locked collateral that strengthens its balance sheet.
 
 Components:
-  - CognitiveFuture: Forward contract — buyer purchases guaranteed capacity
+  - CognitiveFuture: Forward contract - buyer purchases guaranteed capacity
     at a fixed rate for a future period (16% discount, 30% collateral lock).
   - SubscriptionToken: ERC-20-style token granting N requests/month,
     conceptually tradeable on secondary markets.
@@ -15,8 +15,8 @@ Components:
     the 80% combined capacity ceiling, and exposes liability totals for
     balance sheet integration.
 
-Spec reference: Oikos §11.4 — Cognitive Derivatives.
-Config reference: Oikos §XVII — derivatives.* keys.
+Spec reference: Oikos §11.4 - Cognitive Derivatives.
+Config reference: Oikos §XVII - derivatives.* keys.
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ class CognitiveFuture(EOSBaseModel):
       - If the organism fails to deliver, collateral is forfeited to buyer.
       - If fully delivered, collateral is released back to organism's liquid balance.
 
-    Capacity is measured in requests — the same unit as subscriptions.
+    Capacity is measured in requests - the same unit as subscriptions.
     """
 
     contract_id: str = Field(default_factory=new_id)
@@ -203,7 +203,7 @@ class DerivativesManager:
       - Expire/settle contracts at end of delivery period
       - Report total outstanding liabilities for balance sheet integration
 
-    The capacity ceiling is shared with SubscriptionManager — the
+    The capacity ceiling is shared with SubscriptionManager - the
     DerivativesManager queries the subscription manager's committed
     requests to compute the combined utilisation.
     """
@@ -392,7 +392,7 @@ class DerivativesManager:
         Settle a fully-delivered futures contract.
 
         Releases collateral back to the organism's liquid balance
-        (tracked via _locked_collateral_usd decrement — OikosService
+        (tracked via _locked_collateral_usd decrement - OikosService
         handles the actual balance update).
         """
         future.status = FutureStatus.SETTLED
@@ -413,7 +413,7 @@ class DerivativesManager:
 
         Partially-delivered contracts still release collateral (the
         organism delivered what it could). Fully-undelivered contracts
-        also release — the buyer's recourse is off-chain dispute.
+        also release - the buyer's recourse is off-chain dispute.
 
         Returns the list of newly expired contracts.
         """

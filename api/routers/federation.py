@@ -130,14 +130,14 @@ async def federation_handshake(request: Request) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# Telecom Provisioning — Genesis fulfillment endpoint
+# Telecom Provisioning - Genesis fulfillment endpoint
 # ---------------------------------------------------------------------------
 
 _TELECOM_PRICE_USDC: Decimal = Decimal("5")
 """Must match RequestTelecomExecutor.TELECOM_PRICE_USDC."""
 
 _TX_HASH_REDIS_PREFIX = "eos:telecom:tx_hash:"
-_TX_HASH_TTL_S = 60 * 60 * 24 * 30  # 30 days — longer than blockchain finality window
+_TX_HASH_TTL_S = 60 * 60 * 24 * 30  # 30 days - longer than blockchain finality window
 
 
 @router.post("/api/v1/federation/telecom/provision")
@@ -232,7 +232,7 @@ async def federation_telecom_provision(request: Request) -> JSONResponse:
             ex=_TX_HASH_TTL_S,
         )
         if claimed is None:
-            # Key already existed — replay attempt
+            # Key already existed - replay attempt
             logger.warning(
                 "telecom_provision_replay_blocked",
                 tx_hash=tx_hash,
@@ -246,7 +246,7 @@ async def federation_telecom_provision(request: Request) -> JSONResponse:
         logger.error("telecom_provision_redis_unavailable", tx_hash=tx_hash)
         return JSONResponse(
             status_code=503,
-            content={"error": "Idempotency store unavailable — cannot safely process payment"},
+            content={"error": "Idempotency store unavailable - cannot safely process payment"},
         )
 
     logger.info(

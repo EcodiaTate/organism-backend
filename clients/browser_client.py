@@ -1,5 +1,5 @@
 """
-EcodiaOS — Playwright Browser Client
+EcodiaOS - Playwright Browser Client
 
 Async headless browser executor for form-based account creation flows.
 Uses Playwright with optional playwright-stealth for bot detection evasion.
@@ -15,8 +15,8 @@ Dependencies (install once, lazy-imported):
   playwright install chromium
 
 Configuration:
-  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_HEADLESS  — default True
-  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_STEALTH   — default True
+  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_HEADLESS  - default True
+  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_STEALTH   - default True
 
 Thread-safety: NOT thread-safe. Single-threaded asyncio like all EOS clients.
 """
@@ -370,7 +370,7 @@ class BrowserClient:
                 return True
 
             self._log.debug("no_captcha_detected")
-            return True  # No CAPTCHA present — success
+            return True  # No CAPTCHA present - success
 
         except Exception as exc:
             self._log.error("captcha_solve_failed", error=str(exc))

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Transaction Shield (Layer 1: Economic Immune System)
+EcodiaOS - Transaction Shield (Layer 1: Economic Immune System)
 
 Pre-execution filter that evaluates transactions before they are broadcast
 on-chain. Unlike sentinels (which detect and report), the shield PREVENTS
@@ -10,7 +10,7 @@ Checks performed:
   2. Simulated slippage enforcement (max 50 bps)
   3. Gas cost vs expected ROI validation
   4. MEV risk heuristics (optional, via eth_call simulation)
-  5. MEV Predator Detection — full MEV risk analysis via MEVAnalyzer
+  5. MEV Predator Detection - full MEV risk analysis via MEVAnalyzer
      (Prompt #12: sandwich/frontrun/backrun detection with Flashbots routing)
 
 The shield is wired into ExecutionPipeline as Stage 5.5 -- after context
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class AddressBlacklistEntry:
-    """A blacklisted on-chain address — Axon-local mirror."""
+    """A blacklisted on-chain address - Axon-local mirror."""
 
     address: str
     chain_id: int = 8453
@@ -48,7 +48,7 @@ class AddressBlacklistEntry:
 
 @dataclass
 class SimulationResult:
-    """Result of pre-simulating a transaction — Axon-local mirror."""
+    """Result of pre-simulating a transaction - Axon-local mirror."""
 
     passed: bool = True
     revert_reason: str = ""
@@ -229,7 +229,7 @@ class TransactionShield:
                             f"(estimated extraction ${mev_report.estimated_extraction_usd:.2f})"
                         )
                     else:
-                        # Flashbots Protect or batch auction — add routing metadata
+                        # Flashbots Protect or batch auction - add routing metadata
                         warnings.append(
                             f"MEV risk {mev_report.mev_risk_score:.2f}: "
                             f"routed via {mev_report.recommended_protection.value} "
@@ -245,7 +245,7 @@ class TransactionShield:
                         warnings=warnings,
                     )
 
-                # Low/moderate risk — note in warnings if non-zero
+                # Low/moderate risk - note in warnings if non-zero
                 if mev_report.mev_risk_score > 0.1:
                     warnings.append(
                         f"MEV risk {mev_report.mev_risk_score:.2f} (low): "

@@ -1,7 +1,7 @@
 """
-EcodiaOS — Thread: The Narrative Identity System
+EcodiaOS - Thread: The Narrative Identity System
 
-Thread is the organism's autobiographical self — the Ricoeurian ipse that
+Thread is the organism's autobiographical self - the Ricoeurian ipse that
 maintains continuity through change. It manages:
   - Identity schemas (who I am, what I value, what I've learned)
   - Constitutional commitments (the four drives as lived promises)

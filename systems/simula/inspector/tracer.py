@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Inter-Procedural Call Graph Tracer
+EcodiaOS - Inspector Inter-Procedural Call Graph Tracer
 
 Follows function calls across file boundaries so the Z3 prover receives the
 full execution context for an attack surface, not just the entry-point body.
@@ -19,10 +19,10 @@ to be placed into an LLM prompt as structured context.
 
 Language support
 ----------------
-- Python  — AST-based call extraction + import resolution
-- JS/TS   — regex-based call extraction + ES-module / CommonJS import resolution
-- Solidity — regex-based call extraction + import path resolution
-- Go/Rust  — regex-based call extraction + best-effort import resolution
+- Python  - AST-based call extraction + import resolution
+- JS/TS   - regex-based call extraction + ES-module / CommonJS import resolution
+- Solidity - regex-based call extraction + import path resolution
+- Go/Rust  - regex-based call extraction + best-effort import resolution
 
 All I/O is synchronous (``pathlib`` reads).  The method signature is
 ``async`` for interface consistency with the rest of the Inspector pipeline, but
@@ -70,10 +70,10 @@ _JS_CALL_PATTERN: Final = re.compile(r"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(")
 # Solidity: same shape as JS
 _SOL_CALL_PATTERN: Final = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
-# Go: identifier( — captures both plain calls and method calls
+# Go: identifier( - captures both plain calls and method calls
 _GO_CALL_PATTERN: Final = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
-# Rust: identifier( — same pattern; macro calls (!() ) are excluded below
+# Rust: identifier( - same pattern; macro calls (!() ) are excluded below
 _RUST_CALL_PATTERN: Final = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 # Keywords that look like calls but aren't user-defined functions.
@@ -208,7 +208,7 @@ class CallGraphTracer:
 
         sections: list[str] = []
 
-        # Entry-point section — always first.
+        # Entry-point section - always first.
         sections.append(
             _SECTION_HEADER.format(rel_path=source_file, label="Entry Point")
             + entry_code
@@ -311,7 +311,7 @@ class CallGraphTracer:
             sections.append(
                 _SECTION_HEADER.format(
                     rel_path=dep_rel_path,
-                    label=f"Dependency — {name}",
+                    label=f"Dependency - {name}",
                 )
                 + callee_body[:_MAX_CALLEE_CHARS]
             )
@@ -347,7 +347,7 @@ class CallGraphTracer:
         elif suffix in _RUST_EXTS:
             pattern = _RUST_CALL_PATTERN
         else:
-            # Unknown language — best-effort identifier-call pattern.
+            # Unknown language - best-effort identifier-call pattern.
             pattern = _JS_CALL_PATTERN
 
         names: set[str] = set()
@@ -358,7 +358,7 @@ class CallGraphTracer:
         return names
 
     def _extract_python_calls(self, code: str) -> set[str]:
-        """AST-based call extraction for Python — more accurate than regex."""
+        """AST-based call extraction for Python - more accurate than regex."""
         try:
             tree = ast.parse(code)
         except SyntaxError:
@@ -747,7 +747,7 @@ class CallGraphTracer:
                 if depth == 0:
                     break
         else:
-            # Reached EOF without closing — return what we have.
+            # Reached EOF without closing - return what we have.
             pass
 
         # Include a small header: from the function keyword to the closing brace.

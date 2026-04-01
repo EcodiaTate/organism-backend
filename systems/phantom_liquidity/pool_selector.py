@@ -1,5 +1,5 @@
 """
-EcodiaOS — Phantom Liquidity Pool Selector (Phase 16q)
+EcodiaOS - Phantom Liquidity Pool Selector (Phase 16q)
 
 Selects optimal Uniswap V3 pools on Base L2 for phantom liquidity deployment.
 
@@ -7,7 +7,7 @@ Phase 1: static curated list of high-volume pairs.
 Phase 2 (Evo-tuned): dynamic selection via DeFiLlama API + Evo weighting.
 
 The selector also computes wide tick ranges for sensor positions, deliberately
-sacrificing capital efficiency to minimise impermanent loss — these are sensors,
+sacrificing capital efficiency to minimise impermanent loss - these are sensors,
 not profit centres.
 """
 
@@ -54,7 +54,7 @@ TOKEN_SYMBOLS: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Static pool list — Phase 1 (curated high-volume Base L2 pairs)
+# Static pool list - Phase 1 (curated high-volume Base L2 pairs)
 # ---------------------------------------------------------------------------
 # Pool addresses are computed deterministically from the Uniswap V3 Factory
 # on Base (0x33128a8fC17869897dcE68Ed026d694621f6FDfD) using CREATE2.
@@ -248,7 +248,7 @@ class PoolSelector:
         spacing = _TICK_SPACING.get(fee_tier, 60)
 
         if current_tick == 0:
-            # Full range — maximise price coverage, minimise IL
+            # Full range - maximise price coverage, minimise IL
             tick_lower = _align_tick(_MIN_TICK, spacing, round_down=True)
             tick_upper = _align_tick(_MAX_TICK, spacing, round_down=False)
             return (tick_lower, tick_upper)

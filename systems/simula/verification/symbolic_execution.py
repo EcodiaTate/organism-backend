@@ -11,7 +11,7 @@ gating, and constitutional alignment.
 Algorithm:
   1. AST-extract functions matching domain keywords from changed files
   2. LLM encodes each function's properties as Z3 expressions
-  3. Z3 checks NOT(property) — UNSAT means property is proved
+  3. Z3 checks NOT(property) - UNSAT means property is proved
   4. Counterexamples returned when SAT (a concrete input violates property)
 
 This delivers mathematical proof, not just test coverage.
@@ -160,7 +160,7 @@ class SymbolicExecutionEngine:
                     failed += 1
                     prop.counterexample = result_detail
                     counterexamples.append(
-                        f"{file_path}:{func_name} — {prop.property_name}: {result_detail}",
+                        f"{file_path}:{func_name} - {prop.property_name}: {result_detail}",
                     )
 
                 path_conditions += 1
@@ -312,7 +312,7 @@ class SymbolicExecutionEngine:
         prop: SymbolicProperty,
     ) -> tuple[SymbolicExecutionStatus, str]:
         """
-        Z3 checks NOT(property) — UNSAT means the property is proved.
+        Z3 checks NOT(property) - UNSAT means the property is proved.
 
         If SAT, the model provides a counterexample: a concrete set of
         inputs that violates the property.
@@ -325,7 +325,7 @@ class SymbolicExecutionEngine:
 
             # Execute the Z3 encoding in a sandboxed namespace
             namespace: dict[str, object] = {"z3": z3}
-            exec(prop.z3_encoding, namespace)  # noqa: S102 — controlled input from our LLM
+            exec(prop.z3_encoding, namespace)  # noqa: S102 - controlled input from our LLM
 
             # Find the Z3 expression (the last assigned variable or expression result)
             z3_expr = None

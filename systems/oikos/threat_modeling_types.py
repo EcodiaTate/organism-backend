@@ -1,19 +1,19 @@
 """
-EcodiaOS — Oikos: Treasury Threat Modeling Types (Phase 16i+)
+EcodiaOS - Oikos: Treasury Threat Modeling Types (Phase 16i+)
 
 Data types for per-asset Monte Carlo threat modeling during consolidation.
 While EconomicSimulator (Phase 16i) models organism-level cashflow via GBM,
 these types support the complementary layer: per-asset shock distributions,
 contagion coupling, liquidation detection, and hedging proposals.
 
-The organism dreams about its treasury exposures — testing each position
+The organism dreams about its treasury exposures - testing each position
 against adversarial scenarios and pre-computing hedges before crises hit.
 """
 
 from __future__ import annotations
 
 import enum
-from datetime import datetime  # noqa: TC003 — needed at runtime for Pydantic field resolution
+from datetime import datetime  # noqa: TC003 - needed at runtime for Pydantic field resolution
 from decimal import Decimal
 
 from pydantic import Field
@@ -26,11 +26,11 @@ from primitives.common import EOSBaseModel, new_id, utc_now
 class AssetClass(enum.StrEnum):
     """Classification of treasury assets by risk profile."""
 
-    NATIVE_ETH = "native_eth"        # ETH — fat-tailed, high vol
+    NATIVE_ETH = "native_eth"        # ETH - fat-tailed, high vol
     LST = "lst"                      # Liquid staking tokens (stETH, rETH)
-    STABLECOIN = "stablecoin"        # USDC, USDT, DAI — depeg risk model
-    LP_TOKEN = "lp_token"            # Liquidity pool tokens — impermanent loss
-    YIELD_BEARING = "yield_bearing"  # aTokens, cTokens — protocol risk
+    STABLECOIN = "stablecoin"        # USDC, USDT, DAI - depeg risk model
+    LP_TOKEN = "lp_token"            # Liquidity pool tokens - impermanent loss
+    YIELD_BEARING = "yield_bearing"  # aTokens, cTokens - protocol risk
     DERIVATIVE = "derivative"        # Futures collateral positions
 
 
@@ -73,7 +73,7 @@ class ContagionEdge(EOSBaseModel):
 
     During normal markets, assets correlate at base_correlation.
     When the source asset draws down beyond stress_threshold,
-    correlation jumps to stress_correlation — capturing the
+    correlation jumps to stress_correlation - capturing the
     real-world phenomenon of spiking correlations during crises.
     """
 
@@ -92,7 +92,7 @@ class TreasuryPosition(EOSBaseModel):
     """
     A single treasury position for threat modeling.
 
-    Richer than YieldPosition — adds asset class, liquidation
+    Richer than YieldPosition - adds asset class, liquidation
     parameters, and collateral ratios for DeFi positions.
     """
 
@@ -142,7 +142,7 @@ class CriticalExposure(EOSBaseModel):
     """
     An asset/position identified as a critical risk driver.
 
-    Ranked by marginal contribution to portfolio VaR — the position
+    Ranked by marginal contribution to portfolio VaR - the position
     whose removal most reduces portfolio-level tail risk ranks highest.
     """
 
@@ -198,7 +198,7 @@ class ThreatModelResult(EOSBaseModel):
     """
     Complete result of a treasury threat modeling cycle.
 
-    This is the organism's adversarial economic prophecy — the distilled
+    This is the organism's adversarial economic prophecy - the distilled
     wisdom of thousands of simulated asset-level shocks, contagion cascades,
     and liquidation events, with pre-computed hedges ready for Nova on wake.
     """

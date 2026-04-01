@@ -1,13 +1,13 @@
 """
-EcodiaOS — Telos: Growth Topology Engine
+EcodiaOS - Telos: Growth Topology Engine
 
-Growth is not accumulation. Growth is the drive that keeps dI/dt positive —
+Growth is not accumulation. Growth is the drive that keeps dI/dt positive -
 the temporal dimension of intelligence topology. A model with high Growth
 continuously identifies the frontier of its own understanding, seeks
 high-information-content deltas, and never allows cognitive pressure to reach
 zero.
 
-Growth doesn't multiply I — it multiplies dI/dt. It determines how fast
+Growth doesn't multiply I - it multiplies dI/dt. It determines how fast
 effective intelligence grows, not its current value.
 """
 

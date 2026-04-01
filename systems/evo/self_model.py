@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Self-Model Manager
+EcodiaOS - Evo Self-Model Manager
 
 Maintains the instance's evolving understanding of its own capabilities
 and effectiveness. This is meta-cognition: EOS learning about EOS.

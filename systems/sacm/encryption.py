@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Encryption Utilities
+EcodiaOS - SACM Encryption Utilities
 
 Provides end-to-end encryption for workload payloads dispatched to
 untrusted remote compute providers.  The protocol:
@@ -16,7 +16,7 @@ untrusted remote compute providers.  The protocol:
 Why X25519+AES-GCM:
   - X25519 gives forward secrecy per workload (ephemeral keys).
   - AES-GCM provides authenticated encryption (confidentiality + integrity).
-  - Standard `cryptography` library — FIPS-capable, no exotic deps.
+  - Standard `cryptography` library - FIPS-capable, no exotic deps.
 """
 
 from __future__ import annotations
@@ -158,7 +158,7 @@ def encrypt_payload(
         plaintext:        Raw workload bytes to encrypt.
         recipient_public: The remote provider's X25519 public key.
         aad:              Optional additional authenticated data
-                          (e.g. workload ID) — authenticated but not
+                          (e.g. workload ID) - authenticated but not
                           encrypted.  Must be supplied at decrypt time.
         salt:             Optional HKDF salt for domain separation.
 
@@ -168,7 +168,7 @@ def encrypt_payload(
     if not plaintext:
         raise ValueError("Cannot encrypt empty payload")
 
-    # Ephemeral keypair — fresh per workload for forward secrecy
+    # Ephemeral keypair - fresh per workload for forward secrecy
     ephemeral = generate_keypair()
 
     # Derive symmetric key

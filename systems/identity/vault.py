@@ -1,9 +1,9 @@
 """
-EcodiaOS — Identity Vault (Phase 16h: External Identity Layer)
+EcodiaOS - Identity Vault (Phase 16h: External Identity Layer)
 
 Encrypts sensitive credential material at rest using Fernet (AES-128-CBC +
-HMAC-SHA256). Every secret stored through this vault — OAuth tokens, TOTP
-base32 seeds, serialised browser cookie jars — is encrypted before it
+HMAC-SHA256). Every secret stored through this vault - OAuth tokens, TOTP
+base32 seeds, serialised browser cookie jars - is encrypted before it
 leaves process memory.
 
 Design decisions:
@@ -12,7 +12,7 @@ Design decisions:
   - The master key is derived from a high-entropy passphrase via PBKDF2
     (600 000 iterations, SHA-256) so the system can be bootstrapped from a
     single env var (ECODIAOS_VAULT_PASSPHRASE).
-  - Each encrypt() call produces a fresh IV — ciphertext is never
+  - Each encrypt() call produces a fresh IV - ciphertext is never
     deterministic, defeating frequency analysis.
   - The vault emits Synapse events on encrypt/decrypt failures and key
     rotation so downstream monitors (Thymos, audit) can react.
@@ -118,7 +118,7 @@ class IdentityVault:
 
     The vault derives a 256-bit Fernet key from a passphrase + salt via
     PBKDF2-HMAC-SHA256. Callers store SealedEnvelopes (containing the
-    ciphertext) in the database — the vault never touches persistence
+    ciphertext) in the database - the vault never touches persistence
     directly.
 
     Lifecycle:
@@ -202,7 +202,7 @@ class IdentityVault:
             plaintext: The raw secret material (token JSON, base32 seed,
                        serialised cookie jar, etc.)
             platform_id: Owning platform connector identifier.
-            purpose: Category — 'oauth_token', 'totp_secret', 'cookie_state'.
+            purpose: Category - 'oauth_token', 'totp_secret', 'cookie_state'.
 
         Returns:
             A SealedEnvelope ready for database persistence.

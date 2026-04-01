@@ -1,8 +1,8 @@
 """
-EcodiaOS — Skia Pinata Client
+EcodiaOS - Skia Pinata Client
 
 Thin httpx wrapper for the Pinata IPFS REST API.
-No SDK dependency — uses httpx (already in deps).
+No SDK dependency - uses httpx (already in deps).
 
 Docs: https://docs.pinata.cloud/api-reference
 """

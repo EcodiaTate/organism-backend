@@ -1,12 +1,12 @@
 """
-EcodiaOS — Soma Somatic Memory
+EcodiaOS - Soma Somatic Memory
 
 Somatic marker creation and embodied retrieval reranking.
 
 The organism remembers not just what happened, but how it felt.
 Somatic markers are 19D snapshots (9 sensed + 9 errors + 1 PE)
 attached to memory traces. During retrieval, memories with similar
-somatic markers are boosted — state-congruent recall.
+somatic markers are boosted - state-congruent recall.
 
 Budget: 1ms for marker creation, linear in candidates for reranking.
 """
@@ -39,7 +39,7 @@ class SomaticMemoryIntegration:
     """
     Creates somatic markers and reranks memory retrievals by somatic similarity.
 
-    Somatic markers are the bridge between interoception and memory —
+    Somatic markers are the bridge between interoception and memory -
     they enable the organism to recall what situations *felt like*,
     not just what happened. This is the computational basis of intuition.
     """
@@ -99,7 +99,7 @@ class SomaticMemoryIntegration:
         current_norm = _vector_norm(current_vector)
 
         if current_norm < 1e-10:
-            return candidates  # Zero state — no meaningful comparison
+            return candidates  # Zero state - no meaningful comparison
 
         exploration_boost = 1.0
         revenue_boost = 1.0
@@ -225,7 +225,7 @@ def _get_marker_vector(candidate: Any) -> list[float] | None:
         if "somatic_marker" in candidate:
             marker = candidate["somatic_marker"]
             if isinstance(marker, dict) and "to_vector" not in dir(marker):
-                # Raw dict marker — reconstruct
+                # Raw dict marker - reconstruct
                 return None
             if hasattr(marker, "to_vector"):
                 result2: list[float] = marker.to_vector()
@@ -254,7 +254,7 @@ class SomaticMarkerWriter:
 
     Timing note: The marker reflects state-at-allostatic-adjustment (the cycle
     when an urgency threshold was crossed), not state-at-encoding. This is the
-    correct semantics — we want to know how the organism felt *when it decided
+    correct semantics - we want to know how the organism felt *when it decided
     to act*, not just when the memory was filed.
     """
 
@@ -288,7 +288,7 @@ class SomaticMarkerWriter:
             -[:MARKS {valence, arousal_delta, body_system}]->
             (:Episode {episode_id})
 
-        Returns True on success, False on failure (non-fatal — markers are
+        Returns True on success, False on failure (non-fatal - markers are
         best-effort; the organism continues without them).
         """
         if self._driver is None:
@@ -385,7 +385,7 @@ class SomaticMarkerWriter:
         that has no associated episode (e.g. urgency-critical responses).
 
         Creates a (:SomaticMarker) with adjustment_type property but no
-        [:MARKS] relationship — it represents an organism-level somatic
+        [:MARKS] relationship - it represents an organism-level somatic
         event rather than an episodic memory annotation.
         """
         if self._driver is None:

@@ -54,7 +54,7 @@ _SKETCH_CATEGORIES: frozenset[ChangeCategory] = frozenset({
     ChangeCategory.ADJUST_BUDGET,
 })
 
-# Categories where ChopChop excels (timing, consolidation — type-heavy domains)
+# Categories where ChopChop excels (timing, consolidation - type-heavy domains)
 _CHOPCHOP_CATEGORIES: frozenset[ChangeCategory] = frozenset({
     ChangeCategory.MODIFY_CYCLE_TIMING,
     ChangeCategory.CHANGE_CONSOLIDATION,
@@ -280,7 +280,7 @@ class SynthesisStrategySelector:
                 total_duration_ms=chopchop_result.duration_ms,
             )
 
-        # Should not reach here — CEGIS fallback doesn't run synthesis
+        # Should not reach here - CEGIS fallback doesn't run synthesis
         return SynthesisResult(
             strategy=SynthesisStrategy.CEGIS_FALLBACK,
             status=SynthesisStatus.SKIPPED,

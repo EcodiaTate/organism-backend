@@ -1,4 +1,4 @@
-"""Ablation study framework — Round 5D (Spec 24 §9).
+"""Ablation study framework - Round 5D (Spec 24 §9).
 
 Runs controlled ablation experiments against the continual learning pipeline
 to produce the paper's contribution table.  Each ablation mode disables one
@@ -10,7 +10,7 @@ Design notes:
   mode calls run_tier2() on the continual learning orchestrator with
   _ablation_mode set, then evaluates L2/L3 accuracy from the longitudinal
   snapshot returned by run_evaluation_now() on BenchmarkService.
-- The original adapter is ALWAYS restored in a finally block — shadow
+- The original adapter is ALWAYS restored in a finally block - shadow
   training never persists to the live production adapter.
 - Neo4j persistence is non-blocking and non-fatal.
 - ABLATION_STARTED / ABLATION_COMPLETE emitted on the Synapse bus.

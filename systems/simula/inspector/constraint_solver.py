@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Phase 4: Constraint Engine
+EcodiaOS - Inspector Phase 4: Constraint Engine
 
 Converts an InvariantSet + ExecutionAtlas into a ConstraintSet, then derives:
   - SteerableRegion entries (CFG sub-regions unlocked by invariant violations)
@@ -8,7 +8,7 @@ Converts an InvariantSet + ExecutionAtlas into a ConstraintSet, then derives:
 
 Algorithm
 ---------
-Pass 1 — Invariant → constraint projection
+Pass 1 - Invariant → constraint projection
   For each invariant, emit one or more Constraints based on its kind:
     MEMORY_REGION invariant   → REACHABILITY constraint (bounds check must hold)
     OBJECT_LIFETIME invariant → LIFETIME constraint (alloc/free ordering)
@@ -20,20 +20,20 @@ Pass 1 — Invariant → constraint projection
     LOOP_COUNTER invariant     → PRECONDITION (loop bound check)
     REGISTER/UNKNOWN           → generic REACHABILITY
 
-Pass 2 — CFG reachability expansion
+Pass 2 - CFG reachability expansion
   For each constraint's unlocked blocks, run CFG BFS from those blocks to find
   all additionally reachable blocks (the full steerable region).
 
-Pass 3 — SteerableRegion construction
+Pass 3 - SteerableRegion construction
   Group constraints by unlocked-region overlap.  Regions with ≥2 fragments
   or containing an indirect-dispatch fragment get elevated steerability class.
 
-Pass 4 — ConditionSet derivation
+Pass 4 - ConditionSet derivation
   For each SteerableRegion, find the minimal set of invariants that must ALL
   be violated to reach it.  That set is one ConditionSet.  If Phase 2 run data
   shows InfluencePermissiveTransitions into the region, boost probability.
 
-Pass 5 — Target steerability classification
+Pass 5 - Target steerability classification
   Apply INFLUENCE_PERMISSIVE when max probability ≥ 0.4 AND the target has
   at least one steerable region with an indirect-dispatch or taint-reachable
   fragment.
@@ -208,7 +208,7 @@ class ConstraintEngine:
         """
         Build a lightweight symbolic expression string for the constraint.
 
-        Not a complete formal logic encoding — used for readability and
+        Not a complete formal logic encoding - used for readability and
         downstream reporting.  Format mirrors Z3 python API loosely.
         """
         match ckind:
@@ -359,7 +359,7 @@ class ConstraintEngine:
         phase2_result: Phase2Result | None,
     ) -> list[ConditionSet]:
         """
-        For each SteerableRegion produce one ConditionSet — the conjunction of
+        For each SteerableRegion produce one ConditionSet - the conjunction of
         invariant violations that unlocks that region.
         """
         condition_sets: list[ConditionSet] = []

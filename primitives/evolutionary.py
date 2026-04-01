@@ -1,11 +1,11 @@
 """
-EcodiaOS — Evolutionary Metrics Primitives
+EcodiaOS - Evolutionary Metrics Primitives
 
 Types for population-level evolutionary statistics that Benchmarks
 computes across the organism fleet. Includes Bedau-Packard activity
 statistics for measuring whether genuine open-ended evolution is occurring.
 
-Reference: Bedau & Packard (1992) — "Measurement of Evolutionary Activity,
+Reference: Bedau & Packard (1992) - "Measurement of Evolutionary Activity,
 Teleology, and Life"
 """
 
@@ -58,7 +58,7 @@ class BedauPackardStats(EOSBaseModel):
 
 class EvolutionaryObservable(EOSBaseModel):
     """
-    Any system can emit an evolutionary observable — a discrete event
+    Any system can emit an evolutionary observable - a discrete event
     that may represent a novel adaptation.
 
     Benchmarks collects these to compute population-level activity

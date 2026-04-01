@@ -1,8 +1,8 @@
 """
-EcodiaOS — Tollbooth Smart Contract Wiring (Phase 16d: Entrepreneurship)
+EcodiaOS - Tollbooth Smart Contract Wiring (Phase 16d: Entrepreneurship)
 
 Conceptual deployment and interaction layer for the EosTollbooth smart
-contract on Base L2. The tollbooth gates access to autonomous services —
+contract on Base L2. The tollbooth gates access to autonomous services -
 users pay USDC per API call, and the organism collects revenue.
 
 Architecture:
@@ -242,7 +242,7 @@ class TollboothManager:
           2. Call withdraw() to transfer USDC to owner wallet
           3. Return the amount swept
 
-        Phase 16d: Returns Decimal("0") — actual sweeps require
+        Phase 16d: Returns Decimal("0") - actual sweeps require
         deployed contracts and WalletClient integration.
         """
         deployment = self._deployments.get(asset_id)

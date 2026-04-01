@@ -1,7 +1,7 @@
 """
 EcodiaOS -- Simula Synthesis Types (Stage 5A)
 
-Types for the neurosymbolic synthesis subsystem — fast-path alternatives
+Types for the neurosymbolic synthesis subsystem - fast-path alternatives
 to the expensive CEGIS agentic loop.  Three strategies are supported:
 
   - HySynth:      Probabilistic CFG bottom-up beam search

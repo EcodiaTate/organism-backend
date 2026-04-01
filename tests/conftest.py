@@ -1,5 +1,5 @@
 """
-Root conftest — pre-mock optional external dependencies.
+Root conftest - pre-mock optional external dependencies.
 
 Some clients (e.g. wallet.py) import libraries that aren't installed
 in the test environment (cdp). We register lightweight stubs in

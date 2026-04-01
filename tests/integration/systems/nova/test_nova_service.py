@@ -230,7 +230,7 @@ class TestBroadcastProcessing:
     @pytest.mark.asyncio
     async def test_broadcast_before_init_does_nothing(self) -> None:
         nova = make_nova_service()
-        # Not initialized — should just return
+        # Not initialized - should just return
         broadcast = make_broadcast()
         await nova.receive_broadcast(broadcast)
         assert nova._total_broadcasts == 0

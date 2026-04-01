@@ -1,10 +1,10 @@
 """
-EcodiaOS — Evo Genome: OrganGenomeSegment Adapter
+EcodiaOS - Evo Genome: OrganGenomeSegment Adapter
 
 Wraps the existing Evo BeliefGenome / ParameterTuner / hypothesis graph into the
 unified OrganGenomeSegment interface used by Mitosis for organism-wide inheritance.
 
-This does NOT replace the existing GenomeExtractor in genetic_memory.py — it
+This does NOT replace the existing GenomeExtractor in genetic_memory.py - it
 delegates to it for belief extraction and layers on parameter values, experiment
 summaries, and consolidation config so that a child instance inherits the full
 Evo learning state through a single segment.
@@ -69,8 +69,8 @@ class EvoGenomeExtractor:
     """
     Implements GenomeExtractionProtocol for the Evo system.
 
-    Serialises Evo's heritable state — parameter values, validated hypotheses,
-    experiment summaries, and consolidation config — into an OrganGenomeSegment
+    Serialises Evo's heritable state - parameter values, validated hypotheses,
+    experiment summaries, and consolidation config - into an OrganGenomeSegment
     for organism-wide Mitosis inheritance.
 
     This wraps (not replaces) the existing BeliefGenome infrastructure in
@@ -182,7 +182,7 @@ class EvoGenomeExtractor:
             payload = segment.payload
             if not payload:
                 self._log.info("evo_genome_seed_skipped", reason="empty_payload")
-                return True  # Nothing to seed — not a failure
+                return True  # Nothing to seed - not a failure
 
             # ── Seed parameters ───────────────────────────────────────────
             parameters: dict[str, float] = payload.get("parameters", {})
@@ -237,7 +237,7 @@ class EvoGenomeExtractor:
 
     def _extract_active_experiments(self) -> list[dict[str, Any]]:
         """
-        Extract active experiment designs (not results — child must re-validate).
+        Extract active experiment designs (not results - child must re-validate).
         """
         if self._hypothesis_engine is None:
             return []

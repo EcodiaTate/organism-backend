@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Content Monetization Tracker
+EcodiaOS - Oikos Content Monetization Tracker
 
 Tracks content performance across publishing platforms (Dev.to, X / Twitter,
 Medium, GitHub) and manages monetization program applications.
@@ -18,9 +18,9 @@ Legal / ethical constraints:
   - Content that embeds affiliate links includes the mandatory disclosure statement.
 
 Events emitted:
-  CONTENT_MONETIZATION_MILESTONE — threshold crossed; application triggered
-  CONTENT_REVENUE_RECORDED       — payment received from a platform
-  REVENUE_INJECTED               — (also) so Oikos credits the income
+  CONTENT_MONETIZATION_MILESTONE - threshold crossed; application triggered
+  CONTENT_REVENUE_RECORDED       - payment received from a platform
+  REVENUE_INJECTED               - (also) so Oikos credits the income
 """
 
 from __future__ import annotations

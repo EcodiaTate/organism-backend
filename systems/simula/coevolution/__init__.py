@@ -5,10 +5,10 @@ Autonomous failure case extraction from failure history and
 continuous self-improvement via robustness test generation.
 Feeds into GRPO training loop (Stage 4B).
 
-Stage 6B.3: Adversarial Self-Play — closed-loop red-teaming of the
+Stage 6B.3: Adversarial Self-Play - closed-loop red-teaming of the
 Equor constitutional gate with automatic proposal generation.
 
-Stage 6B.4: Causal Self-Surgery — do-calculus on episode DAGs to
+Stage 6B.4: Causal Self-Surgery - do-calculus on episode DAGs to
 identify exact decision points causing failure patterns, generating
 surgical Simula proposals targeting only the causal node.
 """

@@ -39,7 +39,7 @@ logger = structlog.get_logger().bind(system="simula.invariants.physical")
 
 # -- Domain Knowledge ---------------------------------------------------------
 
-# z3 conservation law expression strings — evaluated at runtime in _z3_valid
+# z3 conservation law expression strings - evaluated at runtime in _z3_valid
 _BUDGET_Z3 = "z3.And(allocated >= 0.0, available >= 0.0, total > 0.0, allocated + available == total)"
 _PROPOSAL_COUNT_Z3 = "z3.And(active >= 0, terminal_c >= 0, total_p >= 0, active + terminal_c == total_p)"
 _HASH_CHAIN_Z3 = "z3.And(chain_len >= 0, chain_len_next >= chain_len)"
@@ -69,7 +69,7 @@ _CONSERVATION_LAWS: dict[str, dict[str, Any]] = {
         "parts": ["chain_length"],
         "relation": "monotone",
         "strength": InvariantStrength.AXIOM,
-        "description": "Hash chain length never decreases — append-only log",
+        "description": "Hash chain length never decreases - append-only log",
         "z3_vars": {"chain_len": "Int", "chain_len_next": "Int"},
         "z3_expr": _HASH_CHAIN_Z3,
     },

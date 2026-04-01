@@ -1,13 +1,13 @@
 """
-EcodiaOS — Simula Preventive Audit
+EcodiaOS - Simula Preventive Audit
 
 Scheduled self-audit (every 4 hours) that scans recently generated/modified
 code against known crash patterns, static fragility heuristics, and the
-organism's own incident history — then proactively proposes fixes before
+organism's own incident history - then proactively proposes fixes before
 anything breaks.
 
 Four-phase pipeline per audit cycle:
-  Phase 1 — Fragility scan
+  Phase 1 - Fragility scan
     Query Memory for MemoryTrace entries tagged "generated_code" modified in
     the last 24 hours.  For each fragment, run five static checks:
       * Bare except clauses
@@ -17,29 +17,29 @@ Four-phase pipeline per audit cycle:
       * Missing await on coroutines (heuristic)
     Assigns fragility_score 0.0–1.0 per fragment.
 
-  Phase 2 — Pattern matching
+  Phase 2 - Pattern matching
     For fragments with fragility_score > 0.3: match against self._known_fatal_patterns
     (the shared CrashPattern dict maintained by SimulaService).  Any match_score ≥ 0.5
     is flagged PREEMPTIVE_RISK.  combined_risk = fragility_score × pattern.confidence.
 
-  Phase 3 — Incident history correlation
+  Phase 3 - Incident history correlation
     Emit THYMOS_INCIDENT_QUERY, await THYMOS_INCIDENT_RESPONSE (10 s timeout).
     For each PREEMPTIVE_RISK item: if a fingerprint-similar incident occurred in the
     last 7 days, upgrade to PREEMPTIVE_CRITICAL.
 
-  Phase 4 — Action
+  Phase 4 - Action
     PREEMPTIVE_CRITICAL (combined_risk > 0.7):
       • Generate a repair patch via SimulaService.process_proposal()
       • Emit THYMOS_REPAIR_REQUESTED with context["preventive"]=True
       • Emit RE_TRAINING_EXAMPLE category="preventive_repair" (outcome_quality=0.8)
     PREEMPTIVE_RISK (0.4–0.7):
-      • Emit INCIDENT_DETECTED severity=LOW — flag for human review
+      • Emit INCIDENT_DETECTED severity=LOW - flag for human review
     Below threshold: silent, metrics to Benchmarks only
 
 Genome parameter:
   audit_aggressiveness: float [0.0, 1.0]
-    0.0 — only flag combined_risk > 0.7 (CRITICAL only)
-    1.0 — flag everything above the 0.2 threshold (maximum sensitivity)
+    0.0 - only flag combined_risk > 0.7 (CRITICAL only)
+    1.0 - flag everything above the 0.2 threshold (maximum sensitivity)
   Evo can tune this via ADJUST_BUDGET mechanism.
 """
 
@@ -103,7 +103,7 @@ def _check_bare_except(source: str) -> int:
                 if node.type is None:
                     count += 1
                 elif isinstance(node.type, ast.Name) and node.type.id == "Exception":
-                    # Check body — if it's just `pass`, that's fragile
+                    # Check body - if it's just `pass`, that's fragile
                     if all(
                         isinstance(stmt, (ast.Pass, ast.Expr))
                         for stmt in node.body
@@ -206,7 +206,7 @@ def _check_missing_await(source: str) -> int:
     """
     Heuristic: look for calls to known-async functions (those defined with
     `async def` in the same fragment) whose call sites lack `await`.
-    This is a very loose proxy — avoids complex AST type inference.
+    This is a very loose proxy - avoids complex AST type inference.
     """
     count = 0
     async_fns = set(_ASYNC_DEF_PATTERN.findall(source))
@@ -219,7 +219,7 @@ def _check_missing_await(source: str) -> int:
         if stripped.startswith("await") or stripped.startswith("return"):
             continue
         if "=" in stripped:
-            # assignment — fine
+            # assignment - fine
             continue
         for fn in async_fns:
             if re.search(rf"\b{re.escape(fn)}\s*\(", stripped):
@@ -301,10 +301,10 @@ class SimulaPreventiveAudit:
       )
 
     Reads:
-      service._known_fatal_patterns   — dict[pattern_id, CrashPattern]
-      service._memory                 — MemoryService reference
-      service._synapse                — event bus
-      service._config.audit_aggressiveness — float [0, 1]
+      service._known_fatal_patterns   - dict[pattern_id, CrashPattern]
+      service._memory                 - MemoryService reference
+      service._synapse                - event bus
+      service._config.audit_aggressiveness - float [0, 1]
     """
 
     _INTERVAL_S: float = 4 * 3600  # 4 hours
@@ -734,7 +734,7 @@ class SimulaPreventiveAudit:
                     f"pattern={result.pattern_id or 'none'}"
                 ),
                 output=f"preventive_action={action}",
-                outcome_quality=0.8,  # Tentative — updated when repair verified
+                outcome_quality=0.8,  # Tentative - updated when repair verified
                 reasoning_trace=(
                     f"Fragility checks: {result.hit_counts}. "
                     f"Pattern match: {result.pattern_id}. "

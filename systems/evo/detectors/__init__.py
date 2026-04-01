@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Detector Package
+EcodiaOS - Evo Detector Package
 
 This __init__.py makes the detectors/ directory a proper Python package.
 The core detector classes live in the sibling detectors.py flat module.

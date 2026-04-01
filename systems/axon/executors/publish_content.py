@@ -1,11 +1,11 @@
 """
-EcodiaOS — Axon Executor: PublishContentExecutor
+EcodiaOS - Axon Executor: PublishContentExecutor
 
 Orchestrates multi-platform content publication from a single Nova intent.
 
 Flow:
   1. Nova emits Intent(action_type="publish_content", params={content_type, topic, context, platforms?})
-  2. Equor gates the intent (Level 2 — COLLABORATOR autonomy; constitutional honesty check)
+  2. Equor gates the intent (Level 2 - COLLABORATOR autonomy; constitutional honesty check)
   3. PublishContentExecutor:
        a. Calls ContentEngine.generate() to produce per-platform formatted variants
        b. For each target platform, resolves credentials from IdentityVault
@@ -17,7 +17,7 @@ Mandatory constraints (cannot be suppressed):
   - SOCIAL_DISCLAIMER appended to every post via ContentEngine / platform clients
   - Equor constitutional honesty check (required_autonomy = 2)
   - Rate limits enforced per-platform (see _PLATFORM_RATE_LIMITS)
-  - No platform-key secrets in params — all via IdentityVault
+  - No platform-key secrets in params - all via IdentityVault
 
 Platform routing:
   If params["platforms"] is given, only those platforms receive the post.

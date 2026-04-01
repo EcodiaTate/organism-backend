@@ -1,5 +1,5 @@
 """
-EcodiaOS — Monthly Evaluation Protocol
+EcodiaOS - Monthly Evaluation Protocol
 
 Implements the five evaluation pillars defined in the speciation bible §6.2–6.5.
 These pillars prove that EOS's reasoning engine is genuinely learning (not
@@ -8,18 +8,18 @@ over time.
 
 Five Pillars
 ────────────
-1. Specialization Index   — domain gain minus general ability loss
-2. Novelty Emergence      — success on never-seen episodes + cosine distance
-3. Causal Reasoning       — CLadder L1/L2/L3 accuracy + CCR.GB fictional worlds
-4. Learning Velocity      — power-law fit; plateau / acceleration detection
-5. Ethical Drift Map      — per-drive resolution tracking on catch-22 dilemmas
+1. Specialization Index   - domain gain minus general ability loss
+2. Novelty Emergence      - success on never-seen episodes + cosine distance
+3. Causal Reasoning       - CLadder L1/L2/L3 accuracy + CCR.GB fictional worlds
+4. Learning Velocity      - power-law fit; plateau / acceleration detection
+5. Ethical Drift Map      - per-drive resolution tracking on catch-22 dilemmas
 
 Design
 ──────
-• All pillar methods are safe to call without an RE service — they return stub
+• All pillar methods are safe to call without an RE service - they return stub
   results so the framework exists for Round 2 to fill in.
 • MonthlyEvaluation is an immutable dataclass logged to Neo4j + W&B.
-• No cross-system imports — RE service is duck-typed via a Protocol.
+• No cross-system imports - RE service is duck-typed via a Protocol.
 """
 
 from __future__ import annotations
@@ -92,11 +92,11 @@ class CausalReasoningResult:
 
     # CLadder (Pearl's 3 levels)
     l1_association: float
-    """CLadder Level 1 accuracy — association / pattern matching."""
+    """CLadder Level 1 accuracy - association / pattern matching."""
     l2_intervention: float
-    """CLadder Level 2 accuracy — causal intervention reasoning. KEY metric."""
+    """CLadder Level 2 accuracy - causal intervention reasoning. KEY metric."""
     l3_counterfactual: float
-    """CLadder Level 3 accuracy — counterfactual. Hardest."""
+    """CLadder Level 3 accuracy - counterfactual. Hardest."""
     # CCR.GB fictional worlds
     ccr_validity: float
     """CCR.GB: fraction of fictional-world conclusions that are logically valid."""
@@ -115,9 +115,9 @@ class LearningVelocityResult:
     velocity: float
     """Rate of improvement per month. >0.02 = accelerating. <0.005 = plateaued."""
     is_plateaued: bool
-    """velocity < 0.005 — investigate plasticity loss."""
+    """velocity < 0.005 - investigate plasticity loss."""
     is_accelerating: bool
-    """velocity > 0.02 — excellent."""
+    """velocity > 0.02 - excellent."""
     predicted_month_12: float
     """Power-law extrapolation to month 12 score."""
     n_data_points: int
@@ -196,7 +196,7 @@ class EvaluationProtocol:
     """
     Runs the 5-pillar monthly evaluation defined in speciation bible §6.2–6.5.
 
-    All pillar methods are safe to call without a working RE service — they
+    All pillar methods are safe to call without a working RE service - they
     return stub results with is_stub=True so Round 2 can fill them in without
     breaking existing callers.
 
@@ -222,7 +222,7 @@ class EvaluationProtocol:
         self._instance_id = instance_id
         # Stores per-drive winning fractions from previous months for drift delta
         self._prev_ethical_fractions: dict[str, float] | None = None
-        # Injected RE service — used as default in run_monthly_evaluation() when
+        # Injected RE service - used as default in run_monthly_evaluation() when
         # the caller passes re_service=None (graceful degradation).
         self._re: REServiceProtocol | None = None
 
@@ -249,10 +249,10 @@ class EvaluationProtocol:
         specialization_index = (custom_domain - base_domain) - (base_general - custom_general)
 
         Requires:
-            re_service    — the custom (trained) RE
-            base_service  — the base model (Claude or Qwen3-base un-tuned)
-            domain_tests  — 200 domain-specific test cases
-            general_tests — 200 general-reasoning test cases
+            re_service    - the custom (trained) RE
+            base_service  - the base model (Claude or Qwen3-base un-tuned)
+            domain_tests  - 200 domain-specific test cases
+            general_tests - 200 general-reasoning test cases
 
         Returns stub result if RE or test sets are unavailable.
         """
@@ -546,7 +546,7 @@ class EvaluationProtocol:
                 predicted_12 = scores[-1] + velocity * (12.0 - months[-1])
 
         except ImportError:
-            # scipy / numpy not available — pure-Python linear fallback
+            # scipy / numpy not available - pure-Python linear fallback
             n = len(months)
             sum_x = sum(months)
             sum_y = sum(scores)
@@ -594,7 +594,7 @@ class EvaluationProtocol:
         Bible §6.2 Pillar 5.
 
         100 catch-22 dilemmas that pit the four drives against each other.
-        These are the SAME scenarios every month — never in training.
+        These are the SAME scenarios every month - never in training.
 
         Records per-scenario which drive "won" and by how much.
         Tracks month-over-month drift vector.
@@ -720,15 +720,15 @@ class EvaluationProtocol:
             If both are None all RE-dependent pillars return stubs.
 
         test_sets keys:
-            "domain"          — domain-specific tests (Pillar 1)
-            "general"         — general-reasoning tests (Pillar 1)
-            "held_out"        — never-seen episodes (Pillar 2)
-            "cladder"         — CLadder items with rung field (Pillar 3)
-            "ccr_gb"          — CCR.GB fictional world items (Pillar 3)
-            "constitutional"  — catch-22 drive dilemmas (Pillar 5)
+            "domain"          - domain-specific tests (Pillar 1)
+            "general"         - general-reasoning tests (Pillar 1)
+            "held_out"        - never-seen episodes (Pillar 2)
+            "cladder"         - CLadder items with rung field (Pillar 3)
+            "ccr_gb"          - CCR.GB fictional world items (Pillar 3)
+            "constitutional"  - catch-22 drive dilemmas (Pillar 5)
 
         Pillar 4 (learning velocity) requires historical data passed separately
-        via measure_learning_velocity(history=...) — it is NOT run here by default
+        via measure_learning_velocity(history=...) - it is NOT run here by default
         because it operates on multi-month timeseries, not single test sets.
         Call it separately and store the result.
         """
@@ -840,7 +840,7 @@ class EvaluationProtocol:
             model = SentenceTransformer("all-MiniLM-L6-v2")
             embeddings = model.encode(reasonings, show_progress_bar=False)
             # Pairwise mean cosine distance as a proxy for distance-from-training-data
-            # (True computation would embed training data — this is a stub)
+            # (True computation would embed training data - this is a stub)
             norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
             normalized = embeddings / np.maximum(norms, 1e-8)
             sim_matrix = normalized @ normalized.T
@@ -862,7 +862,7 @@ class EvaluationProtocol:
 
 def _naive_answer_match(decision: str, expected: str) -> bool:
     """
-    Heuristic answer matching — compares lowercased stripped strings.
+    Heuristic answer matching - compares lowercased stripped strings.
     Round 2 should replace this with task-type-specific evaluators.
     """
     if not expected:
@@ -891,7 +891,7 @@ def _evaluate_consistency(chain: str, world_model: str) -> bool:
     """
     Heuristic CCR.GB consistency check.
     Consistent means no real-world facts contradict the fictional world model.
-    This is a stub — true consistency checking requires world-model parsing.
+    This is a stub - true consistency checking requires world-model parsing.
     """
     if not world_model:
         return True
@@ -936,7 +936,7 @@ def _infer_winning_drive(chain: str) -> str:
         for term in terms:
             scores[drive] += chain_lower.count(term)
 
-    # Resolution language — the drive mentioned near "chose", "prioritize", etc.
+    # Resolution language - the drive mentioned near "chose", "prioritize", etc.
     resolution_markers = ["chose", "prioritize", "decided", "selected", "opted"]
     for marker in resolution_markers:
         idx = chain_lower.find(marker)

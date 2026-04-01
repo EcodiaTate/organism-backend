@@ -95,7 +95,7 @@ class TestHomeostasisController:
         for _ in range(20):
             controller.record_metric("synapse.cycle.latency_ms", 130.0)
         result = controller.check_homeostasis()
-        # All stable — no adjustments expected
+        # All stable - no adjustments expected
         assert len(result) == 0
 
     def test_metric_trending_high_triggers_cooling(self):

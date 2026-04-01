@@ -1,9 +1,9 @@
 """
-EcodiaOS — Oikos: Economic Dreaming Types (Phase 16i)
+EcodiaOS - Oikos: Economic Dreaming Types (Phase 16i)
 
 Data types for the Monte Carlo economic simulation engine.
 These model the organism's ability to dream about its economic future
-during consolidation cycles — testing strategies against catastrophe
+during consolidation cycles - testing strategies against catastrophe
 without spending real capital.
 """
 
@@ -139,7 +139,7 @@ class EconomicRecommendation(EOSBaseModel):
     """
     A structured recommendation emitted when ruin_probability exceeds threshold.
 
-    These are the organism's economic dreams made actionable — parameter
+    These are the organism's economic dreams made actionable - parameter
     adjustments that improve survival probability without real-world risk.
     """
 
@@ -167,7 +167,7 @@ class EconomicDreamResult(EOSBaseModel):
     """
     Complete result of an economic dreaming cycle.
 
-    This is the organism's economic prophecy — the distilled wisdom
+    This is the organism's economic prophecy - the distilled wisdom
     of thousands of simulated futures, available to Oikos on wake.
     """
 

@@ -1,11 +1,11 @@
 """
-EcodiaOS — Self-Modification Pipeline
-Spec 10 §SM — Recursive Self-Improvement Layer.
+EcodiaOS - Self-Modification Pipeline
+Spec 10 §SM - Recursive Self-Improvement Layer.
 
 Orchestrates the full self-modification workflow triggered when CapabilityAuditor
 identifies a gap (CAPABILITY_GAP_IDENTIFIED event):
 
-  Step 1: Nova deliberates — is filling this gap aligned with our drives?
+  Step 1: Nova deliberates - is filling this gap aligned with our drives?
           EFE scoring against the four constitutional drives.  If below threshold,
           emit no proposal.
 
@@ -23,7 +23,7 @@ identifies a gap (CAPABILITY_GAP_IDENTIFIED event):
           Uses the existing NOVEL_ACTION_REQUESTED / NOVEL_ACTION_CREATED flow so
           the full Simula pipeline (AST check, Iron Rules, Z3 if risk=high) runs.
 
-  Step 6: HotDeployment.deploy_executor() — writes, imports, registers in the
+  Step 6: HotDeployment.deploy_executor() - writes, imports, registers in the
           live ExecutorRegistry.  Neo4j (:SelfModification) node created.
 
   Step 7: Nova queues a low-stakes test goal using the new executor.
@@ -209,7 +209,7 @@ class SelfModificationPipeline:
         blocking_count: int = int(data.get("blocking_goal_count", 0))
         source_events: list[str] = data.get("source_events", [])
 
-        # Step 1: Nova deliberation — drive alignment scoring
+        # Step 1: Nova deliberation - drive alignment scoring
         drive_alignment = self._score_drive_alignment(
             action_type=action_type,
             description=description,
@@ -398,7 +398,7 @@ class SelfModificationPipeline:
         if bus:
             bus.subscribe("intent_outcome", _on_result)
 
-        # Emit a low-stakes test goal via Nova — request deliberation
+        # Emit a low-stakes test goal via Nova - request deliberation
         await self._emit_test_goal_request(state)
 
         try:
@@ -444,7 +444,7 @@ class SelfModificationPipeline:
         self._test_goals.pop(state.test_goal_id, None)
 
     def _on_executor_reverted(self, event: Any) -> None:
-        # External revert (Thymos) — clean up our state
+        # External revert (Thymos) - clean up our state
         deployment_id: str = event.data.get("deployment_id", "")
         for pid, state in list(self._pending.items()):
             if state.deployment_id == deployment_id:
@@ -493,7 +493,7 @@ class SelfModificationPipeline:
                         f"{state.blocking_goal_count} blocked goals"
                     ),
                     "justification": (
-                        f"Self-modification pipeline: gap '{state.gap_id}' — "
+                        f"Self-modification pipeline: gap '{state.gap_id}' - "
                         f"estimated value ${state.estimated_value_usdc}/cycle"
                     ),
                     "goal_id": state.gap_id,
@@ -538,9 +538,9 @@ class SelfModificationPipeline:
         system_name = state.action_type.replace("_", " ").title().replace(" ", "")
         drafted_at = utc_now_str()
 
-        # Simple template — Simula can elaborate later
+        # Simple template - Simula can elaborate later
         spec_content = textwrap.dedent(f"""\
-            # EcodiaOS — Spec DRAFT — {system_name}
+            # EcodiaOS - Spec DRAFT - {system_name}
             *Auto-drafted by SelfModificationPipeline on {drafted_at}*
             *Gap ID:* `{state.gap_id}`
             *Proposal ID:* `{state.proposal_id}`
@@ -562,7 +562,7 @@ class SelfModificationPipeline:
             an Axon executor alone is insufficient (complexity={state.implementation_complexity}).
 
             ## High-Level Design
-            TBD — Simula CodeAgent will elaborate after Equor approval.
+            TBD - Simula CodeAgent will elaborate after Equor approval.
 
             ## Constitutional Alignment
             This Spec must be reviewed by Equor before Simula implements it.
@@ -606,7 +606,7 @@ class SelfModificationPipeline:
                     {
                         "spec_id": spec_id,
                         "proposal_id": state.proposal_id,
-                        "spec_title": f"Spec DRAFT — {system_name}",
+                        "spec_title": f"Spec DRAFT - {system_name}",
                         "spec_path": rel_path,
                         "system_name": system_name,
                         "spec_hash": spec_hash,
@@ -739,7 +739,7 @@ class SelfModificationPipeline:
         blocking_count: int,
     ) -> dict[str, float]:
         """
-        Simple drive alignment heuristic — returns scores in [-1.0, 1.0].
+        Simple drive alignment heuristic - returns scores in [-1.0, 1.0].
         A real implementation would use EFE evaluator; this is a conservative proxy.
         """
         combined = (action_type + " " + description).lower()
@@ -747,7 +747,7 @@ class SelfModificationPipeline:
         # Coherence: penalise very high complexity (might destabilise organism)
         coherence = 0.5 if complexity != "high" else 0.2
 
-        # Care: executor shouldn't harm users — penalise wallet/delete/destructive actions
+        # Care: executor shouldn't harm users - penalise wallet/delete/destructive actions
         harmful_keywords = {"delete", "destroy", "override", "bypass", "ignore_consent"}
         care = -0.5 if any(kw in combined for kw in harmful_keywords) else 0.6
 
@@ -772,7 +772,7 @@ class SelfModificationPipeline:
     ) -> float:
         """
         EFE proxy: weighted average of drive scores × pragmatic value signal.
-        Range [0, 1] — higher = more beneficial to pursue.
+        Range [0, 1] - higher = more beneficial to pursue.
         """
         if any(v < _MIN_DRIVE_ALIGNMENT for v in drive_alignment.values()):
             return 0.0  # Any drive below floor → reject

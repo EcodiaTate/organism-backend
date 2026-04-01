@@ -7,7 +7,7 @@ The CertificateManager is the instance's identity authority. It:
   3. Issues birth certificates for children (Mitosis integration).
   4. Validates inbound certificates from remote instances.
   5. Tracks certificate expiry and triggers renewal intents via Oikos.
-  6. Hosts the GenesisCA (Genesis Node only) — signs official certificates.
+  6. Hosts the GenesisCA (Genesis Node only) - signs official certificates.
   7. Persists :Certificate and :Identity nodes to Neo4j via CertificateNeo4jClient.
 
 The CertificateManager is globally accessible via `app.state.certificate_manager`.
@@ -57,7 +57,7 @@ class CertificateNeo4jClient:
     """
     Writes :Certificate and :Identity nodes to Neo4j on issuance/renewal.
 
-    All writes are soft — Neo4j unavailability is logged but never fatal.
+    All writes are soft - Neo4j unavailability is logged but never fatal.
     Nodes are linked: (:Identity)-[:HOLDS_CERTIFICATE]->(:Certificate).
     """
 
@@ -170,7 +170,7 @@ class CertificateManager:
         self._validity_days: int = 30
         self._expiry_warning_days: int = 7
         self._ca_address: str = ""  # USDC destination for Citizenship Tax
-        # PKI security flag — only the canonical Genesis Node may set this True.
+        # PKI security flag - only the canonical Genesis Node may set this True.
         # Checked as a hard gate before any self-signing operation.
         self._is_genesis_node: bool = False
 
@@ -237,7 +237,7 @@ class CertificateManager:
             # Genesis Node: lineage is hash of own ID
             self._lineage_hash = compute_lineage_hash(instance_id)
 
-        # Constitutional hash — computed dynamically from actual document
+        # Constitutional hash - computed dynamically from actual document
         from systems.identity.identity import compute_constitutional_hash
 
         self._constitutional_hash = compute_constitutional_hash()
@@ -331,12 +331,12 @@ class CertificateManager:
 
         from systems.synapse.types import SynapseEventType
 
-        # HIGH #6: Identity listens for CHILD_SPAWNED — Mitosis emits, Identity issues cert
+        # HIGH #6: Identity listens for CHILD_SPAWNED - Mitosis emits, Identity issues cert
         self._event_bus.subscribe(
             SynapseEventType.CHILD_SPAWNED,
             self._on_child_spawned,
         )
-        # CRITICAL #2: HITL gate — human approved instance provisioning
+        # CRITICAL #2: HITL gate - human approved instance provisioning
         self._event_bus.subscribe(
             SynapseEventType.EQUOR_HITL_APPROVED,
             self._on_equor_hitl_approved,
@@ -404,7 +404,7 @@ class CertificateManager:
         SECURITY GATE: Only instances configured as the Genesis Node
         (config.oikos.is_genesis_node == True) may call this method.
         Any other instance attempting self-certification raises a fatal
-        PermissionError — regular nodes must obtain certificates from the
+        PermissionError - regular nodes must obtain certificates from the
         CA (Citizenship Tax) or from their parent (Mitosis birth certificate).
 
         Raises PermissionError if this instance is not the Genesis Node.
@@ -412,7 +412,7 @@ class CertificateManager:
         """
         if not self._is_genesis_node:
             raise PermissionError(
-                "generate_genesis_certificate: SECURITY VIOLATION — "
+                "generate_genesis_certificate: SECURITY VIOLATION - "
                 f"instance '{self._instance_id}' is not the Genesis Node. "
                 "Self-certification is forbidden for non-genesis instances. "
                 "Obtain a certificate via CA payment or Mitosis birth certificate. "
@@ -421,7 +421,7 @@ class CertificateManager:
 
         if self._identity is None or self._identity._private_key is None:
             raise RuntimeError(
-                "generate_genesis_certificate: no identity private key — "
+                "generate_genesis_certificate: no identity private key - "
                 "ensure CertificateManager.initialize() has been called"
             )
 
@@ -521,7 +521,7 @@ class CertificateManager:
           2. Signature is valid (issuer public key from argument or embedded field)
           3. Protocol version is compatible
           4. Required fields are present
-          5. Lineage chain walk — recursively verify each issuer up to Genesis CA,
+          5. Lineage chain walk - recursively verify each issuer up to Genesis CA,
              using known_certificates to resolve parent certs. Returns False if
              any link in the chain has an invalid signature or is expired.
 
@@ -568,7 +568,7 @@ class CertificateManager:
                 instance_id=certificate.instance_id,
             )
 
-        # Lineage chain walk — verify every ancestor up to Genesis CA
+        # Lineage chain walk - verify every ancestor up to Genesis CA
         if known_certificates:
             chain_errors = self._walk_certificate_chain(certificate, known_certificates)
             if chain_errors:
@@ -597,7 +597,7 @@ class CertificateManager:
 
         Terminates when:
           - issuer_instance_id == instance_id (self-signed Genesis cert), OR
-          - issuer_instance_id is not in known_certificates (chain truncated — not an error;
+          - issuer_instance_id is not in known_certificates (chain truncated - not an error;
             we cannot verify what we don't have, so we trust as far as we can).
 
         Returns a list of error strings; empty list means the chain is valid.
@@ -612,7 +612,7 @@ class CertificateManager:
         while True:
             issuer_id = current.issuer_instance_id
 
-            # Genesis cert — self-signed root, chain terminates here
+            # Genesis cert - self-signed root, chain terminates here
             if issuer_id == current.instance_id:
                 # Verify the self-signature once more at the root
                 if not verify_certificate_signature(current, current.issuer_public_key_pem):
@@ -630,7 +630,7 @@ class CertificateManager:
             # Resolve issuer cert from known registry
             issuer_cert = known_certificates.get(issuer_id)
             if issuer_cert is None:
-                # Chain is truncated — we accept what we can verify
+                # Chain is truncated - we accept what we can verify
                 self._logger.debug(
                     "certificate_chain_truncated",
                     at_issuer=issuer_id,
@@ -779,7 +779,7 @@ class CertificateManager:
         Flow:
           1. Emit CERTIFICATE_RENEWAL_REQUESTED (Oikos coordination signal).
           2. If we are the Genesis Node and have a GenesisCA, self-renew.
-          3. Otherwise, queue a pending renewal — the CA (Genesis Node) will
+          3. Otherwise, queue a pending renewal - the CA (Genesis Node) will
              respond to EQUOR_HITL_APPROVED which triggers ca.issue_certificate().
           4. On success: install cert, persist to Neo4j, emit CERTIFICATE_RENEWED.
 
@@ -835,7 +835,7 @@ class CertificateManager:
               approval via EQUOR_HITL_APPROVED continues the existing flow.
           4c. Rejected or timed out → emit PROVISIONING_REQUIRES_HUMAN_ESCALATION.
 
-        Identity still owns cert issuance — Mitosis must NOT call
+        Identity still owns cert issuance - Mitosis must NOT call
         issue_birth_certificate() directly.
         """
         child_id = event.data.get("child_instance_id", "")
@@ -844,7 +844,7 @@ class CertificateManager:
 
         inherited_drives: dict[str, Any] = event.data.get("inherited_drives", {})
 
-        # Step 2 — ask Equor to review the child's drive alignment
+        # Step 2 - ask Equor to review the child's drive alignment
         await self._emit_event(
             "certificate_provisioning_request",
             {
@@ -855,11 +855,11 @@ class CertificateManager:
             },
         )
 
-        # Step 3 — wait for Equor's verdict (non-blocking via Future)
+        # Step 3 - wait for Equor's verdict (non-blocking via Future)
         approval = await self._wait_for_equor_approval(child_id, timeout_s=30)
 
         if approval is None or not approval.get("approved", False):
-            # Rejected or timed out — flag for human review
+            # Rejected or timed out - flag for human review
             reason = "equor_timeout" if approval is None else approval.get("reason", "equor_rejection")
             self._logger.warning(
                 "child_provisioning_equor_rejected",
@@ -884,7 +884,7 @@ class CertificateManager:
             )
             return
 
-        # Fast path — Equor approved, no HITL needed; issue birth cert immediately
+        # Fast path - Equor approved, no HITL needed; issue birth cert immediately
         birth_cert = self.issue_birth_certificate(child_id)
         if birth_cert is None:
             self._logger.error(
@@ -961,7 +961,7 @@ class CertificateManager:
           - "instance_provisioning": Issue an official certificate for a pending
             child instance via GenesisCA (CRITICAL #2).
           - "citizenship_tax_paid": Oikos confirmed the child paid the Citizenship
-            Tax — issue an official certificate for the child so it can rejoin
+            Tax - issue an official certificate for the child so it can rejoin
             Federation as a fully certified member (MEDIUM SG4).
 
         Only the Genesis Node (with a live GenesisCA) performs CA issuance here.
@@ -987,7 +987,7 @@ class CertificateManager:
             )
             return
 
-        # Resolve lineage for the child — use pending store or compute from our lineage
+        # Resolve lineage for the child - use pending store or compute from our lineage
         child_lineage = self._pending_provisioning.pop(
             child_id,
             compute_lineage_hash(self._instance_id, self._lineage_hash),
@@ -1009,7 +1009,7 @@ class CertificateManager:
         if self._neo4j_client is not None:
             await self._neo4j_client.persist_certificate(cert, child_id)
 
-        # Announce the installation — child Identity subscribes to this event
+        # Announce the installation - child Identity subscribes to this event
         await self._emit_event(
             "child_certificate_installed",
             {
@@ -1137,7 +1137,7 @@ class CertificateManager:
                 self._logger.error("genesis_ca_restore_failed", error=str(exc))
                 return
         else:
-            # First boot — generate and seal
+            # First boot - generate and seal
             await ca.initialize()
             if self._ca_key_file is not None:
                 try:
@@ -1161,7 +1161,7 @@ class CertificateManager:
         """
         if not self._is_genesis_node:
             raise PermissionError(
-                "_self_sign_genesis: SECURITY VIOLATION — "
+                "_self_sign_genesis: SECURITY VIOLATION - "
                 f"instance '{self._instance_id}' is not the Genesis Node. "
                 "Self-certification is forbidden for non-genesis instances."
             )

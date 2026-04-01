@@ -1,5 +1,5 @@
 """
-EcodiaOS — Voxis Conversation Summary Prompts
+EcodiaOS - Voxis Conversation Summary Prompts
 
 Prompts for LLM-based conversation summarisation used in context window management.
 """
@@ -11,7 +11,7 @@ def build_summarise_segment_prompt(messages: list[dict[str, str]]) -> str:
     """
     Build a prompt to summarise a segment of conversation history.
 
-    Used when the full conversation history exceeds the context window budget —
+    Used when the full conversation history exceeds the context window budget -
     older messages are summarised and replaced with this summary so the LLM
     retains semantic continuity without the full verbatim history.
     """

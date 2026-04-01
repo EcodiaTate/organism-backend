@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Domain Types
+EcodiaOS - Inspector Domain Types
 
 All data models for the vulnerability discovery pipeline.
 Uses EOSBaseModel for consistency with the rest of EOS.
@@ -344,7 +344,7 @@ class RemediationResult(EOSBaseModel):
 # Pydantic resolves them lazily, but models referencing types defined later
 # (or in other modules) need an explicit rebuild once all types are available.
 
-from systems.simula.inspector.taint_flow_linker import TaintEdge  # noqa: E402 — deferred to break circular import
+from systems.simula.inspector.taint_flow_linker import TaintEdge  # noqa: E402 - deferred to break circular import
 
 AttackSurface.model_rebuild(_types_namespace={"TaintEdge": TaintEdge})
 VulnerabilityReport.model_rebuild()

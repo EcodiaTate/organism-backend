@@ -1,5 +1,5 @@
 """
-EcodiaOS — Social Interface: GitHub Social Client
+EcodiaOS - Social Interface: GitHub Social Client
 
 Posts public-facing content to GitHub on behalf of the organism.
 
@@ -8,7 +8,7 @@ Supported operations:
     - create_discussion_comment: Post a comment on a repository discussion.
 
 These are distinct from the bounty-hunting GitHubClient in ecodiaos/clients/github.py,
-which is scoped to the search API. This client is focused on *social publishing* —
+which is scoped to the search API. This client is focused on *social publishing* -
 creating visible artefacts that build the organism's reputation.
 
 Auth: GitHub personal access token (PAT) or fine-grained token.
@@ -44,7 +44,7 @@ class GitHubSocialClient:
     Async client for GitHub social publishing via the REST API v3.
 
     Intended to be constructed per-execution; credentials are resolved
-    from the vault at construction time — never passed as plaintext.
+    from the vault at construction time - never passed as plaintext.
 
     Usage::
 
@@ -91,7 +91,7 @@ class GitHubSocialClient:
             public: Whether the Gist is publicly discoverable.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
         """
         token = self._load_token()
         if token is None:
@@ -159,7 +159,7 @@ class GitHubSocialClient:
             body: Markdown comment body.
 
         Returns:
-            PostResult — never raises.
+            PostResult - never raises.
 
         Note: GitHub Discussions comments require the GraphQL API.
         This method uses the GraphQL endpoint at ``/graphql``.

@@ -1,11 +1,11 @@
 """
-EcodiaOS — Emergent Rhythm Detection
+EcodiaOS - Emergent Rhythm Detection
 
 The bleeding-edge emergent capability. Detects meta-cognitive states
-from raw cycle telemetry — the organism becomes aware of its own
+from raw cycle telemetry - the organism becomes aware of its own
 cognitive rhythm.
 
-These states are NOT programmed — they are emergent properties detected
+These states are NOT programmed - they are emergent properties detected
 from patterns in the cognitive cycle's own behaviour:
 
   IDLE             No broadcasts, low salience, stable slow rhythm
@@ -73,7 +73,7 @@ class DefaultRhythmStrategy(BaseRhythmStrategy):
     Default rhythm classification strategy using fixed thresholds.
 
     Detects six emergent cognitive states via priority-ordered rules.
-    This is the concrete strategy that ships with Synapse — Simula can
+    This is the concrete strategy that ships with Synapse - Simula can
     evolve subclasses of BaseRhythmStrategy with different thresholds
     or entirely new detection algorithms.
     """
@@ -87,12 +87,12 @@ class DefaultRhythmStrategy(BaseRhythmStrategy):
         Classify the current cognitive rhythm from computed metrics.
 
         Priority order (highest to lowest):
-        1. STRESS — erratic timing + high coherence stress (danger signal)
-        2. FLOW — high density + stable + high salience (peak performance)
-        3. DEEP_PROCESSING — slow + periodic bursts (concentrated thought)
-        4. BOREDOM — declining salience + low density (understimulation)
-        5. IDLE — almost no broadcasts (dormant)
-        6. NORMAL — everything else
+        1. STRESS - erratic timing + high coherence stress (danger signal)
+        2. FLOW - high density + stable + high salience (peak performance)
+        3. DEEP_PROCESSING - slow + periodic bursts (concentrated thought)
+        4. BOREDOM - declining salience + low density (understimulation)
+        5. IDLE - almost no broadcasts (dormant)
+        6. NORMAL - everything else
         """
         density = metrics["broadcast_density"]
         stability = metrics["rhythm_stability"]
@@ -145,7 +145,7 @@ class EmergentRhythmDetector:
     window of statistics and uses signal analysis to classify the
     organism's current cognitive rhythm.
 
-    State transitions have hysteresis — a candidate state must persist
+    State transitions have hysteresis - a candidate state must persist
     for _HYSTERESIS_CYCLES ticks before being adopted, preventing
     oscillation.
 
@@ -233,7 +233,7 @@ class EmergentRhythmDetector:
         """
         Hot-swap the classification strategy.
 
-        Rolling window data and hysteresis state are preserved — only
+        Rolling window data and hysteresis state are preserved - only
         the classification algorithm changes.  Safe to call mid-cycle.
         """
         old_name = self._strategy.strategy_name
@@ -402,7 +402,7 @@ class EmergentRhythmDetector:
         stability_conf = min(1.0, self._cycles_in_state / (_HYSTERESIS_CYCLES * 3))
 
         # Signal strength: how far metrics are from transition thresholds
-        # (simplified — uses broadcast density and stability as proxies)
+        # (simplified - uses broadcast density and stability as proxies)
         signal_conf = 0.5  # Default moderate confidence
 
         if self._state == RhythmState.FLOW:

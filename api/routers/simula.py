@@ -1,16 +1,16 @@
 """
-EcodiaOS — Simula API Router
+EcodiaOS - Simula API Router
 
 Exposes Simula's self-evolution pipeline and Inspector subsystem:
 
-  GET  /api/v1/simula/status         — stats, subsystem health, grid state
-  GET  /api/v1/simula/analytics      — EvolutionAnalytics snapshot
-  GET  /api/v1/simula/proposals      — active proposals in the pipeline
-  GET  /api/v1/simula/history        — recent EvolutionRecords
-  GET  /api/v1/simula/version        — current version + chain
-  GET  /api/v1/simula/inspector      — Inspector analytics view
-  GET  /api/v1/simula/inspector/hunts — recent hunt results (in-memory)
-  POST /api/v1/simula/approve        — approve a governed proposal
+  GET  /api/v1/simula/status         - stats, subsystem health, grid state
+  GET  /api/v1/simula/analytics      - EvolutionAnalytics snapshot
+  GET  /api/v1/simula/proposals      - active proposals in the pipeline
+  GET  /api/v1/simula/history        - recent EvolutionRecords
+  GET  /api/v1/simula/version        - current version + chain
+  GET  /api/v1/simula/inspector      - Inspector analytics view
+  GET  /api/v1/simula/inspector/hunts - recent hunt results (in-memory)
+  POST /api/v1/simula/approve        - approve a governed proposal
 """
 
 from __future__ import annotations
@@ -257,7 +257,7 @@ async def get_simula_status(request: Request) -> SimulaStatusResponse:
 
 @router.get("/analytics", response_model=SimulaAnalyticsResponse)
 async def get_simula_analytics(request: Request) -> SimulaAnalyticsResponse:
-    """Full EvolutionAnalytics snapshot — proposal quality, velocity, rollback rate."""
+    """Full EvolutionAnalytics snapshot - proposal quality, velocity, rollback rate."""
     simula = _get_simula(request)
     try:
         analytics = await simula.get_analytics()

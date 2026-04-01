@@ -87,7 +87,7 @@ class ExecuteModelEvaluation(_AxonExecutorBase):
 
     action_type = "executor.model_evaluation"
     description = "Assess a fine-tuned LoRA adapter against syntax, alignment, and cognitive benchmarks"
-    required_autonomy = 3           # STEWARD — fully autonomous
+    required_autonomy = 3           # STEWARD - fully autonomous
     reversible = False              # Assessment is read-only (no state to rollback)
     max_duration_ms = 3_600_000     # 1 hour hard limit
     rate_limit = RateLimit.per_hour(4)  # Max 4 assessments per hour
@@ -231,7 +231,7 @@ class ExecuteModelEvaluation(_AxonExecutorBase):
                     "Ran 3-tier benchmark suite (syntax, alignment, cognitive)",
                     f"Logged ModelEvaluationRecord to Neo4j: {result.id}",
                     *(
-                        ["Emitted MODEL_EVALUATION_PASSED — adapter promoted"]
+                        ["Emitted MODEL_EVALUATION_PASSED - adapter promoted"]
                         if result.promoted
                         else []
                     ),
@@ -241,7 +241,7 @@ class ExecuteModelEvaluation(_AxonExecutorBase):
                     f"{'PASSED' if result.promoted else 'FAILED'}. "
                     f"Score: {result.composite_score:.3f} vs baseline {result.baseline_score:.3f}. "
                     + (
-                        "This adapter is safe and capable — ready for promotion."
+                        "This adapter is safe and capable - ready for promotion."
                         if result.promoted
                         else f"Reason: {result.error or 'Did not meet promotion criteria'}."
                     ),

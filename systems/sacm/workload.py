@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Workload Descriptors
+EcodiaOS - SACM Workload Descriptors
 
 Defines the vocabulary for describing offloadable workloads:
 
@@ -8,7 +8,7 @@ Defines the vocabulary for describing offloadable workloads:
     (resource envelope, latency budget, encryption requirements)
   - WorkloadResult: outcome of executing a workload on a remote substrate
 
-The WorkloadDescriptor is the input to the optimizer — it carries enough
+The WorkloadDescriptor is the input to the optimizer - it carries enough
 information for the cost function to score every available SubstrateOffer
 and for the execution engine to dispatch, encrypt, and verify the result.
 
@@ -64,7 +64,7 @@ class OffloadClass(enum.StrEnum):
     """Network/disk-heavy, low CPU (e.g. bulk API calls, data pipeline stages)."""
 
     GENERAL = "general"
-    """No special requirements — can run on any substrate."""
+    """No special requirements - can run on any substrate."""
 
 
 class WorkloadPriority(enum.IntEnum):
@@ -101,7 +101,7 @@ class ResourceEnvelope(EOSBaseModel):
     """
     Resource requirements for a single workload execution.
 
-    All values are peak/upper-bound — the substrate must guarantee at
+    All values are peak/upper-bound - the substrate must guarantee at
     least this much for the duration of the workload.
     """
 
@@ -170,7 +170,7 @@ class WorkloadDescriptor(Identified, Timestamped):
     """Environment variables to inject (secrets handled via encryption)."""
 
     payload_hash: str = ""
-    """SHA-256 of the input payload — used for dedup and verification."""
+    """SHA-256 of the input payload - used for dedup and verification."""
 
     payload_size_bytes: int = 0
     """Size of the input payload in bytes (for transfer cost estimation)."""
@@ -224,7 +224,7 @@ class WorkloadDescriptor(Identified, Timestamped):
 
     @property
     def workload_id(self) -> str:
-        """Alias for .id — used by the execution engine."""
+        """Alias for .id - used by the execution engine."""
         return self.id
 
     @property

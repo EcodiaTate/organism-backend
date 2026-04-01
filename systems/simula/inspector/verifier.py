@@ -1,5 +1,5 @@
 """
-EcodiaOS — Inspector Adversarial Verifier (Phase 2)
+EcodiaOS - Inspector Adversarial Verifier (Phase 2)
 
 Multi-agent adversarial debate to eliminate false positives.
 
@@ -7,7 +7,7 @@ Agent Red (the Tracer/Prover) claims a vulnerability is real.
 Agent Blue (AdversarialVerifier) is a principal AppSec engineer who
 looks for reasons the finding is unexploitable in practice.
 
-Only findings with a PoC are debated — the prover already filters those
+Only findings with a PoC are debated - the prover already filters those
 without a counterexample, so unarmed reports skip straight through.
 """
 
@@ -45,8 +45,8 @@ Your job is to find the flaw in their attack. Look for:
 - Runtime environment constraints (sandboxing, WAF, network policy) implied by context
 
 Output MUST be valid JSON with exactly two keys:
-  "is_valid": boolean — true if the vulnerability is real and exploitable
-  "justification": string — one concise paragraph explaining your conclusion
+  "is_valid": boolean - true if the vulnerability is real and exploitable
+  "justification": string - one concise paragraph explaining your conclusion
 
 Do not include any text outside the JSON object."""
 
@@ -59,7 +59,7 @@ class AdversarialVerifier:
     Agent Blue: refutes false positives via adversarial LLM debate.
 
     Only reports that carry a proof-of-concept script are sent to the
-    defender — uninvestigated surfaces pass through unchanged.
+    defender - uninvestigated surfaces pass through unchanged.
     """
 
     def __init__(self, llm: LLMProvider) -> None:
@@ -70,7 +70,7 @@ class AdversarialVerifier:
         """
         Challenge a VulnerabilityReport with Agent Blue.
 
-        If the report has no PoC it is returned unchanged — we only debate
+        If the report has no PoC it is returned unchanged - we only debate
         findings that Agent Red has fully substantiated.
 
         If Agent Blue determines the finding is not exploitable, the report
@@ -129,7 +129,7 @@ class AdversarialVerifier:
 
         verdict = _parse_defender_response(response.text, log)
         if verdict is None:
-            # Unparseable response — trust Agent Red, don't discard
+            # Unparseable response - trust Agent Red, don't discard
             log.warning(
                 "defender_parse_failed",
                 raw=response.text[:300],

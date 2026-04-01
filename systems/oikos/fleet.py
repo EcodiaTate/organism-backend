@@ -1,8 +1,8 @@
 """
-EcodiaOS — Oikos Fleet Manager (Phase 16m: Population Ecology)
+EcodiaOS - Oikos Fleet Manager (Phase 16m: Population Ecology)
 
 Population-level management of child instances spawned via mitosis. The fleet
-is not a flat list of containers — it is an evolving population subject to
+is not a flat list of containers - it is an evolving population subject to
 selection pressure, role specialization, and ecological dynamics.
 
 Responsibilities:
@@ -57,7 +57,7 @@ class FleetRole(enum.StrEnum):
     """
     Specialization role assigned when population exceeds the threshold.
 
-    Generalist is the default — all instances start here. Once the fleet
+    Generalist is the default - all instances start here. Once the fleet
     grows past fleet_specialization_threshold, the manager assigns roles
     based on each instance's demonstrated strengths.
     """
@@ -74,9 +74,9 @@ class FleetRole(enum.StrEnum):
 class SelectionVerdict(enum.StrEnum):
     """Outcome of selection pressure evaluation for a single child."""
 
-    FIT = "fit"                    # Positive economic ratio — may reproduce
+    FIT = "fit"                    # Positive economic ratio - may reproduce
     UNDERPERFORMING = "underperforming"  # Negative ratio but within grace period
-    BLACKLISTED = "blacklisted"    # Sustained negative ratio — no new genomes
+    BLACKLISTED = "blacklisted"    # Sustained negative ratio - no new genomes
 
 
 class SelectionRecord(EOSBaseModel):
@@ -114,7 +114,7 @@ class FleetMetrics(EOSBaseModel):
     """
     Population-level snapshot exposed to benchmarks and dashboard.
 
-    This is the fleet equivalent of BenchmarkSnapshot — aggregated KPIs
+    This is the fleet equivalent of BenchmarkSnapshot - aggregated KPIs
     across all living children.
     """
 
@@ -139,7 +139,7 @@ class FleetMetrics(EOSBaseModel):
     fit_count: int = 0
     underperforming_count: int = 0
 
-    # Genome eligibility — how many children can donate genomes
+    # Genome eligibility - how many children can donate genomes
     genome_eligible_count: int = 0
 
 
@@ -173,7 +173,7 @@ class FleetManager:
 
     Operates on EconomicState.child_instances and enriches each child
     with role assignments and selection pressure verdicts. Does NOT own
-    the child list — OikosService does. FleetManager reads the list,
+    the child list - OikosService does. FleetManager reads the list,
     computes decisions, and emits events for Axon to execute.
 
     Thread-safety: NOT thread-safe. Designed for asyncio event loop.
@@ -189,7 +189,7 @@ class FleetManager:
         self._roles: dict[str, FleetRole] = {}
         # Consecutive periods with economic_ratio < 1.0
         self._negative_streak: dict[str, int] = {}
-        # Blacklisted instance IDs — cannot receive genomes
+        # Blacklisted instance IDs - cannot receive genomes
         self._blacklisted: set[str] = set()
         # Timestamp when each instance was first blacklisted
         self._blacklist_since: dict[str, datetime] = {}
@@ -441,7 +441,7 @@ class FleetManager:
         Handle CHILD_DECOMMISSION_APPROVED from Oikos service.
 
         Oikos has validated that the decommission is economically justified.
-        FleetManager records the approval and logs it — the death pipeline
+        FleetManager records the approval and logs it - the death pipeline
         itself is triggered by MitosisFleetService._trigger_death_pipeline(),
         which is invoked separately. FleetManager's role here is bookkeeping.
         """
@@ -455,7 +455,7 @@ class FleetManager:
             child_id=child_id,
             reason=reason,
         )
-        # Remove from blacklist tracking — decommission approved means the child
+        # Remove from blacklist tracking - decommission approved means the child
         # will be terminated; no further selection pressure evaluation needed.
         self._blacklisted.discard(child_id)
         self._blacklist_since.pop(child_id, None)
@@ -584,7 +584,7 @@ class FleetManager:
         """
         Check if a child instance is eligible to donate its genome.
 
-        Blacklisted instances cannot donate genomes — their engineering
+        Blacklisted instances cannot donate genomes - their engineering
         knowledge is not propagated to future generations.
         """
         return instance_id not in self._blacklisted
@@ -617,7 +617,7 @@ class FleetManager:
     # ─── Metrics Computation ────────────────────────────────────
 
     def get_metrics(self, state: EconomicState) -> FleetMetrics:
-        """Public alias for _compute_metrics — use this in API routers and external callers."""
+        """Public alias for _compute_metrics - use this in API routers and external callers."""
         return self._compute_metrics(state)
 
     def _compute_metrics(self, state: EconomicState) -> FleetMetrics:

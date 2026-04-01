@@ -1,23 +1,23 @@
 """
-EcodiaOS — Synapse Service
+EcodiaOS - Synapse Service
 
-The autonomic nervous system. Synapse is the heartbeat of EOS — it drives
+The autonomic nervous system. Synapse is the heartbeat of EOS - it drives
 the cognitive cycle clock, monitors system health, allocates resources,
 detects emergent cognitive rhythms, and measures cross-system coherence.
 
 Synapse is invisible when it works. It is the heartbeat, the circulation,
 the autonomic regulation that keeps everything alive. You don't notice
-your nervous system until it fails — and Synapse is designed never to fail.
+your nervous system until it fails - and Synapse is designed never to fail.
 
 Zero LLM tokens consumed. Pure computation, monitoring, coordination.
 
 Lifecycle:
-  initialize()          — build all sub-systems
-  register_system()     — register a cognitive system for management
-  start_clock()         — start the theta rhythm
-  start_health_monitor()— start background health polling
-  stop()                — graceful shutdown
-  health()              — self-health report
+  initialize()          - build all sub-systems
+  register_system()     - register a cognitive system for management
+  start_clock()         - start the theta rhythm
+  start_health_monitor()- start background health polling
+  stop()                - graceful shutdown
+  health()              - self-health report
 
 The _on_cycle callback (called by CognitiveClock after every tick):
   1. Feed CycleResult into EmergentRhythmDetector (every cycle)
@@ -88,16 +88,16 @@ _METABOLIC_PRESSURE_THRESHOLD_USD_HR: float = 1.0
 
 class SynapseService:
     """
-    Synapse — the EOS autonomic nervous system.
+    Synapse - the EOS autonomic nervous system.
 
     Coordinates six sub-systems:
-      CognitiveClock          — theta rhythm driving Atune
-      HealthMonitor           — background health polling
-      ResourceAllocator       — adaptive resource budgets
-      DegradationManager      — graceful fallback on failure
-      EmergentRhythmDetector  — meta-cognitive state detection
-      CoherenceMonitor        — cross-system integration quality
-      EventBus                — dual-output event publication
+      CognitiveClock          - theta rhythm driving Atune
+      HealthMonitor           - background health polling
+      ResourceAllocator       - adaptive resource budgets
+      DegradationManager      - graceful fallback on failure
+      EmergentRhythmDetector  - meta-cognitive state detection
+      CoherenceMonitor        - cross-system integration quality
+      EventBus                - dual-output event publication
     """
 
     system_id: str = "synapse"
@@ -137,14 +137,14 @@ class SynapseService:
         # Cycle counter for periodic sub-system triggers
         self._cycle_count: int = 0
 
-        # Grid metabolism state — updated by GridMetabolismSensor events
+        # Grid metabolism state - updated by GridMetabolismSensor events
         self._grid_state: MetabolicState = MetabolicState.NORMAL
 
-        # Thymos (wired after construction) — used to feed the CognitiveStallSentinel
+        # Thymos (wired after construction) - used to feed the CognitiveStallSentinel
         # per theta tick so it can detect catatonic / stalled organism states.
         self._thymos: Any = None
 
-        # Benchmarks (wired after construction) — receives KPI snapshot every 50 cycles
+        # Benchmarks (wired after construction) - receives KPI snapshot every 50 cycles
         # so the organism can self-measure heartbeat health and coherence quality.
         self._benchmarks: Any = None
 
@@ -161,18 +161,18 @@ class SynapseService:
         self._evo_evidence_prev: int = 0
 
         # Track previous rhythm state so we can detect STRESS transitions and
-        # emit FOVEA_PREDICTION_ERROR on entry — rhythm state = self-awareness signal.
+        # emit FOVEA_PREDICTION_ERROR on entry - rhythm state = self-awareness signal.
         self._prev_rhythm_state: str = ""
 
         # Cached starvation level from Oikos METABOLIC_PRESSURE events.
         # Relayed on every SomaTick so downstream systems read it without polling.
         self._cached_starvation_level: str = "nominal"
 
-        # Economic state from Oikos — used to derive events_per_dollar metrics
+        # Economic state from Oikos - used to derive events_per_dollar metrics
         self._cached_burn_rate_usd: float = 0.0
         self._cached_liquid_balance_usd: float = 0.0
 
-        # Interoception signal cache — updated by INTEROCEPTIVE_ALERT subscription.
+        # Interoception signal cache - updated by INTEROCEPTIVE_ALERT subscription.
         # Used to populate OrganismTelemetry without blocking the 50-cycle emit.
         self._interoception_cache: dict[str, Any] = {
             "error_rate_per_min": None,
@@ -180,7 +180,7 @@ class SynapseService:
             "latency_spike_active": False,
         }
 
-        # Persona handle cache — updated reactively on PERSONA_CREATED / PERSONA_EVOLVED.
+        # Persona handle cache - updated reactively on PERSONA_CREATED / PERSONA_EVOLVED.
         # Included in ORGANISM_TELEMETRY so Nova knows the organism's public identity.
         self._cached_persona_handle: str | None = None
 
@@ -335,7 +335,7 @@ class SynapseService:
         # can detect a permanently stopped heartbeat.
         def _on_clock_done(task: asyncio.Task[None]) -> None:
             if self._stopping or task.cancelled():
-                return  # Normal shutdown — not an error
+                return  # Normal shutdown - not an error
             exc = task.exception()
             if exc is not None:
                 self._logger.critical(
@@ -345,7 +345,7 @@ class SynapseService:
             else:
                 self._logger.critical(
                     "clock_task_exited_unexpectedly",
-                    note="Cognitive clock stopped without being asked to — organism heartbeat lost",
+                    note="Cognitive clock stopped without being asked to - organism heartbeat lost",
                 )
             asyncio.create_task(
                 self._event_bus.emit(SynapseEvent(
@@ -501,7 +501,7 @@ class SynapseService:
 
     @property
     def metabolic_deficit(self) -> float:
-        """Current rolling deficit in USD — how much the organism owes."""
+        """Current rolling deficit in USD - how much the organism owes."""
         return self._metabolism.rolling_deficit_usd
 
     @property
@@ -568,7 +568,7 @@ class SynapseService:
         Adapt the cognitive clock's base period to the physical grid's carbon
         intensity.
 
-        CONSERVATION: 150 ms → 1 000 ms — drastically reduce idle CPU cycles
+        CONSERVATION: 150 ms → 1 000 ms - drastically reduce idle CPU cycles
                       while the grid is carbon-heavy.
         NORMAL:       restore the configured base period.
         GREEN_SURPLUS: restore the configured base period (clock is already at
@@ -599,7 +599,7 @@ class SynapseService:
                 to_state=new_state.value,
                 new_period_ms=1000,
             )
-            # Spec 09 §18 P6 — CONSERVATION_MODE_ENTERED event
+            # Spec 09 §18 P6 - CONSERVATION_MODE_ENTERED event
             with contextlib.suppress(Exception):
                 await self._event_bus.emit(SynapseEvent(
                     event_type=SynapseEventType.CONSERVATION_MODE_ENTERED,
@@ -611,7 +611,7 @@ class SynapseService:
                     },
                 ))
         else:
-            # NORMAL or GREEN_SURPLUS — restore configured base frequency
+            # NORMAL or GREEN_SURPLUS - restore configured base frequency
             configured_hz = 1000.0 / self._config.cycle_period_ms
             self._clock.set_speed(configured_hz)
             self._logger.info(
@@ -620,7 +620,7 @@ class SynapseService:
                 to_state=new_state.value,
                 new_period_ms=self._config.cycle_period_ms,
             )
-            # Spec 09 §18 P6 — CONSERVATION_MODE_EXITED event (only if was CONSERVATION)
+            # Spec 09 §18 P6 - CONSERVATION_MODE_EXITED event (only if was CONSERVATION)
             if old_state == MetabolicState.CONSERVATION:
                 with contextlib.suppress(Exception):
                     await self._event_bus.emit(SynapseEvent(
@@ -664,8 +664,8 @@ class SynapseService:
         This closes the M1 gap (Spec 09 §18): MetabolicTracker's rolling deficit
         was previously only updated via direct `inject_revenue()` calls, making
         the deficit grow unboundedly when Oikos earned revenue without notifying
-        Synapse.  By subscribing here, any revenue Oikos earns — bounty payouts,
-        yield harvests, client fees — is immediately reflected in the deficit.
+        Synapse.  By subscribing here, any revenue Oikos earns - bounty payouts,
+        yield harvests, client fees - is immediately reflected in the deficit.
 
         We do NOT re-emit REVENUE_INJECTED (the MetabolicTracker.inject_revenue()
         already emits it), so there is no double-emission risk.
@@ -680,7 +680,7 @@ class SynapseService:
 
         source = str(event.data.get("source", "oikos"))
         # MetabolicTracker.inject_revenue() updates the rolling deficit and emits
-        # REVENUE_INJECTED itself — we only call the tracker, not inject_revenue()
+        # REVENUE_INJECTED itself - we only call the tracker, not inject_revenue()
         # on self (which would double-emit).
         self._metabolism.inject_revenue(amount)
         self._logger.info(
@@ -735,7 +735,7 @@ class SynapseService:
         Hot-swap the resource allocator when Simula evolves a new one.
 
         The old allocator's accumulated load observations are intentionally
-        discarded — evolved logic starts with fresh observations.  The swap
+        discarded - evolved logic starts with fresh observations.  The swap
         happens between cycles so the active theta tick is never disrupted.
         """
         old_name = self._resources.allocator_name
@@ -751,7 +751,7 @@ class SynapseService:
         Hot-swap the rhythm classification strategy.
 
         The EmergentRhythmDetector's rolling window and hysteresis state
-        are preserved — only the classification algorithm changes.  This
+        are preserved - only the classification algorithm changes.  This
         means the new strategy immediately has a full 100-cycle window
         of data to classify against, rather than starting cold.
         """
@@ -768,7 +768,7 @@ class SynapseService:
         Called by CognitiveClock after every theta tick.
 
         This is the central integration point where all sub-systems
-        are fed cycle telemetry. The work here must be lightweight —
+        are fed cycle telemetry. The work here must be lightweight -
         heavy computation is deferred to periodic triggers.
         """
         self._cycle_count = result.cycle_number
@@ -840,7 +840,7 @@ class SynapseService:
 
         # Push rhythm state to Atune so meta-attention can modulate salience
         # weights based on the organism's emergent cognitive state.
-        with contextlib.suppress(Exception):  # Non-critical — meta-attention falls back to "normal"
+        with contextlib.suppress(Exception):  # Non-critical - meta-attention falls back to "normal"
             self._atune.set_rhythm_state(self._rhythm.current_state.value)
 
         # ── 2. Feed coherence monitor (every cycle) ──
@@ -879,7 +879,7 @@ class SynapseService:
                     self._clock.set_coherence_drag(drag)
 
                     # Emit FOVEA_PREDICTION_ERROR: organism coherence diverged from
-                    # expected baseline — this is a structural self-model anomaly.
+                    # expected baseline - this is a structural self-model anomaly.
                     with contextlib.suppress(Exception):
                         await self._event_bus.emit(SynapseEvent(
                             event_type=SynapseEventType.FOVEA_PREDICTION_ERROR,
@@ -1027,7 +1027,7 @@ class SynapseService:
             # Reset window accumulator so next interval is a clean delta
             self._metabolism.reset_window()
 
-            # ── 5c. ORGANISM_TELEMETRY — unified state broadcast ──────────────
+            # ── 5c. ORGANISM_TELEMETRY - unified state broadcast ──────────────
             # Build once per 50-cycle interval using already-computed snapshots.
             # Gracefully degrades: missing sub-systems leave fields at defaults.
             with contextlib.suppress(Exception):
@@ -1108,7 +1108,7 @@ class SynapseService:
                     error_rate_per_min=self._interoception_cache["error_rate_per_min"],
                     cascade_pressure=self._interoception_cache["cascade_pressure"],
                     latency_spike_active=self._interoception_cache["latency_spike_active"],
-                    # Persona — public identity handle (None until PersonaEngine seals)
+                    # Persona - public identity handle (None until PersonaEngine seals)
                     persona_handle=self._cached_persona_handle,
                     # Provenance
                     cycle_number=self._cycle_count,
@@ -1172,7 +1172,7 @@ class SynapseService:
         ))
 
         # ── 8. Model hot-swap probation monitor ──
-        # Runs every cycle during probation. The rollback check is O(1) —
+        # Runs every cycle during probation. The rollback check is O(1) -
         # it just compares an error counter ratio against a threshold.
         if self._hot_swap_manager is not None:
             try:
@@ -1184,7 +1184,7 @@ class SynapseService:
                 )
 
         # ── 9. Feed CognitiveStallSentinel ──
-        # The stall sentinel detects "catatonic organism" — cycles that run
+        # The stall sentinel detects "catatonic organism" - cycles that run
         # but accomplish nothing.  It lives in Thymos; we feed it here so it
         # gets a data point on every theta tick without needing a poll loop.
         if self._thymos is not None:

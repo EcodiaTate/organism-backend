@@ -1,7 +1,7 @@
 """
-EcodiaOS — Axon Credential Store
+EcodiaOS - Axon Credential Store
 
-Executors need credentials to act on external systems — API keys, OAuth tokens,
+Executors need credentials to act on external systems - API keys, OAuth tokens,
 webhook secrets. But executors must never see raw secrets.
 
 CredentialStore wraps the raw credential vault and issues scoped, time-limited
@@ -39,7 +39,7 @@ def _extract_required_services(intent: Intent) -> set[str]:
     """
     Determine which external services an intent requires credentials for.
 
-    Derived from the executor names in the action plan. This is a heuristic —
+    Derived from the executor names in the action plan. This is a heuristic -
     executors may declare their service requirements explicitly in future.
     """
     services: set[str] = set()
@@ -80,7 +80,7 @@ class CredentialStore:
         """
         self._vault: dict[str, str] = raw_credentials or {}
         self._logger = logger.bind(system="axon.credentials")
-        # signing_key for HMAC token generation — randomised per process
+        # signing_key for HMAC token generation - randomised per process
         self._signing_key = hashlib.sha256(
             f"eos-credential-{time.time()}".encode()
         ).digest()
@@ -121,7 +121,7 @@ class CredentialStore:
                     ttl_seconds=ttl_seconds,
                 )
             else:
-                # Service required but not configured — empty token signals executors
+                # Service required but not configured - empty token signals executors
                 tokens[service] = ""
                 self._logger.warning(
                     "credential_missing",
@@ -142,7 +142,7 @@ class CredentialStore:
         time-limited HMAC signature.
 
         Format: {service}:{expiry_ts}:{hmac}:{raw_credential}
-        This is deliberately simple — in production, replace with proper
+        This is deliberately simple - in production, replace with proper
         token exchange (OAuth2, Vault dynamic secrets, etc.)
         """
         raw = self._vault.get(service, "")
@@ -153,7 +153,7 @@ class CredentialStore:
             payload.encode(),
             hashlib.sha256,
         ).hexdigest()[:16]
-        # The token carries the raw credential for Phase 1 — executors extract it.
+        # The token carries the raw credential for Phase 1 - executors extract it.
         # In Phase 2, the token would be opaque and exchangeable at the service.
         return f"{expiry}:{signature}:{raw}"
 
@@ -162,7 +162,7 @@ class CredentialStore:
         Extract the raw credential from a scoped token.
 
         Returns None if the token is expired or malformed.
-        Executors call this via the token they receive — not directly.
+        Executors call this via the token they receive - not directly.
         """
         if not token:
             return None

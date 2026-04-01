@@ -168,7 +168,7 @@ class TestStringAnonymisation:
     def test_clean_text_unchanged(self):
         text = "Organic farming practices in sustainable agriculture"
         result = _anonymise_string(text)
-        assert result == text  # No change — same object
+        assert result == text  # No change - same object
 
 
 # ─── Deep Anonymisation ──────────────────────────────────────────
@@ -224,7 +224,7 @@ class TestDeepAnonymisation:
             "count": 42,
         }
         result = _deep_anonymise(data)
-        # No PII keys — should return the same object
+        # No PII keys - should return the same object
         assert result is data
 
     def test_depth_limit_prevents_infinite_recursion(self):

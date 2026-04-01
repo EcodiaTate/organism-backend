@@ -1,11 +1,11 @@
 """
-EcodiaOS — Oneiros: Dream Journal & Insight Tracker
+EcodiaOS - Oneiros: Dream Journal & Insight Tracker
 
 Persistent storage of the organism's dream life. Every dream, every
 insight, every sleep cycle is recorded in the knowledge graph and
 mirrored in an in-memory cache for fast access during sleep phases.
 
-The DreamJournal is the organism's dream diary — queryable, observable,
+The DreamJournal is the organism's dream diary - queryable, observable,
 and introspectable. The DreamInsightTracker follows each insight from
 its birth in REM sleep through wake-state validation to permanent
 integration into semantic memory.
@@ -76,7 +76,7 @@ class DreamJournal:
         self._neo4j = neo4j
         self._log = logger.bind(system="oneiros", component="journal")
 
-        # In-memory buffers — fallback when Neo4j is unavailable
+        # In-memory buffers - fallback when Neo4j is unavailable
         self._dream_buffer: deque[Dream] = deque(maxlen=_MAX_DREAM_BUFFER)
         self._insight_cache: dict[str, DreamInsight] = {}  # non-integrated insights
         self._all_insights: dict[str, DreamInsight] = {}   # id -> insight (all statuses)
@@ -830,7 +830,7 @@ class DreamInsightTracker:
     - Invalidate them (turned out to be noise)
     - Integrate them (absorbed into permanent semantic memory)
 
-    This tracker also counts wake_applications — how many times a
+    This tracker also counts wake_applications - how many times a
     validated insight influenced a waking decision.
     """
 
@@ -840,7 +840,7 @@ class DreamInsightTracker:
 
     async def validate_insight(self, insight_id: str, context: str) -> None:
         """
-        Mark an insight as VALIDATED — confirmed useful in wake state.
+        Mark an insight as VALIDATED - confirmed useful in wake state.
 
         The context string records how/why it was validated (e.g. which
         waking percept or decision it aligned with).
@@ -887,7 +887,7 @@ class DreamInsightTracker:
 
     async def invalidate_insight(self, insight_id: str, context: str) -> None:
         """
-        Mark an insight as INVALIDATED — turned out to be noise.
+        Mark an insight as INVALIDATED - turned out to be noise.
 
         The context records why (e.g. "contradicted by waking evidence").
         """
@@ -899,7 +899,7 @@ class DreamInsightTracker:
         insight.status = InsightStatus.INVALIDATED
         insight.validation_context = context
 
-        # Update caches — remove from active cache since it is terminal
+        # Update caches - remove from active cache since it is terminal
         self._journal._all_insights[insight_id] = insight
         self._journal._insight_cache.pop(insight_id, None)
 
@@ -929,7 +929,7 @@ class DreamInsightTracker:
 
     async def integrate_insight(self, insight_id: str) -> None:
         """
-        Mark an insight as INTEGRATED — it has become permanent semantic knowledge.
+        Mark an insight as INTEGRATED - it has become permanent semantic knowledge.
 
         This is the final lifecycle state. The insight's content has been
         absorbed into the knowledge graph as an Entity or strengthened
@@ -942,7 +942,7 @@ class DreamInsightTracker:
 
         insight.status = InsightStatus.INTEGRATED
 
-        # Update caches — remove from active insight cache
+        # Update caches - remove from active insight cache
         self._journal._all_insights[insight_id] = insight
         self._journal._insight_cache.pop(insight_id, None)
 
@@ -1066,7 +1066,7 @@ def _dream_from_node(node: dict[str, Any]) -> Dream | None:
             except json.JSONDecodeError:
                 context = {}
 
-        # Handle timestamps — Neo4j may return datetime objects or ISO strings
+        # Handle timestamps - Neo4j may return datetime objects or ISO strings
         timestamp = utc_now()
         if timestamp_raw is not None:
             if isinstance(timestamp_raw, str):

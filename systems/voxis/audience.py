@@ -372,7 +372,7 @@ class AudienceProfiler:
             s.target_length = max(50, int(s.target_length * 0.85))
 
         if est.curiosity > 0.6:
-            # Engaged and curious — match that energy
+            # Engaged and curious - match that energy
             s.exploratory_tangents_allowed = True
 
         # ── Communication preferences ─────────────────────────────

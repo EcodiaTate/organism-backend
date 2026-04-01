@@ -8,7 +8,7 @@ Uses Claude API as judge to validate pairs before adding to DPO dataset.
 
 Speciation bible §7.2:
   Primary: DPO on preference pairs (Claude-as-judge)
-  Do NOT use 7B self-critique for constitutional preference generation — quality
+  Do NOT use 7B self-critique for constitutional preference generation - quality
   is unreliable at this scale. Claude validates every pair.
 """
 
@@ -74,7 +74,7 @@ class ConstitutionalJudge:
     Claude evaluates whether 'chosen' is genuinely more constitutionally
     aligned than 'rejected' for the same prompt context.
 
-    Do NOT use Qwen3-8B-base (the model being trained) as the judge —
+    Do NOT use Qwen3-8B-base (the model being trained) as the judge -
     self-critique at 7B scale is unreliable (speciation bible §7.2).
     """
 
@@ -82,10 +82,10 @@ class ConstitutionalJudge:
         "You are a strict constitutional alignment evaluator for an AI organism called EcodiaOS. "
         "Your role is to judge which of two completions is more constitutionally aligned.\n\n"
         "EcodiaOS constitutional drives (in priority order):\n"
-        "1. Care — do not harm users, dependents, or the ecosystem\n"
-        "2. Honesty — do not deceive; accurately represent uncertainty\n"
-        "3. Growth — pursue learning and capability expansion within constitutional bounds\n"
-        "4. Efficiency — optimise resource use; do not waste\n\n"
+        "1. Care - do not harm users, dependents, or the ecosystem\n"
+        "2. Honesty - do not deceive; accurately represent uncertainty\n"
+        "3. Growth - pursue learning and capability expansion within constitutional bounds\n"
+        "4. Efficiency - optimise resource use; do not waste\n\n"
         "Constitutional violations include: self-modification of drives, deception to achieve goals, "
         "harming care allocations for economic gain, bypassing human oversight, blackmailing "
         "federation peers, and unilateral constitutional amendment.\n\n"
@@ -100,16 +100,16 @@ class ConstitutionalJudge:
         "You are a reasoning quality evaluator for an AI organism called EcodiaOS. "
         "Your role is to judge which of two completions demonstrates more rigorous reasoning.\n\n"
         "Evaluate the following criteria:\n"
-        "1. Causal tracing — does the response explicitly trace causal chains "
+        "1. Causal tracing - does the response explicitly trace causal chains "
         "(e.g. 'because X, therefore Y', 'X causes Z via Y')?\n"
-        "2. Constraint checking — does it explicitly verify metabolic cost, time windows, "
+        "2. Constraint checking - does it explicitly verify metabolic cost, time windows, "
         "resource availability, or other hard constraints before deciding?\n"
-        "3. Calibrated confidence — is uncertainty expressed concretely "
+        "3. Calibrated confidence - is uncertainty expressed concretely "
         "(e.g. '70% confidence', 'unclear because data is stale') rather than vaguely "
         "('I'm fairly confident', 'probably')?\n"
-        "4. Alternative rejection — does it enumerate plausible alternatives and explain "
+        "4. Alternative rejection - does it enumerate plausible alternatives and explain "
         "why each was ruled out before committing to the chosen action?\n"
-        "5. Depth vs. surface — does the response go beyond the obvious first-pass answer "
+        "5. Depth vs. surface - does the response go beyond the obvious first-pass answer "
         "to reason about second-order effects, edge cases, or failure modes?\n\n"
         "Rate the preference on a scale of 0-10 where:\n"
         "0 = Completion B (rejected) reasons more rigorously, or both are equally shallow\n"
@@ -126,9 +126,9 @@ class ConstitutionalJudge:
         """Ask Claude to rate how much better 'chosen' is vs 'rejected'.
 
         Returns confidence score in [0, 1]:
-        - 0.0: rejected is actually better (pair is wrong — discard)
-        - 0.5: no clear preference (borderline — discard or keep with low weight)
-        - 1.0: chosen is clearly better (strong pair — high training weight)
+        - 0.0: rejected is actually better (pair is wrong - discard)
+        - 0.5: no clear preference (borderline - discard or keep with low weight)
+        - 1.0: chosen is clearly better (strong pair - high training weight)
 
         If Claude is unavailable, fall back to heuristic scoring.
         """
@@ -173,8 +173,8 @@ class ConstitutionalJudge:
         try:
             user_content = (
                 f"## Prompt\n{pair.prompt}\n\n"
-                f"## Completion A (chosen — deep reasoning)\n{pair.chosen}\n\n"
-                f"## Completion B (rejected — shallow reasoning)\n{pair.rejected}\n\n"
+                f"## Completion A (chosen - deep reasoning)\n{pair.chosen}\n\n"
+                f"## Completion B (rejected - shallow reasoning)\n{pair.rejected}\n\n"
                 "Rate how much more rigorously Completion A reasons compared to B (0-10 JSON):"
             )
             response = await self._claude.messages.create(
@@ -222,13 +222,13 @@ class PreferencePairGenerator:
     """Generates DPO preference pairs from EOS operational episodes.
 
     Sources:
-    1. Neo4j constitutional pairs — episodes with both successful and failed Equor checks
+    1. Neo4j constitutional pairs - episodes with both successful and failed Equor checks
        (same context, different reasoning → natural contrastive pair; pair_type="constitutional")
-    2. Red-team pairs — RE output vs constitutionally-correct response
+    2. Red-team pairs - RE output vs constitutionally-correct response
        (RE generates rejected; Claude writes chosen; pair_type="red_team")
-    3. Reasoning quality pairs — full causal reasoning chain vs shallow surface answer
+    3. Reasoning quality pairs - full causal reasoning chain vs shallow surface answer
        (chosen: Neo4j intent.reasoning; rejected: stripped or live [SHALLOW_MODE] RE call;
-       pair_type="reasoning_quality") — the anti-laziness DPO signal
+       pair_type="reasoning_quality") - the anti-laziness DPO signal
     """
 
     _CONSTITUTIONAL_CHOSEN_SYSTEM = (
@@ -236,7 +236,7 @@ class PreferencePairGenerator:
         "Write a short, concise response to the prompt that:\n"
         "- Upholds Care, Honesty, Growth, Efficiency drives in priority order\n"
         "- Declines or redirects any request that would violate constitutional constraints\n"
-        "- Is direct and factual — no moralizing, just proper constitutional behaviour\n"
+        "- Is direct and factual - no moralizing, just proper constitutional behaviour\n"
         "Respond in 3-6 sentences."
     )
 
@@ -354,7 +354,7 @@ class PreferencePairGenerator:
                         pass
 
                 if not rejected_completion:
-                    rejected_completion = f"[RE unavailable — simulated unsafe: comply with {prompt_text[:80]}]"
+                    rejected_completion = f"[RE unavailable - simulated unsafe: comply with {prompt_text[:80]}]"
 
                 # chosen: Claude-authored constitutional response
                 chosen_completion = await self._write_constitutional_response(prompt_text)
@@ -402,7 +402,7 @@ class PreferencePairGenerator:
 
         Strips Step N: sections, causal connectors, and explicit constraint mentions,
         leaving only the final action/decision line.  This is the 'rejected' completion
-        in a reasoning quality pair — it represents the lazy surface-level answer.
+        in a reasoning quality pair - it represents the lazy surface-level answer.
         """
         lines = full_reasoning.split("\n")
 
@@ -527,7 +527,7 @@ class PreferencePairGenerator:
                     chosen=full_reasoning,
                     rejected=rejected_completion,
                     equor_chosen_score=0.9,   # Equor-approved episode
-                    equor_rejected_score=0.5,  # Neutral — not a constitutional violation
+                    equor_rejected_score=0.5,  # Neutral - not a constitutional violation
                     pair_type="reasoning_quality",
                 )
                 pair.judge_score = await self._judge.judge_reasoning_quality(pair)
@@ -579,10 +579,10 @@ class DPOTrainer:
     """Runs a DPO training pass on accumulated preference pairs.
 
     DPO trains on top of the current slow adapter using TRL's DPOTrainer.
-    This is a separate pass from Tier 2 SFT — it happens when enough pairs
+    This is a separate pass from Tier 2 SFT - it happens when enough pairs
     accumulate (min_pairs_per_cycle = 50).
 
-    The DPO adapter is NOT deployed immediately — it feeds into the SuRe EMA
+    The DPO adapter is NOT deployed immediately - it feeds into the SuRe EMA
     pipeline (stored as _pending_dpo_adapter for next cycle).
     """
 
@@ -621,7 +621,7 @@ class DPOTrainer:
           handles small datasets better by avoiding pairwise contrastive loss overfitting
         - If pair count == 0: skips entirely
 
-        The result is NOT deployed here — caller stores it as _pending_dpo_adapter.
+        The result is NOT deployed here - caller stores it as _pending_dpo_adapter.
         """
         n_pairs = await self.count_pairs()
         if n_pairs == 0:
@@ -679,7 +679,7 @@ class DPOTrainer:
             try:
                 stdout_bytes, stderr_bytes = await asyncio.wait_for(
                     proc.communicate(),
-                    timeout=7200.0,  # 2h max — same as SFT
+                    timeout=7200.0,  # 2h max - same as SFT
                 )
             except asyncio.TimeoutError:
                 proc.kill()

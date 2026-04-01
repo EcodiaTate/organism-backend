@@ -1,10 +1,10 @@
 """
-EcodiaOS — Belief Store
+EcodiaOS - Belief Store
 
 Persists significant beliefs to the Neo4j knowledge graph as :Belief nodes,
 stamped with domain-aware half-life metadata for freshness tracking.
 
-Beliefs in the graph are the organism's durable knowledge claims — distinct
+Beliefs in the graph are the organism's durable knowledge claims - distinct
 from Nova's ephemeral in-memory BeliefState. They represent facts the
 organism considers worth remembering and re-verifying over time.
 
@@ -25,7 +25,7 @@ from primitives.common import new_id, utc_now
 
 # Default half-life (days) when no domain-specific value is provided.
 # Callers (Evo, Nova) should pass the domain half-life explicitly to avoid
-# this fallback. Previously imported from systems.evo — moved here to
+# this fallback. Previously imported from systems.evo - moved here to
 # eliminate cross-system import.
 _DEFAULT_HALFLIFE_DAYS: float = 30.0
 
@@ -50,7 +50,7 @@ async def store_belief(
     Args:
         neo4j: Neo4j client
         domain: Knowledge domain (e.g. "sentiment", "capability", "schedule")
-        statement: The belief content — what the organism claims to know
+        statement: The belief content - what the organism claims to know
         precision: Confidence level (0–1)
         evidence_ids: Episode IDs that support this belief
         half_life_days: Override domain default if provided
@@ -147,7 +147,7 @@ async def update_belief_verification(
     Called when Nova/Axon confirms the belief is still accurate.
 
     Refuses to update beliefs that have been superseded by a ConsolidatedBelief
-    (immutability guard — consolidated beliefs are read-only).
+    (immutability guard - consolidated beliefs are read-only).
     """
     # Immutability guard: check if this belief has been consolidated
     try:
@@ -167,7 +167,7 @@ async def update_belief_verification(
             belief_id=belief_id,
             error=str(exc),
         )
-        # Proceed with update if the check fails — fail open
+        # Proceed with update if the check fails - fail open
 
     now_iso = utc_now().isoformat()
     params: dict[str, str | float] = {
@@ -235,7 +235,7 @@ async def store_belief_from_hypothesis(
 
 # Precision threshold above which a Belief graduates to ConsolidatedBelief.
 # Chosen to represent "the organism is confident enough to treat this as
-# hardened, immutable knowledge" — just below the high-confidence zone.
+# hardened, immutable knowledge" - just below the high-confidence zone.
 _CONSOLIDATION_PRECISION_THRESHOLD: float = 0.85
 
 # Maximum evidence links carried forward into a ConsolidatedBelief.
@@ -249,7 +249,7 @@ async def consolidate_high_confidence_beliefs(
     """
     Promote high-confidence :Belief nodes into immutable :ConsolidatedBelief nodes.
 
-    A ConsolidatedBelief is the organism's hardened knowledge — it cannot be
+    A ConsolidatedBelief is the organism's hardened knowledge - it cannot be
     updated via `update_belief_verification()` (the immutability guard checks
     the `status` field). The source Belief is marked `status='superseded_by_consolidated'`
     so it is excluded from future verification cycles.

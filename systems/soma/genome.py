@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Genome Extraction & Seeding
+EcodiaOS - Soma Genome Extraction & Seeding
 
 Heritable state: setpoint parameters, phase-space configuration,
 developmental stage thresholds, allostatic baselines.
@@ -77,7 +77,7 @@ class SomaGenomeExtractor:
             self._apply_setpoints(payload.get("setpoints", {}))
             self._apply_phase_space_config(payload.get("phase_space_config", {}))
             self._apply_allostatic_baselines(payload.get("allostatic_baselines", {}))
-            # Do NOT apply stage thresholds as stage — child starts at stage 0
+            # Do NOT apply stage thresholds as stage - child starts at stage 0
 
             self._log.info("soma_genome_seeded")
             return True
@@ -136,7 +136,7 @@ class SomaGenomeExtractor:
         - Developmental stage: always starts at REFLEXIVE (ignored from genome)
         - Phase-space config and allostatic baselines: inherited exactly
 
-        This ensures children are similar to — but not identical to — their parent,
+        This ensures children are similar to - but not identical to - their parent,
         enabling phenotypic variation under selection pressure.
         """
         if segment.version == 0 or not segment.payload:

@@ -174,7 +174,7 @@ class TestAnalyticsEmitter:
         """Error messages should be truncated to 500 chars."""
         emitter = InspectorAnalyticsEmitter()
         long_message = "x" * 1000
-        # Should not raise — message is truncated internally
+        # Should not raise - message is truncated internally
         emitter.emit_hunt_error(
             pipeline_stage="prove",
             error_type="RuntimeError",

@@ -147,7 +147,7 @@ class TestProcedureMatching:
         assert result["name"] == "Empathetic support"
 
     def test_returns_highest_success_rate(self) -> None:
-        # A question with care activation — multiple templates might match
+        # A question with care activation - multiple templates might match
         content = MagicMock()
         content.content = MagicMock()
         content.content.content = "Can you help me? I'm feeling lost"

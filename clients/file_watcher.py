@@ -1,5 +1,5 @@
 """
-EcodiaOS — File Watcher Perception Channel
+EcodiaOS - File Watcher Perception Channel
 
 Watches a folder for `.txt` and `.md` files dropped by operators or external
 tools.  Each file is read, ingested through Atune as a SYSTEM_EVENT percept,
@@ -12,7 +12,7 @@ Usage:
     await watcher.stop()
 
 Design notes:
-- Pure asyncio polling (no watchdog dependency) — 1-second tick.
+- Pure asyncio polling (no watchdog dependency) - 1-second tick.
 - Each file is processed once; concurrent ingestion is safe because
   Atune.ingest() is thread-safe and queue-bounded.
 - Files processed in mtime order (oldest first) so manual batches
@@ -175,7 +175,7 @@ class FileWatcher:
         except ValueError:
             channel = InputChannel.SYSTEM_EVENT
 
-        # Build metadata — attach filename and any extra front-matter keys
+        # Build metadata - attach filename and any extra front-matter keys
         metadata: dict[str, Any] = {
             "source_file": path.name,
             "ingestion_channel": "file_watcher",
@@ -200,7 +200,7 @@ class FileWatcher:
                 channel=channel_str,
             )
         else:
-            # Queue full — back off; file stays, will retry next tick
+            # Queue full - back off; file stays, will retry next tick
             logger.warning(
                 "file_watcher_queue_full",
                 file=path.name,

@@ -2,8 +2,8 @@
 Unit tests for Inspector safety and security constraints.
 
 Tests both:
-  1. InspectorSafetyGates (Phase 11) — the standalone safety module
-  2. InspectorService.validate_poc() — integration of safety gates into the service
+  1. InspectorSafetyGates (Phase 11) - the standalone safety module
+  2. InspectorService.validate_poc() - integration of safety gates into the service
 
 Validates the "Iron Rules" and security boundaries:
   - PoC execution scoped to authorized_targets only
@@ -717,7 +717,7 @@ class TestComprehensivePocSafety:
         )
         result = gates.validate_poc_execution(poc, ["localhost"])
         assert not result
-        # Should fail on the first check — forbidden import
+        # Should fail on the first check - forbidden import
         assert "subprocess" in result.reason
 
     def test_poc_with_only_dangerous_calls(self):

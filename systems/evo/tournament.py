@@ -1,5 +1,5 @@
 """
-EcodiaOS — Evo Hypothesis Tournament Engine
+EcodiaOS - Evo Hypothesis Tournament Engine
 
 Competitive A/B experimentation using Thompson sampling (Beta-Bernoulli
 conjugate model) for hypothesis selection.
@@ -67,8 +67,8 @@ class TournamentEngine:
     Manages hypothesis tournaments using Thompson sampling.
 
     Dependencies:
-      hypothesis_engine — for querying active hypotheses and their scores
-      memory            — optional; for persisting tournaments to Neo4j
+      hypothesis_engine - for querying active hypotheses and their scores
+      memory            - optional; for persisting tournaments to Neo4j
     """
 
     def __init__(
@@ -479,12 +479,12 @@ class TournamentEngine:
         prior is stored in a pending registry and applied when the tournament is
         created via _create_tournament().
 
-        Alpha and beta are applied directly — they represent parent's accumulated
+        Alpha and beta are applied directly - they represent parent's accumulated
         evidence (already filtered to ≥5 samples at export time).
         """
         existing = self._tournaments.get(tournament_id)
         if existing is not None:
-            # Tournament already running — update the Beta distribution directly
+            # Tournament already running - update the Beta distribution directly
             existing_beta = existing.beta_parameters.get(hypothesis_id)
             if existing_beta is not None:
                 # Merge: parent's posterior becomes child's prior
@@ -498,7 +498,7 @@ class TournamentEngine:
                     beta=round(beta, 3),
                 )
         else:
-            # Tournament not yet created — stash for later application
+            # Tournament not yet created - stash for later application
             if not hasattr(self, "_pending_priors"):
                 self._pending_priors: dict[str, dict[str, tuple[float, float]]] = {}
             self._pending_priors.setdefault(tournament_id, {})[hypothesis_id] = (alpha, beta)

@@ -56,7 +56,7 @@ Respond with a JSON array of objects, one per rule:
 [{"rule_index": 0, "weight": 0.8}, {"rule_index": 1, "weight": 0.3}, ...]
 
 Higher weight = more likely to appear in the target.
-Only adjust weights — do not add or remove rules.
+Only adjust weights - do not add or remove rules.
 Be precise: weights directly affect beam search priority."""
 
 

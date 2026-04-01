@@ -1,4 +1,4 @@
-"""Cross-instance adapter merging — Share (2025) framework.
+"""Cross-instance adapter merging - Share (2025) framework.
 
 When two EOS instances are reproductively compatible (genome distance < threshold),
 they can merge their LoRA adapter knowledge. This implements genetic recombination
@@ -77,7 +77,7 @@ class AdapterSharer:
        (fleet ≥ 2 instances, genome distance < threshold)
     2. Manual trigger for research/testing
 
-    Degrades gracefully when fleet has < 2 instances — attempt_merge() is
+    Degrades gracefully when fleet has < 2 instances - attempt_merge() is
     simply never called in that case.
     """
 
@@ -98,7 +98,7 @@ class AdapterSharer:
     async def attempt_merge(self, request: AdapterShareRequest) -> AdapterShareResult:
         """Attempt to merge adapters from two compatible instances.
 
-        Returns AdapterShareResult — success or failure with reason.
+        Returns AdapterShareResult - success or failure with reason.
         Degrades gracefully at every step: isolation check, partner fetch,
         merge, KL gate. Only emits ADAPTER_SHARE_OFFER on full success.
         """
@@ -278,7 +278,7 @@ class AdapterSharer:
 
         For each parameter key:
           - present in both: merged[k] = weight_a * A[k] + weight_b * B[k]
-          - only in A: merged[k] = A[k]  (full weight — partner had nothing to offer)
+          - only in A: merged[k] = A[k]  (full weight - partner had nothing to offer)
           - only in B: merged[k] = B[k]
 
         adapter_config.json and tokenizer_config.json are copied from path_a

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — Federation Key & Certificate Generator
+EcodiaOS - Federation Key & Certificate Generator
 
 Generates the cryptographic material needed for federation:
 
@@ -13,15 +13,15 @@ Usage:
     python scripts/federation_keygen.py --instance tide --output config/federation/ --ca config/federation/ca
 
 This generates:
-    {output}/{instance}.key         — Ed25519 private key (PEM)
-    {output}/{instance}.pub         — Ed25519 public key (PEM)
-    {output}/{instance}.crt         — Self-signed TLS certificate (PEM)
-    {output}/{instance}_tls.key     — TLS private key (RSA 4096, PEM)
+    {output}/{instance}.key         - Ed25519 private key (PEM)
+    {output}/{instance}.pub         - Ed25519 public key (PEM)
+    {output}/{instance}.crt         - Self-signed TLS certificate (PEM)
+    {output}/{instance}_tls.key     - TLS private key (RSA 4096, PEM)
 
 With --ca:
-    {output}/ca.key                 — CA private key
-    {output}/ca.crt                 — CA certificate
-    {output}/{instance}.crt         — CA-signed certificate
+    {output}/ca.key                 - CA private key
+    {output}/ca.crt                 - CA certificate
+    {output}/{instance}.crt         - CA-signed certificate
 """
 
 from __future__ import annotations

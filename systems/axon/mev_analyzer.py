@@ -1,5 +1,5 @@
 """
-EcodiaOS — MEV Analyzer (Prompt #12: Predator Detection)
+EcodiaOS - MEV Analyzer (Prompt #12: Predator Detection)
 
 Pre-execution MEV risk analysis for on-chain transactions. Before any
 transaction is broadcast, the MEVAnalyzer:
@@ -16,9 +16,9 @@ routed through Flashbots Protect (private mempool) or delayed until a
 low-competition block.
 
 Design constraints:
-  - Never blocks indefinitely — analysis has a hard timeout
+  - Never blocks indefinitely - analysis has a hard timeout
   - Best-effort: if simulation fails, returns a conservative estimate
-  - Stateless per-analysis — no accumulated state between calls
+  - Stateless per-analysis - no accumulated state between calls
   - web3.py is the only external dependency (already in pyproject.toml)
 """
 
@@ -277,7 +277,7 @@ class MEVAnalyzer:
         """
         Fast heuristic MEV risk scoring based on transaction characteristics.
 
-        No I/O — runs in <1ms. Provides a baseline risk estimate that the
+        No I/O - runs in <1ms. Provides a baseline risk estimate that the
         EVM simulation can refine.
         """
         to_lower = to.lower()
@@ -294,7 +294,7 @@ class MEVAnalyzer:
                 vulnerability_type=MEVVulnerabilityType.SANDWICH,
                 estimated_extraction_usd=transaction_volume_usd * 0.003,  # ~30bps typical
                 slippage_pct=expected_slippage_bps / 100,
-                detail="DEX swap detected — vulnerable to sandwich attacks",
+                detail="DEX swap detected - vulnerable to sandwich attacks",
             ))
 
         # Factor 2: Is this a lending protocol interaction?
@@ -310,7 +310,7 @@ class MEVAnalyzer:
                     vulnerability_type=MEVVulnerabilityType.FRONTRUN,
                     estimated_extraction_usd=transaction_volume_usd * 0.001,
                     slippage_pct=0.1,
-                    detail="Large lending deposit — frontrun risk for liquidation positioning",
+                    detail="Large lending deposit - frontrun risk for liquidation positioning",
                 ))
 
         # Factor 3: Transaction volume scaling
@@ -408,7 +408,7 @@ class MEVAnalyzer:
                     # Estimate sandwich vulnerability:
                     # If the output is price-sensitive, assume a ±5% price
                     # shock would affect the output proportionally.
-                    # This is a conservative heuristic — real sandwich profit
+                    # This is a conservative heuristic - real sandwich profit
                     # depends on liquidity depth and AMM curve shape.
                     shock_impact_usd = transaction_volume_usd * (_SANDWICH_SHOCK_PCT / 100)
 
@@ -446,7 +446,7 @@ class MEVAnalyzer:
             )
 
         except Exception as exc:
-            # Simulation failure is not fatal — return empty simulation report
+            # Simulation failure is not fatal - return empty simulation report
             self._logger.debug(
                 "mev_simulation_failed",
                 error=str(exc),
@@ -468,7 +468,7 @@ class MEVAnalyzer:
         where available. If simulation failed, heuristic data is preserved.
         """
         if not simulation.simulated:
-            # Simulation failed — keep heuristic report, note the error
+            # Simulation failed - keep heuristic report, note the error
             heuristic.simulation_error = simulation.simulation_error
             return heuristic
 
@@ -516,15 +516,15 @@ class MEVAnalyzer:
             return MEVProtectionStrategy.PUBLIC_MEMPOOL
 
         if report.mev_risk_score >= self._high_risk_threshold:
-            # High risk — need protection
+            # High risk - need protection
             if self._latest_competition.is_low_competition:
                 # Low competition = fewer searchers = timing is viable
                 return MEVProtectionStrategy.WAIT_FOR_LOW_COMPETITION
 
-            # High competition — Flashbots is the safest option
+            # High competition - Flashbots is the safest option
             return MEVProtectionStrategy.FLASHBOTS_PROTECT
 
-        # Moderate risk (0.2 - 0.7) — Flashbots as a precaution
+        # Moderate risk (0.2 - 0.7) - Flashbots as a precaution
         if report.estimated_extraction_usd > 10.0:
             return MEVProtectionStrategy.FLASHBOTS_PROTECT
 
@@ -552,7 +552,7 @@ class MEVAnalyzer:
         if report.recommended_protection == MEVProtectionStrategy.BATCH_AUCTION:
             return transaction_volume_usd * 0.002
 
-        # WAIT_FOR_LOW_COMPETITION — no direct cost
+        # WAIT_FOR_LOW_COMPETITION - no direct cost
         return 0.0
 
     # ── Properties ────────────────────────────────────────────────

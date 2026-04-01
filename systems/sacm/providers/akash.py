@@ -1,5 +1,5 @@
 """
-EcodiaOS — SACM Akash Network Substrate Provider
+EcodiaOS - SACM Akash Network Substrate Provider
 
 Translates Akash Network marketplace pricing into normalised SubstrateOffers
 for the SACM optimizer.
@@ -15,7 +15,7 @@ Akash pricing model:
 
 Queries the real Akash Console API at /v1/pricing and CoinGecko for the
 AKT/USD exchange rate.  Falls back to the last known exchange rate if
-CoinGecko is unreachable — never fabricates pricing data.
+CoinGecko is unreachable - never fabricates pricing data.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ _HOURS_PER_MONTH: float = 730.0
 _SECONDS_PER_HOUR: int = 3600
 _SECONDS_PER_MONTH: float = _HOURS_PER_MONTH * _SECONDS_PER_HOUR
 
-# Initial AKT/USD rate — used until the first successful CoinGecko fetch.
+# Initial AKT/USD rate - used until the first successful CoinGecko fetch.
 # This is the March 2026 approximate rate; updated on every successful refresh.
 _INITIAL_AKT_USD: float = 3.80
 
@@ -53,7 +53,7 @@ _FALLBACK_CPU_USD_S: float = 0.001 / 3600.0
 # Memory: ~$0.0003/GiB-hour → per second
 _FALLBACK_MEM_USD_S: float = 0.0003 / 3600.0
 # GPU: ~$0.001/GPU-hour → per second (conservative; actual GPU costs are higher
-# for A100-class — this ensures offers appear in the pricing surface at startup)
+# for A100-class - this ensures offers appear in the pricing surface at startup)
 _FALLBACK_GPU_USD_S: float = 0.001 / 3600.0
 # Storage: ~$0.00001/GiB-hour → per second
 _FALLBACK_STO_USD_S: float = 0.00001 / 3600.0
@@ -84,7 +84,7 @@ class SACMAkashProvider(SubstrateProvider):
     uAKT bid pricing into USD-normalised SubstrateOffers.
 
     Distinct from infrastructure/providers/akash.py which handles
-    full deployment lifecycle — this class only deals with market
+    full deployment lifecycle - this class only deals with market
     pricing for the optimizer.
     """
 
@@ -328,7 +328,7 @@ class SACMAkashProvider(SubstrateProvider):
         return total_uakt_month / _HOURS_PER_MONTH
 
     async def _refresh_akt_price(self, client: httpx.AsyncClient) -> None:
-        """Fetch current AKT/USD from CoinGecko. Best-effort — cached fallback on failure."""
+        """Fetch current AKT/USD from CoinGecko. Best-effort - cached fallback on failure."""
         try:
             resp = await client.get(
                 "https://api.coingecko.com/api/v3/simple/price",

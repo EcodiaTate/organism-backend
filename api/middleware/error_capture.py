@@ -1,11 +1,11 @@
 """
-EcodiaOS — API Error Capture Middleware
+EcodiaOS - API Error Capture Middleware
 
 Intercepts HTTP errors, request validation failures, and unhandled exceptions
 at the ASGI layer and feeds them into Thymos as Incidents.
 
 Design notes:
-- Never blocks the response path — Thymos reporting is fire-and-forget.
+- Never blocks the response path - Thymos reporting is fire-and-forget.
 - Never modifies the response; client receives the original error as-is.
 - Deduplication is handled by Thymos' built-in deduplicator.
 - Thymos access is via app.state.thymos; if not yet initialised, errors are
@@ -22,7 +22,7 @@ import uuid
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from fastapi import Request, Response  # noqa: TC002 — used at runtime in dispatch signature
+from fastapi import Request, Response  # noqa: TC002 - used at runtime in dispatch signature
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -57,7 +57,7 @@ _STATUS_MAP: dict[int, tuple[IncidentSeverity, IncidentClass]] = {
 # Statuses below this threshold are not reported (2xx / 3xx are healthy).
 _REPORT_THRESHOLD = 400
 
-# Statuses we intentionally skip — high-volume, low-signal noise.
+# Statuses we intentionally skip - high-volume, low-signal noise.
 _SKIP_STATUSES: frozenset[int] = frozenset()
 
 
@@ -220,7 +220,7 @@ class ErrorCaptureMiddleware(BaseHTTPMiddleware):
                 status_code=status,
                 latency_ms=f"{latency_ms:.1f}",
             )
-            # HTTPException raised inside routers — response is already formed,
+            # HTTPException raised inside routers - response is already formed,
             # we just observe it here.
             self._fire_http_incident(status, method, path, request_id, request)
         else:
@@ -242,7 +242,7 @@ class ErrorCaptureMiddleware(BaseHTTPMiddleware):
         request_id: str,
         request: Request,
     ) -> None:
-        """HTTPException already returned a response — observe the status only."""
+        """HTTPException already returned a response - observe the status only."""
         incident = _build_incident(
             status=status,
             method=method,
@@ -312,7 +312,7 @@ class ErrorCaptureMiddleware(BaseHTTPMiddleware):
         request_id: str,
         request: Request,
     ) -> None:
-        """Unhandled exception — CRITICAL, includes full stack trace."""
+        """Unhandled exception - CRITICAL, includes full stack trace."""
         incident = Incident(
             incident_class=IncidentClass.CRASH,
             severity=IncidentSeverity.CRITICAL,

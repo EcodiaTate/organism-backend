@@ -32,7 +32,7 @@ from __future__ import annotations
 import enum
 import math
 import random
-from datetime import datetime  # noqa: TC003 — Pydantic needs runtime access
+from datetime import datetime  # noqa: TC003 - Pydantic needs runtime access
 from decimal import ROUND_HALF_UP, Decimal
 from typing import TYPE_CHECKING, Any
 
@@ -305,7 +305,7 @@ class ProtocolFactory:
                     archetype=ProtocolArchetype.CONCENTRATED_AMM,
                     description=(
                         f"${trade_volume_24h:,.0f} daily volume served by only "
-                        f"{active_pools} pools — concentration opportunity"
+                        f"{active_pools} pools - concentration opportunity"
                     ),
                     detected_signal=(
                         f"volume={trade_volume_24h},pools={active_pools}"
@@ -330,7 +330,7 @@ class ProtocolFactory:
                     archetype=ProtocolArchetype.COGNITIVE_CAPACITY_POOL,
                     description=(
                         f"{cognitive_demand_count} cognitive capacity requests "
-                        f"in 24h — productise as a shared pool"
+                        f"in 24h - productise as a shared pool"
                     ),
                     detected_signal=(
                         f"requests_24h={cognitive_demand_count},"
@@ -356,7 +356,7 @@ class ProtocolFactory:
                     archetype=ProtocolArchetype.REPUTATION_COLLATERAL,
                     description=(
                         f"{reputation_scores_available} agents with reputation "
-                        f"scores but no collateral market — greenfield"
+                        f"scores but no collateral market - greenfield"
                     ),
                     detected_signal=(
                         f"scored_agents={reputation_scores_available},"
@@ -415,7 +415,7 @@ class ProtocolFactory:
                     archetype=ProtocolArchetype.INTER_AGENT_INSURANCE,
                     description=(
                         f"{agent_failures_30d} agent failures in 30d with avg "
-                        f"loss ${avg_loss:,.0f} — insurance opportunity"
+                        f"loss ${avg_loss:,.0f} - insurance opportunity"
                     ),
                     detected_signal=(
                         f"failures_30d={agent_failures_30d},"
@@ -1282,7 +1282,7 @@ class ProtocolFactory:
             protocol.status = "paused"
             return
 
-        # Exploit check (paranoia — exploit_count should always be 0)
+        # Exploit check (paranoia - exploit_count should always be 0)
         if protocol.exploit_count > 0:
             self._log.critical(
                 "protocol_exploit_detected",

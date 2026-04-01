@@ -1,5 +1,5 @@
 """
-EcodiaOS — Simula Change Applicator
+EcodiaOS - Simula Change Applicator
 
 Routes approved evolution proposals to the appropriate application
 strategy and coordinates with RollbackManager for safety.
@@ -169,7 +169,7 @@ class ChangeApplicator:
     async def _apply_budget(
         self, proposal: EvolutionProposal
     ) -> tuple[CodeChangeResult, ConfigSnapshot]:
-        """Direct config update for budget changes — no code generation."""
+        """Direct config update for budget changes - no code generation."""
         spec = proposal.change_spec
         if not spec.budget_parameter or spec.budget_new_value is None:
             result = CodeChangeResult(
@@ -384,7 +384,7 @@ class ChangeApplicator:
                 log.info("agent_coder_converged", iterations=iteration_num)
                 break
 
-            # Step 4: Not all tests passed — feed failures back
+            # Step 4: Not all tests passed - feed failures back
             if iteration_num < self._agent_coder_max_iterations:
                 feedback = TestExecutorAgent.format_failures_for_feedback(
                     test_result,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — RE Training Data CLI
+EcodiaOS - RE Training Data CLI
 
 Extracts the 5 structured training streams from Neo4j and exports them
 as JSONL compatible with systems/simula/training/train_lora.py.
@@ -15,18 +15,18 @@ Usage:
         --lookback 60 \\
         --min-score 0.35
 
-    # Stats only — no export, just counts from Neo4j
+    # Stats only - no export, just counts from Neo4j
     python -m cli.training_data stats
     python -m cli.training_data stats --lookback 90
 
 Required environment variables:
-    ECODIAOS_NEO4J_URI       — e.g. neo4j+s://xxx.databases.neo4j.io
-    ECODIAOS_NEO4J_PASSWORD  — Neo4j password
+    ECODIAOS_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
+    ECODIAOS_NEO4J_PASSWORD  - Neo4j password
 
 Optional:
-    ECODIAOS_NEO4J_USERNAME  — default "neo4j"
-    RE_TRAINING_EXPORT_DIR   — local JSONL output dir (default: data/re_training_batches)
-    RE_TRAINING_S3_BUCKET    — if set, also uploads to S3
+    ECODIAOS_NEO4J_USERNAME  - default "neo4j"
+    RE_TRAINING_EXPORT_DIR   - local JSONL output dir (default: data/re_training_batches)
+    RE_TRAINING_S3_BUCKET    - if set, also uploads to S3
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ import os
 import sys
 from typing import Any
 
-# ─── ANSI colours (minimal — mirrors observatory.py style) ───────────────────
+# ─── ANSI colours (minimal - mirrors observatory.py style) ───────────────────
 
 _RESET  = "\033[0m"
 _BOLD   = "\033[1m"
@@ -66,7 +66,7 @@ def _dim(text: str) -> str:   return _c(text, _DIM)
 def _build_neo4j() -> Any:
     """
     Construct a Neo4jClient from environment variables.
-    Does NOT call connect() — the caller must do that.
+    Does NOT call connect() - the caller must do that.
     """
     from clients.neo4j import Neo4jClient
     from config import Neo4jConfig
@@ -162,11 +162,11 @@ async def _cmd_stats(args: argparse.Namespace) -> int:
         total = stats.get("total_queryable", 0)
 
         stream_labels = {
-            "stream_1_successful_chains":      "Stream 1 — Successful reasoning chains",
-            "stream_2_failure_corrections":    "Stream 2 — Failures with corrections",
-            "stream_3_constitutional_edge_cases": "Stream 3 — Constitutional edge cases",
-            "stream_4_causal_chains":          "Stream 4 — Kairos causal chains",
-            "stream_5_evo_experiments":        "Stream 5 — Evo hypothesis results",
+            "stream_1_successful_chains":      "Stream 1 - Successful reasoning chains",
+            "stream_2_failure_corrections":    "Stream 2 - Failures with corrections",
+            "stream_3_constitutional_edge_cases": "Stream 3 - Constitutional edge cases",
+            "stream_4_causal_chains":          "Stream 4 - Kairos causal chains",
+            "stream_5_evo_experiments":        "Stream 5 - Evo hypothesis results",
         }
 
         for key, label in stream_labels.items():
@@ -192,7 +192,7 @@ async def _cmd_stats(args: argparse.Namespace) -> int:
                 if count <= 0:
                     continue
                 surviving = min(count, cap_30)
-                print(f"    {label.split(' — ')[0]}: {count} → {surviving} after cap")
+                print(f"    {label.split(' - ')[0]}: {count} → {surviving} after cap")
             print()
 
         print(_dim(f"  Note: {stats.get('note', '')}"))

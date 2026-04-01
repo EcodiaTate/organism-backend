@@ -1,5 +1,5 @@
 """
-EcodiaOS — Telemetry Primitives
+EcodiaOS - Telemetry Primitives
 
 Metrics, health checks, and observability data types.
 """
@@ -59,7 +59,7 @@ class OrganismTelemetry(EOSBaseModel):
     """
     Unified organism state snapshot emitted every 50 cycles by Synapse.
 
-    This is the single most important self-awareness primitive — it bundles
+    This is the single most important self-awareness primitive - it bundles
     every vital sign the organism produces into one coherent payload that Nova
     and other consumers can use without subscribing to 8 separate streams.
     """
@@ -105,7 +105,7 @@ class OrganismTelemetry(EOSBaseModel):
     api_burn_rate_usd_per_hour: float = 0.0
     dependency_ratio: float = 0.0  # 0.0 = organism pays all; 1.0 = human pays all
 
-    # Persona — public identity handle so Nova/consumers know the organism's name
+    # Persona - public identity handle so Nova/consumers know the organism's name
     # None until PersonaEngine has generated and sealed the initial persona.
     persona_handle: str | None = None
 

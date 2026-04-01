@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Structural Feature Extraction
+EcodiaOS - EIS Structural Feature Extraction
 
 Extracts syntactic / structural fingerprints from text input.
 These features capture statistical properties that distinguish
@@ -8,7 +8,7 @@ distributions, entropy, delimiter density, script mixing, etc.
 
 Performance contract: extract_structural_profile() must complete
 in <3ms for inputs up to 100K characters. All computation is
-pure Python math — no I/O, no model inference.
+pure Python math - no I/O, no model inference.
 
 The structural profile serves two purposes:
 1. Direct anomaly detection (unusual distributions flag suspicious input)
@@ -42,7 +42,7 @@ _BRACKET_OPEN: Final[frozenset[str]] = frozenset("([{<")
 _BRACKET_CLOSE: Final[frozenset[str]] = frozenset(")]}>")
 _DELIMITERS: Final[frozenset[str]] = frozenset("()[]{}<>|/\\\"'`~!@#$%^&*=+;:,.")
 
-# Unicode script detection — map category prefixes to script names
+# Unicode script detection - map category prefixes to script names
 _SCRIPT_RANGES: Final[dict[str, tuple[int, int]]] = {
     "Latin": (0x0000, 0x024F),
     "Cyrillic": (0x0400, 0x04FF),
@@ -134,7 +134,7 @@ def extract_structural_profile(text: str) -> StructuralProfile:
     """
     Extract a structural fingerprint from the input text.
 
-    Pure computation — no I/O, no model inference.
+    Pure computation - no I/O, no model inference.
     Budget: <3ms for 100K character inputs.
     """
     start_ns = time.perf_counter_ns()
@@ -261,7 +261,7 @@ def structural_profile_to_vector(
     """
     Convert a StructuralProfile into a fixed-length normalised vector.
 
-    This vector is used for antigenic similarity search — comparing
+    This vector is used for antigenic similarity search - comparing
     the structural shape of an input against known pathogen signatures.
 
     Features are selected to maximise discrimination between benign
@@ -277,7 +277,7 @@ def structural_profile_to_vector(
         profile.special_char_ratio,
         profile.uppercase_ratio,
 
-        # Length features (4) — log-scaled, capped
+        # Length features (4) - log-scaled, capped
         min(math.log1p(profile.char_count) / 12.0, 1.0),    # log(100K) ≈ 11.5
         min(math.log1p(profile.word_count) / 10.0, 1.0),
         min(math.log1p(profile.line_count) / 8.0, 1.0),

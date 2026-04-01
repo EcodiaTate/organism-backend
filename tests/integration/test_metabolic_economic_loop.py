@@ -247,7 +247,7 @@ class TestEvaluateEconomicIntentMetabolicState:
 
         # Should not raise and should return DriveAlignmentVector or None
         result = evaluate_economic_intent(intent, metabolic_state=None)
-        # Result is DriveAlignmentVector or None — either is valid
+        # Result is DriveAlignmentVector or None - either is valid
         assert result is None or hasattr(result, "coherence")
 
     def test_evaluate_with_metabolic_state_delegates_to_metabolic_variant(self) -> None:

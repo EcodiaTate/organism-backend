@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS (Epistemic Immune System)
+EcodiaOS - EIS (Epistemic Immune System)
 
 Fast-path threat detection for incoming text. Combines innate pattern
 matching, structural fingerprinting, token histograms, and semantic
@@ -47,12 +47,12 @@ from systems.eis.structural_features import (
 )
 
 __all__ = [
-    # Models — Enums
+    # Models - Enums
     "ThreatClass",
     "ThreatSeverity",
     "InnateCheckID",
     "QuarantineAction",
-    # Models — Core types
+    # Models - Core types
     "InnateMatch",
     "InnateFlags",
     "StructuralProfile",
@@ -81,7 +81,7 @@ __all__ = [
     "SimilarityMatch",
 ]
 
-# ── Adaptive immunity (conditionally imported — handled by another agent) ──
+# ── Adaptive immunity (conditionally imported - handled by another agent) ──
 # These modules are created separately. Import them if available to provide
 # a unified namespace, but don't fail if they don't exist yet.
 

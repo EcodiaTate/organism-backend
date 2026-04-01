@@ -1,5 +1,5 @@
 """
-EcodiaOS — Hybrid Memory Retrieval
+EcodiaOS - Hybrid Memory Retrieval
 
 Three-leg parallel retrieval: vector similarity + BM25 keyword + graph traversal.
 Results are merged, deduplicated, and re-ranked by a unified score.
@@ -290,7 +290,7 @@ async def _graph_traverse(
         except Exception:
             pass  # Semantic hop is best-effort
 
-    # Hop 3: Community expansion — find episodes from the same community
+    # Hop 3: Community expansion - find episodes from the same community
     if effective_depth >= 2:
         try:
             community_results = await neo4j.execute_read(

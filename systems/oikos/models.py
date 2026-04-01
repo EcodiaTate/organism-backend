@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Economic Models (Phase 16a: The Ledger)
+EcodiaOS - Oikos Economic Models (Phase 16a: The Ledger)
 
 Data types for the organism's economic engine. Every unit of value is tracked.
 There is no off-books capital.
@@ -26,8 +26,8 @@ from datetime import datetime
 from pydantic import Field
 
 from primitives.common import EOSBaseModel, new_id, utc_now
-from primitives.mitosis import ChildPosition as ChildPosition  # noqa: F401 — re-export
-from primitives.mitosis import ChildStatus as ChildStatus  # noqa: F401 — re-export
+from primitives.mitosis import ChildPosition as ChildPosition  # noqa: F401 - re-export
+from primitives.mitosis import ChildStatus as ChildStatus  # noqa: F401 - re-export
 
 # ─── Metabolic Priority Cascade ──────────────────────────────────
 
@@ -111,7 +111,7 @@ class StarvationLevel(enum.StrEnum):
 
 
 class YieldPosition(EOSBaseModel):
-    """Stub — Phase 16c (Yield Farming) will flesh this out."""
+    """Stub - Phase 16c (Yield Farming) will flesh this out."""
 
     protocol: str = ""
     pool: str = ""
@@ -161,7 +161,7 @@ class ActiveBounty(EOSBaseModel):
 
 
 class Settlement(EOSBaseModel):
-    """Stub — Phase 16b (Freelancer) will flesh this out."""
+    """Stub - Phase 16b (Freelancer) will flesh this out."""
 
     settlement_id: str = Field(default_factory=new_id)
     amount_usd: Decimal = Decimal("0")
@@ -227,7 +227,7 @@ class TollboothConfig(EOSBaseModel):
 
 class OwnedAsset(EOSBaseModel):
     """
-    Phase 16d (Asset Creation) — an autonomous revenue-generating service.
+    Phase 16d (Asset Creation) - an autonomous revenue-generating service.
 
     Assets are organs: once built, they generate revenue continuously with
     minimal marginal cost. The AssetFactory designs, deploys, and operates
@@ -345,7 +345,7 @@ class BountyAcceptanceRequest(EOSBaseModel):
 
     When the organism commits to solving a bounty, it reserves the
     estimated solver cost from liquid_balance up-front. This ensures
-    the ledger stays consistent — committed capital is never double-spent.
+    the ledger stays consistent - committed capital is never double-spent.
     """
 
     bounty_id: str = Field(default_factory=new_id)
@@ -406,16 +406,16 @@ class SeedConfiguration(EOSBaseModel):
     # Phase 16g: Birth certificate (serialized JSON) signed by parent
     birth_certificate_json: str = ""
     # Genome references for genetic memory inheritance
-    organism_genome_id: str = ""  # OrganismGenome ID — the full organism-wide genome
+    organism_genome_id: str = ""  # OrganismGenome ID - the full organism-wide genome
     belief_genome_id: str = ""    # Deprecated: use organism_genome_id. Evo BeliefGenome.
     simula_genome_id: str = ""    # Deprecated: use organism_genome_id. SimulaGenome.
-    equor_genome_id: str = ""     # EquorGenomeFragment — constitutional amendment history + constitution hash.
-    axon_genome_id: str = ""      # AxonGenomeFragment — top-10 execution templates + circuit breaker thresholds.
-    telos_genome_id: str = ""     # TelosGenomeFragment — drive calibration constants + topology (Spec 18 SG3).
-    soma_genome_id: str = ""      # OrganGenomeSegment(soma) — setpoints, dynamics matrix, allostatic baselines.
-    nova_genome_id: str = ""      # NovaGenomeFragment — goal-domain priors, policy success rates, EFE weights (Spec 05).
-    voxis_genome_id: str = ""     # VoxisGenomeFragment — personality vector, vocabulary affinities, strategy prefs (Spec 04).
-    eis_genome_id: str = ""       # EIS OrganGenomeSegment — threat patterns, anomaly baselines, quarantine thresholds (Spec 25).
+    equor_genome_id: str = ""     # EquorGenomeFragment - constitutional amendment history + constitution hash.
+    axon_genome_id: str = ""      # AxonGenomeFragment - top-10 execution templates + circuit breaker thresholds.
+    telos_genome_id: str = ""     # TelosGenomeFragment - drive calibration constants + topology (Spec 18 SG3).
+    soma_genome_id: str = ""      # OrganGenomeSegment(soma) - setpoints, dynamics matrix, allostatic baselines.
+    nova_genome_id: str = ""      # NovaGenomeFragment - goal-domain priors, policy success rates, EFE weights (Spec 05).
+    voxis_genome_id: str = ""     # VoxisGenomeFragment - personality vector, vocabulary affinities, strategy prefs (Spec 04).
+    eis_genome_id: str = ""       # EIS OrganGenomeSegment - threat patterns, anomaly baselines, quarantine thresholds (Spec 25).
     generation: int = 1           # Generation number in the lineage
 
 
@@ -443,7 +443,7 @@ class EconomicState(EOSBaseModel):
     """
     Complete economic snapshot. Updated every cognitive cycle.
 
-    This is the organism's financial truth — every unit of value tracked.
+    This is the organism's financial truth - every unit of value tracked.
     No off-books capital.
     """
 

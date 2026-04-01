@@ -1,5 +1,5 @@
 """
-Tests for ThymosService — the immune system orchestrator.
+Tests for ThymosService - the immune system orchestrator.
 
 Tests the service lifecycle, incident pipeline, and cross-system integration.
 All external dependencies (Neo4j, LLM, Synapse, Equor, Evo) are mocked.
@@ -166,7 +166,7 @@ class TestIncidentPipeline:
         incident = _make_incident()
         incident.fingerprint = ""  # Edge case
         await thymos.on_incident(incident)
-        # Should not raise — that's the test
+        # Should not raise - that's the test
 
     @pytest.mark.asyncio
     async def test_info_severity_gets_accepted(self):
@@ -267,7 +267,7 @@ class TestPublicAPI:
     @pytest.mark.asyncio
     async def test_record_metric(self):
         thymos = await _make_thymos()
-        # Record a metric — should not raise
+        # Record a metric - should not raise
         thymos.record_metric("synapse.cycle.latency_ms", 120.0)
 
     @pytest.mark.asyncio

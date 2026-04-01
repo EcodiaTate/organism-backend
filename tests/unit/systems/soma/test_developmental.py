@@ -1,4 +1,4 @@
-"""Tests for Soma Developmental Stage System — maturation and capability gating."""
+"""Tests for Soma Developmental Stage System - maturation and capability gating."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Belief Consolidation Scanner
+EcodiaOS - Belief Consolidation Scanner
 
 Identifies high-confidence, low-volatility beliefs and hardens them into
 read-only :ConsolidatedBelief reference nodes during Evo consolidation
@@ -39,7 +39,7 @@ logger = structlog.get_logger()
 # Minimum precision (confidence) for a belief to be eligible for consolidation
 _MIN_PRECISION: float = 0.85
 
-# Maximum volatility percentile — beliefs that change frequently stay mutable
+# Maximum volatility percentile - beliefs that change frequently stay mutable
 _MAX_VOLATILITY: float = 0.2
 
 # Minimum age in days before a belief can be consolidated
@@ -212,14 +212,14 @@ class BeliefConsolidationScanner:
         Check whether any active hypotheses contradict consolidated beliefs.
 
         Uses a lightweight heuristic: same domain + negation pattern overlap.
-        This is not LLM-based — designed to stay within the 60s consolidation budget.
+        This is not LLM-based - designed to stay within the 60s consolidation budget.
 
         Returns a list of FoundationConflict entries (logged at high severity).
         """
         if not hypotheses:
             return []
 
-        # Load all consolidated beliefs (compact — just id, domain, statement)
+        # Load all consolidated beliefs (compact - just id, domain, statement)
         try:
             cb_records = await self._neo4j.execute_read(
                 """
@@ -289,7 +289,7 @@ class BeliefConsolidationScanner:
         """
         Query consolidated beliefs for retrieval (Nova, Atune).
 
-        Prefer these over active :Belief nodes — they are read-only and
+        Prefer these over active :Belief nodes - they are read-only and
         represent high-confidence foundational knowledge.
         """
         try:
@@ -419,7 +419,7 @@ def _detect_potential_contradiction(
         2. Require at least 2 shared significant words (topic overlap)
         3. Check if the hypothesis contains negation patterns
 
-    This is intentionally conservative — false negatives are acceptable,
+    This is intentionally conservative - false negatives are acceptable,
     false positives are logged for manual review.
     """
     hypothesis_lower = hypothesis_statement.lower()

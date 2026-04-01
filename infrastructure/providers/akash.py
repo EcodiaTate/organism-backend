@@ -1,5 +1,5 @@
 """
-EcodiaOS — Akash Network Compute Provider
+EcodiaOS - Akash Network Compute Provider
 
 Queries the Akash Network API for real-time compute pricing and
 handles SDL-based deployment for organism migration.
@@ -11,7 +11,7 @@ Akash pricing model:
   - Reference workload: 2 vCPU / 4 GiB RAM / 20 GiB storage
 
 API endpoints used:
-  - GET /v1/pricing (Akash Console API — current market rates)
+  - GET /v1/pricing (Akash Console API - current market rates)
   - POST /v1/deployments (submit SDL for deployment)
 """
 

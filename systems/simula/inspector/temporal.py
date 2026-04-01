@@ -1,15 +1,15 @@
 """
-EcodiaOS — Inspector Temporal Engine (Phase 3)
+EcodiaOS - Inspector Temporal Engine (Phase 3)
 
 Proves race conditions and double-spend vulnerabilities by modelling
 TWO concurrent threads in Z3's integer/boolean arithmetic.
 
 The insight: a transactional function is vulnerable to a race condition
 when two threads can both read the pre-write state, both pass a guard
-check, and both commit — yielding a final state that violates a critical
+check, and both commit - yielding a final state that violates a critical
 invariant (e.g., balance goes negative, inventory count goes below zero).
 
-The encoding does NOT use Z3 quantifiers or ForAll — it stays purely
+The encoding does NOT use Z3 quantifiers or ForAll - it stays purely
 propositional so the solver terminates quickly.
 
 Pipeline per attack surface:
@@ -67,8 +67,8 @@ both can succeed while violating a critical invariant.
    Use z3.Int for integer quantities, z3.Real for currency amounts.
 
 2. Declare what EACH THREAD READS before any write occurs:
-     t1_read  — the value Thread 1 reads from shared state
-     t2_read  — the value Thread 2 reads from shared state
+     t1_read  - the value Thread 1 reads from shared state
+     t2_read  - the value Thread 2 reads from shared state
    The interleave constraint: both threads read BEFORE either writes.
    Express this as: t1_read == initial_value, t2_read == initial_value
 
@@ -80,7 +80,7 @@ both can succeed while violating a critical invariant.
      t1_write = initial_value - cost   (only meaningful when guard passes)
      t2_write = initial_value - cost
 
-5. The SAT GOAL — assert ALL of:
+5. The SAT GOAL - assert ALL of:
    a. Both guards pass (both threads believe they can proceed)
    b. Both threads commit (t1_success == True, t2_success == True)
    c. The final state violates the invariant
@@ -91,7 +91,7 @@ both can succeed while violating a critical invariant.
 
 ## Output Format
 
-Respond with ONLY a JSON object — no markdown, no extra text:
+Respond with ONLY a JSON object - no markdown, no extra text:
 {
   "variable_declarations": {
     "initial_balance": "Real",
@@ -131,10 +131,10 @@ Generate a Python script that:
 - Use ONLY: asyncio, httpx, json, sys, time (no other imports).
 - TARGET_URL defaults to "http://localhost:8000"  # Run against local dev server only
 - Structure:
-    MODULE DOCSTRING labelled "Security Unit Test: Race Condition — <invariant>"
+    MODULE DOCSTRING labelled "Security Unit Test: Race Condition - <invariant>"
     TARGET_URL constant
     async def build_requests() -> tuple[httpx.Request, httpx.Request]
-    async def run_race_test() -> None  — sends both, asserts, prints result
+    async def run_race_test() -> None  - sends both, asserts, prints result
     if __name__ == "__main__": asyncio.run(run_race_test())
 - The assertion must FAIL (raise AssertionError) when both requests succeed
   AND the server response indicates the invariant was violated (e.g., both
@@ -210,7 +210,7 @@ class ConcurrencyProver:
 
         z3_expr, var_decls, invariant_violated, reasoning = encoding
 
-        # Step 2: Run Z3 — SAT means the race condition is provable
+        # Step 2: Run Z3 - SAT means the race condition is provable
         status, counterexample = self._check_race_constraints(z3_expr, var_decls)
 
         elapsed_ms = int((time.monotonic() - start) * 1000)
@@ -241,7 +241,7 @@ class ConcurrencyProver:
             attack_surface=attack_surface,
             attack_goal=(
                 f"Race condition: two concurrent threads both complete the "
-                f"transaction while violating invariant — {invariant_violated}"
+                f"transaction while violating invariant - {invariant_violated}"
             ),
             z3_counterexample=counterexample,
             z3_constraints_code=z3_expr,
@@ -336,7 +336,7 @@ class ConcurrencyProver:
             # Attempt to execute the Z3 expression to catch runtime errors
             execution_error = _validate_z3_expression(z3_expr, var_decls)
             if execution_error is None:
-                # Success — expression is syntactically and semantically valid
+                # Success - expression is syntactically and semantically valid
                 if attempt > 1:
                     self._log.info(
                         "temporal_reflexion_succeeded",
@@ -352,7 +352,7 @@ class ConcurrencyProver:
                 "Common issues:\n"
                 "- All variable names in z3_expression must exactly match "
                 "those declared in variable_declarations\n"
-                "- Use z3.And, z3.Or, z3.Not — not Python and/or/not\n"
+                "- Use z3.And, z3.Or, z3.Not - not Python and/or/not\n"
                 "- Do NOT use z3.ForAll or z3.Exists\n"
                 "- Bool variables use == True/False, not bare references\n"
                 "Respond with ONLY a corrected JSON object."

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Exteroceptive Adapters
+EcodiaOS - Exteroceptive Adapters
 
 Concrete adapters that fetch raw data from external APIs and normalise
 them into ExteroceptiveReadings. Each adapter follows the same contract:
@@ -11,14 +11,14 @@ logged, and the adapter returns an empty list. The ExteroceptionService
 tolerates partial failures gracefully.
 
 Iron Rules (same as ExternalVolatilitySensor):
-  - Never called from the theta cycle — runs on its own asyncio timer.
+  - Never called from the theta cycle - runs on its own asyncio timer.
   - All HTTP calls bounded by configurable timeout.
   - No LLM calls, no DB writes, no side-effects beyond readings.
   - Any exception → swallowed, logged, retry at next poll.
 
 Adapters:
-  MarketDataAdapter   — CoinGecko (crypto), Alpha Vantage / Yahoo (equities)
-  NewsSentimentAdapter — NewsAPI or similar sentiment firehose
+  MarketDataAdapter   - CoinGecko (crypto), Alpha Vantage / Yahoo (equities)
+  NewsSentimentAdapter - NewsAPI or similar sentiment firehose
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ class BaseExteroceptiveAdapter(ABC):
     async def fetch(self) -> list[ExteroceptiveReading]:
         """Fetch and normalise external data into readings.
 
-        Returns an empty list on any failure — never raises.
+        Returns an empty list on any failure - never raises.
         """
 
     @property
@@ -87,7 +87,7 @@ class MarketDataAdapter(BaseExteroceptiveAdapter):
     """Fetches crypto market data and fear/greed index.
 
     Sources:
-      1. CoinGecko — BTC, ETH, SOL price change + volume (no auth)
+      1. CoinGecko - BTC, ETH, SOL price change + volume (no auth)
       2. Alternative.me Fear & Greed Index (no auth)
 
     Normalisation:
@@ -270,7 +270,7 @@ class NewsSentimentAdapter(BaseExteroceptiveAdapter):
         if data is None:
             return []
 
-        # Extract sentiment scores — adapt to your API's response format
+        # Extract sentiment scores - adapt to your API's response format
         sentiments = self._extract_sentiments(data)
         if not sentiments:
             return [

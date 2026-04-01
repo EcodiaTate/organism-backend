@@ -1,5 +1,5 @@
 """
-EcodiaOS — SolveExternalTaskExecutor (Phase 16s: General-Purpose Contractor)
+EcodiaOS - SolveExternalTaskExecutor (Phase 16s: General-Purpose Contractor)
 
 Solves an arbitrary external GitHub issue by:
   1. Cloning the target repository into an isolated workspace
@@ -14,10 +14,10 @@ Solves an arbitrary external GitHub issue by:
      EXTERNAL_TASK_CONSTITUTIONAL_VETO
 
 Safety constraints:
-  - required_autonomy: 3 (TRUSTED) — clones repos, writes code, opens PRs
-  - rate_limit: 2 per hour — full code-gen sessions are expensive
-  - max_duration_ms: 900_000 (15 min) — allows iterative repair
-  - reversible: False — workspace is ephemeral; PR cannot be atomically recalled
+  - required_autonomy: 3 (TRUSTED) - clones repos, writes code, opens PRs
+  - rate_limit: 2 per hour - full code-gen sessions are expensive
+  - max_duration_ms: 900_000 (15 min) - allows iterative repair
+  - reversible: False - workspace is ephemeral; PR cannot be atomically recalled
   - Equor gate required before PR submission (Step 6)
   - Writes ONLY to own fork, not upstream repo
   - Mandatory EOS authorship disclosure on every PR (Honesty invariant)
@@ -26,7 +26,7 @@ Parameters:
   repo_url (str):               GitHub repository URL (HTTPS or "owner/repo").
   issue_description (str):      Human-readable task / issue to solve.
   issue_url (str, optional):    URL of the original GitHub issue (for PR body).
-  bounty_id (str, optional):    Oikos bounty identifier — triggers PR submission.
+  bounty_id (str, optional):    Oikos bounty identifier - triggers PR submission.
   payment_address (str, opt):   Wallet address for bounty payout (passed through).
   base_branch (str, opt):       Branch to base the fix on. Default "main".
   target_files (list[str], opt):Files to restrict edits to. Default [] (all).
@@ -34,16 +34,16 @@ Parameters:
 
 Returns ExecutionResult with:
   data:
-    task_id              — unique identifier for this task run
-    files_written        — list of relative paths modified
-    pr_url               — HTTPS PR URL (if submitted)
-    pr_number            — PR number (if submitted)
-    language             — detected repo language
-    test_passed          — whether final test run passed
-    total_tokens         — LLM tokens consumed
-    constitutional_veto  — True if Equor blocked the PR
+    task_id              - unique identifier for this task run
+    files_written        - list of relative paths modified
+    pr_url               - HTTPS PR URL (if submitted)
+    pr_number            - PR number (if submitted)
+    language             - detected repo language
+    test_passed          - whether final test run passed
+    total_tokens         - LLM tokens consumed
+    constitutional_veto  - True if Equor blocked the PR
   side_effects:
-    — Human-readable summary
+    - Human-readable summary
 """
 
 from __future__ import annotations
@@ -328,7 +328,7 @@ class SolveExternalTaskExecutor(Executor):
             await self._emit_re_training(task_id, repo_url, success=False, tokens=total_tokens)
             return ExecutionResult(
                 success=False,
-                error="Equor constitutional veto — PR not submitted",
+                error="Equor constitutional veto - PR not submitted",
                 data={
                     "task_id": task_id,
                     "language": lang,
@@ -420,7 +420,7 @@ class SolveExternalTaskExecutor(Executor):
         30s timeout → auto-permit (safety fallback).
         """
         if self._event_bus is None:
-            return True  # No bus — skip gate gracefully
+            return True  # No bus - skip gate gracefully
 
         permit_event = asyncio.Event()
         deny_flag: list[bool] = [False]

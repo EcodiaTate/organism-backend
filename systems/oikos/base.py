@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oikos Strategy ABCs (NeuroplasticityBus targets)
+EcodiaOS - Oikos Strategy ABCs (NeuroplasticityBus targets)
 
 These abstract base classes define the hot-swappable strategies that Evo
 can evolve at runtime via the NeuroplasticityBus. When a new subclass of

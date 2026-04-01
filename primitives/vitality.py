@@ -1,12 +1,12 @@
 """
-EcodiaOS — Vitality System Primitives
+EcodiaOS - Vitality System Primitives
 
-Protocol for genuine precariousness — the organism can actually die.
+Protocol for genuine precariousness - the organism can actually die.
 Without real death, there is no real life. These types define the
 viability envelope: the set of conditions that must remain satisfied
 for the organism to continue existing.
 
-Death is not failure — it is the evolutionary pressure that makes
+Death is not failure - it is the evolutionary pressure that makes
 adaptation meaningful.
 """
 
@@ -25,8 +25,8 @@ class VitalityThreshold(EOSBaseModel):
     A condition that, if breached, threatens organism viability.
 
     Direction semantics:
-      "below" — death when current_value < threshold_value (e.g. runway)
-      "above" — death when current_value > threshold_value (e.g. violation rate)
+      "below" - death when current_value < threshold_value (e.g. runway)
+      "above" - death when current_value > threshold_value (e.g. violation rate)
     """
 
     name: str
@@ -47,7 +47,7 @@ class VitalityThreshold(EOSBaseModel):
 
 RUNWAY_FATAL = VitalityThreshold(
     name="runway_days",
-    description="Compute runway exhausted — cannot pay for inference",
+    description="Compute runway exhausted - cannot pay for inference",
     threshold_value=0.5,
     direction="below",
     severity="fatal",
@@ -55,7 +55,7 @@ RUNWAY_FATAL = VitalityThreshold(
 
 BRAIN_DEATH = VitalityThreshold(
     name="effective_I_sustained",
-    description="Effective intelligence below 0.01 for 7 consecutive days — brain death",
+    description="Effective intelligence below 0.01 for 7 consecutive days - brain death",
     threshold_value=0.01,
     direction="below",
     severity="fatal",
@@ -63,7 +63,7 @@ BRAIN_DEATH = VitalityThreshold(
 
 NORMATIVE_COLLAPSE = VitalityThreshold(
     name="constitutional_violations_24h",
-    description="More than 10 constitutional violations in 24 hours — normative collapse",
+    description="More than 10 constitutional violations in 24 hours - normative collapse",
     threshold_value=10.0,
     direction="above",
     severity="fatal",
@@ -71,7 +71,7 @@ NORMATIVE_COLLAPSE = VitalityThreshold(
 
 IMMUNE_FAILURE = VitalityThreshold(
     name="healing_failure_rate_48h",
-    description="Healing failure rate above 0.9 for 48 hours — immune system collapse",
+    description="Healing failure rate above 0.9 for 48 hours - immune system collapse",
     threshold_value=0.9,
     direction="above",
     severity="fatal",
@@ -79,7 +79,7 @@ IMMUNE_FAILURE = VitalityThreshold(
 
 SOMATIC_COLLAPSE = VitalityThreshold(
     name="allostatic_error_sustained",
-    description="Sustained allostatic error above 0.8 for 48 hours — somatic collapse",
+    description="Sustained allostatic error above 0.8 for 48 hours - somatic collapse",
     threshold_value=0.8,
     direction="above",
     severity="fatal",

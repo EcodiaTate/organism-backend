@@ -225,7 +225,7 @@ class TestDriftSentinel:
         sentinel = DriftSentinel(
             metrics={"test.metric": DriftConfig(window=100, sigma_threshold=2.0)}
         )
-        # Feed a few values — shouldn't flag during warmup
+        # Feed a few values - shouldn't flag during warmup
         for _i in range(10):
             result = sentinel.record_metric("test.metric", 100.0)
         assert result is None
@@ -259,11 +259,11 @@ class TestDriftSentinel:
         for _ in range(30):
             sentinel.record_metric("test.above", 100.0)
 
-        # Below baseline — should NOT flag (direction="above")
+        # Below baseline - should NOT flag (direction="above")
         result = sentinel.record_metric("test.above", 0.01)
         assert result is None
 
-        # Above baseline — SHOULD flag
+        # Above baseline - SHOULD flag
         result = sentinel.record_metric("test.above", 500.0)
         assert result is not None
 

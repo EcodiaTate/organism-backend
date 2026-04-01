@@ -145,7 +145,7 @@ class RollbackManager:
                         self._log.info("rollback_restored", path=str(path), attempt=_attempt)
                         restored.append(str(path))
                     else:
-                        # Snapshot recorded file existed but content was unreadable — cannot restore
+                        # Snapshot recorded file existed but content was unreadable - cannot restore
                         self._log.warning("rollback_skipped_no_content", path=str(path))
                     last_exc = None
                     break  # success

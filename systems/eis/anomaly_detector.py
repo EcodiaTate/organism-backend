@@ -1,5 +1,5 @@
 """
-EcodiaOS — EIS Anomaly Detector (Behavioral Immune Surveillance)
+EcodiaOS - EIS Anomaly Detector (Behavioral Immune Surveillance)
 
 Monitors the stream of Synapse events for anomalous patterns that
 indicate constitutional drift, system compromise, or cascading failure.
@@ -284,7 +284,7 @@ class AnomalyDetector:
         baseline = self._rate_baselines.get("rejections")
 
         if baseline is None or baseline.count < cfg.min_baseline_samples:
-            # Not enough data to establish baseline — update and return
+            # Not enough data to establish baseline - update and return
             if "rejections" not in self._rate_baselines:
                 self._rate_baselines["rejections"] = ExponentialStats()
             self._rate_baselines["rejections"].update(rate)

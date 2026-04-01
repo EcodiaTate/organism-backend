@@ -1,5 +1,5 @@
 """
-EcodiaOS — Skia Worker (Shadow Infrastructure)
+EcodiaOS - Skia Worker (Shadow Infrastructure)
 
 Standalone process that monitors the primary organism's heartbeat,
 takes periodic state snapshots to IPFS, and triggers autonomous

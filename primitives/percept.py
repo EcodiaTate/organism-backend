@@ -1,5 +1,5 @@
 """
-EcodiaOS — Percept Primitive
+EcodiaOS - Percept Primitive
 
 The fundamental unit of incoming information.
 Everything that enters EOS is normalised into a Percept.
@@ -43,7 +43,7 @@ class TransformRecord(EOSBaseModel):
 
 
 class Provenance(EOSBaseModel):
-    """Chain of custody for a percept — where it came from and how it was transformed."""
+    """Chain of custody for a percept - where it came from and how it was transformed."""
 
     chain: list[TransformRecord] = Field(default_factory=list)
     integrity: str | None = None     # Hash chain integrity check
@@ -54,7 +54,7 @@ class Percept(Identified, Timestamped):
     The fundamental unit of incoming information.
 
     A user message, a sensor reading, an internal system notification,
-    a federation event — all normalised to this shape.
+    a federation event - all normalised to this shape.
     """
 
     timestamp: datetime = Field(default_factory=utc_now)

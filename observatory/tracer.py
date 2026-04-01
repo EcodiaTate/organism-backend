@@ -1,5 +1,5 @@
 """
-EcodiaOS — Event Tracer
+EcodiaOS - Event Tracer
 
 Subscribes to all Synapse events and maintains rolling statistics:
 - Per-system emission counts (1m / 5m / 15m windows)
@@ -45,7 +45,7 @@ class EventTracer:
     Subscribes to every Synapse event and maintains diagnostic metrics.
 
     Attach to the bus via `tracer.attach(event_bus)`. Does not modify
-    event delivery — read-only observation.
+    event delivery - read-only observation.
     """
 
     def __init__(self) -> None:

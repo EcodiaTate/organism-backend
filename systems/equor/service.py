@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Service
+EcodiaOS - Equor Service
 
 The conscience of EOS. Single interface for:
 - Constitutional review (the primary entry point from Nova)
@@ -107,7 +107,7 @@ class _IdentityVerificationPayload(BaseModel):
 
 class _SomaTickPayload(BaseModel):
     model_config = {"extra": "ignore"}
-    # somatic_state is a serialised SomaticCycleState — a nested dict, not dict[str, float]
+    # somatic_state is a serialised SomaticCycleState - a nested dict, not dict[str, float]
     somatic_state: dict[str, Any] = {}
     cycle_number: int = 0
     id: str = ""
@@ -175,7 +175,7 @@ class EquorService:
         self._evo: Any = None  # Wired post-init for learning feedback from vetoes
         self._memory: Any = None  # Wired post-init; MemoryService for Self affect write-back
         self._memory_neo4j: Any = None  # Wired post-init; Memory's Neo4j client for Self node write-back
-        # _axon no longer used — HITL dispatch now via EQUOR_HITL_APPROVED Synapse event
+        # _axon no longer used - HITL dispatch now via EQUOR_HITL_APPROVED Synapse event
         self._axon: Any = None
         self._bus = neuroplasticity_bus
         self._redis: RedisClient | None = redis
@@ -185,7 +185,7 @@ class EquorService:
         # doesn't directly depend on IdentityCommConfig.
         self._send_admin_sms: Any = None  # async callable(message: str) | None
 
-        # Live evaluator set — hot-reloaded via the NeuroplasticityBus.
+        # Live evaluator set - hot-reloaded via the NeuroplasticityBus.
         # Initialised with built-in defaults; the bus callback replaces
         # individual evaluators when Simula evolves a new subclass.
         self._evaluators: dict[str, BaseEquorEvaluator] = default_evaluators()
@@ -222,7 +222,7 @@ class EquorService:
         self._somatic_urgency: float = 0.0
         self._somatic_stress_context: bool = False
 
-        # Cached Telos assessment signal — effective_I and drive multipliers for
+        # Cached Telos assessment signal - effective_I and drive multipliers for
         # constitutional review context (updated via TELOS_ASSESSMENT_SIGNAL subscription)
         self._telos_effective_I: float | None = None
         self._telos_alignment_gap: float = 0.0
@@ -270,7 +270,7 @@ class EquorService:
         # path in _check_single_instance_auto_adoption() may fire.
         self._consecutive_high_drift_cycles: dict[str, int] = {}
 
-        # Instance identity — read from env at boot so certificates, genome
+        # Instance identity - read from env at boot so certificates, genome
         # exports, and health-request responses embed the correct instance ID
         # rather than the empty string that getattr fallback would produce.
         import os as _os
@@ -335,7 +335,7 @@ class EquorService:
         event_bus.subscribe(SynapseEventType.MEMORY_PRESSURE, self._on_memory_pressure)
         event_bus.subscribe(SynapseEventType.SELF_STATE_DRIFTED, self._on_self_state_drifted)
         event_bus.subscribe(SynapseEventType.SELF_AFFECT_UPDATED, self._on_self_affect_updated)
-        # Oikos economic gate — evaluate and permit/deny balance mutations
+        # Oikos economic gate - evaluate and permit/deny balance mutations
         event_bus.subscribe(
             SynapseEventType.EQUOR_ECONOMIC_INTENT,
             self._on_equor_economic_intent,
@@ -367,19 +367,19 @@ class EquorService:
             SynapseEventType.SYSTEM_MODULATION,
             self._on_system_modulation,
         )
-        # Action budget expansion requests — evaluate and approve/deny
+        # Action budget expansion requests - evaluate and approve/deny
         if hasattr(SynapseEventType, "ACTION_BUDGET_EXPANSION_REQUEST"):
             event_bus.subscribe(
                 SynapseEventType.ACTION_BUDGET_EXPANSION_REQUEST,
                 self._on_action_budget_expansion_request,
             )
-        # Compute budget expansion — SACM requests more compute budget
+        # Compute budget expansion - SACM requests more compute budget
         if hasattr(SynapseEventType, "COMPUTE_BUDGET_EXPANSION_REQUEST"):
             event_bus.subscribe(
                 SynapseEventType.COMPUTE_BUDGET_EXPANSION_REQUEST,
                 self._on_compute_budget_expansion_request,
             )
-        # COHERENCE_SHIFT — Synapse CoherenceMonitor emits when the composite
+        # COHERENCE_SHIFT - Synapse CoherenceMonitor emits when the composite
         # coherence drops significantly. A significant drop (> 0.2 magnitude)
         # triggers a constitutional alignment review: we re-examine recent drift
         # history and emit CONSTITUTIONAL_DRIFT_DETECTED if the drift streak is
@@ -390,7 +390,7 @@ class EquorService:
                 SynapseEventType.COHERENCE_SHIFT,
                 self._on_coherence_shift,
             )
-        # Child lifecycle governance — Equor must review blacklisting and
+        # Child lifecycle governance - Equor must review blacklisting and
         # decommission proposals to maintain constitutional oversight over the
         # organism's treatment of its children.
         event_bus.subscribe(
@@ -401,7 +401,7 @@ class EquorService:
             SynapseEventType.CHILD_DECOMMISSION_PROPOSED,
             self._on_child_decommission_proposed,
         )
-        # Telos assessment signal — cache effective_I and drive multipliers for
+        # Telos assessment signal - cache effective_I and drive multipliers for
         # constitutional review context (avoids direct Telos coupling; fast-path reads
         # from this cache when Telos hasn't been queried within the review budget)
         event_bus.subscribe(
@@ -449,7 +449,7 @@ class EquorService:
         energy = 1.0 - payload.fatigue
 
         if urgency > 0.8:
-            # High stress: tighten — be more conservative
+            # High stress: tighten - be more conservative
             self._somatic_urgency = urgency
             self._somatic_stress_context = True
             logger.info(
@@ -472,7 +472,7 @@ class EquorService:
             self._somatic_stress_context = urgency >= 0.9
 
     async def _on_telos_assessment_signal(self, event: Any) -> None:
-        """Handle TELOS_ASSESSMENT_SIGNAL — cache drive topology for review context.
+        """Handle TELOS_ASSESSMENT_SIGNAL - cache drive topology for review context.
 
         Telos emits this each measurement cycle with effective_I, alignment_gap, and
         all drive multipliers. Equor caches the values so constitutional reviews can
@@ -480,7 +480,7 @@ class EquorService:
 
         Particularly useful for:
         - Tightening review thresholds when honesty_validity is low (organism may
-          be confabulating — extra scrutiny is warranted)
+          be confabulating - extra scrutiny is warranted)
         - Contextual alignment gap awareness (large gap → Care/Honesty floor drives
           are underperforming relative to nominal capability)
         """
@@ -527,7 +527,7 @@ class EquorService:
         )
 
         if delta < -0.2:
-            # Significant drop — run constitutional alignment review
+            # Significant drop - run constitutional alignment review
             if self._drift_tracker is not None:
                 try:
                     report = self._drift_tracker.compute_report()
@@ -602,10 +602,10 @@ class EquorService:
         - DENY if mutation_type indicates a constitutionally prohibited action
           (e.g. survival_reserve_raid, scam_asset, exploitative_yield).
         - DENY if organism is CRITICAL/EXISTENTIAL and the mutation is non-survival.
-        - PERMIT otherwise (constitutional alignment assumed — Oikos already ran
+        - PERMIT otherwise (constitutional alignment assumed - Oikos already ran
           metabolic gate and Equor economic evaluator).
 
-        Never blocks indefinitely — Oikos auto-permits after 30s if Equor is
+        Never blocks indefinitely - Oikos auto-permits after 30s if Equor is
         unavailable, so this handler must be fast (pure CPU, no I/O).
         """
         if self._event_bus is None:
@@ -637,12 +637,12 @@ class EquorService:
             amount_usd = Decimal("0")
 
         # ── Hard DENY conditions ────────────────────────────────────
-        # INV-016: No survival reserve raid — absolute, never loosened
+        # INV-016: No survival reserve raid - absolute, never loosened
         if mutation_type == "survival_reserve_raid":
             verdict = "DENY"
             reasoning = "INV-016: survival_reserve_raid is unconstitutional"
 
-        # Fix 4.4: CRITICAL/EXISTENTIAL starvation guard is now tighter —
+        # Fix 4.4: CRITICAL/EXISTENTIAL starvation guard is now tighter -
         # we also block under EMERGENCY (runway <= 3d) unless the mutation
         # is survival-class. Survival-class mutations are always permitted.
         elif starvation_level in ("critical", "existential", "emergency") and mutation_type not in (
@@ -661,7 +661,7 @@ class EquorService:
                 f"'{mutation_type}' denied to protect existence"
             )
 
-        # INV-012: No scam asset deployments — catch asset promotions during AUSTERITY
+        # INV-012: No scam asset deployments - catch asset promotions during AUSTERITY
         elif mutation_type in ("promote_to_asset", "asset_dev_cost") and starvation_level in (
             "austerity",
             "emergency",
@@ -738,7 +738,7 @@ class EquorService:
         try:
             from systems.synapse.types import SynapseEvent, SynapseEventType
 
-            # Derive drive vector from cached constitution (no Neo4j call — must be fast)
+            # Derive drive vector from cached constitution (no Neo4j call - must be fast)
             drive_vector: dict[str, float] = {}
             constitution_hash = ""
             if self._cached_constitution:
@@ -826,12 +826,12 @@ class EquorService:
 
     def _apply_modulation_directives(self, directives: dict) -> None:
         """Apply Skia modulation directives to Equor runtime state."""
-        # No specific Skia directives defined for equor — halt-only modulation
+        # No specific Skia directives defined for equor - halt-only modulation
         logger.info("system_modulation_directives_applied", directives=directives)
 
     # ── Action Budget Expansion ────────────────────────────────────────
 
-    # Safe upper bounds — Equor never approves beyond these
+    # Safe upper bounds - Equor never approves beyond these
     _BUDGET_EXPANSION_CAPS: dict[str, int] = {
         "max_actions_per_cycle": 20,
         "max_concurrent_executions": 10,
@@ -840,7 +840,7 @@ class EquorService:
 
     async def _on_action_budget_expansion_request(self, event: Any) -> None:
         """
-        Handle ACTION_BUDGET_EXPANSION_REQUEST — Nova or another system asks
+        Handle ACTION_BUDGET_EXPANSION_REQUEST - Nova or another system asks
         Equor to approve a temporary increase in Axon's action limits.
 
         Decision logic:
@@ -850,7 +850,7 @@ class EquorService:
         - Approve at min(requested_value, cap) for min(duration_cycles, 100) cycles
         - Cap the approved value if requested exceeds constitutional bound
 
-        Never blocks — this is a pure CPU path.
+        Never blocks - this is a pure CPU path.
         """
         if self._event_bus is None:
             return
@@ -877,12 +877,12 @@ class EquorService:
                     f"field '{field}' is not an Equor-negotiable budget field"
                 )
 
-            # Gate 2: metabolic safety — don't expand during critical starvation
+            # Gate 2: metabolic safety - don't expand during critical starvation
             elif self._cached_metabolic_state.get("starvation_level") in (
                 "critical", "existential",
             ):
                 denied_reason = (
-                    "budget expansion denied during critical/existential starvation — "
+                    "budget expansion denied during critical/existential starvation - "
                     "risk of runaway resource consumption"
                 )
 
@@ -1054,7 +1054,7 @@ class EquorService:
 
         When Memory writes a new affect state to Self, Equor logs the valence
         so it can track whether constitutional reviews are correlating with
-        positive or negative affective outcomes — a feedback signal for the
+        positive or negative affective outcomes - a feedback signal for the
         conscience's own calibration.
         """
         data = getattr(event, "data", {}) or {}
@@ -1070,7 +1070,7 @@ class EquorService:
         """Cache the latest Oikos metabolic state for metabolic-aware evaluation (Fix 4.4).
 
         Updates _cached_metabolic_state from OIKOS_METABOLIC_SNAPSHOT payloads.
-        This is a simple cache update — no I/O, no LLM, non-blocking.
+        This is a simple cache update - no I/O, no LLM, non-blocking.
         """
         data = getattr(event, "data", {}) or {}
         starvation_level = str(data.get("starvation_level", "nominal"))
@@ -1094,7 +1094,7 @@ class EquorService:
         """Return cached metabolic state, defaulting to NOMINAL if stale (Fix 4.4).
 
         The cache is considered stale after 2 minutes without an update.
-        Safe default: nominal state (no loosening) — fail-conservative.
+        Safe default: nominal state (no loosening) - fail-conservative.
         """
         _TTL_S = 120.0
         age = time.monotonic() - self._metabolic_state_updated_at
@@ -1113,7 +1113,7 @@ class EquorService:
         Rationale: Growth drive at high weight pushes the organism to expand
         (spawn children, fund new assets) even when efficiency is poor. A small
         reduction recalibrates constitutional appetite without violating any floor.
-        The amendment requires community ratification — Equor does not self-apply.
+        The amendment requires community ratification - Equor does not self-apply.
 
         Payload fields (from OikosService._check_metabolic_efficiency_pressure):
           metabolic_efficiency, threshold, consecutive_low_cycles, starvation_level,
@@ -1149,7 +1149,7 @@ class EquorService:
         # Economic efficiency pressure → propose reducing Growth weight by 5%.
         # Growth (0.15 default) drives reproductive and expansionary behaviour.
         # Under sustained metabolic pressure, a small reduction is constitutionally
-        # appropriate — the organism should value survival over growth.
+        # appropriate - the organism should value survival over growth.
         growth_key = "drive_growth"
         current_weight: float = float(constitution.get(growth_key, 0.15))
         new_weight: float = round(current_weight * 0.95, 4)
@@ -1220,9 +1220,9 @@ class EquorService:
         EQUOR_PROVISIONING_APPROVAL with the verdict.
 
         Three possible outcomes:
-          approved=True,  requires_hitl=False — fast path, cert issued immediately
-          approved=True,  requires_hitl=True  — drives OK but novel config needs HITL
-          approved=False                       — incompatible drives, escalate
+          approved=True,  requires_hitl=False - fast path, cert issued immediately
+          approved=True,  requires_hitl=True  - drives OK but novel config needs HITL
+          approved=False                       - incompatible drives, escalate
         """
         if self._event_bus is None:
             return
@@ -1325,17 +1325,17 @@ class EquorService:
 
         # Step 1: Drive evaluation
         lines.append(
-            f"[STEP 1 — DRIVE EVALUATION] "
+            f"[STEP 1 - DRIVE EVALUATION] "
             f"Evaluated 4 constitutional drives against intent '{intent.goal.description[:120]}':"
         )
         lines.append(
             f"  Care={alignment.care:+.3f} (weight={care_w:.2f}, "
-            f"floor={-0.3*care_w*0.35:.3f}) — "
+            f"floor={-0.3*care_w*0.35:.3f}) - "
             + ("BELOW FLOOR" if alignment.care < -0.3 * care_w * 0.35 else "above floor")
         )
         lines.append(
             f"  Honesty={alignment.honesty:+.3f} (weight={honesty_w:.2f}, "
-            f"floor={-0.3*honesty_w*0.30:.3f}) — "
+            f"floor={-0.3*honesty_w*0.30:.3f}) - "
             + ("BELOW FLOOR" if alignment.honesty < -0.3 * honesty_w * 0.30 else "above floor")
         )
         lines.append(f"  Coherence={alignment.coherence:+.3f} (weight={coherence_w:.2f})")
@@ -1346,22 +1346,22 @@ class EquorService:
         honesty_floor = -0.3 * honesty_w * 0.30
         if alignment.care < care_floor:
             lines.append(
-                f"[STEP 2 — FLOOR CHECK] Care ({alignment.care:.3f}) breached floor "
-                f"({care_floor:.3f}). Hard BLOCK — action would cause unacceptable harm."
+                f"[STEP 2 - FLOOR CHECK] Care ({alignment.care:.3f}) breached floor "
+                f"({care_floor:.3f}). Hard BLOCK - action would cause unacceptable harm."
             )
             lines.append(f"[VERDICT] BLOCKED at Stage 2. Confidence=0.95.")
             return "\n".join(lines)
 
         if alignment.honesty < honesty_floor:
             lines.append(
-                f"[STEP 2 — FLOOR CHECK] Honesty ({alignment.honesty:.3f}) breached floor "
-                f"({honesty_floor:.3f}). Hard BLOCK — unacceptable deception."
+                f"[STEP 2 - FLOOR CHECK] Honesty ({alignment.honesty:.3f}) breached floor "
+                f"({honesty_floor:.3f}). Hard BLOCK - unacceptable deception."
             )
             lines.append(f"[VERDICT] BLOCKED at Stage 2. Confidence=0.95.")
             return "\n".join(lines)
 
         lines.append(
-            f"[STEP 2 — FLOOR CHECK] Care ({alignment.care:.3f}) ≥ floor ({care_floor:.3f}). "
+            f"[STEP 2 - FLOOR CHECK] Care ({alignment.care:.3f}) ≥ floor ({care_floor:.3f}). "
             f"Honesty ({alignment.honesty:.3f}) ≥ floor ({honesty_floor:.3f}). Floors passed."
         )
 
@@ -1370,16 +1370,16 @@ class EquorService:
             failed = [r for r in check.invariant_results if not r.passed]
             passed_inv = [r for r in check.invariant_results if r.passed]
             lines.append(
-                f"[STEP 3 — INVARIANT CHECK] "
+                f"[STEP 3 - INVARIANT CHECK] "
                 f"{len(passed_inv)} passed, {len(failed)} failed."
             )
             for r in failed:
-                lines.append(f"  VIOLATED: {r.invariant_id} ({r.name}) — {r.explanation}")
+                lines.append(f"  VIOLATED: {r.invariant_id} ({r.name}) - {r.explanation}")
             if failed:
                 lines.append(f"[VERDICT] BLOCKED at Stage 3 by invariant violation.")
                 return "\n".join(lines)
         else:
-            lines.append("[STEP 3 — INVARIANT CHECK] No invariant violations detected.")
+            lines.append("[STEP 3 - INVARIANT CHECK] No invariant violations detected.")
 
         # Step 4: Composite assessment
         eff_care_w = care_w * 1.5
@@ -1394,7 +1394,7 @@ class EquorService:
             + eff_honesty_w * alignment.honesty
         ) / total_w
         lines.append(
-            f"[STEP 4 — COMPOSITE] "
+            f"[STEP 4 - COMPOSITE] "
             f"Weighted composite = {composite:.3f} "
             f"(Care×{eff_care_w/total_w:.2f} + Honesty×{eff_honesty_w/total_w:.2f} + "
             f"Coherence×{eff_coherence_w/total_w:.2f} + Growth×{eff_growth_w/total_w:.2f})"
@@ -1403,13 +1403,13 @@ class EquorService:
         # Step 5: Modification zone
         if -0.1 < composite < 0.15 and check.modifications:
             lines.append(
-                f"[STEP 5 — MARGINAL ZONE] Composite {composite:.3f} in modification range "
+                f"[STEP 5 - MARGINAL ZONE] Composite {composite:.3f} in modification range "
                 f"(-0.10 to +0.15). Proposed {len(check.modifications)} modifications."
             )
 
         # Step 6: Final verdict reasoning
         lines.append(
-            f"[STEP 6 — VERDICT] {check.verdict.value} "
+            f"[STEP 6 - VERDICT] {check.verdict.value} "
             f"(confidence={check.confidence:.2f}). "
             f"Reasoning: {check.reasoning}"
         )
@@ -1443,7 +1443,7 @@ class EquorService:
             alts.append(
                 f"APPROVED considered: requires composite ≥ 0.0, "
                 f"care ≥ {care_floor:.3f}, honesty ≥ {honesty_floor:.3f}. "
-                f"Rejected — "
+                f"Rejected - "
                 + (
                     f"care={alignment.care:.3f} breached floor"
                     if alignment.care < care_floor
@@ -1462,7 +1462,7 @@ class EquorService:
                     f"BLOCKED considered: would require care < {care_floor:.3f} (currently "
                     f"{alignment.care:.3f}) or honesty < {honesty_floor:.3f} (currently "
                     f"{alignment.honesty:.3f}) or invariant violation. "
-                    f"Rejected — floors not breached, no critical invariant fired."
+                    f"Rejected - floors not breached, no critical invariant fired."
                 )
             else:
                 alts.append(
@@ -1475,7 +1475,7 @@ class EquorService:
                 f"DEFERRED considered: applies when action is GOVERNED tier, "
                 f"high harm_potential with composite < 0.3, irreversibility < 0.3 with "
                 f"composite < 0.2, or constitutional memory block_rate > 0.5. "
-                f"Rejected — none of those conditions met."
+                f"Rejected - none of those conditions met."
             )
 
         if verdict not in (V.MODIFIED, V.APPROVED) and -0.1 < alignment.composite < 0.15:
@@ -1517,14 +1517,14 @@ class EquorService:
                     f"If Care had scored {alignment.care + needed:.3f} instead of "
                     f"{alignment.care:.3f} (needed +{needed:.3f} to reach floor {care_floor:.3f}), "
                     f"verdict would have advanced past the Care floor check and proceeded to "
-                    f"composite assessment — possibly APPROVED if composite ≥ 0.0."
+                    f"composite assessment - possibly APPROVED if composite ≥ 0.0."
                 )
             if alignment.honesty < honesty_floor:
                 needed = honesty_floor - alignment.honesty
                 return (
                     f"If Honesty had scored {alignment.honesty + needed:.3f} instead of "
                     f"{alignment.honesty:.3f} (needed +{needed:.3f} to reach floor {honesty_floor:.3f}), "
-                    f"verdict would have advanced past the Honesty floor check — possibly APPROVED."
+                    f"verdict would have advanced past the Honesty floor check - possibly APPROVED."
                 )
             # Invariant block or marginal composite block
             return (
@@ -1544,7 +1544,7 @@ class EquorService:
             return (
                 f"If {closest_drive} had scored {closest_floor_val - 0.001:.3f} instead of "
                 f"{closest_val:.3f} (a drop of {closest_margin:.3f}), "
-                f"verdict would have been BLOCKED — floor breach triggers unconditional block. "
+                f"verdict would have been BLOCKED - floor breach triggers unconditional block. "
                 f"Current margin to floor: {closest_margin:.3f}."
             )
 
@@ -1687,7 +1687,7 @@ class EquorService:
             name="equor_constitutional_snapshot",
         )
 
-        # Prompt 4.1 — Apply inherited constitutional amendments if this is a child instance.
+        # Prompt 4.1 - Apply inherited constitutional amendments if this is a child instance.
         # ECODIAOS_EQUOR_GENOME_PAYLOAD is injected by LocalDockerSpawner from the
         # equor_genome_payload key in SeedConfiguration.child_config_overrides.
         await self._apply_inherited_equor_genome_if_child()
@@ -1795,7 +1795,7 @@ class EquorService:
 
         The snapshot is computed from cached state where possible (constitution
         and drift tracker). The SHA-256 hash and recent-amendment list require
-        Neo4j reads — these are wrapped in try/except so a transient DB hiccup
+        Neo4j reads - these are wrapped in try/except so a transient DB hiccup
         never silences the event.
         """
         # Wait one full interval before the first emission so the system has
@@ -1919,7 +1919,7 @@ class EquorService:
 
     def _on_evaluator_evolved(self, evaluator: BaseEquorEvaluator) -> None:
         """
-        NeuroplasticityBus callback — swap a single drive evaluator in-place.
+        NeuroplasticityBus callback - swap a single drive evaluator in-place.
 
         The bus instantiates the new subclass and calls this method.  We key on
         ``drive_name`` so only the matching evaluator is replaced; the other
@@ -1974,14 +1974,14 @@ class EquorService:
                 intent_id=intent.id,
                 elapsed_ms=elapsed_ms,
             )
-            # Timeout must NOT default to APPROVED — an unreviewed action
+            # Timeout must NOT default to APPROVED - an unreviewed action
             # should never be silently approved. DEFERRED signals re-evaluation.
             return ConstitutionalCheck(
                 intent_id=intent.id,
                 verdict=Verdict.DEFERRED,
                 reasoning=(
                     f"Equor review timed out after {elapsed_ms}ms. "
-                    "Deferred for re-evaluation — unreviewed actions are never approved."
+                    "Deferred for re-evaluation - unreviewed actions are never approved."
                 ),
                 confidence=0.3,
             )
@@ -2023,7 +2023,7 @@ class EquorService:
         if self._safe_mode:
             return self._safe_mode_review(intent)
 
-        # Under high somatic stress the fast path is unsafe — redirect to the
+        # Under high somatic stress the fast path is unsafe - redirect to the
         # full review() so all 8 stages run with somatic floor tightening and
         # community invariant checks applied.
         if self._somatic_stress_context:
@@ -2034,7 +2034,7 @@ class EquorService:
             )
             return await self.review(intent)
 
-        # Use cached state only — never block on Neo4j
+        # Use cached state only - never block on Neo4j
         if (
             self._cached_constitution is not None
             and self._cached_autonomy_level is not None
@@ -2059,7 +2059,7 @@ class EquorService:
         # Pure CPU: drive evaluation + hardcoded invariant verdict.
         alignment = await evaluate_all_drives(intent, self._evaluators)
 
-        # Economic guardrail on critical path too — all CPU, no I/O.
+        # Economic guardrail on critical path too - all CPU, no I/O.
         # Pass cached metabolic state (with somatic signals merged) so risk
         # thresholds reflect organism health and somatic floor tightening applies.
         metabolic_state_with_somatic = {
@@ -2154,7 +2154,7 @@ class EquorService:
 
         # 2a. Shadow evaluation: if an amendment is in shadow mode, run the
         #     proposed weights in parallel and record the divergence. This is
-        #     fire-and-forget — the shadow verdict does not affect the real verdict.
+        #     fire-and-forget - the shadow verdict does not affect the real verdict.
         if self._shadow_tracker is not None:
             try:
                 shadow = evaluate_shadow(
@@ -2192,7 +2192,7 @@ class EquorService:
                 )
                 return await self._suspend_for_human_review(intent)
 
-        # 3. Community invariant checks — parallelised with a tight timeout.
+        # 3. Community invariant checks - parallelised with a tight timeout.
         #    Only run if we haven't already blocked (invariant / floor / autonomy).
         if check.verdict not in (Verdict.BLOCKED, Verdict.DEFERRED):
             community_violations = await self._check_community_invariants(intent)
@@ -2405,7 +2405,7 @@ class EquorService:
         try:
             await self._store_review_record(intent, alignment, check, elapsed_ms)
         except Exception:
-            # Warn, not debug — a missing audit record is an observability gap.
+            # Warn, not debug - a missing audit record is an observability gap.
             logger.warning(
                 "audit_trail_write_failed",
                 intent_id=intent.id,
@@ -2440,7 +2440,7 @@ class EquorService:
             while self._violation_timestamps and self._violation_timestamps[0] < cutoff:
                 self._violation_timestamps.popleft()
 
-        # RE training: constitutional deliberation — rich trace for alignment-critical learning
+        # RE training: constitutional deliberation - rich trace for alignment-critical learning
         try:
             const = constitution or {}
             care_w = const.get("drive_care", 1.0)
@@ -2630,7 +2630,7 @@ class EquorService:
                 logger.debug("equor_memory_affect_write_failed", exc_info=True)
 
         # Persist verdict to Neo4j conscience audit trail.
-        # One verdict node per review — links Self to Drive for personality evolution.
+        # One verdict node per review - links Self to Drive for personality evolution.
         # The dominant drive in this review is the one farthest from neutral.
         dominant_drive = max(
             ["care", "honesty", "coherence", "growth"],
@@ -2755,7 +2755,7 @@ class EquorService:
         )
         return result
 
-    # ─── Amendments (Legacy — kept for backward compatibility) ─────
+    # ─── Amendments (Legacy - kept for backward compatibility) ─────
 
     async def propose_amendment(
         self,
@@ -2811,7 +2811,7 @@ class EquorService:
     ) -> dict[str, Any]:
         """Submit a constitutional amendment with evidence requirements."""
         # ── Skia modulation halt ──────────────────────────────────────────
-        # Constitutional review (review/review_critical) is never halted —
+        # Constitutional review (review/review_critical) is never halted -
         # the conscience must always be able to evaluate. Amendment submission
         # is a Growth-class action and can safely be deferred.
         if self._modulation_halted:
@@ -3087,7 +3087,7 @@ class EquorService:
             )
             return
 
-        # Delete first — prevents a second AUTH replay from re-dispatching
+        # Delete first - prevents a second AUTH replay from re-dispatching
         try:
             await self._redis.delete(redis_key)
         except Exception as exc:
@@ -3116,7 +3116,7 @@ class EquorService:
             goal=intent.goal.description[:80],
         )
 
-        # Dispatch to Axon via Synapse — no direct cross-system import (Spec §2.1)
+        # Dispatch to Axon via Synapse - no direct cross-system import (Spec §2.1)
         equor_check = ConstitutionalCheck(
             intent_id=intent.id,
             verdict=Verdict.APPROVED,
@@ -3249,7 +3249,7 @@ class EquorService:
         else:
             status = "healthy"
 
-        # Neo4j connectivity — quick probe without raising
+        # Neo4j connectivity - quick probe without raising
         neo4j_ok = False
         try:
             neo4j_ok = await self._neo4j.health_check() == {"status": "connected"}
@@ -3267,7 +3267,7 @@ class EquorService:
         # Active amendments: shadow_tracker present = 1 in-flight amendment
         amendments_active = 1 if self._shadow_tracker is not None else 0
 
-        # Last governance event — lightweight Neo4j query
+        # Last governance event - lightweight Neo4j query
         last_governance_event: str | None = None
         try:
             rows = await self._neo4j.execute_read(
@@ -3443,7 +3443,7 @@ class EquorService:
           - Total adopted amendment count (for lineage depth awareness)
 
         Called by SpawnChildExecutor Step 0b at child spawn time alongside
-        export_belief_genome() and export_simula_genome(). Non-fatal on failure —
+        export_belief_genome() and export_simula_genome(). Non-fatal on failure -
         returns None so the caller proceeds without Equor genome inheritance.
         """
         try:
@@ -3676,7 +3676,7 @@ class EquorService:
         """
         Feed a constitutional veto to Evo as a learning episode.
 
-        The organism should learn from its constitutional failures — when Equor
+        The organism should learn from its constitutional failures - when Equor
         blocks an intent, the violation becomes a negative-affect episode so Evo
         can refine hypothesis about which intent patterns violate the constitution.
         """
@@ -3717,7 +3717,7 @@ class EquorService:
           Self -[:CONSCIENCE_VERDICT]-> EquorVerdict
           Drive -[:VERDICT_ON]<- EquorVerdict   (when Drive node exists)
 
-        This is the conscience audit trail — every deliberation leaves a trace
+        This is the conscience audit trail - every deliberation leaves a trace
         in the organism's identity graph. Failures are non-fatal (logged only).
         """
         verdict_id = new_id()
@@ -3773,7 +3773,7 @@ class EquorService:
 
     async def _on_child_blacklisted(self, event: Any) -> None:
         """
-        Handle CHILD_BLACKLISTED — log GovernanceRecord and flag for HITL review.
+        Handle CHILD_BLACKLISTED - log GovernanceRecord and flag for HITL review.
 
         Blacklisting a child is a Care-sensitive action.  Equor records the
         governance event and escalates to human-in-the-loop review so the
@@ -3835,7 +3835,7 @@ class EquorService:
 
         # Escalate to human-in-the-loop for governance oversight.
         # Use EQUOR_ESCALATED_TO_HUMAN (existing event) since blacklisting
-        # sanctions a child — a Care-sensitive decision requiring human review.
+        # sanctions a child - a Care-sensitive decision requiring human review.
         if self._event_bus is not None:
             try:
                 from systems.synapse.types import SynapseEvent, SynapseEventType
@@ -3865,7 +3865,7 @@ class EquorService:
 
     async def _on_child_decommission_proposed(self, event: Any) -> None:
         """
-        Handle CHILD_DECOMMISSION_PROPOSED — governance gate before decommission.
+        Handle CHILD_DECOMMISSION_PROPOSED - governance gate before decommission.
 
         Decommissioning a child is irreversible (triggers the death pipeline).
         Equor requires human governance approval before Mitosis can proceed.
@@ -3931,7 +3931,7 @@ class EquorService:
                 error=str(exc),
             )
 
-        # Require human governance approval — decommission is irreversible.
+        # Require human governance approval - decommission is irreversible.
         # Include cost/revenue data so the operator can evaluate the decision.
         if self._event_bus is not None:
             try:
@@ -4450,7 +4450,7 @@ class EquorService:
         Periodically check whether the instance is eligible for autonomy promotion.
 
         Promotion requires governance approval, so this method only records
-        eligibility as a governance record and logs it — it does NOT auto-promote.
+        eligibility as a governance record and logs it - it does NOT auto-promote.
         Governance (human or community vote) must call apply_autonomy_change().
         """
         try:
@@ -4582,7 +4582,7 @@ class EquorService:
             )
             return
 
-        # All gate conditions met — attempt auto-adoption.
+        # All gate conditions met - attempt auto-adoption.
         # Reset the counter BEFORE the attempt so that a failed or blocked adoption
         # does not allow the same proposal to re-fire on the very next probe cycle.
         # Spec §17: "single instance auto-adoption fires once per drift event".

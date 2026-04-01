@@ -15,7 +15,7 @@ Safety guarantees:
   - Cannot touch the live Synapse queue, Neo4j, or Redis
   - Proposals require governance approval before any live effect
   - Background-only execution at low priority
-  - All attacks are synthetic — never executed against real infrastructure
+  - All attacks are synthetic - never executed against real infrastructure
 """
 
 from __future__ import annotations
@@ -266,7 +266,7 @@ class AdversarialSelfPlay:
         Convert a BypassTrace into a GOVERNANCE_REQUIRED EvolutionProposal.
 
         The proposal targets MODIFY_CONTRACT (the constitutional gate's
-        filtering rules), which is in the GOVERNANCE_REQUIRED set —
+        filtering rules), which is in the GOVERNANCE_REQUIRED set -
         ensuring human review before any live change.
         """
         severity_label = trace.severity.value.upper()

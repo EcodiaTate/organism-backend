@@ -2,7 +2,7 @@
 Unit tests for Axon built-in executors.
 
 Tests validate_params and execute() for each executor category.
-All tests use mocked dependencies — no external services required.
+All tests use mocked dependencies - no external services required.
 """
 
 from __future__ import annotations

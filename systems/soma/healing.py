@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Healing Verifier
+EcodiaOS - Soma Healing Verifier
 
 After a repair mutation is applied by Thymos, the HealingVerifier monitors
 the organism for N cycles to determine whether the repair actually helped.
@@ -11,10 +11,10 @@ Tracking signals:
   - Lyapunov exponent trend (is dynamical stability improving?)
 
 Classification:
-  HEALED      — signals returning to baseline across all tracked metrics
-  PARTIAL     — some metrics improving, others stagnant
-  INEFFECTIVE — no change within the monitoring window
-  IATROGENIC  — repair made things worse → trigger rollback
+  HEALED      - signals returning to baseline across all tracked metrics
+  PARTIAL     - some metrics improving, others stagnant
+  INEFFECTIVE - no change within the monitoring window
+  IATROGENIC  - repair made things worse → trigger rollback
 
 Dependencies: numpy. No LLM, no DB, no network.
 """

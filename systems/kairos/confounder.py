@@ -1,5 +1,5 @@
 """
-EcodiaOS — Kairos Stage 3: Confounder Analysis
+EcodiaOS - Kairos Stage 3: Confounder Analysis
 
 Full PC (Peter-Clark) algorithm implementation for confounder detection.
 

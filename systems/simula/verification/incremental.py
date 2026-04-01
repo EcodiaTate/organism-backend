@@ -7,11 +7,11 @@ engine tracks function-level dependencies and recomputes only what
 has changed or depends on what changed.
 
 Key design principles:
-  1. Function-level granularity — each function is a verification unit
-  2. Content-hash early cutoff — if hash unchanged, skip all downstream
-  3. Dependency-aware invalidation — invalidate all dependents of changed functions
-  4. Durability stratification — Redis (hot) + Neo4j (cold) cache layers
-  5. MVCC — concurrent proposals get isolated version spaces
+  1. Function-level granularity - each function is a verification unit
+  2. Content-hash early cutoff - if hash unchanged, skip all downstream
+  3. Dependency-aware invalidation - invalidate all dependents of changed functions
+  4. Durability stratification - Redis (hot) + Neo4j (cold) cache layers
+  5. MVCC - concurrent proposals get isolated version spaces
 
 Target: 95% of analysis queries ≤1.2s via cache hits.
 
@@ -108,7 +108,7 @@ class IncrementalVerificationEngine:
           1. Build/update the function dependency graph
           2. Identify changed functions (by content hash comparison)
           3. Compute transitive closure of dependents
-          4. Check cache for each function — early cutoff if hash unchanged
+          4. Check cache for each function - early cutoff if hash unchanged
           5. Re-verify only uncached/invalidated functions
           6. Store results in 2-tier cache
 
@@ -165,7 +165,7 @@ class IncrementalVerificationEngine:
             cached = await self._get_cached(func_key, sig.content_hash)
 
             if cached is not None and cached.signature.content_hash == sig.content_hash:
-                # Early cutoff — hash unchanged, cache valid
+                # Early cutoff - hash unchanged, cache valid
                 if func_key not in changed_keys:
                     early_cutoffs += 1
                     results.append(cached)
@@ -175,7 +175,7 @@ class IncrementalVerificationEngine:
                     results.append(cached)
                     continue
 
-            # Cache miss or stale — need re-verification
+            # Cache miss or stale - need re-verification
             invalidated_names.append(func_key)
 
             # Check if this spec was already verified by the parent organism.
@@ -266,7 +266,7 @@ class IncrementalVerificationEngine:
         )
 
         # Clear inherited spec hashes after first full verification cycle
-        # (one-time boot optimization — no longer needed after initial run).
+        # (one-time boot optimization - no longer needed after initial run).
         if self._inherited_spec_hashes is not None:
             self._log.info(
                 "inherited_spec_hashes_cleared",

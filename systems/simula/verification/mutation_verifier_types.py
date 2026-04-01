@@ -6,11 +6,11 @@ mathematically verifies properties of proposed mutations before they
 are applied to the codebase.
 
 Four verification dimensions:
-  1. Type Safety — mutation preserves type contracts (AST analysis)
-  2. Invariant Preservation — constitutional invariants hold post-mutation
-  3. Behavioral Equivalence — Equor verdict pipeline output unchanged
+  1. Type Safety - mutation preserves type contracts (AST analysis)
+  2. Invariant Preservation - constitutional invariants hold post-mutation
+  3. Behavioral Equivalence - Equor verdict pipeline output unchanged
      for known inputs on critical paths
-  4. Termination Guarantees — no infinite loops introduced
+  4. Termination Guarantees - no infinite loops introduced
 
 Integration:
   - Runs after type_check + lint, before integration tests
@@ -210,7 +210,7 @@ class TerminationResult(EOSBaseModel):
       - For loops over potentially infinite iterators flagged
 
     Method: AST walk over mutated functions, tracking loop variables
-    and recursion depth. Conservative — flags anything it can't prove
+    and recursion depth. Conservative - flags anything it can't prove
     terminates, with advisory severity for common safe patterns
     (e.g. `for x in list` is always bounded).
     """

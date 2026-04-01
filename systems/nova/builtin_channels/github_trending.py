@@ -1,5 +1,5 @@
 """
-GitHubTrendingChannel — trending open-source repositories as contribution /
+GitHubTrendingChannel - trending open-source repositories as contribution /
 commercialisation opportunities.
 
 Uses GitHub's public search API (no auth for low-volume requests).
@@ -37,7 +37,7 @@ class GitHubTrendingChannel(InputChannel):
             domain="development",
             description=(
                 "Trending open-source repositories on GitHub. Signals what the dev "
-                "community is building — potential contribution targets and niches."
+                "community is building - potential contribution targets and niches."
             ),
             update_frequency="daily",
         )
@@ -72,7 +72,7 @@ class GitHubTrendingChannel(InputChannel):
         async with httpx.AsyncClient(timeout=_FETCH_TIMEOUT, headers=self._headers()) as client:
             resp = await client.get(_SEARCH_URL, params=params)
             if resp.status_code == 403:
-                # Rate limited — return empty rather than crashing
+                # Rate limited - return empty rather than crashing
                 return []
             resp.raise_for_status()
             data: dict[str, Any] = resp.json()

@@ -1,5 +1,5 @@
 """
-EcodiaOS — Energy Grid Cache
+EcodiaOS - Energy Grid Cache
 
 Redis-backed cache for grid carbon intensity readings. Sits between the
 EnergyProvider clients and the scheduler interceptor so we never hit the
@@ -7,10 +7,10 @@ upstream API more than once per TTL window, regardless of how many
 execution requests flow through the pipeline.
 
 Two storage concerns:
-  1. **Grid reading cache** — the latest GridReading, stored as a Redis
+  1. **Grid reading cache** - the latest GridReading, stored as a Redis
      JSON key with a configurable TTL (default 10 minutes). On cache miss,
      the provider is called and the result is stored.
-  2. **Deferred task queue** — high-compute tasks parked until the grid
+  2. **Deferred task queue** - high-compute tasks parked until the grid
      recovers. Stored as a Redis list (FIFO) so multiple Axon instances
      share the same queue.
 
@@ -89,10 +89,10 @@ class EnergyCache:
         if cached is not None:
             return cached
 
-        # Cache miss — fetch from provider
+        # Cache miss - fetch from provider
         reading = await self._provider.fetch()
         if reading is None:
-            # Provider failed — return stale in-memory reading if we have one
+            # Provider failed - return stale in-memory reading if we have one
             if self._mem_reading is not None and not self._mem_reading.is_stale:
                 self._log.debug("using_stale_memory_reading")
                 return self._mem_reading

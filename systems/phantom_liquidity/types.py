@@ -1,5 +1,5 @@
 """
-EcodiaOS — Phantom Liquidity Types (Phase 16q)
+EcodiaOS - Phantom Liquidity Types (Phase 16q)
 
 Pydantic models for the phantom liquidity sensor network.  Each model
 follows the ``EOSBaseModel`` convention from ``primitives/common.py``
@@ -43,7 +43,7 @@ class PhantomLiquidityPool(EOSBaseModel):
 
     Each position is a Uniswap V3 concentrated liquidity position with a
     deliberately wide tick range to minimise impermanent loss.  The primary
-    purpose is price observation, not yield — though the positions do earn
+    purpose is price observation, not yield - though the positions do earn
     small swap fees as a side benefit.
     """
 
@@ -81,7 +81,7 @@ class PhantomLiquidityPool(EOSBaseModel):
     deploy_tx_hash: str = ""
     withdraw_tx_hash: str = ""
 
-    # Oikos linkage — tracked as a YieldPosition
+    # Oikos linkage - tracked as a YieldPosition
     yield_position_id: str = ""
 
 

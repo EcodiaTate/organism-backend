@@ -1,5 +1,5 @@
 """
-EcodiaOS — Oneiros v2: Descent Stage
+EcodiaOS - Oneiros v2: Descent Stage
 
 Graceful shutdown of real-time systems. The critical work is SAFE STATE CAPTURE.
 Before any deep processing can occur, the system must capture a consistent
@@ -178,7 +178,7 @@ class DescentStage:
         )
         await self._event_bus.emit(event)
 
-        # Wire ORGANISM_SLEEP — Axon, Identity, SACM, Simula subscribe to this.
+        # Wire ORGANISM_SLEEP - Axon, Identity, SACM, Simula subscribe to this.
         # SLEEP_INITIATED is Oneiros-internal; ORGANISM_SLEEP is the organism-wide signal.
         organism_sleep_event = SynapseEvent(
             event_type=SynapseEventType.ORGANISM_SLEEP,

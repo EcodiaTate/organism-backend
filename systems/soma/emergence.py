@@ -1,5 +1,5 @@
 """
-EcodiaOS — Soma Causal Emergence Engine
+EcodiaOS - Soma Causal Emergence Engine
 
 Measures whether the organism is more than its parts. Effective information
 at macro level minus micro level directly quantifies the Coherence
@@ -192,7 +192,7 @@ class CausalEmergenceEngine:
         if self._macro_vector_dim is None:
             self._macro_vector_dim = dim
         elif dim != self._macro_vector_dim:
-            # Dimension expanded (new systems registered) — discard stale buffer
+            # Dimension expanded (new systems registered) - discard stale buffer
             # and reset quantizer so it retrains on homogeneous data.
             self._macro_buffer.clear()
             self._macro_vector_dim = dim

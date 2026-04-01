@@ -61,7 +61,7 @@ class EvolutionHistoryManager:
     async def ensure_vector_index(self) -> None:
         """
         Create the Neo4j vector index on EvolutionRecord.embedding if it
-        doesn't already exist. Idempotent — safe to call multiple times.
+        doesn't already exist. Idempotent - safe to call multiple times.
 
         Requires Neo4j 5.11+ with vector index support.
         """
@@ -117,7 +117,7 @@ class EvolutionHistoryManager:
                     error=str(exc),
                 )
 
-        # Build the CREATE query — include embedding property if available
+        # Build the CREATE query - include embedding property if available
         if embedding is not None:
             query = """
             CREATE (:EvolutionRecord {

@@ -1,14 +1,14 @@
 """
-EcodiaOS — Logos Genome Extraction & Seeding
+EcodiaOS - Logos Genome Extraction & Seeding
 
 Implements GenomeExtractionProtocol for the Logos compression engine.
 
 Heritable state:
-  1. Generative schemas — top N by MDL compression ratio. These represent
+  1. Generative schemas - top N by MDL compression ratio. These represent
      the organism's learned patterns for compressing reality.
-  2. Causal graph edges — high-confidence causal links (strength > 0.3).
-  3. Domain priors — predictive priors with sufficient sample count.
-  4. Empirical invariants — high-confidence substrate-independent rules.
+  2. Causal graph edges - high-confidence causal links (strength > 0.3).
+  3. Domain priors - predictive priors with sufficient sample count.
+  4. Empirical invariants - high-confidence substrate-independent rules.
 
 Payload format:
     {

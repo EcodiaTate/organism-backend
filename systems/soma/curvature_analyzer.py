@@ -1,9 +1,9 @@
 """
-EcodiaOS — Soma Ricci Curvature Analyzer
+EcodiaOS - Soma Ricci Curvature Analyzer
 
 Regions of negative curvature on the state manifold are where small
-perturbations amplify — the organism is fragile there. Positive curvature
-means perturbations contract — the organism is robust. This enables
+perturbations amplify - the organism is fragile there. Positive curvature
+means perturbations contract - the organism is robust. This enables
 preventive intervention before fragility becomes failure.
 
 Implements Ollivier's discrete Ricci curvature (2009):

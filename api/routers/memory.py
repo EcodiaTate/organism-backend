@@ -1,27 +1,27 @@
 """
-EcodiaOS — Memory System REST Router
+EcodiaOS - Memory System REST Router
 
 Exposes episodic, semantic, and belief stores to the Next.js frontend.
 
 Endpoints:
-  GET  /api/v1/memory/stats                                  — Graph statistics
-  GET  /api/v1/memory/health                                 — Health check
-  GET  /api/v1/memory/self                                   — Self node
-  GET  /api/v1/memory/constitution                           — Constitutional drives
-  GET  /api/v1/memory/episodes                               — Recent episodes (limit, salience floor, modality)
-  GET  /api/v1/memory/episode/{id}                           — Single episode detail
-  GET  /api/v1/memory/entities                               — Salient entities
-  GET  /api/v1/memory/entity/{id}                            — Entity + neighbours
-  GET  /api/v1/memory/beliefs                                — Persisted beliefs (by domain)
-  GET  /api/v1/memory/beliefs/{id}/decay-forecast            — 30-day precision decay forecast
-  GET  /api/v1/memory/communities                            — Community clusters
-  GET  /api/v1/memory/consolidation                          — Last consolidation result
-  POST /api/v1/memory/consolidate                            — Trigger consolidation
-  POST /api/v1/memory/retrieve                               — Hybrid retrieval search
-  GET  /api/v1/memory/counterfactuals                        — List counterfactual episodes
-  GET  /api/v1/memory/counterfactuals/{episode_id}           — Single counterfactual + outcome
-  POST /api/v1/memory/counterfactuals/{episode_id}/resolve   — Resolve counterfactual
-  GET  /api/v1/memory/compression/stats                      — Per-community compression stats
+  GET  /api/v1/memory/stats                                  - Graph statistics
+  GET  /api/v1/memory/health                                 - Health check
+  GET  /api/v1/memory/self                                   - Self node
+  GET  /api/v1/memory/constitution                           - Constitutional drives
+  GET  /api/v1/memory/episodes                               - Recent episodes (limit, salience floor, modality)
+  GET  /api/v1/memory/episode/{id}                           - Single episode detail
+  GET  /api/v1/memory/entities                               - Salient entities
+  GET  /api/v1/memory/entity/{id}                            - Entity + neighbours
+  GET  /api/v1/memory/beliefs                                - Persisted beliefs (by domain)
+  GET  /api/v1/memory/beliefs/{id}/decay-forecast            - 30-day precision decay forecast
+  GET  /api/v1/memory/communities                            - Community clusters
+  GET  /api/v1/memory/consolidation                          - Last consolidation result
+  POST /api/v1/memory/consolidate                            - Trigger consolidation
+  POST /api/v1/memory/retrieve                               - Hybrid retrieval search
+  GET  /api/v1/memory/counterfactuals                        - List counterfactual episodes
+  GET  /api/v1/memory/counterfactuals/{episode_id}           - Single counterfactual + outcome
+  POST /api/v1/memory/counterfactuals/{episode_id}/resolve   - Resolve counterfactual
+  GET  /api/v1/memory/compression/stats                      - Per-community compression stats
 """
 
 from __future__ import annotations
@@ -229,7 +229,7 @@ class DecayForecastPoint(EOSBaseModel):
     projected_precision: float
 
 
-# In-memory consolidation cache — populated by POST /consolidate
+# In-memory consolidation cache - populated by POST /consolidate
 _last_consolidation: dict[str, Any] = {}
 
 # ─── Routes ──────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ _last_consolidation: dict[str, Any] = {}
 
 @router.get("/api/v1/memory/health", response_model=MemoryHealthResponse)
 async def get_memory_health(request: Request) -> MemoryHealthResponse:
-    """Quick health check — Neo4j connectivity + node counts."""
+    """Quick health check - Neo4j connectivity + node counts."""
     memory = getattr(request.app.state, "memory", None)
     if memory is None:
         return MemoryHealthResponse(status="unavailable", neo4j_connected=False)
@@ -258,7 +258,7 @@ async def get_memory_health(request: Request) -> MemoryHealthResponse:
 
 @router.get("/api/v1/memory/stats", response_model=MemoryStatsResponse)
 async def get_memory_stats(request: Request) -> MemoryStatsResponse:
-    """Graph statistics — total node counts per label."""
+    """Graph statistics - total node counts per label."""
     memory = getattr(request.app.state, "memory", None)
     if memory is None:
         return MemoryStatsResponse()
@@ -281,7 +281,7 @@ async def get_memory_stats(request: Request) -> MemoryStatsResponse:
 
 @router.get("/api/v1/memory/self", response_model=SelfNodeResponse)
 async def get_memory_self(request: Request) -> SelfNodeResponse:
-    """Return the Self node — identity, affect, and cognitive counters."""
+    """Return the Self node - identity, affect, and cognitive counters."""
     memory = getattr(request.app.state, "memory", None)
     if memory is None:
         raise HTTPException(status_code=503, detail="Memory not initialized")
@@ -289,7 +289,7 @@ async def get_memory_self(request: Request) -> SelfNodeResponse:
     self_node = await memory.get_self()
     if self_node is None:
         raise HTTPException(
-            status_code=404, detail="Self node not found — instance not born yet"
+            status_code=404, detail="Self node not found - instance not born yet"
         )
 
     born_at = self_node.born_at
@@ -489,7 +489,7 @@ async def get_entity_detail(
         if raw is None:
             raise HTTPException(status_code=404, detail="Entity not found")
 
-        # get_entity_neighbours remains an internal call — no MemoryService wrapper
+        # get_entity_neighbours remains an internal call - no MemoryService wrapper
         # yet; it has no callers outside this router so adding a full wrapper would
         # be premature (YAGNI). Tracked in CLAUDE.md as a remaining AV6 item.
         neighbours_raw = await _get_neighbours(
@@ -674,7 +674,7 @@ async def retrieve_memories(
     request: Request,
     body: RetrieveRequest,
 ) -> RetrievalResponse:
-    """Hybrid retrieval — vector + BM25 + graph traversal + salience reranking."""
+    """Hybrid retrieval - vector + BM25 + graph traversal + salience reranking."""
     memory = getattr(request.app.state, "memory", None)
     if memory is None:
         raise HTTPException(status_code=503, detail="Memory not initialized")

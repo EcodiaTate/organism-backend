@@ -1,11 +1,11 @@
 """
-EcodiaOS — Governance Primitives
+EcodiaOS - Governance Primitives
 
 Records of governance decisions, amendment proposals, and votes.
 
 Includes Identity provisioning request types (Spec 23, HIGH #4):
-  ProvisioningRequest — submitted to Equor before issuing a birth certificate
-  CertificateRenewalRequest — submitted to Equor before CA renewal (Citizenship Tax)
+  ProvisioningRequest - submitted to Equor before issuing a birth certificate
+  CertificateRenewalRequest - submitted to Equor before CA renewal (Citizenship Tax)
 """
 
 from __future__ import annotations
@@ -76,12 +76,12 @@ class EquorProvisioningApproval(EOSBaseModel):
     this before proceeding to GenesisCA issuance.
 
     Fields:
-        child_id           — the child instance under review
-        approved           — True if drives are constitutionally aligned
-        requires_hitl      — True if a human operator must confirm issuance
-        required_amendments — list of amendment IDs Equor wants applied first
-        constitutional_hash — SHA-256 of the constitution at time of review
-        reason             — human-readable verdict rationale
+        child_id           - the child instance under review
+        approved           - True if drives are constitutionally aligned
+        requires_hitl      - True if a human operator must confirm issuance
+        required_amendments - list of amendment IDs Equor wants applied first
+        constitutional_hash - SHA-256 of the constitution at time of review
+        reason             - human-readable verdict rationale
     """
 
     child_id: str

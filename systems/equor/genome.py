@@ -1,5 +1,5 @@
 """
-EcodiaOS — Equor Genome Extraction & Seeding
+EcodiaOS - Equor Genome Extraction & Seeding
 
 Implements GenomeExtractionProtocol for the Equor (constitutional conscience)
 system. Heritable state includes:
@@ -11,8 +11,8 @@ system. Heritable state includes:
   drift window, governance parameters)
 
 The genome allows a child instance to inherit the parent's constitutional
-identity — its moral framework, accumulated amendments, and calibrated
-governance parameters — so it starts with the same ethical foundation
+identity - its moral framework, accumulated amendments, and calibrated
+governance parameters - so it starts with the same ethical foundation
 rather than bare defaults.
 """
 
@@ -826,7 +826,7 @@ class EquorGenomeExtractor:
         stricter or more permissive floors over generations.
 
         Noise model: uniform ±10% of the absolute value of the parent threshold.
-        The result is clamped to [-1.0, 0.0] — floors are always negative and
+        The result is clamped to [-1.0, 0.0] - floors are always negative and
         cannot exceed -1.0 (total block) or go above 0.0 (meaningless).
         """
         import random

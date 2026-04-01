@@ -433,7 +433,7 @@ class TestLLMEstimation:
         llm.evaluate.side_effect = Exception("LLM down")
         evaluator = EFEEvaluator(llm=llm, use_llm_estimation=True)
         policy = make_policy()
-        # Should not raise — fallback to heuristic
+        # Should not raise - fallback to heuristic
         score = await evaluator.evaluate(
             policy, make_goal(), make_beliefs(), NEUTRAL_AFFECT, NEUTRAL_DRIVE_WEIGHTS
         )

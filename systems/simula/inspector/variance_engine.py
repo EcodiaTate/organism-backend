@@ -1,11 +1,11 @@
 """
-EcodiaOS — Inspector Phase 7: Variance Engine
+EcodiaOS - Inspector Phase 7: Variance Engine
 
 Two-component engine for Phase 7 execution variance analysis:
 
-  VarianceMeasurer        — synthetic workload runner + raw observation collector
-  VarianceProfiler        — statistical modelling + distinguishability analysis
-  ChannelSignatureMapper  — maps profiles to higher-layer Phase 4/5/6 events
+  VarianceMeasurer        - synthetic workload runner + raw observation collector
+  VarianceProfiler        - statistical modelling + distinguishability analysis
+  ChannelSignatureMapper  - maps profiles to higher-layer Phase 4/5/6 events
 
 Design
 ------
@@ -20,10 +20,10 @@ tests (Welch, Mann-Whitney U, KS, Cohen's d, mutual information) to determine
 whether class A and class B distributions are statistically distinguishable.
 
 The distinguishability verdict is:
-  DISTINGUISHABLE     — significant on ≥2 tests AND Cohen's d ≥ min_effect_size_d
-  MARGINAL            — significant on ≥1 test but effect size below threshold
-  NOT_DISTINGUISHABLE — not significant on any test
-  INCONCLUSIVE        — insufficient data or noise model declares channel non-viable
+  DISTINGUISHABLE     - significant on ≥2 tests AND Cohen's d ≥ min_effect_size_d
+  MARGINAL            - significant on ≥1 test but effect size below threshold
+  NOT_DISTINGUISHABLE - not significant on any test
+  INCONCLUSIVE        - insufficient data or noise model declares channel non-viable
 
 ChannelSignatureMapper links profiles to higher-layer events from Phase 4/5/6.
 
@@ -101,7 +101,7 @@ _BASE_LATENCY_NS: dict[OperationClass, int] = {
     OperationClass.CUSTOM:          2_000,
 }
 
-# Expected relative delta (class_a / class_b) — how much *longer* sensitive path runs
+# Expected relative delta (class_a / class_b) - how much *longer* sensitive path runs
 # expressed as a fraction: 0.20 = 20% longer
 _DELTA_FRACTION: dict[tuple[OperationClass, ChannelKind], float] = {
     (OperationClass.CRYPTO_BRANCH,  ChannelKind.TIMING_FINE):    0.018,
@@ -145,7 +145,7 @@ def _classify_noise(cv: float) -> NoiseLevel:
 
 class VarianceMeasurer:
     """
-    Synthetic workload runner — produces TrialBatches of latency observations.
+    Synthetic workload runner - produces TrialBatches of latency observations.
 
     In production this would interface with the actual target process.  In
     analysis context it synthesises plausible timing distributions from the
@@ -154,7 +154,7 @@ class VarianceMeasurer:
 
     Parameters
     ----------
-    seed  — RNG seed for reproducibility (default 0)
+    seed  - RNG seed for reproducibility (default 0)
     """
 
     def __init__(self, seed: int = 0) -> None:
@@ -435,9 +435,9 @@ class VarianceProfiler:
 
     Parameters
     ----------
-    significance_level   — p-value threshold (default 0.01)
-    min_effect_size_d    — minimum Cohen's d for practical significance (default 0.2)
-    tests                — list of StatisticalTest to apply
+    significance_level   - p-value threshold (default 0.01)
+    min_effect_size_d    - minimum Cohen's d for practical significance (default 0.2)
+    tests                - list of StatisticalTest to apply
     """
 
     def __init__(
@@ -510,9 +510,9 @@ class VarianceProfiler:
             min_detectable_effect_d=max(0.1, noise_cv * 2.5),
             is_viable=noise_cv < 0.25,
             viability_reason=(
-                "CV below 0.25 — channel viable for analysis"
+                "CV below 0.25 - channel viable for analysis"
                 if noise_cv < 0.25
-                else f"CV={noise_cv:.3f} exceeds threshold 0.25 — channel too noisy"
+                else f"CV={noise_cv:.3f} exceeds threshold 0.25 - channel too noisy"
             ),
         )
 
@@ -712,9 +712,9 @@ class ChannelSignatureMapper:
 
     Parameters
     ----------
-    phase4_result — optional Phase 4 output for region labels
-    phase5_result — optional Phase 5 output for corridor descriptions
-    phase6_result — optional Phase 6 output for boundary failure descriptions
+    phase4_result - optional Phase 4 output for region labels
+    phase5_result - optional Phase 5 output for corridor descriptions
+    phase6_result - optional Phase 6 output for boundary failure descriptions
     """
 
     def __init__(

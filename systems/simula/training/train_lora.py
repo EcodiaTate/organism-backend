@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EcodiaOS — Standalone LoRA Fine-Tuning Script (Akash GPU Node)
+EcodiaOS - Standalone LoRA Fine-Tuning Script (Akash GPU Node)
 
 This script runs inside the Akash GPU container. It:
   1. Downloads the JSONL training dataset from IPFS via Pinata gateway
@@ -11,14 +11,14 @@ This script runs inside the Akash GPU container. It:
   6. Exposes a /status HTTP endpoint for progress monitoring
 
 Environment variables (injected by the SDL template):
-  DATASET_CID          — IPFS CID of the training JSONL
-  PINATA_JWT           — Pinata JWT for upload
-  PINATA_GATEWAY_URL   — Pinata gateway for download
-  BASE_MODEL           — HuggingFace model ID
-  TRAINING_ARGS        — JSON-encoded hyperparameters
-  STATUS_PORT          — Port for the status endpoint (default 8080)
+  DATASET_CID          - IPFS CID of the training JSONL
+  PINATA_JWT           - Pinata JWT for upload
+  PINATA_GATEWAY_URL   - Pinata gateway for download
+  BASE_MODEL           - HuggingFace model ID
+  TRAINING_ARGS        - JSON-encoded hyperparameters
+  STATUS_PORT          - Port for the status endpoint (default 8080)
 
-This file is self-contained — no ecodiaos imports. It runs in isolation
+This file is self-contained - no ecodiaos imports. It runs in isolation
 on the Akash node with only ML dependencies installed.
 """
 
@@ -50,8 +50,8 @@ OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "")
 BASE_ADAPTER = os.environ.get("BASE_ADAPTER", "")
 # PREVIOUS_ADAPTER_PATH: if set, new LoRA A matrices are initialized in the null space
 # of the previous adapter's directions (CLoRA, ACL 2025). Prevents interference with
-# previously learned features. Non-fatal — skipped if path missing or malformed.
-# This is independent of BASE_ADAPTER — always points to the slow (EMA) adapter.
+# previously learned features. Non-fatal - skipped if path missing or malformed.
+# This is independent of BASE_ADAPTER - always points to the slow (EMA) adapter.
 PREVIOUS_ADAPTER_PATH = os.environ.get("PREVIOUS_ADAPTER_PATH", "")
 TRAINING_ARGS = json.loads(os.environ.get("TRAINING_ARGS", "{}"))
 STATUS_PORT = int(os.environ.get("STATUS_PORT", "8080"))
@@ -189,7 +189,7 @@ def run_training(dataset_path: Path) -> Path:
     TRAINING_STATE["phase"] = "loading_model"
     print(f"[EOS] Loading base model: {BASE_MODEL}")
 
-    # Hyperparameters with defaults (bible §5 — r=32, lora_alpha=64, 2:1 ratio)
+    # Hyperparameters with defaults (bible §5 - r=32, lora_alpha=64, 2:1 ratio)
     lora_rank = TRAINING_ARGS.get("lora_rank", 32)
     lora_alpha = TRAINING_ARGS.get("lora_alpha", 64)
     lora_dropout = TRAINING_ARGS.get("lora_dropout", 0.05)
@@ -255,12 +255,12 @@ def run_training(dataset_path: Path) -> Path:
     formatted: list[dict[str, str]] = []
     for row in raw_data:
         if "messages" in row:
-            # Chat format — apply template directly
+            # Chat format - apply template directly
             text = tokenizer.apply_chat_template(
                 row["messages"], tokenize=False, add_generation_prompt=False,
             )
         elif "instruction" in row:
-            # Build rich user context — supports both legacy {input} and RE training
+            # Build rich user context - supports both legacy {input} and RE training
             # schema {input_context, output_action, reasoning_trace, outcome, ...}
             user_parts = [row["instruction"]]
             ctx = row.get("input_context") or row.get("input", "")
@@ -309,7 +309,7 @@ def run_training(dataset_path: Path) -> Path:
     dataset = Dataset.from_list(formatted)
     print(f"[EOS] Formatted {len(formatted)} examples for training")
 
-    # Training arguments — prefer OUTPUT_DIR env var for local orchestration
+    # Training arguments - prefer OUTPUT_DIR env var for local orchestration
     output_dir = OUTPUT_DIR if OUTPUT_DIR else tempfile.mkdtemp(prefix="eos-finetune-")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     training_args = SFTConfig(
@@ -353,7 +353,7 @@ def run_training(dataset_path: Path) -> Path:
         callbacks=[ProgressCallback()],
     )
 
-    # W&B run — guarded; non-fatal if W&B not available or not authenticated
+    # W&B run - guarded; non-fatal if W&B not available or not authenticated
     _wandb_run = None
     if os.environ.get("WANDB_API_KEY"):
         try:
@@ -459,10 +459,10 @@ def _apply_clora_init(model: object, previous_adapter_path: str) -> None:
         from safetensors.torch import load_file
         prev_weights = load_file(f"{previous_adapter_path}/adapter_model.safetensors")
     except ImportError:
-        print("[CLoRA] safetensors not installed — skipping CLoRA init.")
+        print("[CLoRA] safetensors not installed - skipping CLoRA init.")
         return
     except Exception as e:
-        print(f"[CLoRA] Could not load previous adapter: {e} — skipping CLoRA init.")
+        print(f"[CLoRA] Could not load previous adapter: {e} - skipping CLoRA init.")
         return
 
     applied = 0
@@ -483,7 +483,7 @@ def _apply_clora_init(model: object, previous_adapter_path: str) -> None:
                 # Null space projector: P = I - Vh.T @ Vh  (shape: [d_in, d_in])
                 d_in = param.shape[1]
                 P_null = torch.eye(d_in, device=param.device) - Vh.T @ Vh
-                # Project random init onto null space — result lives in orthogonal complement
+                # Project random init onto null space - result lives in orthogonal complement
                 random_init = torch.randn_like(param.float())
                 param.data = (random_init @ P_null).to(param.dtype)
                 applied += 1
@@ -507,7 +507,7 @@ def main() -> None:
             dataset_path = Path(TRAINING_DATA)
             if not dataset_path.exists():
                 raise ValueError(f"TRAINING_DATA file not found: {TRAINING_DATA}")
-            print(f"[EOS] Local training mode — dataset: {TRAINING_DATA}")
+            print(f"[EOS] Local training mode - dataset: {TRAINING_DATA}")
         else:
             # Akash/IPFS mode: download from pinned CID
             if not DATASET_CID:
@@ -522,7 +522,7 @@ def main() -> None:
 
         # Step 3: Upload adapter to IPFS (skipped in local training mode)
         if TRAINING_DATA:
-            adapter_cid = ""  # local mode — no IPFS upload needed
+            adapter_cid = ""  # local mode - no IPFS upload needed
         else:
             adapter_cid = upload_adapter(adapter_dir)
 
@@ -546,7 +546,7 @@ def main() -> None:
         try:
             signal.pause()
         except AttributeError:
-            # signal.pause() not available on Windows — use sleep fallback
+            # signal.pause() not available on Windows - use sleep fallback
             while True:
                 time.sleep(3600)
 

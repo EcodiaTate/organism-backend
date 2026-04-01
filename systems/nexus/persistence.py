@@ -1,5 +1,5 @@
 """
-EcodiaOS — Nexus: Neo4j Persistence Layer
+EcodiaOS - Nexus: Neo4j Persistence Layer
 
 Persists speciation registry state, epistemic level promotions,
 converged invariants, world model fragments, and instance divergence
@@ -57,7 +57,7 @@ class NexusPersistence:
     """
     Neo4j persistence for Nexus epistemic triangulation state.
 
-    All writes are batched — call persist_*() after each speciation
+    All writes are batched - call persist_*() after each speciation
     check / promotion cycle, not per-event.
     """
 
@@ -275,7 +275,7 @@ class NexusPersistence:
         Neo4j can store them as string properties (no nested objects).
         Returns count written.
 
-        Spec §XI Memory Writes — previously in-memory only (R1).
+        Spec §XI Memory Writes - previously in-memory only (R1).
         """
         if not fragments:
             return 0
@@ -397,7 +397,7 @@ class NexusPersistence:
         """
         Batch-upsert converged invariants from InvariantBridge exchanges.
 
-        These represent the highest-confidence ground truth candidates —
+        These represent the highest-confidence ground truth candidates -
         structures that two speciated (alien-kind) instances independently
         arrived at. Previously created but never written (R1).
         Spec §XI Memory Writes.
@@ -487,7 +487,7 @@ class NexusPersistence:
         """
         Batch-upsert remote instance divergence profiles.
 
-        Enables cross-session divergence tracking — without this, every
+        Enables cross-session divergence tracking - without this, every
         restart loses all divergence history and measurements restart from
         zero. Spec §XI Memory Reads (R5).
         """

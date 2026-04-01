@@ -1,8 +1,8 @@
 """
-EcodiaOS — Soma External Volatility Sensor (Cross-Modal Synesthesia)
+EcodiaOS - Soma External Volatility Sensor (Cross-Modal Synesthesia)
 
 Maps exogenous data streams into endogenous somatic states. The organism
-does not live in a vacuum — systemic stress in the outside world becomes
+does not live in a vacuum - systemic stress in the outside world becomes
 felt stress in the body.
 
 Architecture:
@@ -18,15 +18,15 @@ Architecture:
   is emitted on the event bus.
 
 Iron Rules (mirrors Soma's own rules):
-  - Never called from the theta cycle — runs on its own asyncio timer.
+  - Never called from the theta cycle - runs on its own asyncio timer.
   - All HTTP calls are bounded by ``fetch_timeout_s`` with a hard outer cap.
   - Any exception in the fetch or normalisation path is swallowed and logged;
     the sensor stays running and retries at the next poll interval.
   - No LLM calls, no DB writes, no side-effects beyond a float injection.
 
 Data sources (each tried in order, first success wins):
-  1. CoinGecko public API — BTC + ETH 24h price change percentages
-  2. GitHub REST API (no token required) — open issues + open PRs in the
+  1. CoinGecko public API - BTC + ETH 24h price change percentages
+  2. GitHub REST API (no token required) - open issues + open PRs in the
      ecodiaos organisation as a proxy for codebase activity/pressure.
 
 Normalisation:
@@ -64,7 +64,7 @@ _COINGECKO_URL = (
     "?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
 )
 
-# GitHub REST endpoint — public repos, unauthenticated (60 req/hr)
+# GitHub REST endpoint - public repos, unauthenticated (60 req/hr)
 _GITHUB_SEARCH_URL = (
     "https://api.github.com/search/issues"
     "?q=repo:ecodiaos/ecodiaos+state:open&per_page=1"
@@ -87,7 +87,7 @@ def _sigmoid_normalise(abs_pct: float) -> float:
     # sigmoid(k * abs_pct) centred at 0; result is already in (0.5, 1.0) for any
     # positive input. Rescale to (0.0, 1.0) so 0 % → 0.0.
     raw = 1.0 / (1.0 + math.exp(-_SIGMOID_K * abs_pct))
-    # raw is in (0.5, 1.0) — rescale linearly to (0.0, 1.0)
+    # raw is in (0.5, 1.0) - rescale linearly to (0.0, 1.0)
     return (raw - 0.5) * 2.0
 
 
@@ -130,7 +130,7 @@ class ExternalVolatilitySensor:
         self._config = config
         self._event_bus = event_bus
 
-        # Current smoothed stress value — starts neutral
+        # Current smoothed stress value - starts neutral
         self._stress: float = 0.0
         # EMA state
         self._ema_initialised: bool = False
@@ -226,7 +226,7 @@ class ExternalVolatilitySensor:
         """Fetch, normalise, smooth, inject, and maybe emit a spike event."""
         raw = await self._fetch_raw()
         if not raw.source_ok:
-            # Nothing usable — keep existing stress, skip update
+            # Nothing usable - keep existing stress, skip update
             self._log.debug("volatility_no_data_skip")
             return
 
@@ -254,7 +254,7 @@ class ExternalVolatilitySensor:
     async def _fetch_raw(self) -> RawVolatilityData:
         """
         Attempt CoinGecko first, then optionally GitHub.
-        Both are fire-and-don't-care on failure — returns what we have.
+        Both are fire-and-don't-care on failure - returns what we have.
         """
         # CoinGecko and GitHub fetches run concurrently; each has its own timeout.
         cg_task = asyncio.create_task(self._fetch_coingecko())
@@ -293,7 +293,7 @@ class ExternalVolatilitySensor:
         """
         Fetch BTC + ETH 24h price change from CoinGecko (no API key needed).
         Returns {'btc_24h': float, 'eth_24h': float} on success.
-        Raises on any HTTP / parse / timeout error — caller handles.
+        Raises on any HTTP / parse / timeout error - caller handles.
         """
         import urllib.error
         import urllib.request
@@ -328,7 +328,7 @@ class ExternalVolatilitySensor:
         """
         Count open issues + PRs in the ecodiaos org via GitHub search API.
         Returns an integer count on success.
-        Raises on any error — caller handles.
+        Raises on any error - caller handles.
 
         Note: unauthenticated GitHub search is rate-limited to 10 req/min.
         At our default 5-minute poll interval this is well within budget.
@@ -375,7 +375,7 @@ class ExternalVolatilitySensor:
         # GitHub component (normalise against a "busy repo" baseline of 200 issues/PRs)
         github = min(raw.github_open_count / 200.0, 1.0)
 
-        # Weighted blend — economic signal dominates, github is supporting evidence
+        # Weighted blend - economic signal dominates, github is supporting evidence
         blended = 0.7 * economic + 0.3 * github
         return max(0.0, min(1.0, blended))
 
@@ -413,8 +413,8 @@ class ExternalVolatilitySensor:
         if delta <= self._config.volatility_spike_threshold:
             return
 
-        # Spike detected — emit once per polling pass (not de-duplicated across polls
-        # intentionally — if stress stays elevated the organism should keep knowing).
+        # Spike detected - emit once per polling pass (not de-duplicated across polls
+        # intentionally - if stress stays elevated the organism should keep knowing).
         self._log.info(
             "soma_state_spike_detected",
             delta=round(delta, 3),
@@ -434,5 +434,5 @@ class ExternalVolatilitySensor:
                 )
             )
         except Exception as exc:
-            # Event bus failures are non-fatal — the stress value is already injected.
+            # Event bus failures are non-fatal - the stress value is already injected.
             self._log.warning("spike_event_emit_failed", error=str(exc))

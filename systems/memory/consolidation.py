@@ -1,5 +1,5 @@
 """
-EcodiaOS — Memory Consolidation
+EcodiaOS - Memory Consolidation
 
 Periodic "sleep" process that:
 1. Decays salience scores
@@ -69,7 +69,7 @@ async def run_consolidation(neo4j: Neo4jClient) -> dict[str, Any]:
         logger.error("consolidation_entity_dedup_failed", error=str(e))
         report["steps"]["entity_dedup"] = {"error": str(e)}
 
-    # Step 5: Belief half-life enforcement — archive expired beliefs
+    # Step 5: Belief half-life enforcement - archive expired beliefs
     try:
         halflife_result = await _enforce_belief_halflife(neo4j)
         report["steps"]["belief_halflife"] = halflife_result
@@ -96,7 +96,7 @@ async def run_consolidation(neo4j: Neo4jClient) -> dict[str, Any]:
 async def _run_community_detection(neo4j: Neo4jClient) -> dict[str, Any]:
     """
     Run Louvain-style iterative community detection on the entity graph.
-    Pure Cypher implementation — works on Neo4j Aura (no GDS required).
+    Pure Cypher implementation - works on Neo4j Aura (no GDS required).
 
     Algorithm:
     1. Initialize each entity as its own community
