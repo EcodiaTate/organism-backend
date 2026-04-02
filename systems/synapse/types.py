@@ -4338,7 +4338,6 @@ class SynapseEventType(enum.StrEnum):
     REPUTATION_UPDATED = "reputation_updated"
     # Interspecies economy (Phase 16j: Fleet-Scale Coordination)
     CAPABILITY_OFFERED = "capability_offered"
-    CAPABILITY_REQUESTED = "capability_requested"
     CAPABILITY_TRADE_SETTLED = "capability_trade_settled"
     CAPABILITY_PUBLISHED = "capability_published"
     TRADE_SETTLED = "trade_settled"
