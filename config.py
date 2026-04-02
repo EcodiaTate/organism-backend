@@ -82,7 +82,7 @@ class TimescaleDBConfig(BaseModel):
 class RedisConfig(BaseModel):
     url: str = "redis://redis:6379/0"
     prefix: str = "eos"
-    password: str = "ecodiaos_dev"
+    password: str = ""
 
     @property
     def full_url(self) -> str:
