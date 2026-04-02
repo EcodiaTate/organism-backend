@@ -6158,6 +6158,9 @@ class ThymosService:
                     return False
                 return await self._apply_novel_repair(incident, repair)
 
+            elif repair.tier == RepairTier.FACTORY_REPAIR:
+                return await self._apply_factory_repair(incident, repair)
+
             elif repair.tier == RepairTier.ESCALATE:
                 return await self._apply_escalation(incident, repair)
 
@@ -6568,9 +6571,70 @@ class ThymosService:
             self._governor.end_codegen()
             self._governor.end_t4_proposal()
 
+    async def _apply_factory_repair(
+        self, incident: Incident, repair: RepairSpec
+    ) -> bool:
+        """
+        Apply Tier 5: dispatch to EcodiaOS Factory for autonomous CC code fix.
+
+        The Factory is the organism's other body — it has full Claude Code autonomy
+        across all codebases (EcodiaOS admin, frontend, organism, client projects).
+        Dispatched via SymbridgeFactoryExecutor through the symbridge Redis stream.
+
+        This tier is used when:
+        - Simula's local code agent (Tier 4) is insufficient
+        - The fix spans multiple codebases
+        - The incident involves externally deployed systems
+        - Full Claude Code power is needed (200 turns, 2hr timeout)
+        """
+        self._logger.info(
+            "factory_repair_dispatching",
+            incident_id=incident.id,
+            source_system=incident.source_system,
+            reason=repair.reason,
+        )
+
+        try:
+            # Dispatch via Synapse → SymbridgeFactoryExecutor → Redis → EcodiaOS Factory
+            if self._event_bus is not None:
+                await self._event_bus.emit(
+                    SynapseEventType.FACTORY_PROPOSAL_SENT,
+                    {
+                        "dispatch_type": "thymos_incident",
+                        "incident_id": incident.id,
+                        "severity": incident.severity.value if hasattr(incident.severity, "value") else str(incident.severity),
+                        "affected_system": incident.source_system,
+                        "error_message": incident.error_message or str(incident.error_type),
+                        "description": repair.reason,
+                        "stack_trace": getattr(incident, "stack_trace", ""),
+                        "codebase_name": getattr(incident, "codebase_name", None) or incident.source_system,
+                        "repair_tier": "FACTORY_REPAIR",
+                        "diagnosis_confidence": getattr(repair, "_diagnosis_confidence", 0.0),
+                    },
+                )
+                self._logger.info(
+                    "factory_repair_dispatched",
+                    incident_id=incident.id,
+                )
+                return True
+            else:
+                self._logger.warning(
+                    "factory_repair_no_event_bus",
+                    incident_id=incident.id,
+                )
+                return False
+
+        except Exception as exc:
+            self._logger.error(
+                "factory_repair_dispatch_failed",
+                incident_id=incident.id,
+                error=str(exc),
+            )
+            return False
+
     async def _apply_escalation(self, incident: Incident, repair: RepairSpec) -> bool:
         """
-        Apply Tier 5: attempt Equor auto-approval first, fall back to human escalation.
+        Apply Tier 6 (ESCALATE): attempt Equor auto-approval first, fall back to human escalation.
 
         The Telegram dependency is removed from the critical path. Instead:
         1. Build an Intent from the repair and submit to Equor for constitutional review.

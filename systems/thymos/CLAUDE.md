@@ -3,7 +3,7 @@
 ## What's Implemented
 
 ### Core Pipeline
-- **6-tier repair**: NOOP → PARAMETER → RESTART → KNOWN_FIX → NOVEL_FIX → ESCALATE
+- **7-tier repair**: NOOP → PARAMETER → RESTART → KNOWN_FIX → NOVEL_FIX → FACTORY_REPAIR → ESCALATE
 - **5 sentinel types**: Exception (fingerprint = system+exc_type+first-local-frame), Contract (SLA monitoring), FeedbackLoop (15 severed-loop checks), Drift (8 metrics, σ-threshold SPC), CognitiveStall (broadcast ack rate, nova intent rate, etc.)
 - **Triage**: composite severity scoring (blast radius 0.25 + recurrence velocity 0.20 + constitutional impact 0.25 + user visibility 0.15 + healing potential 0.15), fingerprint dedup with class-specific windows
 - **`DiagnosticEngine`** with LLM-powered hypothesis generation (do NOT modify prompts) - max 3 hypotheses, testable via `DIAGNOSTIC_TEST_REGISTRY`

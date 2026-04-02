@@ -171,8 +171,9 @@ class RepairPrescriber:
     Tier 1: Parameter tweak - adjustable without code changes
     Tier 2: System restart - bad state but code is fine
     Tier 3: Known fix - apply antibody from the library
-    Tier 4: Novel fix - generate via Simula Code Agent
-    Tier 5: Human escalation - cannot auto-resolve
+    Tier 4: Novel fix - generate via Simula Code Agent (local)
+    Tier 5: Factory repair - dispatch to EcodiaOS Factory CC engine (full autonomy)
+    Tier 6: Human escalation - cannot auto-resolve
     """
 
     def __init__(self) -> None:
@@ -267,7 +268,21 @@ class RepairPrescriber:
                 reason=f"High severity, no specific fix: {diagnosis.root_cause}",
             )
 
-        # ── TIER 5: Human Escalation ──
+        # ── TIER 5: Factory Repair (EcodiaOS CC Engine) ──
+        # When local Simula can't fix it but the incident is code-related,
+        # dispatch to the Factory — full Claude Code autonomy across all codebases.
+        if self._is_factory_appropriate(incident, diagnosis):
+            return RepairSpec(
+                tier=RepairTier.FACTORY_REPAIR,
+                action="factory_dispatch",
+                target_system=incident.source_system,
+                reason=(
+                    f"Factory repair: {diagnosis.root_cause} "
+                    f"(local codegen insufficient or cross-codebase fix needed)"
+                ),
+            )
+
+        # ── TIER 6: Human Escalation ──
         return RepairSpec(
             tier=RepairTier.ESCALATE,
             action="alert_operator",
@@ -276,6 +291,26 @@ class RepairPrescriber:
                 f"(confidence: {diagnosis.confidence:.2f})"
             ),
         )
+
+    def _is_factory_appropriate(
+        self, incident: Incident, diagnosis: Diagnosis
+    ) -> bool:
+        """Check if incident warrants dispatching to EcodiaOS Factory.
+
+        Factory is appropriate when:
+        - The incident is code-related (bug, regression, missing feature)
+        - Simula's local code agent has failed or isn't suitable
+        - The fix may span multiple codebases
+        - The incident involves an externally deployed system (Vercel, VPS)
+        """
+        code_indicators = {
+            "bug", "regression", "error", "exception", "crash", "failed",
+            "broken", "missing", "undefined", "null", "type error",
+            "syntax", "import", "dependency", "build", "deploy",
+            "test failure", "lint", "compilation",
+        }
+        cause_lower = (diagnosis.root_cause or "").lower()
+        return any(ind in cause_lower for ind in code_indicators)
 
     def _is_likely_transient(self, incident: Incident) -> bool:
         """Check if an incident is likely transient (network hiccup, etc.)."""

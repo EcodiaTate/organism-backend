@@ -36,7 +36,8 @@ class RepairTier(int, enum.Enum):
     RESTART = 2  # Restart the affected system
     KNOWN_FIX = 3  # Apply an antibody from the library
     NOVEL_FIX = 4  # Generate a new fix via Simula Code Agent
-    ESCALATE = 5  # Human operator intervention required
+    FACTORY_REPAIR = 5  # Dispatch to EcodiaOS Factory for autonomous CC code fix
+    ESCALATE = 6  # Human operator intervention required
 
 
 class RepairStatus(enum.StrEnum):
