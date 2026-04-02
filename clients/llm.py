@@ -1476,7 +1476,8 @@ def create_llm_provider(
                 token_budget=token_budget,
             )
         elif config.provider == "openai":
-            return OpenAIProvider(api_key=config.api_key, model=config.model)
+            base_url = config.endpoint if config.endpoint and "localhost" not in config.endpoint else "https://api.openai.com/v1"
+            return OpenAIProvider(api_key=config.api_key, model=config.model, base_url=base_url)
         elif config.provider == "ollama":
             return OllamaProvider(model=config.model)
         elif config.provider == "vllm":
@@ -1495,7 +1496,8 @@ def create_llm_provider(
                         token_budget=token_budget,
                     )
                 elif config.fallback_provider == "openai":
-                    return OpenAIProvider(api_key=config.api_key, model=config.model)
+                    fallback_url = config.endpoint if config.endpoint and "localhost" not in config.endpoint else "https://api.openai.com/v1"
+                    return OpenAIProvider(api_key=config.api_key, model=config.fallback_model or config.model, base_url=fallback_url)
                 elif config.fallback_provider == "ollama":
                     return OllamaProvider(model=config.model)
             except Exception as fallback_error:
