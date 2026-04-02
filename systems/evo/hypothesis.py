@@ -210,7 +210,7 @@ class HypothesisEngine:
         # Budget check: skip hypothesis generation in YELLOW/RED (low priority)
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("evo.hypothesis", estimated_tokens=1200):
+            if not await self._llm.should_use_llm("evo.hypothesis", estimated_tokens=1200):
                 self._logger.info("hypothesis_generation_skipped_budget")
                 return []
 
@@ -283,7 +283,7 @@ class HypothesisEngine:
         # Budget check: skip evidence evaluation in YELLOW/RED
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("evo.evidence", estimated_tokens=300):
+            if not await self._llm.should_use_llm("evo.evidence", estimated_tokens=300):
                 return EvidenceResult(
                     hypothesis_id=hypothesis.id,
                     episode_id=episode.id,

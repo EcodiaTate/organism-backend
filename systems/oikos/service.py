@@ -4485,7 +4485,7 @@ class OikosService:
                 results["credit_repaid_usd"] = str(repaid)
 
         # Niche identification - update discovered niches for genome extraction
-        niches = self.identify_niches()
+        niches = await self.identify_niches()
         results["niches_discovered"] = len(niches)
 
         # Retry deferred actions - metabolic gate may have cleared

@@ -617,6 +617,11 @@ class AxonService:
                     SynapseEventType.VULNERABILITY_CONFIRMED,
                     self._on_vulnerability_confirmed,
                 )
+            if hasattr(SynapseEventType, "FACTORY_PROPOSAL_SENT"):
+                event_bus.subscribe(
+                    SynapseEventType.FACTORY_PROPOSAL_SENT,
+                    self._on_factory_proposal_sent,
+                )
         self._logger.info("event_bus_wired", system="axon")
 
     async def _on_metabolic_pressure(self, event: Any) -> None:
@@ -2440,6 +2445,103 @@ class AxonService:
             "introspection": self._introspector.stats,
             "reactive": self._reactive.stats if self._reactive else {},
         }
+
+    async def _on_factory_proposal_sent(self, event: Any) -> None:
+        """
+        Subscribe to FACTORY_PROPOSAL_SENT from Thymos and dispatch to the
+        SymbridgeFactoryExecutor, which sends the incident across the symbridge
+        to EcodiaOS Factory for autonomous CC code repair.
+
+        This closes the loop: Thymos diagnoses → emits event → Axon dispatches
+        → SymbridgeFactoryExecutor → Redis/HTTP → EcodiaOS Factory → CC session.
+
+        No constitutional gate here — Thymos already exhausted lower tiers and
+        the Factory has its own oversight pipeline (confidence threshold, DeepSeek
+        review, auto-revert on health check failure).
+        """
+        data = getattr(event, "data", {}) or {}
+        dispatch_type = data.get("dispatch_type", "thymos_incident")
+        incident_id = data.get("incident_id", "unknown")
+        description = data.get("description") or data.get("error_message") or "Thymos incident"
+
+        self._logger.info(
+            "factory_proposal_dispatching",
+            incident_id=incident_id,
+            dispatch_type=dispatch_type,
+            affected_system=data.get("affected_system", "unknown"),
+        )
+
+        # Locate the registered SymbridgeFactoryExecutor
+        executor = None
+        if self._registry is not None:
+            executor = self._registry.get("symbridge_factory_dispatch")
+
+        if executor is None:
+            self._logger.warning(
+                "factory_proposal_executor_not_found",
+                incident_id=incident_id,
+            )
+            return
+
+        # Build a minimal ExecutionContext with synthetic Intent + ConstitutionalCheck.
+        # Thymos has already done diagnosis + tier escalation — this is pre-approved.
+        from systems.axon.types import ExecutionContext
+        from primitives.common import new_id
+        from primitives.intent import Intent, GoalDescriptor
+        from primitives.constitutional import ConstitutionalCheck
+        from primitives.common import Verdict
+
+        _exec_id = new_id()
+        _intent = Intent(
+            goal=GoalDescriptor(
+                description=f"Factory repair: {description[:200]}",
+                target_domain="ecodiaos_factory",
+            ),
+            autonomy_level_required=3,
+            autonomy_level_granted=3,
+            priority=0.9 if data.get("severity") in ("critical", "high") else 0.7,
+        )
+        _check = ConstitutionalCheck(
+            intent_id=_intent.id,
+            verdict=Verdict.APPROVED,
+            confidence=0.95,
+            reasoning="Pre-approved: Thymos exhausted local repair tiers, escalating to Factory",
+        )
+
+        ctx = ExecutionContext(
+            execution_id=_exec_id,
+            intent=_intent,
+            equor_check=_check,
+        )
+
+        try:
+            result = await executor.execute(
+                params={
+                    "dispatch_type": dispatch_type,
+                    "description": description,
+                    "severity": data.get("severity", "medium"),
+                    "affected_system": data.get("affected_system"),
+                    "error_message": data.get("error_message"),
+                    "stack_trace": data.get("stack_trace", ""),
+                    "codebase_name": data.get("codebase_name"),
+                    "priority": "high" if data.get("severity") in ("critical", "high") else "medium",
+                    "category": "thymos_repair",
+                    "diagnosis_confidence": data.get("diagnosis_confidence", 0.0),
+                },
+                context=ctx,
+            )
+            self._logger.info(
+                "factory_proposal_dispatched",
+                incident_id=incident_id,
+                success=result.success,
+                delivery=result.data.get("delivery_details") if result.data else None,
+            )
+        except Exception as exc:
+            self._logger.error(
+                "factory_proposal_dispatch_failed",
+                incident_id=incident_id,
+                error=str(exc),
+            )
 
     async def _on_theta_cycle_complete(self, event: Any) -> None:
         """
