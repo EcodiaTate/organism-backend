@@ -20,14 +20,14 @@ Usage:
     python -m cli.training_run history
 
 Required environment variables:
-    ECODIAOS_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
-    ECODIAOS_NEO4J_PASSWORD  - Neo4j password
+    ORGANISM_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
+    ORGANISM_NEO4J_PASSWORD  - Neo4j password
 
 Optional:
-    ECODIAOS_NEO4J_USERNAME  - default "neo4j"
-    ECODIAOS_REDIS_URL       - default "redis://localhost:6379"
-    ECODIAOS_RE_VLLM_URL     - vLLM endpoint (for adapter deployment)
-    ECODIAOS_RE_MODEL        - model name on vLLM
+    ORGANISM_NEO4J_USERNAME  - default "neo4j"
+    ORGANISM_REDIS_URL       - default "redis://localhost:6379"
+    ORGANISM_RE_VLLM_URL     - vLLM endpoint (for adapter deployment)
+    ORGANISM_RE_MODEL        - model name on vLLM
     RE_TRAINING_EXPORT_DIR   - local JSONL output dir
     RE_BASE_MODEL            - base model for training (default: Qwen/Qwen3-8B)
 """
@@ -76,16 +76,16 @@ def _build_neo4j() -> Any:
     from clients.neo4j import Neo4jClient
     from config import Neo4jConfig
 
-    uri = os.environ.get("ECODIAOS_NEO4J_URI", "").strip()
-    password = os.environ.get("ECODIAOS_NEO4J_PASSWORD", "").strip()
-    username = os.environ.get("ECODIAOS_NEO4J_USERNAME", "neo4j").strip()
-    database = os.environ.get("ECODIAOS_NEO4J_DATABASE", "neo4j").strip()
+    uri = os.environ.get("ORGANISM_NEO4J_URI", "").strip()
+    password = os.environ.get("ORGANISM_NEO4J_PASSWORD", "").strip()
+    username = os.environ.get("ORGANISM_NEO4J_USERNAME", "neo4j").strip()
+    database = os.environ.get("ORGANISM_NEO4J_DATABASE", "neo4j").strip()
 
     if not uri:
-        print(_err("ERROR: ECODIAOS_NEO4J_URI is not set."), file=sys.stderr)
+        print(_err("ERROR: ORGANISM_NEO4J_URI is not set."), file=sys.stderr)
         sys.exit(1)
     if not password:
-        print(_err("ERROR: ECODIAOS_NEO4J_PASSWORD is not set."), file=sys.stderr)
+        print(_err("ERROR: ORGANISM_NEO4J_PASSWORD is not set."), file=sys.stderr)
         sys.exit(1)
 
     cfg = Neo4jConfig(uri=uri, username=username, password=password, database=database)
@@ -94,7 +94,7 @@ def _build_neo4j() -> Any:
 
 async def _build_redis() -> Any | None:
     """Connect to Redis. Returns None on failure (non-fatal)."""
-    redis_url = os.environ.get("ECODIAOS_REDIS_URL", "redis://localhost:6379")
+    redis_url = os.environ.get("ORGANISM_REDIS_URL", "redis://localhost:6379")
     try:
         import redis.asyncio as aioredis  # type: ignore[import]
         r = aioredis.from_url(redis_url)
@@ -107,7 +107,7 @@ async def _build_redis() -> Any | None:
 
 def _build_re_service() -> Any | None:
     """Build ReasoningEngineService for adapter deployment. Returns None if disabled."""
-    if os.environ.get("ECODIAOS_RE_ENABLED", "true").lower() in {"false", "0", "no"}:
+    if os.environ.get("ORGANISM_RE_ENABLED", "true").lower() in {"false", "0", "no"}:
         return None
     try:
         from systems.reasoning_engine.service import ReasoningEngineService
@@ -389,7 +389,7 @@ async def _cmd_status(args: argparse.Namespace) -> int:
             except Exception as exc:
                 print(f"  RE vLLM available      : {_warn(f'NO ({exc})')}")
         else:
-            print(f"  RE vLLM available      : {_dim('disabled (ECODIAOS_RE_ENABLED=false)')}")
+            print(f"  RE vLLM available      : {_dim('disabled (ORGANISM_RE_ENABLED=false)')}")
 
         return 0
 

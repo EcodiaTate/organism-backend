@@ -296,11 +296,11 @@ class AxonService:
         )
 
         # ── Child boot: apply inherited template genome if present ──
-        # On child instances, ECODIAOS_AXON_GENOME_PAYLOAD carries the
+        # On child instances, ORGANISM_AXON_GENOME_PAYLOAD carries the
         # parent's AxonGenomeFragment JSON. Apply it now so inherited templates
         # are available from the first cognitive cycle.
         import os as _os
-        _axon_genome_payload = _os.environ.get("ECODIAOS_AXON_GENOME_PAYLOAD", "")
+        _axon_genome_payload = _os.environ.get("ORGANISM_AXON_GENOME_PAYLOAD", "")
         if _axon_genome_payload:
             try:
                 import json as _json
@@ -1174,7 +1174,7 @@ class AxonService:
         After seeding, emits AXON_TEMPLATES_INHERITED so Evo can track the ratio
         of inherited vs. self-discovered execution strategies - a speciation metric.
 
-        Call this from initialize() when ECODIAOS_AXON_GENOME_PAYLOAD env var is set,
+        Call this from initialize() when ORGANISM_AXON_GENOME_PAYLOAD env var is set,
         or wire the caller to call it explicitly after boot.
         """
         try:

@@ -18,12 +18,12 @@ All public methods are async. The CDP SDK v2 client (`CdpClient`) is
 natively async, so no `asyncio.to_thread` wrapping is required.
 
 Environment variables consumed (via WalletConfig):
-  ECODIAOS_WALLET__CDP_API_KEY_ID       - CDP API key identifier
-  ECODIAOS_WALLET__CDP_API_KEY_SECRET   - CDP API key secret
-  ECODIAOS_WALLET__CDP_WALLET_SECRET    - CDP wallet-level secret (MPC share)
-  ECODIAOS_WALLET__NETWORK              - EVM network id (default: base)
-  ECODIAOS_WALLET__ACCOUNT_NAME         - Logical account name (default: ecodiaos-treasury)
-  ECODIAOS_WALLET__SEED_FILE_PATH       - Path to local metadata file
+  ORGANISM_WALLET__CDP_API_KEY_ID       - CDP API key identifier
+  ORGANISM_WALLET__CDP_API_KEY_SECRET   - CDP API key secret
+  ORGANISM_WALLET__CDP_WALLET_SECRET    - CDP wallet-level secret (MPC share)
+  ORGANISM_WALLET__NETWORK              - EVM network id (default: base)
+  ORGANISM_WALLET__ACCOUNT_NAME         - Logical account name (default: ecodiaos-treasury)
+  ORGANISM_WALLET__SEED_FILE_PATH       - Path to local metadata file
 """
 
 from __future__ import annotations

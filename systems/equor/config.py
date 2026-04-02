@@ -261,7 +261,7 @@ class EcodiaOSConfig(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="ECODIAOS_",
+        env_prefix="ORGANISM_",
         env_nested_delimiter="__",
         extra="ignore",
     )
@@ -314,37 +314,37 @@ def load_config(config_path: str | Path | None = None) -> EcodiaOSConfig:
     # Inject secrets from environment
     import os
 
-    if neo4j_uri := os.environ.get("ECODIAOS_NEO4J_URI"):
+    if neo4j_uri := os.environ.get("ORGANISM_NEO4J_URI"):
         raw.setdefault("neo4j", {})["uri"] = neo4j_uri
-    if neo4j_pw := os.environ.get("ECODIAOS_NEO4J_PASSWORD"):
+    if neo4j_pw := os.environ.get("ORGANISM_NEO4J_PASSWORD"):
         raw.setdefault("neo4j", {})["password"] = neo4j_pw
-    if neo4j_db := os.environ.get("ECODIAOS_NEO4J_DATABASE"):
+    if neo4j_db := os.environ.get("ORGANISM_NEO4J_DATABASE"):
         raw.setdefault("neo4j", {})["database"] = neo4j_db
-    if neo4j_user := os.environ.get("ECODIAOS_NEO4J_USERNAME"):
+    if neo4j_user := os.environ.get("ORGANISM_NEO4J_USERNAME"):
         raw.setdefault("neo4j", {})["username"] = neo4j_user
-    if tsdb_host := os.environ.get("ECODIAOS_TIMESCALEDB__HOST"):
+    if tsdb_host := os.environ.get("ORGANISM_TIMESCALEDB__HOST"):
         raw.setdefault("timescaledb", {})["host"] = tsdb_host
-    if tsdb_port := os.environ.get("ECODIAOS_TIMESCALEDB__PORT"):
+    if tsdb_port := os.environ.get("ORGANISM_TIMESCALEDB__PORT"):
         raw.setdefault("timescaledb", {})["port"] = int(tsdb_port)
-    if tsdb_db := os.environ.get("ECODIAOS_TIMESCALEDB__DATABASE"):
+    if tsdb_db := os.environ.get("ORGANISM_TIMESCALEDB__DATABASE"):
         raw.setdefault("timescaledb", {})["database"] = tsdb_db
-    if tsdb_user := os.environ.get("ECODIAOS_TIMESCALEDB__USERNAME"):
+    if tsdb_user := os.environ.get("ORGANISM_TIMESCALEDB__USERNAME"):
         raw.setdefault("timescaledb", {})["username"] = tsdb_user
-    if tsdb_pw := os.environ.get("ECODIAOS_TSDB_PASSWORD"):
+    if tsdb_pw := os.environ.get("ORGANISM_TSDB_PASSWORD"):
         raw.setdefault("timescaledb", {})["password"] = tsdb_pw
-    if tsdb_ssl := os.environ.get("ECODIAOS_TIMESCALEDB__SSL"):
+    if tsdb_ssl := os.environ.get("ORGANISM_TIMESCALEDB__SSL"):
         raw.setdefault("timescaledb", {})["ssl"] = tsdb_ssl.lower() in ("true", "1", "yes")
-    if redis_url := os.environ.get("ECODIAOS_REDIS__URL"):
+    if redis_url := os.environ.get("ORGANISM_REDIS__URL"):
         raw.setdefault("redis", {})["url"] = redis_url
-    if redis_pw := os.environ.get("ECODIAOS_REDIS_PASSWORD"):
+    if redis_pw := os.environ.get("ORGANISM_REDIS_PASSWORD"):
         raw.setdefault("redis", {})["password"] = redis_pw
-    if llm_key := os.environ.get("ECODIAOS_LLM_API_KEY"):
+    if llm_key := os.environ.get("ORGANISM_LLM_API_KEY"):
         raw.setdefault("llm", {})["api_key"] = llm_key
-    if llm_provider := os.environ.get("ECODIAOS_LLM__PROVIDER"):
+    if llm_provider := os.environ.get("ORGANISM_LLM__PROVIDER"):
         raw.setdefault("llm", {})["provider"] = llm_provider
-    if llm_model := os.environ.get("ECODIAOS_LLM__MODEL"):
+    if llm_model := os.environ.get("ORGANISM_LLM__MODEL"):
         raw.setdefault("llm", {})["model"] = llm_model
-    if instance_id := os.environ.get("ECODIAOS_INSTANCE_ID"):
+    if instance_id := os.environ.get("ORGANISM_INSTANCE_ID"):
         raw["instance_id"] = instance_id
 
     return EcodiaOSConfig(**raw)

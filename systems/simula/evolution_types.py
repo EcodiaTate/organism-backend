@@ -369,7 +369,7 @@ class EvolutionRecord(Identified, Timestamped):
     # ── Corpus 14 §13: Identity scope (Spec 23) ───────────────────────────────
     # Records which instance produced this mutation for cryptographic audit.
     # Before applying, service verifies this matches the current instance_id.
-    identity_id: str = ""          # ECODIAOS_INSTANCE_ID of the recording instance
+    identity_id: str = ""          # ORGANISM_INSTANCE_ID of the recording instance
 
 
 class CodeChangeResult(EOSBaseModel):

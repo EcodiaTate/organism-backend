@@ -514,7 +514,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach AxonGenomeFragment payload to seed config for env injection
-                # Child AxonService reads ECODIAOS_AXON_GENOME_PAYLOAD on initialize()
+                # Child AxonService reads ORGANISM_AXON_GENOME_PAYLOAD on initialize()
                 if axon_genome is not None:
                     try:
                         axon_payload = axon_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -525,7 +525,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach TelosGenomeFragment payload to seed config for env injection
-                # Child TelosService reads ECODIAOS_TELOS_GENOME_PAYLOAD on initialize()
+                # Child TelosService reads ORGANISM_TELOS_GENOME_PAYLOAD on initialize()
                 if telos_genome is not None:
                     try:
                         telos_payload = telos_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -536,7 +536,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach BeliefGenome payload to seed config for env injection
-                # Child EvoService reads ECODIAOS_BELIEF_GENOME_PAYLOAD on initialize()
+                # Child EvoService reads ORGANISM_BELIEF_GENOME_PAYLOAD on initialize()
                 if belief_genome is not None:
                     try:
                         belief_payload = belief_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -547,7 +547,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach SimulaGenome payload to seed config for env injection
-                # Child SimulaService reads ECODIAOS_SIMULA_GENOME_PAYLOAD on initialize()
+                # Child SimulaService reads ORGANISM_SIMULA_GENOME_PAYLOAD on initialize()
                 if simula_genome is not None:
                     try:
                         simula_payload = simula_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -558,7 +558,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach Soma OrganGenomeSegment payload to seed config for env injection
-                # Child SomaService reads ECODIAOS_SOMA_GENOME_PAYLOAD on initialize()
+                # Child SomaService reads ORGANISM_SOMA_GENOME_PAYLOAD on initialize()
                 if soma_genome is not None:
                     try:
                         soma_payload = soma_genome.model_dump()  # type: ignore[union-attr]
@@ -569,7 +569,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach NovaGenomeFragment payload to seed config for env injection
-                # Child NovaService reads ECODIAOS_NOVA_GENOME_PAYLOAD on initialize()
+                # Child NovaService reads ORGANISM_NOVA_GENOME_PAYLOAD on initialize()
                 if nova_genome is not None:
                     try:
                         nova_payload = nova_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -580,7 +580,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach VoxisGenomeFragment payload to seed config for env injection
-                # Child VoxisService reads ECODIAOS_VOXIS_GENOME_PAYLOAD on initialize()
+                # Child VoxisService reads ORGANISM_VOXIS_GENOME_PAYLOAD on initialize()
                 if voxis_genome is not None:
                     try:
                         voxis_payload = voxis_genome.model_dump_for_transport()  # type: ignore[union-attr]
@@ -591,7 +591,7 @@ class SpawnChildExecutor(Executor):
                         pass
 
                 # Attach EIS OrganGenomeSegment payload to seed config for env injection
-                # Child EISService reads ECODIAOS_EIS_GENOME_PAYLOAD on initialize() and
+                # Child EISService reads ORGANISM_EIS_GENOME_PAYLOAD on initialize() and
                 # passes it to EISGenomeExtractor.seed_from_genome_segment() so the child
                 # starts with the parent's immune memory (threat patterns + anomaly baselines).
                 if eis_genome is not None:

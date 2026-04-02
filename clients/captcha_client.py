@@ -18,11 +18,11 @@ Pricing (approximate, varies by service):
 All solve costs are logged to the Synapse bus for Oikos metabolic accounting.
 
 Configuration:
-  ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY   - 2captcha API key
-  ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY  - Anti-Captcha API key
-  ECODIAOS_CAPTCHA__PROVIDER             - "2captcha" (default) | "anticaptcha"
-  ECODIAOS_CAPTCHA__POLLING_INTERVAL_S   - seconds between polls (default 5)
-  ECODIAOS_CAPTCHA__MAX_WAIT_S           - max seconds to wait (default 120)
+  ORGANISM_CAPTCHA__TWOCAPTCHA_API_KEY   - 2captcha API key
+  ORGANISM_CAPTCHA__ANTICAPTCHA_API_KEY  - Anti-Captcha API key
+  ORGANISM_CAPTCHA__PROVIDER             - "2captcha" (default) | "anticaptcha"
+  ORGANISM_CAPTCHA__POLLING_INTERVAL_S   - seconds between polls (default 5)
+  ORGANISM_CAPTCHA__MAX_WAIT_S           - max seconds to wait (default 120)
 """
 
 from __future__ import annotations
@@ -240,8 +240,8 @@ class CaptchaClient:
         if not self._config.enabled:
             raise RuntimeError(
                 "No CAPTCHA provider configured. "
-                "Set ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY or "
-                "ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY."
+                "Set ORGANISM_CAPTCHA__TWOCAPTCHA_API_KEY or "
+                "ORGANISM_CAPTCHA__ANTICAPTCHA_API_KEY."
             )
 
         t0 = time.monotonic()

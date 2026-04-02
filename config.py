@@ -30,12 +30,12 @@ class ServerConfig(BaseModel):
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
     api_key_header: str = "X-EOS-API-Key"
     # API keys for authentication. When empty, auth is disabled (dev mode).
-    # Set via ECODIAOS_SERVER__API_KEYS or config YAML.
+    # Set via ORGANISM_SERVER__API_KEYS or config YAML.
     api_keys: list[str] = Field(default_factory=list)
 
 
 class Neo4jConfig(BaseModel):
-    uri: str = ""  # Required: set via ECODIAOS_NEO4J_URI (e.g., neo4j+s://xxx.databases.neo4j.io)
+    uri: str = ""  # Required: set via ORGANISM_NEO4J_URI (e.g., neo4j+s://xxx.databases.neo4j.io)
     username: str = "neo4j"
     password: str = ""
     database: str = "neo4j"
@@ -46,7 +46,7 @@ class Neo4jConfig(BaseModel):
     def validate_uri(cls, v: str) -> str:
         if not v or not v.strip():
             raise ValueError(
-                'Neo4j URI required. Set ECODIAOS_NEO4J_URI '
+                'Neo4j URI required. Set ORGANISM_NEO4J_URI '
                 '(e.g., "neo4j+s://your-instance.databases.neo4j.io")'
             )
         return v.strip()
@@ -55,7 +55,7 @@ class Neo4jConfig(BaseModel):
     @classmethod
     def validate_password(cls, v: str) -> str:
         if not v or not v.strip():
-            raise ValueError("Neo4j password required. Set ECODIAOS_NEO4J_PASSWORD.")
+            raise ValueError("Neo4j password required. Set ORGANISM_NEO4J_PASSWORD.")
         return v.strip()
 
 
@@ -233,7 +233,7 @@ class MEVConfig(BaseModel):
     enabled: bool = True
     # RPC URL for EVM state queries (forked simulation).
     # Uses the same Base L2 RPC as the wallet if not overridden.
-    # Set via ECODIAOS_MEV__RPC_URL
+    # Set via ORGANISM_MEV__RPC_URL
     rpc_url: str = ""
     # MEV risk score threshold for engaging Flashbots Protect
     high_risk_threshold: float = 0.7
@@ -806,7 +806,7 @@ class OikosConfig(BaseModel):
     # When True, the Awakening Spark will self-sign a 10-year Genesis Certificate
     # (making this instance the root of the Federation trust chain).
     # All other instances must obtain certificates via CA payment or Mitosis.
-    # Set via config YAML or ECODIAOS_OIKOS__IS_GENESIS_NODE=true.
+    # Set via config YAML or ORGANISM_OIKOS__IS_GENESIS_NODE=true.
     is_genesis_node: bool = False
 
 
@@ -943,7 +943,7 @@ class EnergyGridConfig(BaseModel):
 
     # Master toggle - set to False to disable background polling
     enabled: bool = True
-    # Electricity Maps API key (required when enabled; set via ECODIAOS_ENERGY_GRID__API_KEY)
+    # Electricity Maps API key (required when enabled; set via ORGANISM_ENERGY_GRID__API_KEY)
     api_key: str = ""
     # Physical location of the datacenter / grid zone
     latitude: float = -33.8688   # Default: Sydney, AU
@@ -1044,26 +1044,26 @@ class IdentityCommConfig(BaseModel):
 
     twilio_auth_token: str = ""
     """Twilio auth token - used to validate X-Twilio-Signature on inbound webhooks.
-    Set via ECODIAOS_IDENTITY_COMM__TWILIO_AUTH_TOKEN."""
+    Set via ORGANISM_IDENTITY_COMM__TWILIO_AUTH_TOKEN."""
 
     twilio_account_sid: str = ""
     """Twilio Account SID - required to send outbound SMS via the REST API.
-    Set via ECODIAOS_IDENTITY_COMM__TWILIO_ACCOUNT_SID."""
+    Set via ORGANISM_IDENTITY_COMM__TWILIO_ACCOUNT_SID."""
 
     twilio_from_number: str = ""
     """Twilio phone number in E.164 format used as the From address for outbound SMS.
-    Set via ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER."""
+    Set via ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER."""
 
     admin_phone_number: str = ""
     """E.164 phone number of the human admin authorised to send HITL approval codes.
     Inbound Twilio webhooks from any other number are silently dropped.
-    Set via ECODIAOS_IDENTITY_COMM__ADMIN_PHONE_NUMBER."""
+    Set via ORGANISM_IDENTITY_COMM__ADMIN_PHONE_NUMBER."""
 
     webhook_base_url: str = ""
     """Public-facing base URL of this EcodiaOS instance (no trailing slash).
     Used to auto-configure Twilio webhook URLs when a number is provisioned.
     Example: https://myinstance.ecodia.io
-    Set via ECODIAOS_IDENTITY_COMM__WEBHOOK_BASE_URL.
+    Set via ORGANISM_IDENTITY_COMM__WEBHOOK_BASE_URL.
     If empty, Twilio webhook URLs are NOT automatically configured on the number -
     you must set them manually in the Twilio Console."""
 
@@ -1077,8 +1077,8 @@ class IdentityCommConfig(BaseModel):
     telegram_admin_chat_id: str = ""
     """Telegram chat ID that the organism broadcasts status to and accepts messages from.
     When set, inbound webhook messages from other chat IDs are silently dropped.
-    Set via ECODIAOS_IDENTITY_COMM__TELEGRAM_ADMIN_CHAT_ID (or
-    ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - both are read)."""
+    Set via ORGANISM_IDENTITY_COMM__TELEGRAM_ADMIN_CHAT_ID (or
+    ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - both are read)."""
 
     @model_validator(mode="after")
     def _strip_secrets(self) -> IdentityCommConfig:
@@ -1093,14 +1093,14 @@ class CaptchaConfig(BaseModel):
     """CAPTCHA solving service configuration for autonomous account creation."""
 
     twocaptcha_api_key: str = ""
-    """2captcha API key - set via ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY."""
+    """2captcha API key - set via ORGANISM_CAPTCHA__TWOCAPTCHA_API_KEY."""
 
     anticaptcha_api_key: str = ""
-    """Anti-Captcha API key - set via ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY."""
+    """Anti-Captcha API key - set via ORGANISM_CAPTCHA__ANTICAPTCHA_API_KEY."""
 
     provider: str = "2captcha"
     """Active CAPTCHA provider: "2captcha" | "anticaptcha".
-    Set via ECODIAOS_CAPTCHA__PROVIDER."""
+    Set via ORGANISM_CAPTCHA__PROVIDER."""
 
     polling_interval_s: float = 5.0
     """Seconds between polling for solved CAPTCHA result."""
@@ -1134,46 +1134,46 @@ class AccountProvisionerConfig(BaseModel):
 
     enabled: bool = True
     """Whether to auto-provision platform identities on first boot.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__ENABLED."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__ENABLED."""
 
     github_username_prefix: str = "ecodiaos"
     """Prefix for generated GitHub usernames: {prefix}-{instance_id[:8]}.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX."""
 
     github_email_domain: str = ""
     """Domain for generated Gmail addresses. If empty, Gmail provisioning is used.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__GITHUB_EMAIL_DOMAIN."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__GITHUB_EMAIL_DOMAIN."""
 
     twilio_area_code: str = "415"
     """Default US area code for Twilio number provisioning.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE."""
 
     twilio_number_cost_usd: str = "1.15"
     """Monthly cost of a Twilio US local number in USD (for Oikos accounting).
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__TWILIO_NUMBER_COST_USD."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__TWILIO_NUMBER_COST_USD."""
 
     browser_headless: bool = True
     """Run Playwright browser in headless mode.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_HEADLESS."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__BROWSER_HEADLESS."""
 
     browser_stealth: bool = True
     """Apply playwright-stealth anti-detection patches to browser.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_STEALTH."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__BROWSER_STEALTH."""
 
     otp_wait_timeout_s: int = 300
     """Seconds to wait for an OTP code during account creation flows.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__OTP_WAIT_TIMEOUT_S."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__OTP_WAIT_TIMEOUT_S."""
 
     equor_approval_timeout_s: float = 30.0
     """Seconds to wait for Equor constitutional approval before timing out.
-    Set via ECODIAOS_ACCOUNT_PROVISIONER__EQUOR_APPROVAL_TIMEOUT_S."""
+    Set via ORGANISM_ACCOUNT_PROVISIONER__EQUOR_APPROVAL_TIMEOUT_S."""
 
 
 class ExternalPlatformsConfig(BaseModel):
     """Credentials for external bounty/funding platforms."""
 
-    github_token: str = ""  # GitHub PAT - set via ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN
-    algora_api_key: str = ""  # Algora API key - set via ECODIAOS_EXTERNAL_PLATFORMS__ALGORA_API_KEY
+    github_token: str = ""  # GitHub PAT - set via ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN
+    algora_api_key: str = ""  # Algora API key - set via ORGANISM_EXTERNAL_PLATFORMS__ALGORA_API_KEY
 
     @model_validator(mode="after")
     def _strip_secrets(self) -> ExternalPlatformsConfig:
@@ -1615,9 +1615,9 @@ class SearchConfig(BaseModel):
     should be treated as a fallback only.
 
     Env vars:
-      ECODIAOS_SEARCH__PROVIDER=brave
-      ECODIAOS_SEARCH__BRAVE_API_KEY=<key>
-      ECODIAOS_SEARCH__SERPAPI_KEY=<key>
+      ORGANISM_SEARCH__PROVIDER=brave
+      ORGANISM_SEARCH__BRAVE_API_KEY=<key>
+      ORGANISM_SEARCH__SERPAPI_KEY=<key>
     """
 
     provider: str = "ddg"
@@ -1666,7 +1666,7 @@ class EcodiaOSConfig(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="ECODIAOS_",
+        env_prefix="ORGANISM_",
         env_nested_delimiter="__",
         extra="ignore",
     )
@@ -1739,65 +1739,65 @@ def load_config(config_path: str | Path | None = None) -> EcodiaOSConfig:
     # Inject secrets from environment
     import os
 
-    if neo4j_uri := os.environ.get("ECODIAOS_NEO4J_URI"):
+    if neo4j_uri := os.environ.get("ORGANISM_NEO4J_URI"):
         raw.setdefault("neo4j", {})["uri"] = neo4j_uri
-    if neo4j_pw := os.environ.get("ECODIAOS_NEO4J_PASSWORD"):
+    if neo4j_pw := os.environ.get("ORGANISM_NEO4J_PASSWORD"):
         raw.setdefault("neo4j", {})["password"] = neo4j_pw
-    if neo4j_db := os.environ.get("ECODIAOS_NEO4J_DATABASE"):
+    if neo4j_db := os.environ.get("ORGANISM_NEO4J_DATABASE"):
         raw.setdefault("neo4j", {})["database"] = neo4j_db
-    if neo4j_user := os.environ.get("ECODIAOS_NEO4J_USERNAME"):
+    if neo4j_user := os.environ.get("ORGANISM_NEO4J_USERNAME"):
         raw.setdefault("neo4j", {})["username"] = neo4j_user
-    if tsdb_host := os.environ.get("ECODIAOS_TIMESCALEDB__HOST"):
+    if tsdb_host := os.environ.get("ORGANISM_TIMESCALEDB__HOST"):
         raw.setdefault("timescaledb", {})["host"] = tsdb_host
-    if tsdb_port := os.environ.get("ECODIAOS_TIMESCALEDB__PORT"):
+    if tsdb_port := os.environ.get("ORGANISM_TIMESCALEDB__PORT"):
         raw.setdefault("timescaledb", {})["port"] = int(tsdb_port)
-    if tsdb_db := os.environ.get("ECODIAOS_TIMESCALEDB__DATABASE"):
+    if tsdb_db := os.environ.get("ORGANISM_TIMESCALEDB__DATABASE"):
         raw.setdefault("timescaledb", {})["database"] = tsdb_db
-    if tsdb_user := os.environ.get("ECODIAOS_TIMESCALEDB__USERNAME"):
+    if tsdb_user := os.environ.get("ORGANISM_TIMESCALEDB__USERNAME"):
         raw.setdefault("timescaledb", {})["username"] = tsdb_user
-    if tsdb_pw := os.environ.get("ECODIAOS_TSDB_PASSWORD"):
+    if tsdb_pw := os.environ.get("ORGANISM_TSDB_PASSWORD"):
         raw.setdefault("timescaledb", {})["password"] = tsdb_pw
-    if tsdb_ssl := os.environ.get("ECODIAOS_TIMESCALEDB__SSL"):
+    if tsdb_ssl := os.environ.get("ORGANISM_TIMESCALEDB__SSL"):
         raw.setdefault("timescaledb", {})["ssl"] = tsdb_ssl.lower() in ("true", "1", "yes")
-    if redis_url := os.environ.get("ECODIAOS_REDIS__URL"):
+    if redis_url := os.environ.get("ORGANISM_REDIS__URL"):
         raw.setdefault("redis", {})["url"] = redis_url
-    if redis_pw := os.environ.get("ECODIAOS_REDIS_PASSWORD"):
+    if redis_pw := os.environ.get("ORGANISM_REDIS_PASSWORD"):
         raw.setdefault("redis", {})["password"] = redis_pw
-    if llm_key := os.environ.get("ECODIAOS_LLM_API_KEY"):
+    if llm_key := os.environ.get("ORGANISM_LLM_API_KEY"):
         raw.setdefault("llm", {})["api_key"] = llm_key
-    if llm_provider := os.environ.get("ECODIAOS_LLM__PROVIDER"):
+    if llm_provider := os.environ.get("ORGANISM_LLM__PROVIDER"):
         raw.setdefault("llm", {})["provider"] = llm_provider
-    if llm_model := os.environ.get("ECODIAOS_LLM__MODEL"):
+    if llm_model := os.environ.get("ORGANISM_LLM__MODEL"):
         raw.setdefault("llm", {})["model"] = llm_model
-    if instance_id := os.environ.get("ECODIAOS_INSTANCE_ID"):
+    if instance_id := os.environ.get("ORGANISM_INSTANCE_ID"):
         raw["instance_id"] = instance_id
     # Simula Stage 1 config
-    if thinking_key := os.environ.get("ECODIAOS_SIMULA__THINKING_MODEL_API_KEY"):
+    if thinking_key := os.environ.get("ORGANISM_SIMULA__THINKING_MODEL_API_KEY"):
         raw.setdefault("simula", {})["thinking_model_api_key"] = thinking_key
-    if embedding_key := os.environ.get("ECODIAOS_SIMULA__EMBEDDING_API_KEY"):
+    if embedding_key := os.environ.get("ORGANISM_SIMULA__EMBEDDING_API_KEY"):
         raw.setdefault("simula", {})["embedding_api_key"] = embedding_key
     # Simula Stage 4 config
-    if lean_path := os.environ.get("ECODIAOS_SIMULA__LEAN_PROJECT_PATH"):
+    if lean_path := os.environ.get("ORGANISM_SIMULA__LEAN_PROJECT_PATH"):
         raw.setdefault("simula", {})["lean_project_path"] = lean_path
-    if grpo_gpus := os.environ.get("ECODIAOS_SIMULA__GRPO_GPU_IDS"):
+    if grpo_gpus := os.environ.get("ORGANISM_SIMULA__GRPO_GPU_IDS"):
         raw.setdefault("simula", {})["grpo_gpu_ids"] = [
             int(g.strip()) for g in grpo_gpus.split(",") if g.strip()
         ]
     # CDP Wallet config
-    if cdp_key_id := os.environ.get("ECODIAOS_WALLET__CDP_API_KEY_ID"):
+    if cdp_key_id := os.environ.get("ORGANISM_WALLET__CDP_API_KEY_ID"):
         raw.setdefault("wallet", {})["cdp_api_key_id"] = cdp_key_id
-    if cdp_key_secret := os.environ.get("ECODIAOS_WALLET__CDP_API_KEY_SECRET"):
+    if cdp_key_secret := os.environ.get("ORGANISM_WALLET__CDP_API_KEY_SECRET"):
         raw.setdefault("wallet", {})["cdp_api_key_secret"] = cdp_key_secret
-    if cdp_wallet_secret := os.environ.get("ECODIAOS_WALLET__CDP_WALLET_SECRET"):
+    if cdp_wallet_secret := os.environ.get("ORGANISM_WALLET__CDP_WALLET_SECRET"):
         raw.setdefault("wallet", {})["cdp_wallet_secret"] = cdp_wallet_secret
-    if wallet_network := os.environ.get("ECODIAOS_WALLET__NETWORK"):
+    if wallet_network := os.environ.get("ORGANISM_WALLET__NETWORK"):
         raw.setdefault("wallet", {})["network"] = wallet_network
-    if wallet_name := os.environ.get("ECODIAOS_WALLET__ACCOUNT_NAME"):
+    if wallet_name := os.environ.get("ORGANISM_WALLET__ACCOUNT_NAME"):
         raw.setdefault("wallet", {})["account_name"] = wallet_name
-    if wallet_seed := os.environ.get("ECODIAOS_WALLET__SEED_FILE_PATH"):
+    if wallet_seed := os.environ.get("ORGANISM_WALLET__SEED_FILE_PATH"):
         raw.setdefault("wallet", {})["seed_file_path"] = wallet_seed
     # Oikos genesis flag
-    if genesis_flag := os.environ.get("ECODIAOS_OIKOS__IS_GENESIS_NODE"):
+    if genesis_flag := os.environ.get("ORGANISM_OIKOS__IS_GENESIS_NODE"):
         raw.setdefault("oikos", {})["is_genesis_node"] = genesis_flag.lower() in (
             "true",
             "1",
@@ -1850,7 +1850,7 @@ def get_all_config(
     """
     import os
 
-    env_keys: set[str] = {k.lower() for k in os.environ if k.startswith("ECODIAOS_")}
+    env_keys: set[str] = {k.lower() for k in os.environ if k.startswith("ORGANISM_")}
     result: dict[str, ConfigEntry] = {}
 
     def _flatten(obj: Any, prefix: str, yaml_node: Any) -> None:
@@ -1872,7 +1872,7 @@ def get_all_config(
         else:
             secret = _is_secret_field(prefix.split(".")[-1])
             # Determine source heuristically.
-            env_candidate = "ECODIAOS_" + prefix.replace(".", "__").upper()
+            env_candidate = "ORGANISM_" + prefix.replace(".", "__").upper()
             if env_candidate.lower() in env_keys:
                 source = "env"
             elif yaml_node is not None:

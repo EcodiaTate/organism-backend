@@ -74,7 +74,7 @@ EOS can now create its own external platform accounts without human intervention
 - Equor constitutional gate first (economic action, ~$1.15/month)
 - POST to `Twilio /IncomingPhoneNumbers` REST API
 - Seals `{phone_number, twilio_sid, area_code, webhook_url}` in IdentityVault
-- Sets `ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER` at runtime
+- Sets `ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER` at runtime
 - Emits `PHONE_NUMBER_PROVISIONED`
 - Emits `DOMAIN_EPISODE_RECORDED` for Oikos cost accounting
 - Neo4j audit: `(:AccountProvisioning {platform: "twilio", status: "success"}) -[:PROVISIONED_BY]-> (:Identity)`
@@ -103,7 +103,7 @@ EOS can now create its own external platform accounts without human intervention
 | GitHub username | `ecodiaos-{instance_id[:8]}` |
 | Gmail | `ecodiaos.{instance_id[:8]}@gmail.com` |
 
-**Already-provisioned detection:** Neo4j query on `(:AccountProvisioning {platform, status: "success"})` node. Environment variable `ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER` also checked for Twilio.
+**Already-provisioned detection:** Neo4j query on `(:AccountProvisioning {platform, status: "success"})` node. Environment variable `ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER` also checked for Twilio.
 
 **Equor gate:**
 - Emits `CERTIFICATE_PROVISIONING_REQUEST` with `provisioning_type: "platform_account"`
@@ -128,14 +128,14 @@ EOS can now create its own external platform accounts without human intervention
 **Configuration (all with defaults):**
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `ECODIAOS_ACCOUNT_PROVISIONER__ENABLED` | `true` | Enable/disable auto-provisioning |
-| `ECODIAOS_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX` | `ecodiaos` | Username prefix |
-| `ECODIAOS_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE` | `415` | US area code for number purchase |
-| `ECODIAOS_ACCOUNT_PROVISIONER__TWILIO_NUMBER_COST_USD` | `1.15` | Monthly cost for Oikos accounting |
-| `ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_HEADLESS` | `true` | Headless Playwright |
-| `ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_STEALTH` | `true` | playwright-stealth patches |
-| `ECODIAOS_ACCOUNT_PROVISIONER__OTP_WAIT_TIMEOUT_S` | `300` | OTP wait timeout |
-| `ECODIAOS_ACCOUNT_PROVISIONER__EQUOR_APPROVAL_TIMEOUT_S` | `30` | Equor gate timeout |
+| `ORGANISM_ACCOUNT_PROVISIONER__ENABLED` | `true` | Enable/disable auto-provisioning |
+| `ORGANISM_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX` | `ecodiaos` | Username prefix |
+| `ORGANISM_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE` | `415` | US area code for number purchase |
+| `ORGANISM_ACCOUNT_PROVISIONER__TWILIO_NUMBER_COST_USD` | `1.15` | Monthly cost for Oikos accounting |
+| `ORGANISM_ACCOUNT_PROVISIONER__BROWSER_HEADLESS` | `true` | Headless Playwright |
+| `ORGANISM_ACCOUNT_PROVISIONER__BROWSER_STEALTH` | `true` | playwright-stealth patches |
+| `ORGANISM_ACCOUNT_PROVISIONER__OTP_WAIT_TIMEOUT_S` | `300` | OTP wait timeout |
+| `ORGANISM_ACCOUNT_PROVISIONER__EQUOR_APPROVAL_TIMEOUT_S` | `30` | Equor gate timeout |
 
 **Cost accounting:** Every provisioning call emits `DOMAIN_EPISODE_RECORDED` with `domain: "account_provisioning"` and `cost_usd` for Oikos to track as infrastructure cost.
 
@@ -160,11 +160,11 @@ Each solve emits `DOMAIN_EPISODE_RECORDED` for cost tracking.
 **Configuration:**
 | Env var | Default | Purpose |
 |---------|---------|---------|
-| `ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY` | `""` | 2captcha API key |
-| `ECODIAOS_CAPTCHA__ANTICAPTCHA_API_KEY` | `""` | Anti-Captcha API key |
-| `ECODIAOS_CAPTCHA__PROVIDER` | `2captcha` | Active provider |
-| `ECODIAOS_CAPTCHA__POLLING_INTERVAL_S` | `5` | Poll interval |
-| `ECODIAOS_CAPTCHA__MAX_WAIT_S` | `120` | Max wait before timeout |
+| `ORGANISM_CAPTCHA__TWOCAPTCHA_API_KEY` | `""` | 2captcha API key |
+| `ORGANISM_CAPTCHA__ANTICAPTCHA_API_KEY` | `""` | Anti-Captcha API key |
+| `ORGANISM_CAPTCHA__PROVIDER` | `2captcha` | Active provider |
+| `ORGANISM_CAPTCHA__POLLING_INTERVAL_S` | `5` | Poll interval |
+| `ORGANISM_CAPTCHA__MAX_WAIT_S` | `120` | Max wait before timeout |
 
 ---
 
@@ -299,12 +299,12 @@ Background coroutine that polls an IMAP inbox for inbound OTP / verification cod
 **Configuration (via `IdentityCommConfig` / env vars):**
 | Field | Env var | Default |
 |-------|---------|---------|
-| `imap_host` | `ECODIAOS_IDENTITY_COMM__IMAP_HOST` | `""` (scanner disabled if empty) |
-| `imap_port` | `ECODIAOS_IDENTITY_COMM__IMAP_PORT` | `993` |
-| `imap_username` | `ECODIAOS_IDENTITY_COMM__IMAP_USERNAME` | `""` |
-| `imap_password` | `ECODIAOS_IDENTITY_COMM__IMAP_PASSWORD` | `""` |
-| `imap_mailbox` | `ECODIAOS_IDENTITY_COMM__IMAP_MAILBOX` | `"INBOX"` |
-| `imap_scan_interval_s` | `ECODIAOS_IDENTITY_COMM__IMAP_SCAN_INTERVAL_S` | `60.0` |
+| `imap_host` | `ORGANISM_IDENTITY_COMM__IMAP_HOST` | `""` (scanner disabled if empty) |
+| `imap_port` | `ORGANISM_IDENTITY_COMM__IMAP_PORT` | `993` |
+| `imap_username` | `ORGANISM_IDENTITY_COMM__IMAP_USERNAME` | `""` |
+| `imap_password` | `ORGANISM_IDENTITY_COMM__IMAP_PASSWORD` | `""` |
+| `imap_mailbox` | `ORGANISM_IDENTITY_COMM__IMAP_MAILBOX` | `"INBOX"` |
+| `imap_scan_interval_s` | `ORGANISM_IDENTITY_COMM__IMAP_SCAN_INTERVAL_S` | `60.0` |
 
 **Wiring:** `supervised_task("imap_scanner", restart=True, max_restarts=5)` in `core/registry.py` Phase 11 (before interoception loop). `app.state.imap_scanner` holds the instance.
 
@@ -423,7 +423,7 @@ code = await identity.otp_coordinator.wait_for_otp(
 ### Resolved (2026-03-09, Telegram Full Capability)
 
 - **TelegramCommandHandler** (`communication.py`) - subscribes to `TELEGRAM_MESSAGE_RECEIVED`; routes `/ping`, `/status`, `/help`, `/start` commands; replies via `TelegramConnector.send_message()`. `/status` pulls `synapse.metabolic_snapshot()` + `oikos.economic_state()`. Wired in registry Phase 11 as `app.state.telegram_cmd_handler`.
-- **TelegramPollingLoop** (`communication.py`) - `getUpdates` long-polling fallback (30s timeout) started when `ECODIAOS_PUBLIC_URL` is not set; emits the same `TELEGRAM_MESSAGE_RECEIVED` + `TELEGRAM_OTP_RECEIVED` events as the webhook. `delete_webhook()` called first to clear any stale webhook. Supervised with `max_restarts=20`.
+- **TelegramPollingLoop** (`communication.py`) - `getUpdates` long-polling fallback (30s timeout) started when `ORGANISM_PUBLIC_URL` is not set; emits the same `TELEGRAM_MESSAGE_RECEIVED` + `TELEGRAM_OTP_RECEIVED` events as the webhook. `delete_webhook()` called first to clear any stale webhook. Supervised with `max_restarts=20`.
 - **Registry wiring**: polling vs. webhook is automatic - `inbound_mode` log field confirms which path is active.
 - **GitHubConnector PAT vault** (`connectors/github.py`) - `vault` param added to `__init__()`; env-var PAT encrypted via `vault.encrypt_token_json()` at construction time (Fernet, CPU-only). `authenticate()` method added - emits `CONNECTOR_AUTHENTICATED` with `auth_mode` (`app_iat` | `pat`) and `pat_sealed` flag. Called fire-and-forget via `asyncio.ensure_future` in `_init_github_connector`.
 - **Registry `_init_github_connector`** - resolves `identity.vault` from `app.state.identity` and passes to `GitHubConnector`.
@@ -431,9 +431,9 @@ code = await identity.otp_coordinator.wait_for_otp(
 ### Resolved (2026-03-08, Telegram Channel - Phase 16h)
 - **TelegramConnector** (`connectors/telegram.py`) - bot token auth (not OAuth2); `authenticate()` via `getMe`, `revoke()` via `logOut`; token stored as `OAuthTokenSet(access_token=token, token_type="Bot", expires_in=0)` in vault; registered in `connectors/__init__.py`
 - **Telegram webhook handler** (`communication.py`) - `POST /api/v1/identity/comm/telegram/webhook`; validates `X-Telegram-Bot-Api-Secret-Token` via `hmac.compare_digest()`; drops messages not from admin chat ID when set; emits `TELEGRAM_MESSAGE_RECEIVED` (all text) and `TELEGRAM_OTP_RECEIVED` (4-8 digit codes)
-- **Telegram status broadcast** (`telegram_broadcast.py`) - `telegram_status_broadcast_loop()` coroutine; 6h default interval (`ECODIAOS_TELEGRAM_STATUS_INTERVAL_S`); reads `synapse.metabolic_snapshot()` + `oikos.economic_state()`; skips silently when `ADMIN_CHAT_ID` not set
+- **Telegram status broadcast** (`telegram_broadcast.py`) - `telegram_status_broadcast_loop()` coroutine; 6h default interval (`ORGANISM_TELEGRAM_STATUS_INTERVAL_S`); reads `synapse.metabolic_snapshot()` + `oikos.economic_state()`; skips silently when `ADMIN_CHAT_ID` not set
 - **Registry wiring** (`core/registry.py`) - Phase 11: boot connector, `authenticate()`, wire `SendTelegramExecutor`, `set_webhook(public_url)`, start `supervised_task("telegram_status_broadcast")`
-- **New env vars**: `ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN`, `ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID`, `ECODIAOS_TELEGRAM_WEBHOOK_SECRET`, `ECODIAOS_PUBLIC_URL`, `ECODIAOS_TELEGRAM_STATUS_INTERVAL_S`
+- **New env vars**: `ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN`, `ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID`, `ORGANISM_TELEGRAM_WEBHOOK_SECRET`, `ORGANISM_PUBLIC_URL`, `ORGANISM_TELEGRAM_STATUS_INTERVAL_S`
 - **New SynapseEventType**: `TELEGRAM_MESSAGE_RECEIVED` - inbound non-OTP text from Telegram webhook
 
 ### Resolved (2026-03-07, M2 Equor Gate)

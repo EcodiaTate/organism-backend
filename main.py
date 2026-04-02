@@ -4163,8 +4163,8 @@ async def _cc_pipeline(target_url: str, task_id: str):
         from systems.simula.verification.z3_bridge import Z3Bridge as _Z3Bridge
 
         _llm_cfg = _LLMConfig(
-            provider=os.environ.get("ECODIAOS_LLM__PROVIDER", "bedrock"),
-            model=os.environ.get("ECODIAOS_LLM__MODEL", "anthropic.claude-3-5-sonnet-20241022-v2:0"),
+            provider=os.environ.get("ORGANISM_LLM__PROVIDER", "bedrock"),
+            model=os.environ.get("ORGANISM_LLM__MODEL", "anthropic.claude-3-5-sonnet-20241022-v2:0"),
         )
         _repair_llm = _create_llm(_llm_cfg)
         _z3 = _Z3Bridge(check_timeout_ms=10_000)
@@ -4358,7 +4358,7 @@ import tempfile as _tempfile
 
 from pydantic import BaseModel as _DeployBase
 
-_ECODIAOS_ROOT = _pathlib.Path(__file__).resolve().parent.parent
+_ORGANISM_ROOT = _pathlib.Path(__file__).resolve().parent.parent
 
 
 class _DeployPatchPayload(_DeployBase):
@@ -4384,8 +4384,8 @@ async def command_center_deploy_patch(payload: _DeployPatchPayload) -> _DeployPa
     """
     # Resolve and validate the target path is within the project root.
     try:
-        target = (_ECODIAOS_ROOT / payload.file_path).resolve()
-        target.relative_to(_ECODIAOS_ROOT)
+        target = (_ORGANISM_ROOT / payload.file_path).resolve()
+        target.relative_to(_ORGANISM_ROOT)
     except ValueError:
         return _DeployPatchResponse(
             success=False,

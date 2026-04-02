@@ -1148,17 +1148,17 @@ class FoveaService:
         """
         Child-side: apply inherited AtuneGenomeFragment from env var.
 
-        Reads ECODIAOS_ATUNE_GENOME_PAYLOAD (JSON-encoded AtuneGenomeFragment)
+        Reads ORGANISM_ATUNE_GENOME_PAYLOAD (JSON-encoded AtuneGenomeFragment)
         injected by LocalDockerSpawner / CloudRunSpawner at boot time.
         Non-fatal - if env var is absent or malformed, cold-starts at defaults.
         """
         import json as _json
         import os as _os
 
-        if _os.environ.get("ECODIAOS_IS_GENESIS_NODE", "").lower() in ("true", "1"):
+        if _os.environ.get("ORGANISM_IS_GENESIS_NODE", "").lower() in ("true", "1"):
             return  # Genesis instance has no parent
 
-        payload_str = _os.environ.get("ECODIAOS_ATUNE_GENOME_PAYLOAD", "")
+        payload_str = _os.environ.get("ORGANISM_ATUNE_GENOME_PAYLOAD", "")
         if not payload_str:
             return
 

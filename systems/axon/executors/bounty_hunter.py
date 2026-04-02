@@ -539,14 +539,14 @@ class BountyHunterExecutor(Executor):
                 self._logger.warning(
                     "bounty_no_config",
                     scan_id=scan_id,
-                    note="config not provided; set ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN",
+                    note="config not provided; set ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN",
                 )
                 return ExecutionResult(
                     success=False,
                     error=(
                         "BountyHunterExecutor requires ExternalPlatformsConfig. "
                         "Inject github_config into BountyHunterExecutor or set "
-                        "ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN."
+                        "ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN."
                     ),
                 )
 

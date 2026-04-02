@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
     Follows the Infrastructure Architecture spec section 3.2.
     """
     # ── 1. Load configuration ─────────────────────────────────
-    config_path = os.environ.get("ECODIAOS_CONFIG_PATH", "config/default.yaml")
+    config_path = os.environ.get("ORGANISM_CONFIG_PATH", "config/default.yaml")
     config = load_config(config_path)
     app.state.config = config
 
@@ -98,7 +98,7 @@ async def lifespan(app: FastAPI):
     # ── 8. Check for existing instance or birth new one ───────
     instance = await memory.get_self()
     if instance is None:
-        seed_path = os.environ.get("ECODIAOS_SEED_PATH", "config/seeds/example_seed.yaml")
+        seed_path = os.environ.get("ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml")
         try:
             seed = load_seed(seed_path)
             birth_result = await memory.birth(seed, config.instance_id)
@@ -151,7 +151,7 @@ def _resolve_governance_config(config: Any) -> Any:
     """Resolve governance config from seed or use defaults."""
     from config import GovernanceConfig
     try:
-        seed_path = os.environ.get("ECODIAOS_SEED_PATH", "config/seeds/example_seed.yaml")
+        seed_path = os.environ.get("ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml")
         seed = load_seed(seed_path)
         return seed.constitution.governance
     except Exception:

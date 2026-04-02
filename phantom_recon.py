@@ -162,8 +162,8 @@ async def main():
     TARGET = input("Enter Target URL (e.g., http://localhost:3000): ").strip()
 
     config = LLMConfig(
-        provider=os.environ.get("ECODIAOS_LLM__PROVIDER", "bedrock"),
-        model=os.environ.get("ECODIAOS_LLM__MODEL", "anthropic.claude-haiku-4-5-20251001-v1:0"),
+        provider=os.environ.get("ORGANISM_LLM__PROVIDER", "bedrock"),
+        model=os.environ.get("ORGANISM_LLM__MODEL", "anthropic.claude-haiku-4-5-20251001-v1:0"),
     )
     llm = create_llm_provider(config)
 

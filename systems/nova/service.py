@@ -655,7 +655,7 @@ class NovaService:
         """
         Child-side bootstrap: deserialise parent genome from environment.
 
-        Reads ECODIAOS_NOVA_GENOME_PAYLOAD (JSON-encoded NovaGenomeFragment)
+        Reads ORGANISM_NOVA_GENOME_PAYLOAD (JSON-encoded NovaGenomeFragment)
         injected by LocalDockerSpawner. If present, applies goal_domain_priors,
         policy_success_rates, belief_urgency_thresholds, and active_inference_params
         with bounded ±15% jitter for variation. Non-fatal.
@@ -664,11 +664,11 @@ class NovaService:
         import os
         import random
 
-        is_genesis = os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true"
+        is_genesis = os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true"
         if is_genesis:
             return
 
-        payload_json = os.environ.get("ECODIAOS_NOVA_GENOME_PAYLOAD", "")
+        payload_json = os.environ.get("ORGANISM_NOVA_GENOME_PAYLOAD", "")
         if not payload_json:
             return
 
@@ -780,7 +780,7 @@ class NovaService:
                         event_type=SynapseEventType.GENOME_INHERITED,
                         source_system="nova",
                         data={
-                            "child_instance_id": os.environ.get("ECODIAOS_INSTANCE_ID", ""),
+                            "child_instance_id": os.environ.get("ORGANISM_INSTANCE_ID", ""),
                             "parent_genome_id": parent.genome_id,
                             "generation": parent.generation,
                             "system": "nova",

@@ -746,7 +746,7 @@ class ScrapePageExecutor(Executor):
         if self._web is None:
             return ExecutionResult(
                 success=False,
-                error="WebIntelligenceClient not configured - set ECODIAOS_SEARCH__PROVIDER",
+                error="WebIntelligenceClient not configured - set ORGANISM_SEARCH__PROVIDER",
             )
 
         # ── robots.txt check ──────────────────────────────────────────────────

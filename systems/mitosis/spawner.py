@@ -151,7 +151,7 @@ class LocalDockerSpawner:
             signed birth certificate.
         parent_cert
             Serialised parent certificate (PEM or JSON).  Injected as
-            ``ECODIAOS_PARENT_CERTIFICATE`` so the child can verify its lineage
+            ``ORGANISM_PARENT_CERTIFICATE`` so the child can verify its lineage
             and initiate the Federation handshake back to the parent.
 
         Returns
@@ -336,35 +336,35 @@ class LocalDockerSpawner:
         """
         env: dict[str, str] = {
             # ── Identity ──
-            "ECODIAOS_INSTANCE_ID": child_config.child_instance_id,
-            "ECODIAOS_PARENT_INSTANCE_ID": child_config.parent_instance_id,
-            "ECODIAOS_IS_GENESIS_NODE": "false",
+            "ORGANISM_INSTANCE_ID": child_config.child_instance_id,
+            "ORGANISM_PARENT_INSTANCE_ID": child_config.parent_instance_id,
+            "ORGANISM_IS_GENESIS_NODE": "false",
             # ── Birth packet ──
-            "ECODIAOS_BIRTH_CERTIFICATE": child_config.birth_certificate_json,
-            "ECODIAOS_PARENT_CERTIFICATE": parent_cert,
-            "ECODIAOS_SEED_CAPITAL_USD": str(child_config.seed_capital_usd),
-            "ECODIAOS_DIVIDEND_RATE": str(child_config.dividend_rate),
+            "ORGANISM_BIRTH_CERTIFICATE": child_config.birth_certificate_json,
+            "ORGANISM_PARENT_CERTIFICATE": parent_cert,
+            "ORGANISM_SEED_CAPITAL_USD": str(child_config.seed_capital_usd),
+            "ORGANISM_DIVIDEND_RATE": str(child_config.dividend_rate),
             # ── Niche ──
-            "ECODIAOS_NICHE_NAME": child_config.niche.name,
-            "ECODIAOS_NICHE_DESCRIPTION": child_config.niche.description,
+            "ORGANISM_NICHE_NAME": child_config.niche.name,
+            "ORGANISM_NICHE_DESCRIPTION": child_config.niche.description,
             # ── Genome inheritance ──
-            "ECODIAOS_ORGANISM_GENOME_ID": child_config.organism_genome_id,
-            "ECODIAOS_BELIEF_GENOME_ID": child_config.belief_genome_id,
-            "ECODIAOS_SIMULA_GENOME_ID": child_config.simula_genome_id,
-            "ECODIAOS_EQUOR_GENOME_ID": child_config.equor_genome_id,
-            "ECODIAOS_AXON_GENOME_ID": child_config.axon_genome_id,
-            "ECODIAOS_GENERATION": str(child_config.generation),
+            "ORGANISM_ORGANISM_GENOME_ID": child_config.organism_genome_id,
+            "ORGANISM_BELIEF_GENOME_ID": child_config.belief_genome_id,
+            "ORGANISM_SIMULA_GENOME_ID": child_config.simula_genome_id,
+            "ORGANISM_EQUOR_GENOME_ID": child_config.equor_genome_id,
+            "ORGANISM_AXON_GENOME_ID": child_config.axon_genome_id,
+            "ORGANISM_GENERATION": str(child_config.generation),
             # ── Server ports (inside the container, always default) ──
-            "ECODIAOS_SERVER__PORT": str(_INTERNAL_HTTP_PORT),
-            "ECODIAOS_SERVER__WS_PORT": str(_INTERNAL_WS_PORT),
-            "ECODIAOS_SERVER__FEDERATION_PORT": str(_INTERNAL_FED_PORT),
+            "ORGANISM_SERVER__PORT": str(_INTERNAL_HTTP_PORT),
+            "ORGANISM_SERVER__WS_PORT": str(_INTERNAL_WS_PORT),
+            "ORGANISM_SERVER__FEDERATION_PORT": str(_INTERNAL_FED_PORT),
             # ── Config paths ──
-            "ECODIAOS_CONFIG_PATH": "/app/config/default.yaml",
+            "ORGANISM_CONFIG_PATH": "/app/config/default.yaml",
         }
 
         # Inject niche-specific overrides from SeedConfiguration
         for key, value in child_config.child_config_overrides.items():
-            env_key = f"ECODIAOS_{key.upper()}"
+            env_key = f"ORGANISM_{key.upper()}"
             env[env_key] = value
 
         return env

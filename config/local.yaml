@@ -1,5 +1,5 @@
 # EcodiaOS — Local development overrides
-# Usage: ECODIAOS_CONFIG_PATH=config/local.yaml uvicorn ecodiaos.main:app
+# Usage: ORGANISM_CONFIG_PATH=config/local.yaml uvicorn ecodiaos.main:app
 
 server:
   host: "0.0.0.0"

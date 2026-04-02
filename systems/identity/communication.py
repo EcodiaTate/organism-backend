@@ -13,7 +13,7 @@ Security notes:
     Omitting keep_blank_values=True causes signature mismatches on messages with
     fields like NumMedia whose value is an empty string.
   - The Twilio auth token is from config.identity_comm.twilio_auth_token
-    (env: ECODIAOS_IDENTITY_COMM__TWILIO_AUTH_TOKEN) and is never logged.
+    (env: ORGANISM_IDENTITY_COMM__TWILIO_AUTH_TOKEN) and is never logged.
 """
 
 from __future__ import annotations
@@ -389,7 +389,7 @@ class IMAPScanner:
         if not self._comm.imap_host or not self._comm.imap_username:
             logger.info(
                 "imap_scanner_not_started",
-                reason="ECODIAOS_IDENTITY_COMM__IMAP_HOST or __IMAP_USERNAME not set",
+                reason="ORGANISM_IDENTITY_COMM__IMAP_HOST or __IMAP_USERNAME not set",
             )
             return
 
@@ -586,7 +586,7 @@ async def provision_new_phone_number(
     if missing:
         raise RuntimeError(
             f"Twilio credentials not configured: {missing}. "
-            "Set ECODIAOS_IDENTITY_COMM__TWILIO_ACCOUNT_SID and __TWILIO_AUTH_TOKEN."
+            "Set ORGANISM_IDENTITY_COMM__TWILIO_ACCOUNT_SID and __TWILIO_AUTH_TOKEN."
         )
 
     country_upper = country.upper().strip()
@@ -596,7 +596,7 @@ async def provision_new_phone_number(
             f"Country '{country}' is not in the supported list. "
             f"Supported: {sorted(_TWILIO_COUNTRY_CODES)}. "
             "You can manually provision a Twilio number for this country and set "
-            "ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER directly."
+            "ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER directly."
         )
 
     log = logger.bind(area_code=area_code, country=twilio_country, account_sid=account_sid[:8] + "…")
@@ -713,7 +713,7 @@ async def provision_new_phone_number(
         elif not webhook_base:
             log.warning(
                 "twilio_number_webhook_not_configured",
-                reason="ECODIAOS_IDENTITY_COMM__WEBHOOK_BASE_URL not set",
+                reason="ORGANISM_IDENTITY_COMM__WEBHOOK_BASE_URL not set",
                 action="set it or configure Twilio webhook manually in Console",
                 sms_url_should_be="<your-public-url>/api/v1/identity/webhook/twilio",
             )
@@ -1039,7 +1039,7 @@ async def telegram_inbound_webhook(
     cfg = _get_config(request)
 
     # ── Secret token validation ───────────────────────────────────────────
-    webhook_secret = _os.environ.get("ECODIAOS_TELEGRAM_WEBHOOK_SECRET", "")
+    webhook_secret = _os.environ.get("ORGANISM_TELEGRAM_WEBHOOK_SECRET", "")
     if not webhook_secret:
         logger.warning("telegram_webhook_rejected", reason="webhook_secret_not_configured")
         raise HTTPException(status_code=503, detail="Telegram webhook secret not configured")
@@ -1378,7 +1378,7 @@ class TelegramPollingLoop:
         timestamp: int = message.get("date", 0)
 
         # Admin chat guard
-        admin_chat_id_str = _os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
+        admin_chat_id_str = _os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
         admin_chat_id: int | None = int(admin_chat_id_str) if admin_chat_id_str else None
         if admin_chat_id is not None and chat_id != admin_chat_id:
             return

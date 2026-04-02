@@ -806,8 +806,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="EcodiaOS Simula Worker")
     parser.add_argument(
         "--config",
-        default=os.getenv("ECODIAOS_CONFIG_PATH"),
-        help="Path to YAML config file (default: ECODIAOS_CONFIG_PATH env var)",
+        default=os.getenv("ORGANISM_CONFIG_PATH"),
+        help="Path to YAML config file (default: ORGANISM_CONFIG_PATH env var)",
     )
     args = parser.parse_args()
 

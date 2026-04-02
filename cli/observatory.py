@@ -36,12 +36,12 @@ from typing import Any
 
 import httpx
 
-API_BASE = os.environ.get("ECODIAOS_API_URL", "http://localhost:8000")
+API_BASE = os.environ.get("ORGANISM_API_URL", "http://localhost:8000")
 
 
 def _build_redis_url() -> str:
-    url = os.environ.get("ECODIAOS_REDIS__URL", os.environ.get("REDIS_URL", "redis://localhost:6379")).strip()
-    pw = os.environ.get("ECODIAOS_REDIS_PASSWORD", "").strip()
+    url = os.environ.get("ORGANISM_REDIS__URL", os.environ.get("REDIS_URL", "redis://localhost:6379")).strip()
+    pw = os.environ.get("ORGANISM_REDIS_PASSWORD", "").strip()
     if pw and "://" in url and "@" not in url:
         scheme, rest = url.split("://", 1)
         url = f"{scheme}://:{pw}@{rest}"

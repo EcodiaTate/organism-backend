@@ -75,7 +75,7 @@ async def create_infra(config: Any) -> InfraClients:
     logger.info(
         "ecodiaos_starting",
         instance_id=config.instance_id,
-        config_path=os.environ.get("ECODIAOS_CONFIG_PATH", "config/default.yaml"),
+        config_path=os.environ.get("ORGANISM_CONFIG_PATH", "config/default.yaml"),
     )
 
     # ── 2. Data stores ────────────────────────────────────────

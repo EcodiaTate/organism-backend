@@ -244,7 +244,7 @@ All core components confirmed in code:
 - ✅ `DecisionRecord` written to Neo4j as `(:Decision)` node - `_persist_decision_record()` fires fire-and-forget from `_record_decision()`; links `[:MOTIVATED_BY]` to `(:Goal)` when goal_id is set
 - ✅ Redis Stream emission - `re_training_queue` populated when `re_training_eligible=True`; Redis accessed via `memory._redis` or `synapse._redis`
 - ✅ Thompson sampler routing - `ThompsonSampler` class in `policy_generator.py`; Beta-Bernoulli conjugate; `PolicyGenerator` routes to RE when sampler wins and `re_client` is wired; state persisted to Redis key `nova:thompson_sampler`
-- ✅ **RE client wired (2026-03-07)** - `ReasoningEngineService` (vLLM wrapper) created in `registry._init_reasoning_engine()`, passed as `re_client` to `PolicyGenerator`, `sampler.set_re_ready(True)` called when `re_service.is_available`; Claude-only if vLLM unreachable or `ECODIAOS_RE_ENABLED=false`
+- ✅ **RE client wired (2026-03-07)** - `ReasoningEngineService` (vLLM wrapper) created in `registry._init_reasoning_engine()`, passed as `re_client` to `PolicyGenerator`, `sampler.set_re_ready(True)` called when `re_service.is_available`; Claude-only if vLLM unreachable or `ORGANISM_RE_ENABLED=false`
 - ✅ Thread integration - `set_thread()` method added; `THREAD_COMMIT_REQUEST` emitted via `_emit_thread_commit_request()` at end of `process_outcome()` for every resolved intent
 - ✅ Multi-goal conflict detection - `detect_conflicts()` added to `GoalManager`; 2 heuristics (drive opposition, criteria textual contradiction); called every 100 broadcasts; conflicts emit `GOAL_CONFLICT_DETECTED` events
 - ✅ Procedure template induction - successful slow-path decisions (EFE < −0.3, intent dispatched) persisted as `(:Procedure)` nodes in Neo4j via `_induce_procedure_from_record()`; loaded back into `_DYNAMIC_PROCEDURES` via `_load_induced_procedures()` on startup
@@ -395,7 +395,7 @@ Learning resources from `LearningOpportunityScanner` bypass the goal system enti
 After `_init_nova()`, registry wires:
 ```python
 nova._opportunity_scanner.set_redis(infra.redis)
-nova._opportunity_scanner.set_basescan_api_key(os.environ.get("ECODIAOS_BASESCAN_API_KEY", ""))
+nova._opportunity_scanner.set_basescan_api_key(os.environ.get("ORGANISM_BASESCAN_API_KEY", ""))
 ```
 
 ### Events
@@ -427,7 +427,7 @@ nova._opportunity_scanner.set_basescan_api_key(os.environ.get("ECODIAOS_BASESCAN
 - `thompson_arm_history` extracted from `sampler._arms`: `alpha`, `beta`, `total_trials` (= alpha+beta−2), `consecutive_failures`, `ready`
 - Arms with < 10 real trials are excluded (too little signal to inherit)
 
-**Apply:** `NovaService._apply_inherited_nova_genome_if_child()` - called from `initialize()` (try/except, non-fatal). Reads `ECODIAOS_NOVA_GENOME_PAYLOAD` env var. Skipped on genesis nodes (`ECODIAOS_IS_GENESIS_NODE=true`). Emits `GENOME_INHERITED` on success.
+**Apply:** `NovaService._apply_inherited_nova_genome_if_child()` - called from `initialize()` (try/except, non-fatal). Reads `ORGANISM_NOVA_GENOME_PAYLOAD` env var. Skipped on genesis nodes (`ORGANISM_IS_GENESIS_NODE=true`). Emits `GENOME_INHERITED` on success.
 - Thompson arm seeding: if arm already registered → overwrite alpha/beta; if not → `sampler.register_arm()` with inherited priors
 - Arms that were `ready=False` or had `consecutive_failures >= 3` in parent get `alpha *= 0.85` discount - child inherits partial skepticism, not full failure
 - Non-fatal per-arm: exceptions silently skipped; `thompson_arms_seeded` count logged

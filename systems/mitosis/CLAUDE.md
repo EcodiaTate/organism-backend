@@ -81,7 +81,7 @@ When a child transitions to `INDEPENDENT`, `on_child_health_report()` sets `chil
 
 ### HIGH #2 - Child-side health reporter
 - `health_reporter.py`: `ChildHealthReporter` - emits `CHILD_HEALTH_REPORT` every 10 minutes
-- Only active when `ECODIAOS_IS_GENESIS_NODE != 'true'`
+- Only active when `ORGANISM_IS_GENESIS_NODE != 'true'`
 - Collects: cpu_usage (Soma or psutil fallback), memory_usage, hypothesis_count (Evo), drive_alignment_scores, constitutional_drift_severity (Equor), financial fields
 - First report delayed 30s to allow boot
 - **Subscribes to `CHILD_HEALTH_REQUEST`** (2026-03-08): `_on_child_health_request()` responds immediately when parent probes this child instance - calls `_emit_report()` directly rather than waiting for the next 10-min cycle. Filters by `child_instance_id` to ignore probes for other children.
@@ -107,7 +107,7 @@ When a child transitions to `INDEPENDENT`, `on_child_health_report()` sets `chil
 
 ### MEDIUM #6 - Child-side certificate validation handshake
 - `cert_handshake.py`: `ChildCertHandshake` - full X.509 validation pipeline
-- Validates `ECODIAOS_BIRTH_CERTIFICATE` against `ECODIAOS_GENESIS_CA_CERT` using `cryptography` library
+- Validates `ORGANISM_BIRTH_CERTIFICATE` against `ORGANISM_GENESIS_CA_CERT` using `cryptography` library
 - Falls back to basic PEM structure check if library unavailable
 - On success: emits `CHILD_WALLET_REPORTED` (triggers seed transfer) + `FEDERATION_PEER_CONNECTED` (initiates mTLS)
 
@@ -146,22 +146,22 @@ When a child transitions to `INDEPENDENT`, `on_child_health_report()` sets `chil
 | **`EquorGenomeFragment` in primitives** | `AmendmentSnapshot` + `EquorGenomeFragment` added to `primitives/genome_inheritance.py`. Both exported from `primitives/__init__.py`. |
 | **`SpawnChildExecutor` equor wired** | `equor: EquorService | None` added to executor; Step 0b calls `equor.export_equor_genome()` (alongside evo/simula). `equor_genome_id` added to CHILD_SPAWNED event + ExecutionResult. Payload serialised into `seed_config.child_config_overrides["equor_genome_payload"]`. |
 | **`SeedConfiguration.equor_genome_id`** | Field added to `oikos/models.py` `SeedConfiguration` after `simula_genome_id`. |
-| **`ECODIAOS_EQUOR_GENOME_ID` env var** | `LocalDockerSpawner` now injects `ECODIAOS_EQUOR_GENOME_ID` alongside belief/simula genome IDs. The full payload becomes `ECODIAOS_EQUOR_GENOME_PAYLOAD`. |
+| **`ORGANISM_EQUOR_GENOME_ID` env var** | `LocalDockerSpawner` now injects `ORGANISM_EQUOR_GENOME_ID` alongside belief/simula genome IDs. The full payload becomes `ORGANISM_EQUOR_GENOME_PAYLOAD`. |
 | **`wire_mitosis_phase()` equor param** | `equor: Any = None` added to `core/wiring.py:wire_mitosis_phase()`; injects `spawn_executor._equor = equor`. Logged with `equor_wired=True/False`. |
 | **`registry.py` call updated** | `wire_mitosis_phase(..., equor=equor)` - equor is in scope at the call site. |
-| **Child-side application** | `EquorService.initialize()` calls `_apply_inherited_equor_genome_if_child()` on child boot. Reads `ECODIAOS_EQUOR_GENOME_PAYLOAD`, deserialises `EquorGenomeFragment`, calls `EquorGenomeExtractor.apply_inherited_amendments()`. Writes `inherited_constitutional_wisdom` to Memory.Self. |
+| **Child-side application** | `EquorService.initialize()` calls `_apply_inherited_equor_genome_if_child()` on child boot. Reads `ORGANISM_EQUOR_GENOME_PAYLOAD`, deserialises `EquorGenomeFragment`, calls `EquorGenomeExtractor.apply_inherited_amendments()`. Writes `inherited_constitutional_wisdom` to Memory.Self. |
 
 ## Gap Closure (7 Mar 2026 - Spec 18 SG3: Telos Drive Calibration Inheritance)
 
 | Fix | Description |
 |-----|-------------|
 | **`TeloDriveCalibration` + `TelosGenomeFragment` in primitives** | Added to `primitives/genome_inheritance.py`. Per-drive calibration: `resonance_curve_coefficients`, `dissipation_baseline`, `coupling_strength`, `mutation_ranges`, `last_adapted`. Both exported from `primitives/__init__.py`. |
-| **`SpawnChildExecutor` telos wired** | `telos: TelosService | None` added to executor; Step 0b calls `telos.export_telos_genome()`. `telos_genome_id` added to `CHILD_SPAWNED` event + `ExecutionResult`. Payload serialised into `seed_config.child_config_overrides["telos_genome_payload"]` → `ECODIAOS_TELOS_GENOME_PAYLOAD` env var. |
+| **`SpawnChildExecutor` telos wired** | `telos: TelosService | None` added to executor; Step 0b calls `telos.export_telos_genome()`. `telos_genome_id` added to `CHILD_SPAWNED` event + `ExecutionResult`. Payload serialised into `seed_config.child_config_overrides["telos_genome_payload"]` → `ORGANISM_TELOS_GENOME_PAYLOAD` env var. |
 | **`SeedConfiguration.telos_genome_id`** | Field added to `oikos/models.py` `SeedConfiguration` after `axon_genome_id`. |
 | **`TELOS_GENOME_EXTRACTED` SynapseEvent** | Emitted by `TelosService.export_telos_genome()` with genome_id, drive_count, topology. |
 | **`GENOME_INHERITED` SynapseEvent** | Emitted by `TelosService._initialize_from_parent_genome()` post-jitter, with per-drive mutation deltas. Evo `_on_genome_inherited()` queues drive mutation `PatternCandidate`s for hypothesis generation. |
 | **Bounded Gaussian jitter** | `_apply_genetic_mutation()`: resonance ±15%, dissipation ±10%, coupling ±20%; σ=(hi−lo)/6, clamped. |
-| **Child-side application** | `TelosService.initialize()` calls `_apply_inherited_telos_genome_if_child()`. Reads `ECODIAOS_TELOS_GENOME_PAYLOAD`; skipped on genesis node (`ECODIAOS_IS_GENESIS_NODE=true`). |
+| **Child-side application** | `TelosService.initialize()` calls `_apply_inherited_telos_genome_if_child()`. Reads `ORGANISM_TELOS_GENOME_PAYLOAD`; skipped on genesis node (`ORGANISM_IS_GENESIS_NODE=true`). |
 | **`wire_mitosis_phase()` telos param** | `telos: Any = None` added to `core/wiring.py:wire_mitosis_phase()`; injects `spawn_executor._telos = telos`. `registry.py` call updated with `telos=telos`. |
 
 ## Gap Closure (2026-03-07 - event coverage)
@@ -395,7 +395,7 @@ Added to `synapse/types.py`:
 `SpawnChildExecutor` called `export_belief_genome()` and `export_simula_genome()` and
 extracted genome IDs, but **never serialized the JSON payloads** into `child_config_overrides`.
 Children booted with correct `belief_genome_id`/`simula_genome_id` values in `CHILD_SPAWNED`
-but received empty `ECODIAOS_BELIEF_GENOME_PAYLOAD` and `ECODIAOS_SIMULA_GENOME_PAYLOAD` env
+but received empty `ORGANISM_BELIEF_GENOME_PAYLOAD` and `ORGANISM_SIMULA_GENOME_PAYLOAD` env
 vars - so no hypothesis priors or evolution params were actually inherited.
 
 Soma's `export_somatic_genome()` existed but was **completely absent** from the spawn pipeline.
@@ -405,30 +405,30 @@ Soma's `export_somatic_genome()` existed but was **completely absent** from the 
 | Fix | Description |
 |-----|-------------|
 | **`belief_genome` outer-scope variable** | `belief_genome: object \| None = None` declared before the `if not belief_genome_id` block so it's accessible for serialization. |
-| **Belief payload serialized** | After telos payload, `belief_genome.model_dump_for_transport()` → JSON → `seed_config.child_config_overrides["belief_genome_payload"]` → `ECODIAOS_BELIEF_GENOME_PAYLOAD` env var on child. |
+| **Belief payload serialized** | After telos payload, `belief_genome.model_dump_for_transport()` → JSON → `seed_config.child_config_overrides["belief_genome_payload"]` → `ORGANISM_BELIEF_GENOME_PAYLOAD` env var on child. |
 | **`simula_genome` outer-scope variable** | Same pattern as belief_genome. |
-| **Simula payload serialized** | `simula_genome.model_dump_for_transport()` → JSON → `seed_config.child_config_overrides["simula_genome_payload"]` → `ECODIAOS_SIMULA_GENOME_PAYLOAD`. |
-| **Soma genome export added** | `SpawnChildExecutor` now has `self._soma` attribute. Step 0b calls `soma.export_somatic_genome()`, serializes via `.model_dump()` → `seed_config.child_config_overrides["soma_genome_payload"]` → `ECODIAOS_SOMA_GENOME_PAYLOAD`. |
+| **Simula payload serialized** | `simula_genome.model_dump_for_transport()` → JSON → `seed_config.child_config_overrides["simula_genome_payload"]` → `ORGANISM_SIMULA_GENOME_PAYLOAD`. |
+| **Soma genome export added** | `SpawnChildExecutor` now has `self._soma` attribute. Step 0b calls `soma.export_somatic_genome()`, serializes via `.model_dump()` → `seed_config.child_config_overrides["soma_genome_payload"]` → `ORGANISM_SOMA_GENOME_PAYLOAD`. |
 | **`SpawnChildExecutor` soma param** | `soma: Any \| None = None` added to constructor. `wire_mitosis_phase()` injects `spawn_executor._soma = soma`. |
 | **`SeedConfiguration.soma_genome_id`** | Field added to `oikos/models.py` after `telos_genome_id`. |
 | **`wire_mitosis_phase()` soma param** | `soma: Any = None` added to signature; injected if not None; logged with `soma_wired`. |
 | **`registry.py` call updated** | `wire_mitosis_phase(..., soma=soma)` - soma is in scope at the call site. |
-| **`EvoService._apply_inherited_belief_genome_if_child()`** | New method. Reads `ECODIAOS_BELIEF_GENOME_PAYLOAD`, validates `BeliefGenome`, injects each hypothesis as a `PatternCandidate` into `_pending_candidates` with `confidence * 0.95` discount. Stores inherited drive weights + drift history. Emits `GENOME_INHERITED` on Synapse. Called from `initialize()` with try/except. |
-| **`SimulaService._apply_inherited_simula_genome_if_child()`** | New method. Reads `ECODIAOS_SIMULA_GENOME_PAYLOAD`, validates `SimulaGenome`, applies learnable params to `self._config` with ±10% Gaussian jitter. Stores mutation history. Emits `GENOME_INHERITED` if Synapse available. Called from `initialize()` with try/except. |
-| **`SomaService._apply_inherited_soma_genome_if_child()`** | New method. Reads `ECODIAOS_SOMA_GENOME_PAYLOAD`, validates `OrganGenomeSegment`, delegates to existing `seed_child_from_genome()` (which applies ±5% setpoint noise + ±2% dynamics noise). Called from `initialize()` with try/except. |
+| **`EvoService._apply_inherited_belief_genome_if_child()`** | New method. Reads `ORGANISM_BELIEF_GENOME_PAYLOAD`, validates `BeliefGenome`, injects each hypothesis as a `PatternCandidate` into `_pending_candidates` with `confidence * 0.95` discount. Stores inherited drive weights + drift history. Emits `GENOME_INHERITED` on Synapse. Called from `initialize()` with try/except. |
+| **`SimulaService._apply_inherited_simula_genome_if_child()`** | New method. Reads `ORGANISM_SIMULA_GENOME_PAYLOAD`, validates `SimulaGenome`, applies learnable params to `self._config` with ±10% Gaussian jitter. Stores mutation history. Emits `GENOME_INHERITED` if Synapse available. Called from `initialize()` with try/except. |
+| **`SomaService._apply_inherited_soma_genome_if_child()`** | New method. Reads `ORGANISM_SOMA_GENOME_PAYLOAD`, validates `OrganGenomeSegment`, delegates to existing `seed_child_from_genome()` (which applies ±5% setpoint noise + ±2% dynamics noise). Called from `initialize()` with try/except. |
 
 ### Complete Genome Inheritance Matrix (post 8 Mar 2026)
 
 | System | Export method | Child reads env var | Applies via | Jitter |
 |--------|--------------|---------------------|-------------|--------|
-| Evo | `export_belief_genome()` | `ECODIAOS_BELIEF_GENOME_PAYLOAD` | `_apply_inherited_belief_genome_if_child()` | confidence × 0.95 |
-| Simula | `export_simula_genome()` | `ECODIAOS_SIMULA_GENOME_PAYLOAD` | `_apply_inherited_simula_genome_if_child()` | ±10% Gaussian |
-| Equor | `export_equor_genome()` | `ECODIAOS_EQUOR_GENOME_PAYLOAD` | `_apply_inherited_equor_genome_if_child()` | None |
-| Axon | `export_axon_genome()` | `ECODIAOS_AXON_GENOME_PAYLOAD` | `_initialize_from_parent_templates()` | None (confidence 0.6 vs 0.8) |
-| Telos | `export_telos_genome()` | `ECODIAOS_TELOS_GENOME_PAYLOAD` | `_apply_inherited_telos_genome_if_child()` | ±15%/±10%/±20% |
-| Soma | `export_somatic_genome()` | `ECODIAOS_SOMA_GENOME_PAYLOAD` | `_apply_inherited_soma_genome_if_child()` | ±5% setpoints, ±2% dynamics |
-| Nova | `export_nova_genome()` | `ECODIAOS_NOVA_GENOME_PAYLOAD` | `_apply_inherited_nova_genome_if_child()` | ±15% Gaussian |
-| Voxis | `export_voxis_genome()` | `ECODIAOS_VOXIS_GENOME_PAYLOAD` | `_apply_inherited_voxis_genome_if_child()` | ±10% Gaussian |
+| Evo | `export_belief_genome()` | `ORGANISM_BELIEF_GENOME_PAYLOAD` | `_apply_inherited_belief_genome_if_child()` | confidence × 0.95 |
+| Simula | `export_simula_genome()` | `ORGANISM_SIMULA_GENOME_PAYLOAD` | `_apply_inherited_simula_genome_if_child()` | ±10% Gaussian |
+| Equor | `export_equor_genome()` | `ORGANISM_EQUOR_GENOME_PAYLOAD` | `_apply_inherited_equor_genome_if_child()` | None |
+| Axon | `export_axon_genome()` | `ORGANISM_AXON_GENOME_PAYLOAD` | `_initialize_from_parent_templates()` | None (confidence 0.6 vs 0.8) |
+| Telos | `export_telos_genome()` | `ORGANISM_TELOS_GENOME_PAYLOAD` | `_apply_inherited_telos_genome_if_child()` | ±15%/±10%/±20% |
+| Soma | `export_somatic_genome()` | `ORGANISM_SOMA_GENOME_PAYLOAD` | `_apply_inherited_soma_genome_if_child()` | ±5% setpoints, ±2% dynamics |
+| Nova | `export_nova_genome()` | `ORGANISM_NOVA_GENOME_PAYLOAD` | `_apply_inherited_nova_genome_if_child()` | ±15% Gaussian |
+| Voxis | `export_voxis_genome()` | `ORGANISM_VOXIS_GENOME_PAYLOAD` | `_apply_inherited_voxis_genome_if_child()` | ±10% Gaussian |
 
 ## Gap Closure (8 Mar 2026 - Nova/Voxis Genome Inheritance)
 
@@ -437,9 +437,9 @@ Soma's `export_somatic_genome()` existed but was **completely absent** from the 
 | **`NovaGenomeFragment` in primitives** | Added to `primitives/genome_inheritance.py`. Fields: `goal_domain_priors`, `policy_success_rates`, `belief_urgency_thresholds`, `active_inference_params`. Exported from `primitives/__init__.py`. |
 | **`VoxisGenomeFragment` in primitives** | Added to `primitives/genome_inheritance.py`. Fields: `personality_vector`, `vocabulary_affinities`, `strategy_preferences`. Exported from `primitives/__init__.py`. |
 | **`NovaService.export_nova_genome()`** | Extracts top-20 domain weights from GoalManager, policy success rates from last 200 decision records, urgency thresholds from BeliefUrgencyMonitor, EFE weights. Called by SpawnChildExecutor Step 0b. |
-| **`NovaService._apply_inherited_nova_genome_if_child()`** | Reads `ECODIAOS_NOVA_GENOME_PAYLOAD`. Applies with ±15% jitter to GoalManager priors, PolicyGenerator rates, urgency thresholds, EFE evaluator weights. Emits `GENOME_INHERITED`. Called from `initialize()` with try/except. |
+| **`NovaService._apply_inherited_nova_genome_if_child()`** | Reads `ORGANISM_NOVA_GENOME_PAYLOAD`. Applies with ±15% jitter to GoalManager priors, PolicyGenerator rates, urgency thresholds, EFE evaluator weights. Emits `GENOME_INHERITED`. Called from `initialize()` with try/except. |
 | **`VoxisService.export_voxis_genome()`** | Extracts personality vector from PersonalityEngine, top-500 vocabulary affinities from DiversityTracker, strategy preferences from last 100 expressions. Called by SpawnChildExecutor Step 0b. |
-| **`VoxisService._apply_inherited_voxis_genome_if_child()`** | Reads `ECODIAOS_VOXIS_GENOME_PAYLOAD`. Applies with ±10% jitter. Emits `GENOME_INHERITED`. Called from `initialize()` with try/except. |
+| **`VoxisService._apply_inherited_voxis_genome_if_child()`** | Reads `ORGANISM_VOXIS_GENOME_PAYLOAD`. Applies with ±10% jitter. Emits `GENOME_INHERITED`. Called from `initialize()` with try/except. |
 | **`SpawnChildExecutor` nova+voxis wired** | `nova` + `voxis` constructor params added; Step 0b extraction + payload injection; `nova_genome_id`/`voxis_genome_id` in `CHILD_SPAWNED` event + `ExecutionResult`; `_build_seed_config_for_spawner` extended. |
 | **`SeedConfiguration.nova_genome_id`/`voxis_genome_id`** | Fields added to `oikos/models.py` `SeedConfiguration` after `soma_genome_id`. |
 | **`wire_mitosis_phase()` nova+voxis params** | `nova: Any = None` + `voxis: Any = None` added to `core/wiring.py:wire_mitosis_phase()`; injects `spawn_executor._nova`/`_voxis`. Logged with `nova_wired`/`voxis_wired`. |

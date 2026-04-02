@@ -153,7 +153,7 @@ Three curiosity parameters are registered with Evo's parameter tuner and are her
 `FoveaService` wires these into the rest of the organism:
 - `_on_evo_workspace_param_adjusted()` - handles `EVO_PARAMETER_ADJUSTED` for `atune.workspace.*`, converts absolute Evo value to delta from default, calls `workspace.adjust_param()`
 - `export_atune_genome(instance_id, generation)` - returns `AtuneGenomeFragment` from live workspace state
-- `_apply_inherited_atune_genome_if_child()` - reads `ECODIAOS_ATUNE_GENOME_PAYLOAD` env var at startup, applies parent curiosity params with jitter, emits `GENOME_INHERITED`
+- `_apply_inherited_atune_genome_if_child()` - reads `ORGANISM_ATUNE_GENOME_PAYLOAD` env var at startup, applies parent curiosity params with jitter, emits `GENOME_INHERITED`
 - `_on_curiosity_positive_signal()` - subscribes to `EVO_HYPOTHESIS_CREATED` and `COHERENCE_SHIFT`; resolves all pending (`-1`) curiosity outcomes as positive
 
 ### AtuneGenomeFragment (primitives/genome_inheritance.py)

@@ -7,12 +7,12 @@ Auth: Bot token. The vault must hold a token envelope with purpose="oauth_token"
 containing:
     {
         "access_token": "<bot_token>",
-        "channel_id": "123456789"  # optional; falls back to ECODIAOS_DISCORD_CHANNEL_ID
+        "channel_id": "123456789"  # optional; falls back to ORGANISM_DISCORD_CHANNEL_ID
     }
 
 Env var fallback:
-    ECODIAOS_DISCORD_CHANNEL_ID - Discord channel ID (numeric)
-    ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN - bot token
+    ORGANISM_DISCORD_CHANNEL_ID - Discord channel ID (numeric)
+    ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN - bot token
 
 API:
     POST https://discord.com/api/v10/channels/{channel_id}/messages
@@ -75,7 +75,7 @@ class DiscordClient:
 
         Args:
             text: Message text (≤2,000 chars).
-            channel_id: Discord channel ID (numeric). Falls back to ECODIAOS_DISCORD_CHANNEL_ID.
+            channel_id: Discord channel ID (numeric). Falls back to ORGANISM_DISCORD_CHANNEL_ID.
 
         Returns:
             PostResult - never raises.
@@ -311,9 +311,9 @@ class DiscordClient:
 
         # env var fallbacks
         if not token:
-            token = os.getenv("ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN", "")
+            token = os.getenv("ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN", "")
         if not channel_id:
-            channel_id = os.getenv("ECODIAOS_DISCORD_CHANNEL_ID", "")
+            channel_id = os.getenv("ORGANISM_DISCORD_CHANNEL_ID", "")
 
         return token, channel_id
 

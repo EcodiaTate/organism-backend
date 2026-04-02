@@ -11,7 +11,7 @@ Design decisions:
     versioning, and timestamping, making misuse harder.
   - The master key is derived from a high-entropy passphrase via PBKDF2
     (600 000 iterations, SHA-256) so the system can be bootstrapped from a
-    single env var (ECODIAOS_VAULT_PASSPHRASE).
+    single env var (ORGANISM_VAULT_PASSPHRASE).
   - Each encrypt() call produces a fresh IV - ciphertext is never
     deterministic, defeating frequency analysis.
   - The vault emits Synapse events on encrypt/decrypt failures and key

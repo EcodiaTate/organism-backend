@@ -198,8 +198,8 @@ with no hypothesis priors regardless of what the parent exported.
 
 **Fix:**
 - `_apply_inherited_belief_genome_if_child()` added to `EvoService`
-- Reads `ECODIAOS_BELIEF_GENOME_PAYLOAD` (JSON-encoded `BeliefGenome`)
-- Skips silently if `ECODIAOS_IS_GENESIS_NODE=true` or env var absent
+- Reads `ORGANISM_BELIEF_GENOME_PAYLOAD` (JSON-encoded `BeliefGenome`)
+- Skips silently if `ORGANISM_IS_GENESIS_NODE=true` or env var absent
 - Each inherited hypothesis is added to `_pending_candidates` as a `PatternCandidate` with:
   - `pattern_type=COOCCURRENCE`, elements include `"inherited:{category}"` + statement (first 120 chars)
   - `confidence = parent_confidence × 0.95` (5% discount per generation)

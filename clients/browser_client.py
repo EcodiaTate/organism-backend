@@ -15,8 +15,8 @@ Dependencies (install once, lazy-imported):
   playwright install chromium
 
 Configuration:
-  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_HEADLESS  - default True
-  ECODIAOS_ACCOUNT_PROVISIONER__BROWSER_STEALTH   - default True
+  ORGANISM_ACCOUNT_PROVISIONER__BROWSER_HEADLESS  - default True
+  ORGANISM_ACCOUNT_PROVISIONER__BROWSER_STEALTH   - default True
 
 Thread-safety: NOT thread-safe. Single-threaded asyncio like all EOS clients.
 """

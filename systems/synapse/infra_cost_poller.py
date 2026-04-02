@@ -73,7 +73,7 @@ class InfrastructureCostPoller:
 
         # Static fallback: if set, use this instead of querying API
         self._static_cost_override = os.environ.get(
-            "ECODIAOS_INFRA_COST_USD_PER_HOUR", ""
+            "ORGANISM_INFRA_COST_USD_PER_HOUR", ""
         )
 
     def start(self) -> None:

@@ -68,7 +68,7 @@ class SystemRegistry:
 
     async def startup(self, app: Any) -> None:
         """Full organism startup - infrastructure → systems → wiring → smoke tests."""
-        config_path = os.environ.get("ECODIAOS_CONFIG_PATH", "config/default.yaml")
+        config_path = os.environ.get("ORGANISM_CONFIG_PATH", "config/default.yaml")
         config = load_config(config_path)
         app.state.config = config
         app.state.identity_comm_config = config.identity_comm
@@ -159,7 +159,7 @@ class SystemRegistry:
         # read from Redis and MarketTimingScanner can call the BaseScan gas oracle.
         if infra.redis is not None:
             nova._opportunity_scanner.set_redis(infra.redis)
-        _basescan_key = os.environ.get("ECODIAOS_BASESCAN_API_KEY", "")
+        _basescan_key = os.environ.get("ORGANISM_BASESCAN_API_KEY", "")
         if _basescan_key:
             nova._opportunity_scanner.set_basescan_api_key(_basescan_key)
 
@@ -651,7 +651,7 @@ class SystemRegistry:
             from systems.identity.account_provisioner import AccountProvisioner
             from systems.identity.vault import IdentityVault as _ProvVault
 
-            _vault_pw = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "").strip()
+            _vault_pw = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "").strip()
             _identity_sys = getattr(app.state, "identity", None)
 
             if _vault_pw and _identity_sys is not None:
@@ -703,7 +703,7 @@ class SystemRegistry:
         # Boot TelegramConnector from env if BOT_TOKEN is set.
         # Registers webhook at startup, wires into SendTelegramExecutor,
         # and starts the 6-hour organism status broadcast loop.
-        _telegram_bot_token = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN", "").strip()
+        _telegram_bot_token = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN", "").strip()
         if _telegram_bot_token:
             try:
                 from systems.identity.connectors.telegram import TelegramConnector
@@ -744,8 +744,8 @@ class SystemRegistry:
                 app.state.telegram_cmd_handler = _tg_cmd_handler
 
                 # Register webhook if public URL is configured; otherwise fall back to polling
-                _public_url = os.environ.get("ECODIAOS_PUBLIC_URL", "").rstrip("/")
-                _webhook_secret = os.environ.get("ECODIAOS_TELEGRAM_WEBHOOK_SECRET", "")
+                _public_url = os.environ.get("ORGANISM_PUBLIC_URL", "").rstrip("/")
+                _webhook_secret = os.environ.get("ORGANISM_TELEGRAM_WEBHOOK_SECRET", "")
                 if _public_url:
                     _webhook_url = f"{_public_url}/api/v1/identity/comm/telegram/webhook"
                     await _tg_connector.set_webhook(
@@ -794,11 +794,11 @@ class SystemRegistry:
         else:
             logger.debug(
                 "telegram_connector_skipped",
-                reason="ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN not set",
+                reason="ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN not set",
             )
 
         # Boot DiscordConnector from env if BOT_TOKEN is set.
-        _discord_token = os.environ.get("ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN", "").strip()
+        _discord_token = os.environ.get("ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN", "").strip()
         if _discord_token:
             try:
                 from systems.identity.connectors.discord import DiscordConnector
@@ -861,7 +861,7 @@ class SystemRegistry:
         else:
             logger.debug(
                 "discord_connector_skipped",
-                reason="ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN not set",
+                reason="ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN not set",
             )
 
         # ── Phase 11: Background Tasks ───────────────────────
@@ -900,7 +900,7 @@ class SystemRegistry:
         )
 
         # File watcher + Scheduler
-        percepts_dir = Path(os.environ.get("ECODIAOS_PERCEPTS_DIR", "config/percepts")).resolve()
+        percepts_dir = Path(os.environ.get("ORGANISM_PERCEPTS_DIR", "config/percepts")).resolve()
 
         from clients.file_watcher import FileWatcher
         from clients.scheduler import PerceptionScheduler
@@ -1793,12 +1793,12 @@ class SystemRegistry:
         """
         Initialize the local Reasoning Engine (vLLM wrapper).
 
-        Completely optional - if vLLM is not running or ECODIAOS_RE_ENABLED=false,
+        Completely optional - if vLLM is not running or ORGANISM_RE_ENABLED=false,
         returns None and the organism operates in Claude-only mode.
         """
         import os
 
-        if os.environ.get("ECODIAOS_RE_ENABLED", "true").lower() in {"false", "0", "no"}:
+        if os.environ.get("ORGANISM_RE_ENABLED", "true").lower() in {"false", "0", "no"}:
             logger.info("reasoning_engine_disabled")
             return None
 
@@ -1949,7 +1949,7 @@ class SystemRegistry:
                 from simula_worker import run_worker
 
                 self._tasks["simula_worker"] = asyncio.create_task(
-                    run_worker(os.getenv("ECODIAOS_CONFIG_PATH")),
+                    run_worker(os.getenv("ORGANISM_CONFIG_PATH")),
                     name="simula_worker_in_process",
                 )
                 logger.warning("simula_worker_in_process_started", note="Development mode only")
@@ -2420,7 +2420,7 @@ class SystemRegistry:
             return
         from systems.phantom_liquidity.service import LiquidityPhantomService
 
-        vault_pw = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "")
+        vault_pw = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "")
         phantom_vault = None
         if vault_pw:
             from systems.identity.vault import IdentityVault
@@ -2461,7 +2461,7 @@ class SystemRegistry:
         from systems.identity.vault import IdentityVault
         from systems.skia.service import SkiaService
 
-        vault_pw = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "")
+        vault_pw = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "")
         vault = IdentityVault(passphrase=vault_pw) if vault_pw else None
         skia = SkiaService(
             config=config.skia,
@@ -2550,7 +2550,7 @@ class SystemRegistry:
         from systems.identity.connectors.linkedin import LinkedInConnector
         from systems.identity.connectors.x import XConnector
 
-        vault_pw = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "")
+        vault_pw = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "")
         connector_vault = None
         if vault_pw:
             from systems.identity.vault import IdentityVault
@@ -2648,7 +2648,7 @@ class SystemRegistry:
         oikos.set_bounty_submit_fn(create_bounty_submit_fn(axon))
 
         github_token = (
-            os.environ.get("ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
+            os.environ.get("ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
             or os.environ.get("GITHUB_TOKEN")
             or ""
         )
@@ -2716,13 +2716,13 @@ class SystemRegistry:
     async def _check_skia_restore(
         self, config: Any, infra: InfraClients, *, memory: Any = None
     ) -> None:
-        restore_cid = os.environ.get("ECODIAOS_SKIA_RESTORE_CID", "")
+        restore_cid = os.environ.get("ORGANISM_SKIA_RESTORE_CID", "")
         if not restore_cid:
             return
-        vault_passphrase = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "")
+        vault_passphrase = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "")
         if not vault_passphrase:
             raise RuntimeError(
-                "ECODIAOS_SKIA_RESTORE_CID is set but ECODIAOS_VAULT_PASSPHRASE is empty."
+                "ORGANISM_SKIA_RESTORE_CID is set but ORGANISM_VAULT_PASSPHRASE is empty."
             )
         from systems.skia.snapshot import restore_from_ipfs
 
@@ -2749,7 +2749,7 @@ class SystemRegistry:
     ) -> None:
         instance = await memory.get_self()
         if instance is None:
-            seed_path = os.environ.get("ECODIAOS_SEED_PATH", "config/seeds/example_seed.yaml")
+            seed_path = os.environ.get("ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml")
             try:
                 seed = load_seed(seed_path)
                 birth_result = await memory.birth(seed, config.instance_id)
@@ -2793,7 +2793,7 @@ class SystemRegistry:
         from primitives.common import DriveAlignmentVector, new_id
         from systems.nova.types import Goal, GoalSource, GoalStatus
 
-        seed_path = os.environ.get("ECODIAOS_SEED_PATH", "config/seeds/example_seed.yaml")
+        seed_path = os.environ.get("ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml")
         seed_goals: list[dict[str, Any]] = []
         try:
             seed = load_seed(seed_path)

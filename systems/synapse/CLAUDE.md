@@ -78,7 +78,7 @@
 ### InfrastructureCostPoller (`infra_cost_poller.py`)
 - Background asyncio task, polls RunPod GraphQL API every 5 minutes
 - Two modes: specific pod (`RUNPOD_POD_ID`) or auto-discover all pods via `myself { pods { ... } }`
-- Static fallback via `ECODIAOS_INFRA_COST_USD_PER_HOUR` env var
+- Static fallback via `ORGANISM_INFRA_COST_USD_PER_HOUR` env var
 - Accrues infrastructure cost into MetabolicTracker deficit each poll cycle
 - Auto-removes resources that stop running; gracefully falls to $0/hr if API unavailable
 - Wired in Phase 11 of `registry.py`; stopped on shutdown

@@ -231,7 +231,7 @@ class GitHubClient:
 
                 raise RuntimeError(
                     f"GitHub rate limit exceeded (remaining={remaining}). "
-                    "Set ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN to raise the limit."
+                    "Set ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN to raise the limit."
                 )
 
             response.raise_for_status()

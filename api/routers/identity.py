@@ -317,9 +317,9 @@ class VaultStatusResponse(EOSBaseModel):
 
 
 def _passphrase_configured() -> bool:
-    """Return True if ECODIAOS_VAULT_PASSPHRASE env var is set and non-empty."""
+    """Return True if ORGANISM_VAULT_PASSPHRASE env var is set and non-empty."""
     import os as _os
-    return bool(_os.environ.get("ECODIAOS_VAULT_PASSPHRASE", ""))
+    return bool(_os.environ.get("ORGANISM_VAULT_PASSPHRASE", ""))
 
 
 # ─── Dashboard: Routes ───────────────────────────────────────────────────────

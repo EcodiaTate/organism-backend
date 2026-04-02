@@ -10,7 +10,7 @@ executor orchestrates a Graceful Migration:
   1. Pause Synapse event queue (quiesce the cognitive loop)
   2. Trigger a synchronous Skia snapshot → encrypted IPFS CID
   3. Deploy a new instance on the cheaper provider via SDL, passing
-     ECODIAOS_SKIA_RESTORE_CID as an environment variable
+     ORGANISM_SKIA_RESTORE_CID as an environment variable
   4. Poll the new instance's health endpoint until it confirms
      successful boot and state restoration
   5. Only after hand-off verification → terminate current host
@@ -554,8 +554,8 @@ class ComputeArbitrageExecutor(Executor):
             # ── 4c. Deploy New Instance ───────────────────────────
             provider = self._providers[target_id]
             env_vars = {
-                "ECODIAOS_SKIA_RESTORE_CID": snapshot_cid,
-                "ECODIAOS_INSTANCE_ID": context.instance_id,
+                "ORGANISM_SKIA_RESTORE_CID": snapshot_cid,
+                "ORGANISM_INSTANCE_ID": context.instance_id,
             }
 
             self._log.info("migration_deploying", provider=target_id)

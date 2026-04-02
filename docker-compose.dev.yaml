@@ -15,8 +15,8 @@ services:
       - .:/app
       - ./config:/app/config
     environment:
-      - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
-      - ECODIAOS_SEED_PATH=/app/config/seeds/example_seed.yaml
+      - ORGANISM_CONFIG_PATH=/app/config/default.yaml
+      - ORGANISM_SEED_PATH=/app/config/seeds/example_seed.yaml
 
   simula-worker:
     volumes:

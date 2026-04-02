@@ -161,7 +161,7 @@ def resolve_governance_config(config: Any) -> Any:
 
     try:
         seed_path = os.environ.get(
-            "ECODIAOS_SEED_PATH", "config/seeds/example_seed.yaml"
+            "ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml"
         )
         seed = load_seed(seed_path)
         return seed.constitution.governance

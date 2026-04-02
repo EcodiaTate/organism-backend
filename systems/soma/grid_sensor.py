@@ -132,7 +132,7 @@ class GridMetabolismSensor:
         if not self._config.api_key:
             self._log.warning(
                 "grid_sensor_no_api_key",
-                hint="Set ECODIAOS_ENERGY_GRID__API_KEY to enable grid polling",
+                hint="Set ORGANISM_ENERGY_GRID__API_KEY to enable grid polling",
             )
             return
         if self._running:

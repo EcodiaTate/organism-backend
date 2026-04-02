@@ -11,8 +11,8 @@ purpose="oauth_token" containing:
     }
 
 Env var fallbacks:
-    ECODIAOS_HASHNODE_TOKEN          - Personal Access Token
-    ECODIAOS_HASHNODE_PUBLICATION_ID - Publication (blog) ID
+    ORGANISM_HASHNODE_TOKEN          - Personal Access Token
+    ORGANISM_HASHNODE_PUBLICATION_ID - Publication (blog) ID
 
 API:
     POST https://gql.hashnode.com/   - GraphQL endpoint
@@ -203,9 +203,9 @@ class HashnodeClient:
                 publication_id = token_set.get("publication_id", "")
 
         if not token:
-            token = os.getenv("ECODIAOS_HASHNODE_TOKEN", "")
+            token = os.getenv("ORGANISM_HASHNODE_TOKEN", "")
         if not publication_id:
-            publication_id = os.getenv("ECODIAOS_HASHNODE_PUBLICATION_ID", "")
+            publication_id = os.getenv("ORGANISM_HASHNODE_PUBLICATION_ID", "")
 
         return token, publication_id
 

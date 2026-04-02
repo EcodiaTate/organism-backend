@@ -567,7 +567,7 @@ params, ignoring the parent's tuned evolution state.
 
 **Fix:**
 - `_apply_inherited_simula_genome_if_child()` added to `SimulaService`
-- Reads `ECODIAOS_SIMULA_GENOME_PAYLOAD` (JSON-encoded `SimulaGenome`)
+- Reads `ORGANISM_SIMULA_GENOME_PAYLOAD` (JSON-encoded `SimulaGenome`)
 - Skips silently if genesis node or env var absent
 - Applies each inherited learnable param to `self._config` with bounded ±10% Gaussian jitter (σ=3.3%)
   for genetic variation, mirroring the Telos pattern (Spec 18 SG3)

@@ -41,7 +41,7 @@ class ChildHealthReporter:
     """
     Emits CHILD_HEALTH_REPORT every 10 minutes when running as a child instance.
 
-    Activated only when ECODIAOS_IS_GENESIS_NODE != 'true'. Safe to instantiate
+    Activated only when ORGANISM_IS_GENESIS_NODE != 'true'. Safe to instantiate
     on a genesis node - start() will no-op.
 
     Parameters
@@ -55,9 +55,9 @@ class ChildHealthReporter:
     equor : EquorService | None
         Source of constitutional_drift_severity.
     instance_id : str
-        This child's instance ID (defaults to ECODIAOS_INSTANCE_ID env var).
+        This child's instance ID (defaults to ORGANISM_INSTANCE_ID env var).
     parent_instance_id : str
-        Parent's instance ID (from ECODIAOS_PARENT_INSTANCE_ID env var).
+        Parent's instance ID (from ORGANISM_PARENT_INSTANCE_ID env var).
     """
 
     def __init__(
@@ -74,11 +74,11 @@ class ChildHealthReporter:
         self._soma = soma
         self._evo = evo
         self._equor = equor
-        self._instance_id = instance_id or os.environ.get("ECODIAOS_INSTANCE_ID", "")
+        self._instance_id = instance_id or os.environ.get("ORGANISM_INSTANCE_ID", "")
         self._parent_instance_id = parent_instance_id or os.environ.get(
-            "ECODIAOS_PARENT_INSTANCE_ID", ""
+            "ORGANISM_PARENT_INSTANCE_ID", ""
         )
-        self._is_child = os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() != "true"
+        self._is_child = os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() != "true"
         self._interval = report_interval_s
         self._task: asyncio.Task[None] | None = None
         self._log = logger.bind(

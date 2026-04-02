@@ -445,7 +445,7 @@ def build_default_registry(
 
     # ── Expanded Revenue / Phase 16r+ ────────────────────────────────
     # ApiResellExecutor: registered always - disabled until
-    # ECODIAOS_API_RESELL__ENABLED=true; degrades gracefully when disabled.
+    # ORGANISM_API_RESELL__ENABLED=true; degrades gracefully when disabled.
     _api_resell = ApiResellExecutor(wallet=wallet)
     if event_bus is not None:
         _api_resell.set_event_bus(event_bus)
@@ -492,7 +492,7 @@ def build_default_registry(
     )
     # EcodiaOS Factory API URL (set via config or env)
     import os as _os
-    _factory_url = _os.environ.get("ECODIAOS_FACTORY_API_URL", "")
+    _factory_url = _os.environ.get("ORGANISM_FACTORY_API_URL", "")
     if _factory_url:
         _symbridge_factory.set_ecodiaos_url(_factory_url)
     registry.register(_symbridge_factory)

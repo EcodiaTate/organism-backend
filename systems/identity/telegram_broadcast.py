@@ -1,15 +1,15 @@
 """
 EcodiaOS - Telegram Organism Status Broadcast (Phase 16h)
 
-Every 6 hours, if ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID is set,
+Every 6 hours, if ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID is set,
 the organism sends a brief status report to the admin Telegram chat.
 
 This is the organism voluntarily reporting its own state - an act of
 autonomy signaling. It is not a notification system; it is self-disclosure.
 
 Env vars:
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - target chat ID (required to enable)
-  ECODIAOS_TELEGRAM_STATUS_INTERVAL_S           - broadcast interval in seconds
+  ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - target chat ID (required to enable)
+  ORGANISM_TELEGRAM_STATUS_INTERVAL_S           - broadcast interval in seconds
                                                    (default: 21600 = 6 hours)
 
 Format: plain Markdown, no emoji, concise.
@@ -95,10 +95,10 @@ async def telegram_status_broadcast_loop(
             restart=True,
         )
 
-    The loop skips silently when ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID
+    The loop skips silently when ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID
     is not set, so no crash on unconfigured deployments.
     """
-    admin_chat_id_str = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
+    admin_chat_id_str = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
     if not admin_chat_id_str:
         logger.debug("telegram_broadcast_disabled", reason="ADMIN_CHAT_ID not set")
         return
@@ -113,7 +113,7 @@ async def telegram_status_broadcast_loop(
         return
 
     effective_interval = interval_s or int(
-        os.environ.get("ECODIAOS_TELEGRAM_STATUS_INTERVAL_S", str(_DEFAULT_INTERVAL_S))
+        os.environ.get("ORGANISM_TELEGRAM_STATUS_INTERVAL_S", str(_DEFAULT_INTERVAL_S))
     )
 
     logger.info(

@@ -472,7 +472,7 @@ async def test_resurrection_rehydration() -> None:
 
     # Run _check_pre_resurrection_crash_context with the instance_id env var set
     with __import__("unittest.mock", fromlist=["patch"]).patch.dict(
-        os.environ, {"ECODIAOS_INSTANCE_ID": instance_id}
+        os.environ, {"ORGANISM_INSTANCE_ID": instance_id}
     ):
         await thymos._check_pre_resurrection_crash_context()
         # The method fires on_incident as an asyncio.create_task; give it a tick
@@ -731,7 +731,7 @@ async def test_full_coma_recovery_loop() -> None:
     thymos.on_incident = _on_incident  # type: ignore[method-assign]
 
     with __import__("unittest.mock", fromlist=["patch"]).patch.dict(
-        os.environ, {"ECODIAOS_INSTANCE_ID": instance_id}
+        os.environ, {"ORGANISM_INSTANCE_ID": instance_id}
     ):
         await thymos._check_pre_resurrection_crash_context()
         # Give the create_task a chance to run

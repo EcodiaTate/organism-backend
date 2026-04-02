@@ -20,11 +20,11 @@ Usage:
     python -m cli.training_data stats --lookback 90
 
 Required environment variables:
-    ECODIAOS_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
-    ECODIAOS_NEO4J_PASSWORD  - Neo4j password
+    ORGANISM_NEO4J_URI       - e.g. neo4j+s://xxx.databases.neo4j.io
+    ORGANISM_NEO4J_PASSWORD  - Neo4j password
 
 Optional:
-    ECODIAOS_NEO4J_USERNAME  - default "neo4j"
+    ORGANISM_NEO4J_USERNAME  - default "neo4j"
     RE_TRAINING_EXPORT_DIR   - local JSONL output dir (default: data/re_training_batches)
     RE_TRAINING_S3_BUCKET    - if set, also uploads to S3
 """
@@ -71,15 +71,15 @@ def _build_neo4j() -> Any:
     from clients.neo4j import Neo4jClient
     from config import Neo4jConfig
 
-    uri = os.environ.get("ECODIAOS_NEO4J_URI", "").strip()
-    password = os.environ.get("ECODIAOS_NEO4J_PASSWORD", "").strip()
-    username = os.environ.get("ECODIAOS_NEO4J_USERNAME", "neo4j").strip()
+    uri = os.environ.get("ORGANISM_NEO4J_URI", "").strip()
+    password = os.environ.get("ORGANISM_NEO4J_PASSWORD", "").strip()
+    username = os.environ.get("ORGANISM_NEO4J_USERNAME", "neo4j").strip()
 
     if not uri:
-        print(_err("ERROR: ECODIAOS_NEO4J_URI is not set."), file=sys.stderr)
+        print(_err("ERROR: ORGANISM_NEO4J_URI is not set."), file=sys.stderr)
         sys.exit(1)
     if not password:
-        print(_err("ERROR: ECODIAOS_NEO4J_PASSWORD is not set."), file=sys.stderr)
+        print(_err("ERROR: ORGANISM_NEO4J_PASSWORD is not set."), file=sys.stderr)
         sys.exit(1)
 
     cfg = Neo4jConfig(uri=uri, username=username, password=password)

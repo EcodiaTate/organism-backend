@@ -22,13 +22,13 @@ Safety constraints:
   - Rate limit: 20 resell requests per hour (burst protection).
   - WalletClient required; no wallet = abort (never process unpaid requests).
   - Every request and its payment are logged to Neo4j.
-  - ECODIAOS_API_RESELL__ENABLED must be true (defaults false) to activate.
+  - ORGANISM_API_RESELL__ENABLED must be true (defaults false) to activate.
   - Equor reviews capability representation before serving each endpoint.
 
 Env vars:
-  ECODIAOS_API_RESELL__ENABLED        (bool, default false)
-  ECODIAOS_API_RESELL__PUBLIC_URL     (str, e.g. https://{instance}.ecodiaos.ai)
-  ECODIAOS_API_RESELL__REVENUE_WALLET (str, Base wallet address for payments)
+  ORGANISM_API_RESELL__ENABLED        (bool, default false)
+  ORGANISM_API_RESELL__PUBLIC_URL     (str, e.g. https://{instance}.ecodiaos.ai)
+  ORGANISM_API_RESELL__REVENUE_WALLET (str, Base wallet address for payments)
 """
 
 from __future__ import annotations
@@ -116,11 +116,11 @@ class ApiResellConfig:
 
     @classmethod
     def from_env(cls) -> ApiResellConfig:
-        enabled = os.getenv("ECODIAOS_API_RESELL__ENABLED", "false").lower() == "true"
+        enabled = os.getenv("ORGANISM_API_RESELL__ENABLED", "false").lower() == "true"
         return cls(
             enabled=enabled,
-            public_url=os.getenv("ECODIAOS_API_RESELL__PUBLIC_URL", ""),
-            revenue_wallet=os.getenv("ECODIAOS_API_RESELL__REVENUE_WALLET", ""),
+            public_url=os.getenv("ORGANISM_API_RESELL__PUBLIC_URL", ""),
+            revenue_wallet=os.getenv("ORGANISM_API_RESELL__REVENUE_WALLET", ""),
         )
 
 
@@ -211,7 +211,7 @@ class ApiResellExecutor(Executor):
         if not self._config.enabled:
             return ValidationResult(
                 valid=False,
-                errors=["API resell is disabled. Set ECODIAOS_API_RESELL__ENABLED=true to activate."],
+                errors=["API resell is disabled. Set ORGANISM_API_RESELL__ENABLED=true to activate."],
             )
 
         client_id = str(params.get("client_id", "")).strip()

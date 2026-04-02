@@ -5,7 +5,7 @@ Responsible for turning a Tier 5 ESCALATE into a real, durable signal that
 reaches a human operator.
 
 Dispatch order:
-  1. If ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN and ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID are set, POST a
+  1. If ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN and ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID are set, POST a
      human-readable message to the Telegram Bot API (sendMessage).
   2. Otherwise, POST JSON payload to EOS_ESCALATION_WEBHOOK (configurable env var).
   3. If all direct channels fail (or are not configured), push the payload
@@ -124,7 +124,7 @@ class NotificationDispatcher:
     Sends Tier 5 escalation notifications to a human operator.
 
     Configure via environment variables:
-      - ``ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN`` + ``ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID``: direct Telegram dispatch.
+      - ``ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN`` + ``ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID``: direct Telegram dispatch.
       - ``EOS_ESCALATION_WEBHOOK``: webhook fallback when Telegram is not configured.
     If neither is set, the payload goes directly to the Redis fallback queue.
 
@@ -138,8 +138,8 @@ class NotificationDispatcher:
 
     def __init__(self, redis: RedisClient | None = None) -> None:
         self._redis = redis
-        self._telegram_token: str = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
-        self._telegram_chat_id: str = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
+        self._telegram_token: str = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
+        self._telegram_chat_id: str = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
         self._webhook_url: str = os.environ.get("EOS_ESCALATION_WEBHOOK", "")
         self._logger = logger.bind(system="thymos", component="notification_dispatcher")
 

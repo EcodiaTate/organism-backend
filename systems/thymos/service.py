@@ -1410,7 +1410,7 @@ class ThymosService:
             )
             return
 
-        instance_id: str = os.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
+        instance_id: str = os.environ.get("ORGANISM_INSTANCE_ID", "eos-default")
         redis_key = f"skia:crash_context:{instance_id}"
 
         try:
@@ -2837,8 +2837,8 @@ class ThymosService:
             self._logger.error("telegram_poll_aiohttp_missing")
             return
 
-        token = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
-        chat_id = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
+        token = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
+        chat_id = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
         if not token or not chat_id:
             self._logger.warning("telegram_poll_credentials_missing")
             return
@@ -4568,8 +4568,8 @@ class ThymosService:
         # ── Telegram command receiver ──
         # Only start if credentials are present; harmless no-op otherwise.
         if (
-            os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN")
-            and os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID")
+            os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN")
+            and os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID")
         ):
             self._telegram_polling_task = supervised_task(
                 self._telegram_poll_loop(),

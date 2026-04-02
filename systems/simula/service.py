@@ -2304,7 +2304,7 @@ class SimulaService:
                     event_type=SynapseEventType.SIMULA_GENOME_EXTRACTED,
                     source_system="simula",
                     data={
-                        "instance_id": _os_ge.environ.get("ECODIAOS_INSTANCE_ID", "eos-default"),
+                        "instance_id": _os_ge.environ.get("ORGANISM_INSTANCE_ID", "eos-default"),
                         "genome_id": (getattr(event, "data", {}) or {}).get("request_id", ""),
                         "generation": segment_data.get("generation", 1),
                         "record_count": len(segment_data.get("evolution_records", [])),
@@ -5048,7 +5048,7 @@ class SimulaService:
         try:
             import os as _os_sg
 
-            instance_id = _os_sg.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
+            instance_id = _os_sg.environ.get("ORGANISM_INSTANCE_ID", "eos-default")
 
             # ── Learnable config params ────────────────────────────────────────
             current_evolution_params: dict[str, Any] = {}
@@ -5252,7 +5252,7 @@ class SimulaService:
         """
         Child-side bootstrap: deserialise parent SimulaGenome from environment.
 
-        Reads ECODIAOS_SIMULA_GENOME_PAYLOAD (JSON-encoded SimulaGenome) injected
+        Reads ORGANISM_SIMULA_GENOME_PAYLOAD (JSON-encoded SimulaGenome) injected
         by LocalDockerSpawner.  If present, applies inherited learnable config params
         to self._config so the child starts with the parent's tuned evolution state.
         Non-fatal - child falls back to default config on any error.
@@ -5260,16 +5260,16 @@ class SimulaService:
         Applies bounded ±10% Gaussian jitter per param for genetic variation, matching
         the Telos pattern (Spec 18 SG3).
 
-        Only runs when ECODIAOS_IS_GENESIS_NODE != 'true'.
+        Only runs when ORGANISM_IS_GENESIS_NODE != 'true'.
         """
         import json as _json
         import os as _os
         import random as _random
 
-        if _os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true":
+        if _os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true":
             return
 
-        payload_json = _os.environ.get("ECODIAOS_SIMULA_GENOME_PAYLOAD", "").strip()
+        payload_json = _os.environ.get("ORGANISM_SIMULA_GENOME_PAYLOAD", "").strip()
         if not payload_json:
             return
 
@@ -6697,7 +6697,7 @@ class SimulaService:
         # Verify the proposal's identity_id (if set) matches this instance before
         # applying mutations to local code - prevents rogue cross-instance applies.
         import os as _os_id
-        _local_identity = _os_id.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
+        _local_identity = _os_id.environ.get("ORGANISM_INSTANCE_ID", "eos-default")
         _proposal_identity = getattr(proposal, "identity_id", "") or ""
         if _proposal_identity and _proposal_identity != _local_identity:
             log.warning(
@@ -7970,7 +7970,7 @@ class SimulaService:
 
         import uuid as _uuid_rec
         import os as _os
-        _current_identity = _os.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
+        _current_identity = _os.environ.get("ORGANISM_INSTANCE_ID", "eos-default")
         record = EvolutionRecord(
             proposal_id=proposal.id,
             category=proposal.category,

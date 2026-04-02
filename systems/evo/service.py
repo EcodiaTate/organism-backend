@@ -5981,7 +5981,7 @@ class EvoService:
                     pass
 
             import os as _os_bg
-            instance_id = _os_bg.environ.get("ECODIAOS_INSTANCE_ID", "eos-default")
+            instance_id = _os_bg.environ.get("ORGANISM_INSTANCE_ID", "eos-default")
 
             # 4. Export Thompson tournament Beta priors (min 5 samples each)
             tournament_beta_priors: list[dict[str, Any]] = []
@@ -6035,20 +6035,20 @@ class EvoService:
         """
         Child-side bootstrap: deserialise parent BeliefGenome from environment.
 
-        Reads ECODIAOS_BELIEF_GENOME_PAYLOAD (JSON-encoded BeliefGenome) injected
+        Reads ORGANISM_BELIEF_GENOME_PAYLOAD (JSON-encoded BeliefGenome) injected
         by LocalDockerSpawner.  If present, seeds the hypothesis engine with parent
         hypothesis priors so the child starts with warm beliefs rather than a blank
         slate.  Non-fatal - child falls back to default empty state on any error.
 
-        Only runs when ECODIAOS_IS_GENESIS_NODE != 'true'.
+        Only runs when ORGANISM_IS_GENESIS_NODE != 'true'.
         """
         import json as _json
         import os as _os
 
-        if _os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true":
+        if _os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true":
             return
 
-        payload_json = _os.environ.get("ECODIAOS_BELIEF_GENOME_PAYLOAD", "").strip()
+        payload_json = _os.environ.get("ORGANISM_BELIEF_GENOME_PAYLOAD", "").strip()
         if not payload_json:
             return
 

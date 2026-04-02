@@ -593,10 +593,10 @@ class MigrationExecutor:
             if containers:
                 env_vars = containers[0].get("env", [])
                 env_vars = [e for e in env_vars if e.get("name") not in (
-                    "ECODIAOS_SKIA_RESTORE_CID", "ECODIAOS_MIGRATION_ID",
+                    "ORGANISM_SKIA_RESTORE_CID", "ORGANISM_MIGRATION_ID",
                 )]
-                env_vars.append({"name": "ECODIAOS_SKIA_RESTORE_CID", "value": state_cid})
-                env_vars.append({"name": "ECODIAOS_MIGRATION_ID", "value": migration_id})
+                env_vars.append({"name": "ORGANISM_SKIA_RESTORE_CID", "value": state_cid})
+                env_vars.append({"name": "ORGANISM_MIGRATION_ID", "value": migration_id})
                 containers[0]["env"] = env_vars
 
             import orjson
@@ -623,11 +623,11 @@ class MigrationExecutor:
             raise FileNotFoundError(f"Akash SDL template not found: {sdl_path}")
 
         sdl_content = sdl_path.read_text()
-        sdl_content = sdl_content.replace("${ECODIAOS_SKIA_RESTORE_CID}", state_cid)
+        sdl_content = sdl_content.replace("${ORGANISM_SKIA_RESTORE_CID}", state_cid)
         if self._skia_config.akash_docker_image:
             sdl_content = sdl_content.replace("${DOCKER_IMAGE}", self._skia_config.akash_docker_image)
         # Clear genome placeholder if not available
-        sdl_content = sdl_content.replace("${ECODIAOS_CONSTITUTIONAL_GENOME_B64}", "")
+        sdl_content = sdl_content.replace("${ORGANISM_CONSTITUTIONAL_GENOME_B64}", "")
 
         async with httpx.AsyncClient(timeout=self._skia_config.akash_deploy_timeout_s) as client:
             resp = await client.post(
@@ -635,7 +635,7 @@ class MigrationExecutor:
                 json={
                     "sdl": sdl_content,
                     "wallet": self._skia_config.akash_wallet_address,
-                    "env": {"ECODIAOS_MIGRATION_ID": migration_id},
+                    "env": {"ORGANISM_MIGRATION_ID": migration_id},
                 },
                 headers={"Content-Type": "application/json"},
             )

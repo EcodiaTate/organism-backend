@@ -418,7 +418,7 @@ async def restore_from_ipfs(
     """
     Download an encrypted snapshot from IPFS and restore into Neo4j.
 
-    Called during startup when ECODIAOS_SKIA_RESTORE_CID is set.
+    Called during startup when ORGANISM_SKIA_RESTORE_CID is set.
 
     Steps:
       1. Download encrypted blob from IPFS gateway

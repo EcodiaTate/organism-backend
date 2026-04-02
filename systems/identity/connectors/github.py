@@ -87,7 +87,7 @@ class GitHubConnector:
         self._app_connector = app_connector
         self._personal_token = (
             personal_token
-            or os.environ.get("ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
+            or os.environ.get("ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
             or os.environ.get("GITHUB_TOKEN")
             or ""
         )
@@ -433,7 +433,7 @@ class GitHubConnector:
 
         Precedence:
           1. Own instance token stored in vault (provisioned via I-3 own-account flow).
-          2. Operator token from ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN / GITHUB_TOKEN.
+          2. Operator token from ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN / GITHUB_TOKEN.
 
         Returns None if neither is available.  Callers should raise or fall back
         gracefully rather than passing None to API calls.

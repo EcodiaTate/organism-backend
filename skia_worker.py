@@ -44,7 +44,7 @@ async def run_worker(config_path: str | None = None) -> None:
     Main worker loop.
 
     1. Load config and build independent connection pools
-    2. Initialize IdentityVault (from ECODIAOS_VAULT_PASSPHRASE)
+    2. Initialize IdentityVault (from ORGANISM_VAULT_PASSPHRASE)
     3. Initialize SkiaService in standalone mode
     4. Start heartbeat monitor + snapshot pipeline
     5. Block until shutdown signal
@@ -54,7 +54,7 @@ async def run_worker(config_path: str | None = None) -> None:
     log = logger.bind(worker="skia", instance_id=config.instance_id)
 
     if not config.skia.enabled:
-        log.warning("skia_not_enabled", hint="Set ECODIAOS_SKIA__ENABLED=true")
+        log.warning("skia_not_enabled", hint="Set ORGANISM_SKIA__ENABLED=true")
         return
 
     # ── Build independent connection pools ────────────────────────
@@ -68,7 +68,7 @@ async def run_worker(config_path: str | None = None) -> None:
 
     # ── Initialize IdentityVault ──────────────────────────────────
     vault = None
-    vault_passphrase = os.environ.get("ECODIAOS_VAULT_PASSPHRASE", "")
+    vault_passphrase = os.environ.get("ORGANISM_VAULT_PASSPHRASE", "")
     if vault_passphrase:
         from systems.identity.vault import IdentityVault
         vault = IdentityVault(passphrase=vault_passphrase)
@@ -120,8 +120,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="EcodiaOS Skia Worker (Shadow Infrastructure)")
     parser.add_argument(
         "--config",
-        default=os.getenv("ECODIAOS_CONFIG_PATH"),
-        help="Path to YAML config file (default: ECODIAOS_CONFIG_PATH env var)",
+        default=os.getenv("ORGANISM_CONFIG_PATH"),
+        help="Path to YAML config file (default: ORGANISM_CONFIG_PATH env var)",
     )
     args = parser.parse_args()
     asyncio.run(run_worker(args.config))

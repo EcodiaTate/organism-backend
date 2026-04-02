@@ -403,7 +403,7 @@ class RiskManager:
 
             # Need wallet address - read from env
             import os  # noqa: PLC0415
-            wallet_addr = os.environ.get("ECODIAOS_WALLET__ADDRESS", "")
+            wallet_addr = os.environ.get("ORGANISM_WALLET__ADDRESS", "")
             if not wallet_addr:
                 return None
 

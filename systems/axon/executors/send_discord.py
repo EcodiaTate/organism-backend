@@ -15,7 +15,7 @@ RE training:
     constitutional_alignment scores.
 
 Env vars:
-  ECODIAOS_DISCORD_CHANNEL_ID - default channel_id fallback
+  ORGANISM_DISCORD_CHANNEL_ID - default channel_id fallback
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class SendDiscordExecutor(Executor):
 
     Optional params:
       channel_id (str | int): Target Discord channel ID.
-                              Falls back to ECODIAOS_DISCORD_CHANNEL_ID
+                              Falls back to ORGANISM_DISCORD_CHANNEL_ID
                               when omitted.
 
     Emits:
@@ -115,14 +115,14 @@ class SendDiscordExecutor(Executor):
         # Resolve channel_id - param → env fallback → error
         channel_id = params.get("channel_id")
         if channel_id is None:
-            env_channel_id = os.environ.get("ECODIAOS_DISCORD_CHANNEL_ID", "")
+            env_channel_id = os.environ.get("ORGANISM_DISCORD_CHANNEL_ID", "")
             if env_channel_id:
                 channel_id = env_channel_id
         if channel_id is None:
             self._logger.warning("send_discord_no_channel_id")
             return ExecutionResult(
                 success=False,
-                error="No channel_id provided and ECODIAOS_DISCORD_CHANNEL_ID not set",
+                error="No channel_id provided and ORGANISM_DISCORD_CHANNEL_ID not set",
             )
 
         if self._connector is None:
@@ -130,7 +130,7 @@ class SendDiscordExecutor(Executor):
             await self._emit_re_training(context, success=False, error="no_connector")
             return ExecutionResult(
                 success=False,
-                error="DiscordConnector not configured - set ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN",
+                error="DiscordConnector not configured - set ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN",
             )
 
         t0 = time.monotonic()

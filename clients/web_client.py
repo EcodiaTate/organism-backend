@@ -18,12 +18,12 @@ Legal / ethical invariants (non-negotiable):
   - Official APIs preferred over scraping whenever available
 
 Config (via SearchConfig):
-  ECODIAOS_SEARCH__PROVIDER        = "brave" | "serpapi" | "ddg"
-  ECODIAOS_SEARCH__BRAVE_API_KEY   = <key>
-  ECODIAOS_SEARCH__SERPAPI_KEY     = <key>
-  ECODIAOS_SEARCH__REQUEST_TIMEOUT_S = 10.0
-  ECODIAOS_SEARCH__MAX_REQ_PER_DOMAIN_PER_HOUR = 60
-  ECODIAOS_SEARCH__RATE_LIMIT_S    = 1.0
+  ORGANISM_SEARCH__PROVIDER        = "brave" | "serpapi" | "ddg"
+  ORGANISM_SEARCH__BRAVE_API_KEY   = <key>
+  ORGANISM_SEARCH__SERPAPI_KEY     = <key>
+  ORGANISM_SEARCH__REQUEST_TIMEOUT_S = 10.0
+  ORGANISM_SEARCH__MAX_REQ_PER_DOMAIN_PER_HOUR = 60
+  ORGANISM_SEARCH__RATE_LIMIT_S    = 1.0
 
 Neo4j logging:
   Every fetch is written as a (:WebIntelligenceEvent) node.

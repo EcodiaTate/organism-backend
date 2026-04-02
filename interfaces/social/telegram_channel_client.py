@@ -7,11 +7,11 @@ Auth: Bot token. The vault must hold a token envelope with purpose="oauth_token"
 containing:
     {
         "access_token": "<bot_token>",
-        "channel_id": "@mychannel"    # optional; falls back to ECODIAOS_TELEGRAM_CHANNEL_ID
+        "channel_id": "@mychannel"    # optional; falls back to ORGANISM_TELEGRAM_CHANNEL_ID
     }
 
 Env var fallback:
-    ECODIAOS_TELEGRAM_CHANNEL_ID - public channel username (e.g. @ecodiaos) or numeric id
+    ORGANISM_TELEGRAM_CHANNEL_ID - public channel username (e.g. @ecodiaos) or numeric id
 
 API:
     POST https://api.telegram.org/bot{token}/sendMessage
@@ -77,7 +77,7 @@ class TelegramChannelClient:
         Args:
             text: Message text (≤4,096 chars, including disclaimer).
             channel_id: Channel username (@handle) or numeric ID.
-                        Falls back to ECODIAOS_TELEGRAM_CHANNEL_ID env var.
+                        Falls back to ORGANISM_TELEGRAM_CHANNEL_ID env var.
             parse_mode: "Markdown" | "HTML" | "MarkdownV2" (default "Markdown").
             disable_web_page_preview: Suppress link previews.
 
@@ -213,9 +213,9 @@ class TelegramChannelClient:
 
         # env var fallbacks
         if not token:
-            token = os.getenv("ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
+            token = os.getenv("ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN", "")
         if not channel_id:
-            channel_id = os.getenv("ECODIAOS_TELEGRAM_CHANNEL_ID", "")
+            channel_id = os.getenv("ORGANISM_TELEGRAM_CHANNEL_ID", "")
 
         return token, channel_id
 

@@ -16,8 +16,8 @@ Bot token storage:
   vault.encrypt_token_json({"access_token": token}, platform_id="discord")
 
 Environment variables:
-  ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN      - required
-  ECODIAOS_DISCORD_CHANNEL_ID                  - optional, for status broadcasts
+  ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN      - required
+  ORGANISM_DISCORD_CHANNEL_ID                  - optional, for status broadcasts
 """
 
 from __future__ import annotations
@@ -70,7 +70,7 @@ class DiscordConnector(PlatformConnector):
                 scopes=[],
             ),
             vault=vault,
-            bot_token=os.environ["ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN"],
+            bot_token=os.environ["ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN"],
         )
         connector.set_event_bus(event_bus)
         await connector.authenticate()

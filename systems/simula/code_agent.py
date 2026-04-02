@@ -1837,7 +1837,7 @@ class SimulaCodeAgent:
           6. gh pr create --repo    - open PR against the *original* repo
 
         The GitHub token is resolved from (in priority order):
-          GH_TOKEN -> GITHUB_TOKEN -> ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN
+          GH_TOKEN -> GITHUB_TOKEN -> ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN
 
         Returns:
             (pr_url, pr_number) on success, ("", None) on failure.
@@ -1861,7 +1861,7 @@ class SimulaCodeAgent:
         github_token = (
             os.environ.get("GH_TOKEN")
             or os.environ.get("GITHUB_TOKEN")
-            or os.environ.get("ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
+            or os.environ.get("ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN")
             or ""
         )
         env = {**os.environ, "GH_TOKEN": github_token} if github_token else dict(os.environ)

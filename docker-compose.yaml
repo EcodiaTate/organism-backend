@@ -11,8 +11,8 @@ services:
       # 8002 — Federation (disabled by default)
     env_file: .env
     environment:
-      - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
-      - ECODIAOS_SEED_PATH=/app/config/seeds/example_seed.yaml
+      - ORGANISM_CONFIG_PATH=/app/config/default.yaml
+      - ORGANISM_SEED_PATH=/app/config/seeds/example_seed.yaml
     volumes:
       - ./config:/app/config:ro
     depends_on:
@@ -26,7 +26,7 @@ services:
 
   # ─── Neo4j — hosted on Neo4j Aura (no local container) ─────────
   # Connection configured via environment variables:
-  #   ECODIAOS_NEO4J_URI, ECODIAOS_NEO4J_PASSWORD, ECODIAOS_NEO4J_DATABASE
+  #   ORGANISM_NEO4J_URI, ORGANISM_NEO4J_PASSWORD, ORGANISM_NEO4J_DATABASE
 
   # ─── TimescaleDB (Telemetry) ────────────────────────────────────
   timescaledb:
@@ -35,7 +35,7 @@ services:
     environment:
       - POSTGRES_DB=ecodiaos
       - POSTGRES_USER=ecodiaos
-      - POSTGRES_PASSWORD=${ECODIAOS_TSDB_PASSWORD:-ecodiaos_dev}
+      - POSTGRES_PASSWORD=${ORGANISM_TSDB_PASSWORD:-ecodiaos_dev}
     ports:
       - "5432:5432"
     volumes:
@@ -55,7 +55,7 @@ services:
     container_name: ecodiaos-redis
     command: >
       redis-server
-      --requirepass ${ECODIAOS_REDIS_PASSWORD:-ecodiaos_dev}
+      --requirepass ${ORGANISM_REDIS_PASSWORD:-ecodiaos_dev}
       --appendonly yes
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
@@ -71,7 +71,7 @@ services:
           "CMD",
           "redis-cli",
           "-a",
-          "${ECODIAOS_REDIS_PASSWORD:-ecodiaos_dev}",
+          "${ORGANISM_REDIS_PASSWORD:-ecodiaos_dev}",
           "ping",
         ]
       interval: 5s
@@ -88,7 +88,7 @@ services:
     command: python -m simula_worker
     env_file: .env
     environment:
-      - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
+      - ORGANISM_CONFIG_PATH=/app/config/default.yaml
     volumes:
       - ./config:/app/config:ro
       - ../.claude:/app/.claude:ro
@@ -112,7 +112,7 @@ services:
     command: python -m skia_worker
     env_file: .env
     environment:
-      - ECODIAOS_CONFIG_PATH=/app/config/default.yaml
+      - ORGANISM_CONFIG_PATH=/app/config/default.yaml
     volumes:
       - ./config:/app/config:ro
     depends_on:

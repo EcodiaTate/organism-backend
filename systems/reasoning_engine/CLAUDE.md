@@ -1,6 +1,6 @@
 # Reasoning Engine - CLAUDE.md
 
-**Spec:** `.claude/ECODIAOS_CUSTOM_LLM_SPEC.md` + `.claude/speciation_bible.md §4.1–4.2`
+**Spec:** `.claude/ORGANISM_CUSTOM_LLM_SPEC.md` + `.claude/speciation_bible.md §4.1–4.2`
 **System ID:** `reasoning_engine`
 **Role:** Local LLM substrate. Wraps a vLLM-served model (Qwen3-8B or fine-tuned variant) as an `LLMProvider` so Nova's `PolicyGenerator` can route slow-path deliberation to it via Thompson sampling. The RE is the organism's path to genuine LLM self-sufficiency - the model that improves from the organism's own experience.
 
@@ -15,8 +15,8 @@ Implements the full `LLMProvider` ABC from `clients/llm.py`.
 **Constructor:**
 ```python
 ReasoningEngineService(
-    vllm_url: str | None = None,   # from ECODIAOS_RE_VLLM_URL or http://localhost:8001/v1
-    model_name: str | None = None, # from ECODIAOS_RE_MODEL or ecodiaos-reasoning
+    vllm_url: str | None = None,   # from ORGANISM_RE_VLLM_URL or http://localhost:8001/v1
+    model_name: str | None = None, # from ORGANISM_RE_MODEL or ecodiaos-reasoning
     synapse: Any = None,           # injected post-startup via set_synapse()
 )
 ```
@@ -48,9 +48,9 @@ ReasoningEngineService(
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `ECODIAOS_RE_VLLM_URL` | `http://localhost:8001/v1` | vLLM OpenAI-compatible server base URL |
-| `ECODIAOS_RE_MODEL` | `ecodiaos-reasoning` | Model name served on vLLM |
-| `ECODIAOS_RE_ENABLED` | `true` | Set to `false` to disable entirely |
+| `ORGANISM_RE_VLLM_URL` | `http://localhost:8001/v1` | vLLM OpenAI-compatible server base URL |
+| `ORGANISM_RE_MODEL` | `ecodiaos-reasoning` | Model name served on vLLM |
+| `ORGANISM_RE_ENABLED` | `true` | Set to `false` to disable entirely |
 
 ---
 
@@ -782,7 +782,7 @@ python scripts/re/adapter_watcher.py --no-vllm
 | `RE_ADAPTER_S3_BUCKET` | `ecodiaos-re-training` | S3 bucket for adapter uploads |
 | `RE_ADAPTER_S3_PREFIX` | `adapters/production/` | S3 key prefix |
 | `INSTANCE_ID` | `genesis` | Instance identifier in S3 path |
-| `ECODIAOS_RE_REPROBE_INTERVAL_S` | `120` | Seconds between reprobe attempts |
+| `ORGANISM_RE_REPROBE_INTERVAL_S` | `120` | Seconds between reprobe attempts |
 | `VLLM_PORT` | `8001` | vLLM serve port (pod-side) |
 | `VLLM_BASE_MODEL` | `Qwen/Qwen3-8B` | Base model for vLLM (pod-side) |
 | `VLLM_EXTRA_ARGS` | `""` | Additional vLLM args (pod-side) |
@@ -820,8 +820,8 @@ vllm serve Qwen/Qwen3-8B --port 8001 \
   --lora-modules genesis_001=/path/to/adapter
 
 # Set env vars - use adapter name as model
-export ECODIAOS_RE_VLLM_URL=http://localhost:8001/v1
-export ECODIAOS_RE_MODEL=genesis_001
+export ORGANISM_RE_VLLM_URL=http://localhost:8001/v1
+export ORGANISM_RE_MODEL=genesis_001
 
 # Start EOS - logs should show:
 #   reasoning_engine_available model=genesis_001
@@ -837,7 +837,7 @@ export ECODIAOS_RE_MODEL=genesis_001
 
 **Disable entirely:**
 ```bash
-export ECODIAOS_RE_ENABLED=false
+export ORGANISM_RE_ENABLED=false
 # Logs show: reasoning_engine_disabled
 ```
 
@@ -917,8 +917,8 @@ Metadata keys (`stream_id`, `quality_score`, `training_weight`) are stripped bef
 | `RE_TRAINING_EXPORT_DIR` | `data/re_training_batches` | Local output directory |
 | `RE_TRAINING_S3_BUCKET` | - | If set, uploads to S3 after local write |
 | `RE_TRAINING_S3_PREFIX` | `structured/` | S3 key prefix |
-| `ECODIAOS_NEO4J_URI` | - | Neo4j connection (required for CLI) |
-| `ECODIAOS_NEO4J_PASSWORD` | - | Neo4j password (required for CLI) |
+| `ORGANISM_NEO4J_URI` | - | Neo4j connection (required for CLI) |
+| `ORGANISM_NEO4J_PASSWORD` | - | Neo4j password (required for CLI) |
 
 ### CLI Usage
 

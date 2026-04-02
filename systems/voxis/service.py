@@ -438,7 +438,7 @@ class VoxisService:
         """
         Child-side bootstrap: deserialise parent genome from environment.
 
-        Reads ECODIAOS_VOXIS_GENOME_PAYLOAD (JSON-encoded VoxisGenomeFragment)
+        Reads ORGANISM_VOXIS_GENOME_PAYLOAD (JSON-encoded VoxisGenomeFragment)
         injected by LocalDockerSpawner. If present, applies personality vector
         (with bounded ±10% jitter), vocabulary affinities, and strategy preferences.
         Non-fatal - child falls back to default personality on any error.
@@ -447,11 +447,11 @@ class VoxisService:
         import os
         import random
 
-        is_genesis = os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true"
+        is_genesis = os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true"
         if is_genesis:
             return
 
-        payload_json = os.environ.get("ECODIAOS_VOXIS_GENOME_PAYLOAD", "")
+        payload_json = os.environ.get("ORGANISM_VOXIS_GENOME_PAYLOAD", "")
         if not payload_json:
             return
 
@@ -514,7 +514,7 @@ class VoxisService:
                         event_type=SynapseEventType.GENOME_INHERITED,
                         source_system="voxis",
                         data={
-                            "child_instance_id": os.environ.get("ECODIAOS_INSTANCE_ID", ""),
+                            "child_instance_id": os.environ.get("ORGANISM_INSTANCE_ID", ""),
                             "parent_genome_id": parent.genome_id,
                             "generation": parent.generation,
                             "system": "voxis",

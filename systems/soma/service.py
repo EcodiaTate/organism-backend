@@ -896,20 +896,20 @@ class SomaService:
         """
         Child-side bootstrap: deserialise parent OrganGenomeSegment from environment.
 
-        Reads ECODIAOS_SOMA_GENOME_PAYLOAD (JSON-encoded OrganGenomeSegment) injected
+        Reads ORGANISM_SOMA_GENOME_PAYLOAD (JSON-encoded OrganGenomeSegment) injected
         by LocalDockerSpawner.  If present, applies inherited setpoints, dynamics matrix,
         and allostatic baselines using seed_child_from_genome() (which already applies
         ±5% noise on setpoints and ±2% noise on dynamics weights).  Non-fatal.
 
-        Only runs when ECODIAOS_IS_GENESIS_NODE != 'true'.
+        Only runs when ORGANISM_IS_GENESIS_NODE != 'true'.
         """
         import json as _json
         import os as _os
 
-        if _os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true":
+        if _os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true":
             return
 
-        payload_json = _os.environ.get("ECODIAOS_SOMA_GENOME_PAYLOAD", "").strip()
+        payload_json = _os.environ.get("ORGANISM_SOMA_GENOME_PAYLOAD", "").strip()
         if not payload_json:
             return
 

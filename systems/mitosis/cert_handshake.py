@@ -2,9 +2,9 @@
 EcodiaOS - Child-Side Certificate Validation + Federation Handshake (Spec 26 §6 / MEDIUM #6)
 
 On startup, a child instance must:
-  1. Load ECODIAOS_BIRTH_CERTIFICATE from environment (PEM-encoded X.509).
+  1. Load ORGANISM_BIRTH_CERTIFICATE from environment (PEM-encoded X.509).
   2. Validate the certificate against the Genesis CA public key
-     (ECODIAOS_GENESIS_CA_CERT env var or bundled trust anchor).
+     (ORGANISM_GENESIS_CA_CERT env var or bundled trust anchor).
   3. Extract the child's instance_id, niche, and parent_instance_id from
      certificate Subject Alternative Names or extensions.
   4. Emit CHILD_WALLET_REPORTED via Synapse to announce the wallet address
@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger().bind(component="mitosis.cert_handshake")
 
-_ENV_BIRTH_CERT = "ECODIAOS_BIRTH_CERTIFICATE"
-_ENV_GENESIS_CA = "ECODIAOS_GENESIS_CA_CERT"
-_ENV_INSTANCE_ID = "ECODIAOS_INSTANCE_ID"
-_ENV_PARENT_ID = "ECODIAOS_PARENT_INSTANCE_ID"
-_ENV_WALLET_ADDRESS = "ECODIAOS_WALLET_ADDRESS"
-_ENV_NICHE = "ECODIAOS_NICHE"
+_ENV_BIRTH_CERT = "ORGANISM_BIRTH_CERTIFICATE"
+_ENV_GENESIS_CA = "ORGANISM_GENESIS_CA_CERT"
+_ENV_INSTANCE_ID = "ORGANISM_INSTANCE_ID"
+_ENV_PARENT_ID = "ORGANISM_PARENT_INSTANCE_ID"
+_ENV_WALLET_ADDRESS = "ORGANISM_WALLET_ADDRESS"
+_ENV_NICHE = "ORGANISM_NICHE"
 
 
 class CertificateValidationError(Exception):
@@ -54,13 +54,13 @@ class ChildCertHandshake:
     synapse : SynapseService | None
         Used to emit CHILD_WALLET_REPORTED and FEDERATION_PEER_CONNECTED.
     instance_id : str
-        This child's instance ID. Defaults to ECODIAOS_INSTANCE_ID env var.
+        This child's instance ID. Defaults to ORGANISM_INSTANCE_ID env var.
     parent_instance_id : str
-        Parent's instance ID. Defaults to ECODIAOS_PARENT_INSTANCE_ID env var.
+        Parent's instance ID. Defaults to ORGANISM_PARENT_INSTANCE_ID env var.
     wallet_address : str
-        This child's Base L2 wallet address. Defaults to ECODIAOS_WALLET_ADDRESS.
+        This child's Base L2 wallet address. Defaults to ORGANISM_WALLET_ADDRESS.
     niche : str
-        This child's ecological niche. Defaults to ECODIAOS_NICHE env var.
+        This child's ecological niche. Defaults to ORGANISM_NICHE env var.
     """
 
     def __init__(
@@ -297,7 +297,7 @@ class ChildCertHandshake:
             data={
                 "peer_instance_id": self._instance_id,
                 "parent_instance_id": self._parent_instance_id,
-                "peer_address": os.environ.get("ECODIAOS_FEDERATION_ADDRESS", ""),
+                "peer_address": os.environ.get("ORGANISM_FEDERATION_ADDRESS", ""),
                 "niche": self._niche,
                 "certificate_id": cert_info.get("serial", ""),
                 "cert_not_after": cert_info.get("not_after", ""),

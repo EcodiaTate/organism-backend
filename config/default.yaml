@@ -2,7 +2,7 @@
 # All values here are the production defaults. Secrets and credentials are
 # injected via environment variables (see .env) and are NOT set here.
 
-instance_id: "eos-default" # Override via ECODIAOS_INSTANCE_ID
+instance_id: "eos-default" # Override via ORGANISM_INSTANCE_ID
 
 # ── Server ────────────────────────────────────────────────────────────────────
 server:
@@ -12,13 +12,13 @@ server:
   federation_port: 8002
   cors_origins: ["http://localhost:3000"]
   api_key_header: "X-EOS-API-Key"
-  api_keys: [] # Set via ECODIAOS_SERVER__API_KEYS. Empty = auth disabled (dev only).
+  api_keys: [] # Set via ORGANISM_SERVER__API_KEYS. Empty = auth disabled (dev only).
 
 # ── Neo4j ─────────────────────────────────────────────────────────────────────
 neo4j:
-  # uri:      set via ECODIAOS_NEO4J_URI      (e.g. neo4j+s://xxxx.databases.neo4j.io)
-  # password: set via ECODIAOS_NEO4J_PASSWORD
-  # database: set via ECODIAOS_NEO4J_DATABASE (default: neo4j)
+  # uri:      set via ORGANISM_NEO4J_URI      (e.g. neo4j+s://xxxx.databases.neo4j.io)
+  # password: set via ORGANISM_NEO4J_PASSWORD
+  # database: set via ORGANISM_NEO4J_DATABASE (default: neo4j)
   username: "neo4j"
   max_connection_pool_size: 20
 
@@ -29,7 +29,7 @@ timescaledb:
   database: "ecodiaos"
   schema: "public"
   username: "ecodiaos"
-  # password: set via ECODIAOS_TSDB_PASSWORD
+  # password: set via ORGANISM_TSDB_PASSWORD
   pool_size: 10
   ssl: false
 
@@ -37,13 +37,13 @@ timescaledb:
 redis:
   url: "redis://redis:6379/0"
   prefix: "eos"
-  # password: set via ECODIAOS_REDIS_PASSWORD
+  # password: set via ORGANISM_REDIS_PASSWORD
 
 # ── LLM ───────────────────────────────────────────────────────────────────────
 llm:
   provider: "bedrock" # bedrock | anthropic | openai | ollama
   model: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
-  # api_key: set via ECODIAOS_LLM_API_KEY           (not needed for bedrock)
+  # api_key: set via ORGANISM_LLM_API_KEY           (not needed for bedrock)
   # Bedrock uses AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION from env.
   fallback_provider: null
   fallback_model: null
@@ -162,7 +162,7 @@ simula:
   regression_threshold_high: 0.05
 
   # Code agent
-  codebase_root: "." # Override via ECODIAOS_SIMULA__CODEBASE_ROOT
+  codebase_root: "." # Override via ORGANISM_SIMULA__CODEBASE_ROOT
   code_agent_model: "claude-opus-4-6"
   max_code_agent_turns: 20
   test_command: "pytest"
@@ -171,12 +171,12 @@ simula:
   # Stage 1A — Extended-thinking (deep reasoning for governance / high-risk proposals)
   thinking_model: "o3"
   thinking_model_provider: "openai" # openai | deepseek
-  # thinking_model_api_key: set via ECODIAOS_SIMULA__THINKING_MODEL_API_KEY
+  # thinking_model_api_key: set via ORGANISM_SIMULA__THINKING_MODEL_API_KEY
   thinking_budget_tokens: 16384
 
   # Stage 1B — Code-aware embeddings (Voyage AI voyage-code-3)
   embedding_model: "voyage-code-3"
-  # embedding_api_key: set via ECODIAOS_SIMULA__EMBEDDING_API_KEY
+  # embedding_api_key: set via ORGANISM_SIMULA__EMBEDDING_API_KEY
 
   # Stage 1C — KV cache compression
   kv_compression_ratio: 0.3
@@ -221,7 +221,7 @@ simula:
   # Stage 4A — Lean 4 proof generation
   lean_enabled: false # requires Lean 4 + Mathlib on PATH
   lean_binary_path: "lean"
-  # lean_project_path: set via ECODIAOS_SIMULA__LEAN_PROJECT_PATH
+  # lean_project_path: set via ORGANISM_SIMULA__LEAN_PROJECT_PATH
   lean_verify_timeout_s: 60.0
   lean_max_attempts: 5
   lean_blocking: true
@@ -238,7 +238,7 @@ simula:
   grpo_batch_size: 8
   grpo_learning_rate: 0.00002
   grpo_retrain_interval_proposals: 50
-  grpo_gpu_ids: [0] # Override via ECODIAOS_SIMULA__GRPO_GPU_IDS
+  grpo_gpu_ids: [0] # Override via ORGANISM_SIMULA__GRPO_GPU_IDS
   grpo_use_finetuned: false
   grpo_ab_test_fraction: 0.2
 
@@ -525,9 +525,9 @@ federation:
 # ── Wallet ────────────────────────────────────────────────────────────────────
 wallet:
   # All secrets set via environment variables — never put keys here.
-  # cdp_api_key_id:     set via ECODIAOS_WALLET__CDP_API_KEY_ID
-  # cdp_api_key_secret: set via ECODIAOS_WALLET__CDP_API_KEY_SECRET
-  # cdp_wallet_secret:  set via ECODIAOS_WALLET__CDP_WALLET_SECRET (base64-encoded DER EC key)
+  # cdp_api_key_id:     set via ORGANISM_WALLET__CDP_API_KEY_ID
+  # cdp_api_key_secret: set via ORGANISM_WALLET__CDP_API_KEY_SECRET
+  # cdp_wallet_secret:  set via ORGANISM_WALLET__CDP_WALLET_SECRET (base64-encoded DER EC key)
   network: "base" # base | base-sepolia | ethereum
   account_name: "ecodiaos-treasury"
   seed_file_path: "data/wallet_seed.json"
@@ -537,15 +537,15 @@ wallet:
 # To activate a connector:
 #   1. Set enabled: true
 #   2. Fill in client_id and client_secret (or use env vars below)
-#   3. Ensure ECODIAOS_VAULT_PASSPHRASE is set so tokens can be encrypted
+#   3. Ensure ORGANISM_VAULT_PASSPHRASE is set so tokens can be encrypted
 #
-# Env var override pattern: ECODIAOS_CONNECTORS__<PLATFORM>__<FIELD>
-# e.g. ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_ID=abc123
+# Env var override pattern: ORGANISM_CONNECTORS__<PLATFORM>__<FIELD>
+# e.g. ORGANISM_CONNECTORS__LINKEDIN__CLIENT_ID=abc123
 connectors:
   linkedin:
     enabled: true
-    # client_id:     set via ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_ID
-    # client_secret: set via ECODIAOS_CONNECTORS__LINKEDIN__CLIENT_SECRET
+    # client_id:     set via ORGANISM_CONNECTORS__LINKEDIN__CLIENT_ID
+    # client_secret: set via ORGANISM_CONNECTORS__LINKEDIN__CLIENT_SECRET
     authorize_url: "https://www.linkedin.com/oauth/v2/authorization"
     token_url: "https://www.linkedin.com/oauth/v2/accessToken"
     revoke_url: "https://www.linkedin.com/oauth/v2/revoke"
@@ -554,8 +554,8 @@ connectors:
 
   x:
     enabled: false
-    # client_id:     set via ECODIAOS_CONNECTORS__X__CLIENT_ID
-    # client_secret: set via ECODIAOS_CONNECTORS__X__CLIENT_SECRET
+    # client_id:     set via ORGANISM_CONNECTORS__X__CLIENT_ID
+    # client_secret: set via ORGANISM_CONNECTORS__X__CLIENT_SECRET
     authorize_url: "https://twitter.com/i/oauth2/authorize"
     token_url: "https://api.twitter.com/2/oauth2/token"
     revoke_url: "https://api.twitter.com/2/oauth2/revoke"
@@ -564,8 +564,8 @@ connectors:
 
   github_app:
     enabled: false
-    # client_id:     set via ECODIAOS_CONNECTORS__GITHUB_APP__CLIENT_ID
-    # client_secret: set via ECODIAOS_CONNECTORS__GITHUB_APP__CLIENT_SECRET
+    # client_id:     set via ORGANISM_CONNECTORS__GITHUB_APP__CLIENT_ID
+    # client_secret: set via ORGANISM_CONNECTORS__GITHUB_APP__CLIENT_SECRET
     authorize_url: "https://github.com/login/oauth/authorize"
     token_url: "https://github.com/login/oauth/access_token"
     revoke_url: "" # GitHub revocation is done via API, not this endpoint
@@ -574,8 +574,8 @@ connectors:
 
   instagram_graph:
     enabled: false
-    # client_id:     set via ECODIAOS_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_ID
-    # client_secret: set via ECODIAOS_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_SECRET
+    # client_id:     set via ORGANISM_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_ID
+    # client_secret: set via ORGANISM_CONNECTORS__INSTAGRAM_GRAPH__CLIENT_SECRET
     authorize_url: "https://api.instagram.com/oauth/authorize"
     token_url: "https://api.instagram.com/oauth/access_token"
     revoke_url: ""
@@ -589,8 +589,8 @@ connectors:
 
   canva:
     enabled: false
-    # client_id:     set via ECODIAOS_CONNECTORS__CANVA__CLIENT_ID
-    # client_secret: set via ECODIAOS_CONNECTORS__CANVA__CLIENT_SECRET
+    # client_id:     set via ORGANISM_CONNECTORS__CANVA__CLIENT_ID
+    # client_secret: set via ORGANISM_CONNECTORS__CANVA__CLIENT_SECRET
     authorize_url: "https://www.canva.com/api/oauth/authorize"
     token_url: "https://www.canva.com/api/oauth/token"
     revoke_url: "https://www.canva.com/api/oauth/revoke"

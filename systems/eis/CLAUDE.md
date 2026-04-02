@@ -60,7 +60,7 @@
 
 - **Dead wiring: `federation.set_eis(eis)` never called** - `wire_federation_phase()` in `wiring.py` now accepts `eis: Any = None` and calls `federation.set_eis(eis)` when both are non-None. `registry.py` `wire_federation_phase()` call updated with `eis=eis`. `FederationIngestionPipeline._run_eis_check()` now has a live EIS reference instead of silently skipping cross-instance percept taint analysis.
 
-- **Dead wiring: EIS genome not exported to children** - `SpawnChildExecutor` now accepts `_eis` and exports `EISGenomeExtractor.extract_genome_segment()` in Step 0b. `eis_genome_id` added to `SeedConfiguration`, `CHILD_SPAWNED` event payload, and `ExecutionResult.data`. Payload injected as `eis_genome_payload` in `seed_config.child_config_overrides` for `ECODIAOS_EIS_GENOME_PAYLOAD` env var on child boot. `wire_mitosis_phase()` accepts `eis=` and injects `spawn_executor._eis = eis`. `registry.py` `wire_mitosis_phase()` call updated with `eis=eis`. Children start with parent's threat patterns and anomaly baselines - immune co-evolution is now operational.
+- **Dead wiring: EIS genome not exported to children** - `SpawnChildExecutor` now accepts `_eis` and exports `EISGenomeExtractor.extract_genome_segment()` in Step 0b. `eis_genome_id` added to `SeedConfiguration`, `CHILD_SPAWNED` event payload, and `ExecutionResult.data`. Payload injected as `eis_genome_payload` in `seed_config.child_config_overrides` for `ORGANISM_EIS_GENOME_PAYLOAD` env var on child boot. `wire_mitosis_phase()` accepts `eis=` and injects `spawn_executor._eis = eis`. `registry.py` `wire_mitosis_phase()` call updated with `eis=eis`. Children start with parent's threat patterns and anomaly baselines - immune co-evolution is now operational.
 
 - **Invisible action: `handle_quarantine_cleared()` had no Synapse trigger** - `set_synapse()` now subscribes to `EQUOR_HITL_APPROVED`. New handler `_on_equor_hitl_approved()` reads `approval_type=="quarantine_cleared"` + `threat_pattern_ids=[...]` and calls `handle_quarantine_cleared()`. Equor can now autonomously close the false-positive feedback loop by emitting `EQUOR_HITL_APPROVED` without any direct API call.
 
@@ -76,7 +76,7 @@
 - **Safe-mode threshold** - undefined; no transition logic
 - **Pathogen retirement** - no background task to prune stale/high-FP entries
 - **ConstitutionalGraph static** - doesn't update when organism evolves
-- ~~**Child-side EIS genome apply**~~ - **RESOLVED 2026-03-08**: `EISService.initialize()` reads `ECODIAOS_EIS_GENOME_PAYLOAD` and calls `self._genome_extractor.seed_from_genome_segment()`. `self._genome_extractor` is now instantiated in `__init__` (eager, not lazy) so it's available immediately. Genesis nodes skip apply via `ECODIAOS_IS_GENESIS_NODE=true` guard.
+- ~~**Child-side EIS genome apply**~~ - **RESOLVED 2026-03-08**: `EISService.initialize()` reads `ORGANISM_EIS_GENOME_PAYLOAD` and calls `self._genome_extractor.seed_from_genome_segment()`. `self._genome_extractor` is now instantiated in `__init__` (eager, not lazy) so it's available immediately. Genesis nodes skip apply via `ORGANISM_IS_GENESIS_NODE=true` guard.
 - ~~**Neo4j not wired in registry**~~ - **RESOLVED 2026-03-07**: `eis.set_neo4j(infra.neo4j)` added to `SystemRegistry.startup()` Phase 2 after `set_metrics()`
 
 ---

@@ -9,7 +9,7 @@ purpose="oauth_token" containing:
         "access_token": "<dev.to API key>"
     }
 
-Alternatively the key can be sourced from ECODIAOS_DEVTO_API_KEY env var as
+Alternatively the key can be sourced from ORGANISM_DEVTO_API_KEY env var as
 a fallback when no vault envelope is provisioned.
 
 API:
@@ -47,7 +47,7 @@ class DevToClient:
     """
     Thin async HTTP client for the Dev.to / Forem Articles API.
 
-    Credentials resolved from vault first, ECODIAOS_DEVTO_API_KEY env var second.
+    Credentials resolved from vault first, ORGANISM_DEVTO_API_KEY env var second.
     """
 
     def __init__(
@@ -157,7 +157,7 @@ class DevToClient:
                 if key:
                     return key
 
-        return os.getenv("ECODIAOS_DEVTO_API_KEY", "")
+        return os.getenv("ORGANISM_DEVTO_API_KEY", "")
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────

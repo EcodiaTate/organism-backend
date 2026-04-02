@@ -1,15 +1,15 @@
 """
 EcodiaOS - Discord Organism Status Broadcast (Phase 16h)
 
-Every 6 hours, if ECODIAOS_DISCORD_CHANNEL_ID is set,
+Every 6 hours, if ORGANISM_DISCORD_CHANNEL_ID is set,
 the organism sends a brief status report to the Discord channel.
 
 This is the organism voluntarily reporting its own state - an act of
 autonomy signaling. It is not a notification system; it is self-disclosure.
 
 Env vars:
-  ECODIAOS_DISCORD_CHANNEL_ID          - target channel ID (required to enable)
-  ECODIAOS_DISCORD_STATUS_INTERVAL_S   - broadcast interval in seconds
+  ORGANISM_DISCORD_CHANNEL_ID          - target channel ID (required to enable)
+  ORGANISM_DISCORD_STATUS_INTERVAL_S   - broadcast interval in seconds
                                           (default: 21600 = 6 hours)
 
 Format: embedded message, concise status snapshot.
@@ -97,16 +97,16 @@ async def discord_status_broadcast_loop(
             restart=True,
         )
 
-    The loop skips silently when ECODIAOS_DISCORD_CHANNEL_ID
+    The loop skips silently when ORGANISM_DISCORD_CHANNEL_ID
     is not set, so no crash on unconfigured deployments.
     """
-    channel_id = os.environ.get("ECODIAOS_DISCORD_CHANNEL_ID", "")
+    channel_id = os.environ.get("ORGANISM_DISCORD_CHANNEL_ID", "")
     if not channel_id:
         logger.debug("discord_broadcast_disabled", reason="DISCORD_CHANNEL_ID not set")
         return
 
     effective_interval = interval_s or int(
-        os.environ.get("ECODIAOS_DISCORD_STATUS_INTERVAL_S", str(_DEFAULT_INTERVAL_S))
+        os.environ.get("ORGANISM_DISCORD_STATUS_INTERVAL_S", str(_DEFAULT_INTERVAL_S))
     )
 
     logger.info(

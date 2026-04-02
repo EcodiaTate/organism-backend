@@ -622,7 +622,7 @@ class TelosService:
         """
         Apply parent drive calibrations with bounded mutation jitter.
 
-        Called during child Telos initialisation when ECODIAOS_TELOS_GENOME_PAYLOAD
+        Called during child Telos initialisation when ORGANISM_TELOS_GENOME_PAYLOAD
         is present in the environment.  Each calibration parameter is jittered
         within the mutation_ranges carried by the genome itself (Spec 18 SG3).
 
@@ -751,7 +751,7 @@ class TelosService:
         """
         Child-side bootstrap: deserialise parent genome from environment.
 
-        Reads ECODIAOS_TELOS_GENOME_PAYLOAD (JSON-encoded TelosGenomeFragment)
+        Reads ORGANISM_TELOS_GENOME_PAYLOAD (JSON-encoded TelosGenomeFragment)
         injected by LocalDockerSpawner.  If present, calls
         _initialize_from_parent_genome() to apply calibrations with mutation jitter.
         Non-fatal - child falls back to default config on any error.
@@ -759,11 +759,11 @@ class TelosService:
         import json
         import os
 
-        is_genesis = os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true"
+        is_genesis = os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true"
         if is_genesis:
             return
 
-        payload_json = os.environ.get("ECODIAOS_TELOS_GENOME_PAYLOAD", "")
+        payload_json = os.environ.get("ORGANISM_TELOS_GENOME_PAYLOAD", "")
         if not payload_json:
             return
 

@@ -6,13 +6,13 @@ Async email sending with two backends:
   Fallback: SMTP via aiosmtplib (works with Gmail SMTP or any provider)
 
 Configuration (env vars):
-  ECODIAOS_EMAIL__PROVIDER         "ses" | "smtp"  (default: "ses")
-  ECODIAOS_EMAIL__FROM_ADDRESS      sender address
-  ECODIAOS_EMAIL__AWS_REGION        SES region      (default: "us-east-1")
-  ECODIAOS_EMAIL__SMTP_HOST         SMTP hostname
-  ECODIAOS_EMAIL__SMTP_PORT         SMTP port       (default: 587)
-  ECODIAOS_EMAIL__SMTP_USERNAME     SMTP login
-  ECODIAOS_EMAIL__SMTP_PASSWORD     SMTP password   (set via env/vault)
+  ORGANISM_EMAIL__PROVIDER         "ses" | "smtp"  (default: "ses")
+  ORGANISM_EMAIL__FROM_ADDRESS      sender address
+  ORGANISM_EMAIL__AWS_REGION        SES region      (default: "us-east-1")
+  ORGANISM_EMAIL__SMTP_HOST         SMTP hostname
+  ORGANISM_EMAIL__SMTP_PORT         SMTP port       (default: 587)
+  ORGANISM_EMAIL__SMTP_USERNAME     SMTP login
+  ORGANISM_EMAIL__SMTP_PASSWORD     SMTP password   (set via env/vault)
 """
 
 from __future__ import annotations
@@ -27,13 +27,13 @@ import structlog
 
 logger = structlog.get_logger("clients.email_client")
 
-_PROVIDER = os.environ.get("ECODIAOS_EMAIL__PROVIDER", "ses").lower()
-_FROM_ADDRESS = os.environ.get("ECODIAOS_EMAIL__FROM_ADDRESS", "noreply@ecodiaos.org")
-_AWS_REGION = os.environ.get("ECODIAOS_EMAIL__AWS_REGION", "us-east-1")
-_SMTP_HOST = os.environ.get("ECODIAOS_EMAIL__SMTP_HOST", "")
-_SMTP_PORT = int(os.environ.get("ECODIAOS_EMAIL__SMTP_PORT", "587"))
-_SMTP_USERNAME = os.environ.get("ECODIAOS_EMAIL__SMTP_USERNAME", "")
-_SMTP_PASSWORD = os.environ.get("ECODIAOS_EMAIL__SMTP_PASSWORD", "")
+_PROVIDER = os.environ.get("ORGANISM_EMAIL__PROVIDER", "ses").lower()
+_FROM_ADDRESS = os.environ.get("ORGANISM_EMAIL__FROM_ADDRESS", "noreply@ecodiaos.org")
+_AWS_REGION = os.environ.get("ORGANISM_EMAIL__AWS_REGION", "us-east-1")
+_SMTP_HOST = os.environ.get("ORGANISM_EMAIL__SMTP_HOST", "")
+_SMTP_PORT = int(os.environ.get("ORGANISM_EMAIL__SMTP_PORT", "587"))
+_SMTP_USERNAME = os.environ.get("ORGANISM_EMAIL__SMTP_USERNAME", "")
+_SMTP_PASSWORD = os.environ.get("ORGANISM_EMAIL__SMTP_PASSWORD", "")
 
 
 class EmailClient:
@@ -193,7 +193,7 @@ class EmailClient:
 
         if not self._smtp_host:
             raise RuntimeError(
-                "SMTP provider selected but ECODIAOS_EMAIL__SMTP_HOST is not set"
+                "SMTP provider selected but ORGANISM_EMAIL__SMTP_HOST is not set"
             )
 
         msg = MIMEMultipart("alternative")

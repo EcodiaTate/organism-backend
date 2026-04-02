@@ -17,8 +17,8 @@ Message handling:
   - GATEWAY_HELLO (opcode 10): initial handshake with heartbeat interval
 
 Env vars:
-  ECODIAOS_CONNECTORS__DISCORD__BOT_TOKEN - bot token (required)
-  ECODIAOS_DISCORD_GATEWAY_ENABLED - enable gateway loop (default: true if token set)
+  ORGANISM_CONNECTORS__DISCORD__BOT_TOKEN - bot token (required)
+  ORGANISM_DISCORD_GATEWAY_ENABLED - enable gateway loop (default: true if token set)
 """
 
 from __future__ import annotations

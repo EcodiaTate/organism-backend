@@ -68,7 +68,7 @@ def _find_codebase_root(hint: str | None = None) -> Path:
     if hint:
         return Path(hint).resolve()
 
-    env = os.environ.get("ECODIAOS_CODEBASE_ROOT")
+    env = os.environ.get("ORGANISM_CODEBASE_ROOT")
     if env:
         return Path(env).resolve()
 

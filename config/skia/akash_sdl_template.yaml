@@ -6,8 +6,8 @@
 #
 # Template variables (substituted at deploy time):
 #   ${DOCKER_IMAGE}                 — Container image URI
-#   ${ECODIAOS_SKIA_RESTORE_CID}   — IPFS CID for state restoration
-#   ${ECODIAOS_INSTANCE_ID}         — Instance identity (optional)
+#   ${ORGANISM_SKIA_RESTORE_CID}   — IPFS CID for state restoration
+#   ${ORGANISM_INSTANCE_ID}         — Instance identity (optional)
 #
 # Reference workload: 2 vCPU / 4 Gi RAM / 20 Gi storage
 # Matches the pricing normalisation in ProviderManager.
@@ -31,8 +31,8 @@ services:
         to:
           - global: true
     env:
-      - ECODIAOS_SKIA_RESTORE_CID=${ECODIAOS_SKIA_RESTORE_CID}
-      - ECODIAOS_INSTANCE_ID=${ECODIAOS_INSTANCE_ID}
+      - ORGANISM_SKIA_RESTORE_CID=${ORGANISM_SKIA_RESTORE_CID}
+      - ORGANISM_INSTANCE_ID=${ORGANISM_INSTANCE_ID}
     params:
       storage:
         data:

@@ -15,7 +15,7 @@ RE training:
     constitutional_alignment scores.
 
 Env vars:
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - default chat_id fallback
+  ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID - default chat_id fallback
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ class SendTelegramExecutor(Executor):
 
     Optional params:
       chat_id (int | str): Target chat or channel ID.
-                           Falls back to ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID
+                           Falls back to ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID
                            when omitted.
       parse_mode (str): "Markdown" | "MarkdownV2" | "HTML" | "".
                         Default: "Markdown".
@@ -126,14 +126,14 @@ class SendTelegramExecutor(Executor):
         # Resolve chat_id - param → env fallback → error
         chat_id = params.get("chat_id")
         if chat_id is None:
-            env_chat_id = os.environ.get("ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
+            env_chat_id = os.environ.get("ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID", "")
             if env_chat_id:
                 chat_id = int(env_chat_id)
         if chat_id is None:
             self._logger.warning("send_telegram_no_chat_id")
             return ExecutionResult(
                 success=False,
-                error="No chat_id provided and ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID not set",
+                error="No chat_id provided and ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID not set",
             )
 
         if self._connector is None:
@@ -141,7 +141,7 @@ class SendTelegramExecutor(Executor):
             await self._emit_re_training(context, success=False, error="no_connector")
             return ExecutionResult(
                 success=False,
-                error="TelegramConnector not configured - set ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN",
+                error="TelegramConnector not configured - set ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN",
             )
 
         t0 = time.monotonic()

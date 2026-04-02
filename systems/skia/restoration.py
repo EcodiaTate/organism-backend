@@ -273,7 +273,7 @@ class RestorationOrchestrator:
 
                 service_def = get_resp.json()
 
-                # Inject ECODIAOS_SKIA_RESTORE_CID env var into the template
+                # Inject ORGANISM_SKIA_RESTORE_CID env var into the template
                 containers = (
                     service_def.get("template", {})
                     .get("template", {})
@@ -285,12 +285,12 @@ class RestorationOrchestrator:
                     env_vars = [
                         e for e in env_vars
                         if e.get("name") not in (
-                            "ECODIAOS_SKIA_RESTORE_CID",
-                            "ECODIAOS_CONSTITUTIONAL_GENOME_B64",
+                            "ORGANISM_SKIA_RESTORE_CID",
+                            "ORGANISM_CONSTITUTIONAL_GENOME_B64",
                         )
                     ]
                     env_vars.append({
-                        "name": "ECODIAOS_SKIA_RESTORE_CID",
+                        "name": "ORGANISM_SKIA_RESTORE_CID",
                         "value": plan.state_cid,
                     })
                     # Pass constitutional genome so new instance inherits parent phenotype
@@ -299,7 +299,7 @@ class RestorationOrchestrator:
                             orjson.dumps(self._constitutional_genome)
                         ).decode("ascii")
                         env_vars.append({
-                            "name": "ECODIAOS_CONSTITUTIONAL_GENOME_B64",
+                            "name": "ORGANISM_CONSTITUTIONAL_GENOME_B64",
                             "value": genome_b64,
                         })
                         self._log.info(
@@ -444,7 +444,7 @@ class RestorationOrchestrator:
 
             # Inject restore CID and docker image into SDL template
             sdl_content = sdl_content.replace(
-                "${ECODIAOS_SKIA_RESTORE_CID}", plan.state_cid
+                "${ORGANISM_SKIA_RESTORE_CID}", plan.state_cid
             )
             if self._config.akash_docker_image:
                 sdl_content = sdl_content.replace(
@@ -458,7 +458,7 @@ class RestorationOrchestrator:
                     orjson.dumps(self._constitutional_genome)
                 ).decode("ascii")
                 sdl_content = sdl_content.replace(
-                    "${ECODIAOS_CONSTITUTIONAL_GENOME_B64}", genome_b64
+                    "${ORGANISM_CONSTITUTIONAL_GENOME_B64}", genome_b64
                 )
                 self._log.info(
                     "constitutional_genome_injected_akash",
@@ -476,7 +476,7 @@ class RestorationOrchestrator:
                         "wallet": self._config.akash_wallet_address,
                         # Also pass genome in the API payload as Akash providers
                         # may support env injection outside the SDL.
-                        "env": {"ECODIAOS_CONSTITUTIONAL_GENOME_B64": genome_b64}
+                        "env": {"ORGANISM_CONSTITUTIONAL_GENOME_B64": genome_b64}
                         if genome_b64 else {},
                     },
                     headers={"Content-Type": "application/json"},
@@ -704,7 +704,7 @@ class RestorationOrchestrator:
 
         The shadow SDL is a stripped-down version of the main SDL:
           - 0.1 CPU / 128Mi memory / 512Mi storage
-          - environment: ECODIAOS_STANDALONE=true, CID key, heartbeat config
+          - environment: ORGANISM_STANDALONE=true, CID key, heartbeat config
           - does NOT restore from CID automatically - only monitors + waits for trigger
 
         Returns (endpoint, provider_id, deployment_id).
@@ -720,8 +720,8 @@ class RestorationOrchestrator:
         if self._config.akash_docker_image:
             sdl_content = sdl_content.replace("${DOCKER_IMAGE}", self._config.akash_docker_image)
         # Inject shadow-mode env vars; leave restore CID empty (it reads from Redis at restore time)
-        sdl_content = sdl_content.replace("${ECODIAOS_SKIA_RESTORE_CID}", "")
-        sdl_content = sdl_content.replace("${ECODIAOS_CONSTITUTIONAL_GENOME_B64}", "")
+        sdl_content = sdl_content.replace("${ORGANISM_SKIA_RESTORE_CID}", "")
+        sdl_content = sdl_content.replace("${ORGANISM_CONSTITUTIONAL_GENOME_B64}", "")
 
         # Override resource spec to minimal shadow worker allocation
         sdl_content = _patch_sdl_for_shadow(sdl_content)
@@ -733,8 +733,8 @@ class RestorationOrchestrator:
                     "sdl": sdl_content,
                     "wallet": self._config.akash_wallet_address,
                     "env": {
-                        "ECODIAOS_STANDALONE": "true",
-                        "ECODIAOS_SHADOW_WORKER": "true",
+                        "ORGANISM_STANDALONE": "true",
+                        "ORGANISM_SHADOW_WORKER": "true",
                         "SKIA_CID_REDIS_KEY": self._config.state_cid_redis_key,
                     },
                 },
@@ -840,11 +840,11 @@ class RestorationOrchestrator:
             if containers:
                 env_vars = [
                     e for e in containers[0].get("env", [])
-                    if e.get("name") not in ("ECODIAOS_SKIA_RESTORE_CID", "ECODIAOS_MIGRATION_ID")
+                    if e.get("name") not in ("ORGANISM_SKIA_RESTORE_CID", "ORGANISM_MIGRATION_ID")
                 ]
                 env_vars.extend([
-                    {"name": "ECODIAOS_STANDALONE", "value": "true"},
-                    {"name": "ECODIAOS_SHADOW_WORKER", "value": "true"},
+                    {"name": "ORGANISM_STANDALONE", "value": "true"},
+                    {"name": "ORGANISM_SHADOW_WORKER", "value": "true"},
                     {"name": "SKIA_CID_REDIS_KEY", "value": self._config.state_cid_redis_key},
                 ])
                 # Limit resources: min instances = 0, max = 1 (free tier)

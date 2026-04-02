@@ -274,7 +274,7 @@ class EquorService:
         # exports, and health-request responses embed the correct instance ID
         # rather than the empty string that getattr fallback would produce.
         import os as _os
-        self._instance_id: str = _os.environ.get("ECODIAOS_INSTANCE_ID", "")
+        self._instance_id: str = _os.environ.get("ORGANISM_INSTANCE_ID", "")
 
     def set_evo(self, evo: Any) -> None:
         """Wire Evo so constitutional vetoes become learning episodes."""
@@ -1688,7 +1688,7 @@ class EquorService:
         )
 
         # Prompt 4.1 - Apply inherited constitutional amendments if this is a child instance.
-        # ECODIAOS_EQUOR_GENOME_PAYLOAD is injected by LocalDockerSpawner from the
+        # ORGANISM_EQUOR_GENOME_PAYLOAD is injected by LocalDockerSpawner from the
         # equor_genome_payload key in SeedConfiguration.child_config_overrides.
         await self._apply_inherited_equor_genome_if_child()
 
@@ -3303,19 +3303,19 @@ class EquorService:
 
     async def _apply_inherited_equor_genome_if_child(self) -> None:
         """
-        On child boot, read ECODIAOS_EQUOR_GENOME_PAYLOAD env var and apply
+        On child boot, read ORGANISM_EQUOR_GENOME_PAYLOAD env var and apply
         the inherited EquorGenomeFragment via EquorGenomeExtractor.
 
         Non-fatal: logs warnings on failure, never blocks startup.
-        Only runs when ECODIAOS_IS_GENESIS_NODE != 'true'.
+        Only runs when ORGANISM_IS_GENESIS_NODE != 'true'.
         """
         import json as _json
         import os as _os
 
-        if _os.environ.get("ECODIAOS_IS_GENESIS_NODE", "true").lower() == "true":
+        if _os.environ.get("ORGANISM_IS_GENESIS_NODE", "true").lower() == "true":
             return  # Genesis node: no inherited genome
 
-        raw_payload = _os.environ.get("ECODIAOS_EQUOR_GENOME_PAYLOAD", "").strip()
+        raw_payload = _os.environ.get("ORGANISM_EQUOR_GENOME_PAYLOAD", "").strip()
         if not raw_payload:
             logger.debug("equor_no_genome_payload_env", note="child boot without equor genome")
             return

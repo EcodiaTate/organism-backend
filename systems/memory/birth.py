@@ -292,7 +292,7 @@ async def seed_simula_from_parent_genome(
     """
     Seed a child instance's Simula subsystems from a parent's SimulaGenome.
 
-    Called after birth_instance() when a ECODIAOS_SIMULA_GENOME_ID env var
+    Called after birth_instance() when a ORGANISM_SIMULA_GENOME_ID env var
     is present. Loads the genome from Neo4j by ID and seeds the child's
     evolution history, LILO library, GRPO training data, EFE calibration,
     and proven procedures.

@@ -19,14 +19,14 @@ Per-instance username pattern:
   Gmail:  {prefix}.{instance_id[:8]}@gmail.com
 
 Environment variables:
-  ECODIAOS_CAPTCHA__TWOCAPTCHA_API_KEY
-  ECODIAOS_CAPTCHA__PROVIDER
-  ECODIAOS_ACCOUNT_PROVISIONER__ENABLED
-  ECODIAOS_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX
-  ECODIAOS_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE
-  ECODIAOS_IDENTITY_COMM__TWILIO_ACCOUNT_SID  (existing)
-  ECODIAOS_IDENTITY_COMM__TWILIO_AUTH_TOKEN   (existing)
-  ECODIAOS_PUBLIC_URL                          (existing)
+  ORGANISM_CAPTCHA__TWOCAPTCHA_API_KEY
+  ORGANISM_CAPTCHA__PROVIDER
+  ORGANISM_ACCOUNT_PROVISIONER__ENABLED
+  ORGANISM_ACCOUNT_PROVISIONER__GITHUB_USERNAME_PREFIX
+  ORGANISM_ACCOUNT_PROVISIONER__TWILIO_AREA_CODE
+  ORGANISM_IDENTITY_COMM__TWILIO_ACCOUNT_SID  (existing)
+  ORGANISM_IDENTITY_COMM__TWILIO_AUTH_TOKEN   (existing)
+  ORGANISM_PUBLIC_URL                          (existing)
 """
 
 from __future__ import annotations
@@ -298,14 +298,14 @@ class AccountProvisioner:
         auth_token = cfg.identity_comm.twilio_auth_token
         if not account_sid or not auth_token:
             raise RuntimeError(
-                "Twilio credentials missing: set ECODIAOS_IDENTITY_COMM__TWILIO_ACCOUNT_SID "
-                "and ECODIAOS_IDENTITY_COMM__TWILIO_AUTH_TOKEN"
+                "Twilio credentials missing: set ORGANISM_IDENTITY_COMM__TWILIO_ACCOUNT_SID "
+                "and ORGANISM_IDENTITY_COMM__TWILIO_AUTH_TOKEN"
             )
 
         # Build webhook URL
         public_url = (
             cfg.identity_comm.webhook_base_url
-            or os.environ.get("ECODIAOS_PUBLIC_URL", "")
+            or os.environ.get("ORGANISM_PUBLIC_URL", "")
         ).rstrip("/")
         webhook_url = f"{public_url}/api/v1/identity/webhook/twilio" if public_url else ""
 
@@ -370,7 +370,7 @@ class AccountProvisioner:
             )
 
         # ── Runtime environment update ────────────────────────────────
-        os.environ["ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER"] = phone_number
+        os.environ["ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER"] = phone_number
 
         # ── Synapse events ────────────────────────────────────────────
         cost_usd = self._config.twilio_number_cost_usd if self._config else "1.15"
@@ -838,7 +838,7 @@ class AccountProvisioner:
                 if phone_step and self._otp_coordinator:
                     # Enter the instance's Twilio number
                     from_number = os.environ.get(
-                        "ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER", ""
+                        "ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER", ""
                     )
                     if not from_number:
                         self._log.warning(
@@ -1014,7 +1014,7 @@ class AccountProvisioner:
     async def _has_twilio_number(self) -> bool:
         """True if this instance already has a provisioned Twilio phone number."""
         # Check environment variable (runtime override)
-        if os.environ.get("ECODIAOS_IDENTITY_COMM__TWILIO_FROM_NUMBER"):
+        if os.environ.get("ORGANISM_IDENTITY_COMM__TWILIO_FROM_NUMBER"):
             return True
         if self._full_config and self._full_config.identity_comm.twilio_from_number:
             return True

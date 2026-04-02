@@ -9,7 +9,7 @@ can concatenate both lists transparently.
 
 Authentication:
     Uses the same GitHub token as ``GitHubClient``.  Set
-    ``ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN`` to avoid anonymous
+    ``ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN`` to avoid anonymous
     rate limits.
 """
 

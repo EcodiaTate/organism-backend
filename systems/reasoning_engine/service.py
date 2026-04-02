@@ -10,9 +10,9 @@ identically to today (Claude-only mode).  The circuit breaker ensures a
 crashed vLLM server degrades gracefully rather than hanging deliberation.
 
 Env vars:
-    ECODIAOS_RE_VLLM_URL    vLLM OpenAI-compatible server (default: http://localhost:8001/v1)
-    ECODIAOS_RE_MODEL       Model name served by vLLM (default: ecodiaos-reasoning)
-    ECODIAOS_RE_ENABLED     Set to "false" to disable entirely (default: true)
+    ORGANISM_RE_VLLM_URL    vLLM OpenAI-compatible server (default: http://localhost:8001/v1)
+    ORGANISM_RE_MODEL       Model name served by vLLM (default: ecodiaos-reasoning)
+    ORGANISM_RE_ENABLED     Set to "false" to disable entirely (default: true)
 
 Integration:
     - Implements LLMProvider ABC from clients/llm.py
@@ -65,14 +65,14 @@ class ReasoningEngineService(LLMProvider):
     ) -> None:
         _raw_url = (
             vllm_url
-            or os.environ.get("ECODIAOS_RE_VLLM_URL", "http://localhost:8001/v1")
+            or os.environ.get("ORGANISM_RE_VLLM_URL", "http://localhost:8001/v1")
         ).rstrip("/")
         # Ensure URL ends with /v1 - vLLM OpenAI-compatible API lives at /v1/*
         if not _raw_url.endswith("/v1"):
             _raw_url = _raw_url + "/v1"
         self._url = _raw_url
         self._model = model_name or os.environ.get(
-            "ECODIAOS_RE_MODEL", "ecodiaos-reasoning"
+            "ORGANISM_RE_MODEL", "ecodiaos-reasoning"
         )
         self._synapse = synapse  # injected after startup for event emission
         self._neo4j = None  # injected after startup via set_neo4j()
@@ -82,7 +82,7 @@ class ReasoningEngineService(LLMProvider):
         self._circuit_open: bool = False
         self._reprobe_task: asyncio.Task[None] | None = None
         self._reprobe_interval_s = float(
-            os.environ.get("ECODIAOS_RE_REPROBE_INTERVAL_S", "120")
+            os.environ.get("ORGANISM_RE_REPROBE_INTERVAL_S", "120")
         )
 
         self._client = httpx.AsyncClient(

@@ -16,8 +16,8 @@ Bot token storage:
   vault.encrypt_token_json({"bot_token": token}, platform_id="telegram")
 
 Environment variables:
-  ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN      - required
-  ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - optional, for status broadcasts
+  ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN      - required
+  ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID  - optional, for status broadcasts
 """
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ class TelegramConnector(PlatformConnector):
                 scopes=[],
             ),
             vault=vault,
-            bot_token=os.environ["ECODIAOS_CONNECTORS__TELEGRAM__BOT_TOKEN"],
+            bot_token=os.environ["ORGANISM_CONNECTORS__TELEGRAM__BOT_TOKEN"],
         )
         connector.set_event_bus(event_bus)
         await connector.authenticate()

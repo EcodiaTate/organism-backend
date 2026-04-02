@@ -39,7 +39,7 @@
 
 **2. Drive Weights in Shadow Provisioning** (`restoration.py`, `service.py`)
 - `RestorationOrchestrator.set_constitutional_genome(genome)` stores the genome for injection
-- Cloud Run restart: injects `ECODIAOS_CONSTITUTIONAL_GENOME_B64` = `base64(orjson(genome))` env var alongside `ECODIAOS_SKIA_RESTORE_CID`
+- Cloud Run restart: injects `ORGANISM_CONSTITUTIONAL_GENOME_B64` = `base64(orjson(genome))` env var alongside `ORGANISM_SKIA_RESTORE_CID`
 - Akash deploy: injects genome into SDL template placeholder + API payload `env` dict
 - `_on_death_confirmed()` syncs `snapshot.last_constitutional_genome` → restoration before calling `restore()`
 
@@ -99,7 +99,7 @@
 - `result` dict gains: `actual_node_count`, `actual_edge_count`, `manifest_node_count`, `manifest_edge_count`, `node_deviation_pct`, `edge_deviation_pct`
 
 **5. Akash SDL template created** (`config/skia/akash_sdl_template.yaml`)
-- Minimal valid Akash SDL with `${DOCKER_IMAGE}`, `${ECODIAOS_SKIA_RESTORE_CID}`, `${ECODIAOS_CONSTITUTIONAL_GENOME_B64}` substitution placeholders
+- Minimal valid Akash SDL with `${DOCKER_IMAGE}`, `${ORGANISM_SKIA_RESTORE_CID}`, `${ORGANISM_CONSTITUTIONAL_GENOME_B64}` substitution placeholders
 - Matches exactly the `str.replace()` calls in `RestorationOrchestrator._deploy_akash()`
 - Default resources: 0.5 CPU, 512Mi memory, 1Gi storage
 - Path matches `SkiaConfig.akash_sdl_template_path` default: `"config/skia/akash_sdl_template.yaml"`
@@ -213,7 +213,7 @@
 
 - `ensure_shadow_worker() -> bool` - public entry point. Checks existing Redis record, verifies health endpoint, redeploys if unhealthy. Returns True if shadow confirmed live.
 - `_deploy_shadow_worker() -> bool` - tries Akash first (`_deploy_shadow_akash()`), falls back to Cloud Run (`_deploy_shadow_cloud_run()`). Verifies health, persists record to Redis.
-- `_deploy_shadow_akash() -> tuple[str, str, str]` - minimal Akash deployment (0.1 CPU / 128Mi memory). Injects `ECODIAOS_STANDALONE=true` + `ECODIAOS_SHADOW_WORKER=true`. 300s polling timeout. Returns `(endpoint, "akash", deployment_id)`.
+- `_deploy_shadow_akash() -> tuple[str, str, str]` - minimal Akash deployment (0.1 CPU / 128Mi memory). Injects `ORGANISM_STANDALONE=true` + `ORGANISM_SHADOW_WORKER=true`. 300s polling timeout. Returns `(endpoint, "akash", deployment_id)`.
 - `_deploy_shadow_cloud_run() -> tuple[str, str, str]` - clones main Cloud Run service into shadow region (service name gets `-shadow` suffix). Uses `_pick_shadow_region()` for geographic separation. 256Mi memory limit. Returns `(endpoint, "cloud_run", service_name)`.
 - `_check_shadow_worker_health(endpoint)` - 10s timeout GET `/health`. Returns bool.
 - `_persist_shadow_worker_record()` / `_get_shadow_worker_record()` - Redis JSON at `skia:shadow_worker` key (7-day TTL).

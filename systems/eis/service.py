@@ -371,15 +371,15 @@ class EISService:
         self._logger.info("eis_service_initialized")
 
         # ── Child-side: apply inherited immune memory from parent genome ──
-        # When spawned as a child instance, ECODIAOS_EIS_GENOME_PAYLOAD is set by
+        # When spawned as a child instance, ORGANISM_EIS_GENOME_PAYLOAD is set by
         # the parent's LocalDockerSpawner. We deserialise the OrganGenomeSegment
         # and seed the threat library + anomaly baselines so the child recognises
         # known attack signatures from its very first percept cycle.
         import asyncio
         import os
 
-        _eis_genome_payload = os.environ.get("ECODIAOS_EIS_GENOME_PAYLOAD", "").strip()
-        _is_genesis = os.environ.get("ECODIAOS_IS_GENESIS_NODE", "false").lower() == "true"
+        _eis_genome_payload = os.environ.get("ORGANISM_EIS_GENOME_PAYLOAD", "").strip()
+        _is_genesis = os.environ.get("ORGANISM_IS_GENESIS_NODE", "false").lower() == "true"
         if _eis_genome_payload and not _is_genesis:
             try:
                 import json as _json

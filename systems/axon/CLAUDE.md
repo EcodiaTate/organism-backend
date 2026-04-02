@@ -147,7 +147,7 @@ Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (new DeFi/bounty protocol, no exec
 - Confidence threshold: inherited=0.6, self-learned=0.8
 
 **Child boot flow:**
-1. `ECODIAOS_AXON_GENOME_PAYLOAD` env var injected by `LocalDockerSpawner` (via `seed_config.child_config_overrides["axon_genome_payload"]`)
+1. `ORGANISM_AXON_GENOME_PAYLOAD` env var injected by `LocalDockerSpawner` (via `seed_config.child_config_overrides["axon_genome_payload"]`)
 2. `AxonService.initialize()` reads env var, parses `AxonGenomeFragment`, calls `_initialize_from_parent_templates()`
 3. Child starts executing with warm success-rate priors from first cognitive cycle
 
@@ -155,7 +155,7 @@ Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (new DeFi/bounty protocol, no exec
 - Calls `axon.export_axon_genome(generation=generation)` alongside Evo/Simula/Equor genome exports
 - `axon_genome_id` added to `CHILD_SPAWNED` event payload and `ExecutionResult.data`
 - `SeedConfiguration.axon_genome_id` field populated in `oikos/models.py`
-- `ECODIAOS_AXON_GENOME_ID` + `ECODIAOS_AXON_GENOME_PAYLOAD` injected by spawner
+- `ORGANISM_AXON_GENOME_ID` + `ORGANISM_AXON_GENOME_PAYLOAD` injected by spawner
 
 **`AxonGenomeExtractor`** - also captures `template_snapshot` in `OrganGenomeSegment` payload (alongside `executor_reliability`, `timeout_calibration`, `circuit_breaker_config`). `seed_from_genome_segment()` calls `_apply_template_snapshot()` which seeds the introspector.
 
@@ -226,14 +226,14 @@ First-class real-time web data gathering. All methods degrade gracefully - never
 - Rate limit: `≥1s` between requests to same domain; hard ceiling `60 req/hr` per domain
 - Neo4j audit trail: every fetch/search writes `(:WebIntelligenceEvent)-[:HAS_EVENT]->(:WebDomain)`
 
-**Config:** `SearchConfig` in `config.py` - all `ECODIAOS_SEARCH__*` env vars:
+**Config:** `SearchConfig` in `config.py` - all `ORGANISM_SEARCH__*` env vars:
 ```
-ECODIAOS_SEARCH__PROVIDER=brave   # "brave" | "serpapi" | "ddg"
-ECODIAOS_SEARCH__BRAVE_API_KEY=<key>
-ECODIAOS_SEARCH__SERPAPI_KEY=<key>
-ECODIAOS_SEARCH__REQUEST_TIMEOUT_S=10.0
-ECODIAOS_SEARCH__MAX_REQ_PER_DOMAIN_PER_HOUR=60
-ECODIAOS_SEARCH__RATE_LIMIT_S=1.0
+ORGANISM_SEARCH__PROVIDER=brave   # "brave" | "serpapi" | "ddg"
+ORGANISM_SEARCH__BRAVE_API_KEY=<key>
+ORGANISM_SEARCH__SERPAPI_KEY=<key>
+ORGANISM_SEARCH__REQUEST_TIMEOUT_S=10.0
+ORGANISM_SEARCH__MAX_REQ_PER_DOMAIN_PER_HOUR=60
+ORGANISM_SEARCH__RATE_LIMIT_S=1.0
 ```
 
 **Intelligence feeds** (`INTELLIGENCE_FEEDS` constant in `web_client.py`):
@@ -394,8 +394,8 @@ All originally-tracked gaps are now resolved. See Spec §20 Resolved Gaps table 
 - ~~BudgetTracker sub-limits not enforced~~ - **FIXED 2026-03-07**: `can_execute_action_type()` + `record_action_type()` wired into Stage 3 and step execution; sliding-window deques enforce API calls/min and notifications/hr across cycle boundaries
 - ~~AV3: `from systems.fovea.types import InternalErrorType`~~ - **FIXED 2026-03-07**: replaced with string literal `"COMPETENCY"` in `service.py`
 - ~~`SendEmailExecutor` / `FederationSendExecutor` / `AllocateResourceExecutor` / `AdjustConfigExecutor`~~ - all now implemented and registered in `build_default_registry()`
-- **`SendEmailExecutor` EmailClient wiring** (2026-03-08): `set_email_client(client)` injection method added; `EmailClient` (`clients/email_client.py`) instantiated in `core/registry.py` Phase 11 and injected via `axon.executor_registry.get("send_email").set_email_client(client)`. Supports AWS SES primary backend (boto3 in thread executor) + SMTP fallback (aiosmtplib). Config via `ECODIAOS_EMAIL__*` env vars. Returns `{}` on all failures (never raises).
-- **`SendTelegramExecutor`** (`executors/send_telegram.py`) - NEW (2026-03-08, Phase 16h): `action_type="send_telegram"`, `required_autonomy=2` (COLLABORATOR), `reversible=False`, `rate_limit=RateLimit.per_hour(30)`. Params: `message` (required, ≤4096 chars), `chat_id` (optional - falls back to `ECODIAOS_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID`), `parse_mode` (default "Markdown"). Injection: `set_telegram_connector(connector)` + `set_event_bus(bus)`. RE training on each send with `constitutional_alignment={honesty:1.0, care:0.8, growth:0.6, coherence:0.9}`. Returns `ExecutionResult(success=False)` when connector or chat_id absent - never raises.
+- **`SendEmailExecutor` EmailClient wiring** (2026-03-08): `set_email_client(client)` injection method added; `EmailClient` (`clients/email_client.py`) instantiated in `core/registry.py` Phase 11 and injected via `axon.executor_registry.get("send_email").set_email_client(client)`. Supports AWS SES primary backend (boto3 in thread executor) + SMTP fallback (aiosmtplib). Config via `ORGANISM_EMAIL__*` env vars. Returns `{}` on all failures (never raises).
+- **`SendTelegramExecutor`** (`executors/send_telegram.py`) - NEW (2026-03-08, Phase 16h): `action_type="send_telegram"`, `required_autonomy=2` (COLLABORATOR), `reversible=False`, `rate_limit=RateLimit.per_hour(30)`. Params: `message` (required, ≤4096 chars), `chat_id` (optional - falls back to `ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID`), `parse_mode` (default "Markdown"). Injection: `set_telegram_connector(connector)` + `set_event_bus(bus)`. RE training on each send with `constitutional_alignment={honesty:1.0, care:0.8, growth:0.6, coherence:0.9}`. Returns `ExecutionResult(success=False)` when connector or chat_id absent - never raises.
 - ~~`axon.stats` incomplete~~ - `stats` property includes `circuit_trips`, `budget_utilisation`, `introspection`, `reactive`
 
 ---
@@ -449,8 +449,8 @@ All originally-tracked gaps are now resolved. See Spec §20 Resolved Gaps table 
 | Oikos | ← | `YIELD_DEPLOYMENT_REQUEST` - triggers direct `DeFiYieldExecutor` dispatch; response via `YIELD_DEPLOYMENT_RESULT` |
 | Simula | → | `simula.generate_solution()` via `solve_bounty` executor |
 | SACM | → | `sacm.dispatch_workload()` via `remote_compute` executor |
-| Mitosis (child boot) | ← | `ECODIAOS_AXON_GENOME_PAYLOAD` env var → `_initialize_from_parent_templates()` seeds template library on child `initialize()` |
-| Mitosis (spawn) | → | `export_axon_genome()` called in `SpawnChildExecutor` Step 0b; `axon_genome_id` in `CHILD_SPAWNED`; payload injected as `ECODIAOS_AXON_GENOME_PAYLOAD` |
+| Mitosis (child boot) | ← | `ORGANISM_AXON_GENOME_PAYLOAD` env var → `_initialize_from_parent_templates()` seeds template library on child `initialize()` |
+| Mitosis (spawn) | → | `export_axon_genome()` called in `SpawnChildExecutor` Step 0b; `axon_genome_id` in `CHILD_SPAWNED`; payload injected as `ORGANISM_AXON_GENOME_PAYLOAD` |
 | Evo | → | `AXON_TEMPLATES_INHERITED` event - template inheritance count + action_patterns for Thompson sampling / cold-start metrics |
 | Nova / Evo / Fovea / RE | → | `AXON_TELEMETRY_REPORT` every 50 theta cycles - full executor profiles, failure patterns, circuit-breaker states, drained recommendations; subscribe to reason about motor health at planning time |
 | Nova / Evo / all planners | → | `AXON_CAPABILITY_SNAPSHOT` every theta cycle - per-executor live status (CB, rate limit, success rate, degrading), budget state, sleep state, starvation; Nova uses for feasibility pruning |

@@ -59,8 +59,8 @@ async def main(target_url: str) -> int:
     # ── 1. Core engines ────────────────────────────────────────────────────────
 
     llm_config = LLMConfig(
-        provider=os.environ.get("ECODIAOS_LLM__PROVIDER", "bedrock"),
-        model=os.environ.get("ECODIAOS_LLM__MODEL", "anthropic.claude-3-5-sonnet-20241022-v2:0"),
+        provider=os.environ.get("ORGANISM_LLM__PROVIDER", "bedrock"),
+        model=os.environ.get("ORGANISM_LLM__MODEL", "anthropic.claude-3-5-sonnet-20241022-v2:0"),
     )
     llm = create_llm_provider(llm_config)
 

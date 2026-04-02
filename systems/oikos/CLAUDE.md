@@ -252,7 +252,7 @@ All `REVENUE_INJECTED` events carry a `stream` field. `_on_revenue_injected()` b
 - `track_referrals()` - polls program APIs for commissions; calls `_record_commission()` which emits `AFFILIATE_REVENUE_RECORDED` + `REVENUE_INJECTED` (stream="affiliate")
 - `generate_affiliate_link()` - **always prepends `AFFILIATE_DISCLOSURE` statement** (Honesty drive invariant; cannot be suppressed)
 - Equor gate: 30s timeout, auto-permit fallback
-- Env var: `ECODIAOS_AFFILIATE__AUTO_APPLY` - if false, pauses at application step and emits `EQUOR_HITL_REQUIRED`
+- Env var: `ORGANISM_AFFILIATE__AUTO_APPLY` - if false, pauses at application step and emits `EQUOR_HITL_REQUIRED`
 - **Weekly cycle - wired** (9 Mar 2026): `_run_affiliate_cycle()` in `service.py` calls `scan_and_apply()` + `track_referrals()` rate-limited to once per 7 days (`_affiliate_scan_interval_s`). Invoked inside `run_consolidation_cycle()`. First run triggers immediately (cold start). All exceptions are caught and logged - affiliate failures never crash the consolidation cycle.
 
 ### ContentMonetizationTracker (`content_monetization.py`)
@@ -276,10 +276,10 @@ All `REVENUE_INJECTED` events carry a `stream` field. `_on_revenue_injected()` b
 ### Env Vars (Expanded Revenue)
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `ECODIAOS_API_RESELL__ENABLED` | `false` | Enable/disable ApiResellExecutor entirely |
-| `ECODIAOS_API_RESELL__PUBLIC_URL` | `""` | Public base URL for the resell API endpoint |
-| `ECODIAOS_API_RESELL__REVENUE_WALLET` | `""` | Base L2 address for inbound USDC payments |
-| `ECODIAOS_AFFILIATE__AUTO_APPLY` | `true` | If false, pauses affiliate applications for HITL review |
+| `ORGANISM_API_RESELL__ENABLED` | `false` | Enable/disable ApiResellExecutor entirely |
+| `ORGANISM_API_RESELL__PUBLIC_URL` | `""` | Public base URL for the resell API endpoint |
+| `ORGANISM_API_RESELL__REVENUE_WALLET` | `""` | Base L2 address for inbound USDC payments |
+| `ORGANISM_AFFILIATE__AUTO_APPLY` | `true` | If false, pauses affiliate applications for HITL review |
 
 ---
 

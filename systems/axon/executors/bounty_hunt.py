@@ -346,7 +346,7 @@ class BountyHuntExecutor(Executor):
         else:
             source_error = (
                 "ExternalPlatformsConfig unavailable - set "
-                "ECODIAOS_EXTERNAL_PLATFORMS__GITHUB_TOKEN"
+                "ORGANISM_EXTERNAL_PLATFORMS__GITHUB_TOKEN"
             )
 
         if not raw_bounties:

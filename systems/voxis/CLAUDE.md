@@ -172,7 +172,7 @@ _(All medium gaps closed as of 2026-03-07; autonomy audit gaps closed 2026-03-08
 
 **Export:** `VoxisService.export_voxis_genome()` - called by `SpawnChildExecutor` Step 0b.
 
-**Apply:** `VoxisService._apply_inherited_voxis_genome_if_child()` - called from `initialize()` (try/except, non-fatal). Reads `ECODIAOS_VOXIS_GENOME_PAYLOAD` env var. Skipped on genesis nodes (`ECODIAOS_IS_GENESIS_NODE=true`). Emits `GENOME_INHERITED` on success.
+**Apply:** `VoxisService._apply_inherited_voxis_genome_if_child()` - called from `initialize()` (try/except, non-fatal). Reads `ORGANISM_VOXIS_GENOME_PAYLOAD` env var. Skipped on genesis nodes (`ORGANISM_IS_GENESIS_NODE=true`). Emits `GENOME_INHERITED` on success.
 
 ---
 
