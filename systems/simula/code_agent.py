@@ -791,7 +791,7 @@ class SimulaCodeAgent:
         # Budget gate: code agent is STANDARD priority - skip in RED tier
         if self._optimized and not use_thinking:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("simula.code_agent", estimated_tokens=8000):
+            if not await self._llm.should_use_llm("simula.code_agent", estimated_tokens=8000):
                 self._logger.warning(
                     "code_agent_skipped_budget",
                     proposal_id=proposal.id,

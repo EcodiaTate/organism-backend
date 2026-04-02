@@ -457,7 +457,7 @@ class ChangeSimulator:
         # Budget gate: simulation is STANDARD priority - skip in RED tier
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("simula.simulation", estimated_tokens=400):
+            if not await self._llm.should_use_llm("simula.simulation", estimated_tokens=400):
                 self._log.info("governance_simulation_skipped_budget", proposal_id=proposal.id)
                 return SimulationResult(
                     episodes_tested=episodes_count,
@@ -579,7 +579,7 @@ class ChangeSimulator:
         # Budget gate: skip counterfactual replay in RED tier
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("simula.simulation", estimated_tokens=500):
+            if not await self._llm.should_use_llm("simula.simulation", estimated_tokens=500):
                 self._log.info("counterfactual_replay_skipped_budget")
                 return []
 
@@ -897,7 +897,7 @@ class ChangeSimulator:
         async def _call(estimated_tokens: int, cache_method: str) -> str:
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("simula.simulation", estimated_tokens=estimated_tokens):
+                if not await self._llm.should_use_llm("simula.simulation", estimated_tokens=estimated_tokens):
                     return ""
                 resp = await asyncio.wait_for(
                     self._llm.evaluate(  # type: ignore[call-arg]
@@ -916,7 +916,7 @@ class ChangeSimulator:
         # Budget gate: skip in RED tier
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("simula.simulation", estimated_tokens=100):
+            if not await self._llm.should_use_llm("simula.simulation", estimated_tokens=100):
                 self._log.info("alignment_prediction_skipped_budget")
                 return 0.0
 

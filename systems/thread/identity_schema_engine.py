@@ -448,7 +448,7 @@ class IdentitySchemaEngine:
             # Budget check: schema crystallization is low priority
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("thread.schema", estimated_tokens=500):
+                if not await self._llm.should_use_llm("thread.schema", estimated_tokens=500):
                     self._logger.debug("schema_crystallization_skipped_budget")
                     return None
 
@@ -511,7 +511,7 @@ class IdentitySchemaEngine:
             )
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("thread.evidence", estimated_tokens=100):
+                if not await self._llm.should_use_llm("thread.evidence", estimated_tokens=100):
                     return ("irrelevant", 0.0)
                 response = await self._llm.evaluate(
                     prompt=prompt,

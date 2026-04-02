@@ -170,13 +170,13 @@ class EFEEvaluator:
         use_llm_epistemic = self._use_llm
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("nova.efe.pragmatic", estimated_tokens=200):
+            if not await self._llm.should_use_llm("nova.efe.pragmatic", estimated_tokens=200):
                 use_llm_pragmatic = False
                 policy_type = policy.type if hasattr(policy, "type") else "unknown"
                 self._heuristics.log_heuristic_fallback(
                     "nova.efe.pragmatic", "budget_exhausted", policy_type
                 )
-            if not self._llm.should_use_llm("nova.efe.epistemic", estimated_tokens=150):
+            if not await self._llm.should_use_llm("nova.efe.epistemic", estimated_tokens=150):
                 use_llm_epistemic = False
                 policy_type = policy.type if hasattr(policy, "type") else "unknown"
                 self._heuristics.log_heuristic_fallback(

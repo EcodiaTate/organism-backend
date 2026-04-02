@@ -119,7 +119,7 @@ class ProcedureExtractor:
         # Budget check: skip procedure extraction in YELLOW/RED (low priority)
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("evo.procedure", estimated_tokens=1000):
+            if not await self._llm.should_use_llm("evo.procedure", estimated_tokens=1000):
                 self._logger.info("procedure_extraction_skipped_budget")
                 return None
 

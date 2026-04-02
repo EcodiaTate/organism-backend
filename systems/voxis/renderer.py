@@ -495,7 +495,7 @@ class ContentRenderer(BaseContentRenderer):
         # Budget check: if optimized and budget exhausted, use a simpler fallback
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("voxis.render", estimated_tokens=max_tokens + 200):
+            if not await self._llm.should_use_llm("voxis.render", estimated_tokens=max_tokens + 200):
                 # Template fallback: build a minimal expression from the strategy
                 self._logger.info("voxis_template_fallback", reason="budget_exhausted")
                 gen_latency_ms = 0

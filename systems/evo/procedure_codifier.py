@@ -223,7 +223,7 @@ class ProcedureCodifier:
         # Budget check: skip in YELLOW/RED
         if self._optimized:
             assert isinstance(self._llm, OptimizedLLMProvider)
-            if not self._llm.should_use_llm("evo.procedure_codifier", estimated_tokens=1200):
+            if not await self._llm.should_use_llm("evo.procedure_codifier", estimated_tokens=1200):
                 self._logger.info("procedure_codification_skipped_budget")
                 return None
 

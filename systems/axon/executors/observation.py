@@ -336,7 +336,7 @@ class AnalyseExecutor(Executor):
             if getattr(self, "_optimized", False):
                 from clients.optimized_llm import OptimizedLLMProvider
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("axon.observation", estimated_tokens=1000):
+                if not await self._llm.should_use_llm("axon.observation", estimated_tokens=1000):
                     return ExecutionResult(
                         success=True,
                         data={

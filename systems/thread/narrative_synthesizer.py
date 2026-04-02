@@ -83,7 +83,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
             # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("thread.scene", estimated_tokens=300):
+                if not await self._llm.should_use_llm("thread.scene", estimated_tokens=300):
                     self._logger.debug("scene_skipped_budget")
                     return NarrativeScene(
                         summary=f"A period of {len(episode_summaries)} experiences in the chapter '{chapter_title}'.",
@@ -203,7 +203,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
             # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("thread.chapter", estimated_tokens=800):
+                if not await self._llm.should_use_llm("thread.chapter", estimated_tokens=800):
                     self._logger.debug("chapter_narrative_skipped_budget")
                     return {
                         "title": "A Period of Experience",
@@ -309,7 +309,7 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
             # Budget check: Thread is low priority - skip in YELLOW/RED
             if self._optimized:
                 assert isinstance(self._llm, OptimizedLLMProvider)
-                if not self._llm.should_use_llm("thread.life_story", estimated_tokens=3000):
+                if not await self._llm.should_use_llm("thread.life_story", estimated_tokens=3000):
                     self._logger.debug("life_story_skipped_budget")
                     return ""
 

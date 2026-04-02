@@ -531,23 +531,68 @@ app.add_middleware(ErrorCaptureMiddleware)
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    """System health check."""
-    memory_health = await app.state.memory.health()
-    equor_health = await app.state.equor.health()
-    voxis_health = await app.state.voxis.health()
-    nova_health = await app.state.nova.health()
-    synapse_health = await app.state.synapse.health() if hasattr(app.state, "synapse") else {"status": "not_initialized"}
-    thymos_health = await app.state.thymos.health() if hasattr(app.state, "thymos") else {"status": "not_initialized"}
-    oneiros_health = await app.state.oneiros.health() if hasattr(app.state, "oneiros") else {"status": "not_initialized"}
-    thread_health = await app.state.thread.health() if hasattr(app.state, "thread") else {"status": "not_initialized"}
-    neo4j_health = await app.state.neo4j.health_check()
-    tsdb_health = (await app.state.tsdb.health_check()) if app.state.tsdb else {"status": "not_configured"}
-    redis_health = await app.state.redis.health_check()
+    """System health check.
 
+    Every sub-check is individually guarded so that a single system
+    failure never crashes the entire endpoint — the caller always
+    gets a JSON response indicating which subsystems are degraded.
+    """
+    _NOT_INIT: dict[str, str] = {"status": "not_initialized"}
+
+    async def _safe_health(name: str, attr: str, method: str = "health") -> dict[str, Any]:
+        """Call ``app.state.<attr>.<method>()`` with full error isolation."""
+        if not hasattr(app.state, attr):
+            return _NOT_INIT
+        try:
+            obj = getattr(app.state, attr)
+            return await getattr(obj, method)()
+        except Exception as exc:
+            logger.warning("health_check_failed", system=name, error=str(exc))
+            return {"status": "error", "error": str(exc)}
+
+    # Gather all health probes concurrently — each is individually guarded
+    (
+        memory_health,
+        equor_health,
+        voxis_health,
+        nova_health,
+        synapse_health,
+        thymos_health,
+        oneiros_health,
+        thread_health,
+        neo4j_health,
+        redis_health,
+        federation_health,
+    ) = await asyncio.gather(
+        _safe_health("memory", "memory"),
+        _safe_health("equor", "equor"),
+        _safe_health("voxis", "voxis"),
+        _safe_health("nova", "nova"),
+        _safe_health("synapse", "synapse"),
+        _safe_health("thymos", "thymos"),
+        _safe_health("oneiros", "oneiros"),
+        _safe_health("thread", "thread"),
+        _safe_health("neo4j", "neo4j", "health_check"),
+        _safe_health("redis", "redis", "health_check"),
+        _safe_health("federation", "federation"),
+    )
+
+    # TimescaleDB is optional — may be None
+    if hasattr(app.state, "tsdb") and app.state.tsdb is not None:
+        try:
+            tsdb_health = await app.state.tsdb.health_check()
+        except Exception as exc:
+            logger.warning("health_check_failed", system="timescaledb", error=str(exc))
+            tsdb_health = {"status": "error", "error": str(exc)}
+    else:
+        tsdb_health = {"status": "not_configured"}
+
+    # Determine overall status
     overall = "healthy"
     if any(
-        h.get("status") != "connected"
+        h.get("status") not in ("connected", "healthy", "running")
         for h in [neo4j_health, tsdb_health, redis_health]
+        if h.get("status") != "not_configured"
     ):
         overall = "degraded"
     if equor_health.get("safe_mode"):
@@ -555,24 +600,22 @@ async def health() -> dict[str, Any]:
     if synapse_health.get("safe_mode"):
         overall = "safe_mode"
 
-    instance = await app.state.memory.get_self()
-    atune: AtuneService = app.state.atune
+    # Instance identity (guarded)
+    instance_name = "unborn"
+    try:
+        if hasattr(app.state, "memory"):
+            instance = await app.state.memory.get_self()
+            if instance:
+                instance_name = instance.name
+    except Exception:
+        pass
 
-    federation_health = await app.state.federation.health() if hasattr(app.state, "federation") else {"status": "not_initialized"}
-
-    return {
-        "status": overall,
-        "instance_id": app.state.config.instance_id,
-        "instance_name": instance.name if instance else "unborn",
-        "phase": "19_metrics_publisher",
-        "systems": {
-            "memory": memory_health,
-            "equor": equor_health,
-            "nova": nova_health,
-            "axon": app.state.axon.stats if hasattr(app.state, "axon") else {"status": "not_initialized"},
-            "evo": app.state.evo.stats if hasattr(app.state, "evo") else {"status": "not_initialized"},
-            "simula": app.state.simula.stats if hasattr(app.state, "simula") else {"status": "not_initialized"},
-            "atune": {
+    # Atune telemetry (guarded)
+    atune_health: dict[str, Any] = _NOT_INIT
+    if hasattr(app.state, "atune"):
+        try:
+            atune: AtuneService = app.state.atune
+            atune_health = {
                 "status": "running",
                 "cycle_count": atune.cycle_count,
                 "workspace_threshold": round(atune.workspace_threshold, 4),
@@ -584,7 +627,25 @@ async def health() -> dict[str, Any]:
                     "care_activation": round(atune.current_affect.care_activation, 4),
                     "coherence_stress": round(atune.current_affect.coherence_stress, 4),
                 },
-            },
+            }
+        except Exception as exc:
+            atune_health = {"status": "error", "error": str(exc)}
+
+    instance_id = getattr(getattr(app.state, "config", None), "instance_id", "unknown")
+
+    return {
+        "status": overall,
+        "instance_id": instance_id,
+        "instance_name": instance_name,
+        "phase": "19_metrics_publisher",
+        "systems": {
+            "memory": memory_health,
+            "equor": equor_health,
+            "nova": nova_health,
+            "axon": app.state.axon.stats if hasattr(app.state, "axon") else _NOT_INIT,
+            "evo": app.state.evo.stats if hasattr(app.state, "evo") else _NOT_INIT,
+            "simula": app.state.simula.stats if hasattr(app.state, "simula") else _NOT_INIT,
+            "atune": atune_health,
             "voxis": voxis_health,
             "synapse": synapse_health,
             "thymos": thymos_health,
