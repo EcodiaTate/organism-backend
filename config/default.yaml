@@ -436,7 +436,7 @@ soma:
   somatic_marker_enabled: true
   somatic_rerank_boost: 0.3
   developmental_gating_enabled: true
-  initial_stage: "autonomous" # start at full capability; reflexive is training wheels
+  initial_stage: "generative" # start at full capability; reflexive is training wheels
 
 # ── Oikos (economic engine) ───────────────────────────────────────────────────
 oikos:
