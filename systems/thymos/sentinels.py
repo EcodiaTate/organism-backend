@@ -815,7 +815,20 @@ class CognitiveStallSentinel(BaseThymosSentinel):
     happening. The organism is not thinking.
 
     This is the equivalent of a person who is conscious but catatonic.
+
+    Boot warmup: stall detection is suppressed for the first 2× the largest
+    window size after initialization.  This prevents false "catatonic"
+    alarms during normal startup when activity counters are still filling.
+
+    Cooldown: after a stall incident fires for a given metric, that metric
+    enters a 300-cycle cooldown before it can fire again. This prevents
+    the detect → repair → re-detect feedback loop that floods Thymos when
+    the organism is simply idle (no external stimulus ≠ catatonic).
     """
+
+    # Cooldown cycles after a stall incident fires for a metric before it
+    # can fire again.  At ~150ms per cycle this is ~45 seconds.
+    _COOLDOWN_CYCLES: int = 300
 
     @property
     def sentinel_name(self) -> str:
@@ -834,6 +847,11 @@ class CognitiveStallSentinel(BaseThymosSentinel):
             name: deque(maxlen=cfg.window_cycles)
             for name, cfg in self._thresholds.items()
         }
+        # Boot warmup: suppress stall detection for 2× the largest window.
+        max_window = max(cfg.window_cycles for cfg in self._thresholds.values())
+        self._warmup_remaining: int = max_window * 2
+        # Per-metric cooldown: cycles remaining before metric can fire again.
+        self._cooldowns: dict[str, int] = {name: 0 for name in self._thresholds}
         self._logger = logger.bind(system="thymos", component="stall_sentinel")
 
     def record_cycle(
@@ -849,6 +867,14 @@ class CognitiveStallSentinel(BaseThymosSentinel):
         self._counters["evo_evidence_rate"].append(1.0 if evo_had_evidence else 0.0)
         self._counters["atune_percept_rate"].append(1.0 if atune_had_percept else 0.0)
 
+        # Tick down warmup and cooldowns.
+        if self._warmup_remaining > 0:
+            self._warmup_remaining -= 1
+            return []
+        for name in self._cooldowns:
+            if self._cooldowns[name] > 0:
+                self._cooldowns[name] -= 1
+
         incidents: list[Incident] = []
         now = utc_now()
 
@@ -856,6 +882,9 @@ class CognitiveStallSentinel(BaseThymosSentinel):
             window = self._counters[name]
             if len(window) < cfg.window_cycles:
                 continue  # Not enough data yet
+
+            if self._cooldowns[name] > 0:
+                continue  # In cooldown after previous stall incident
 
             rate = sum(window) / len(window)
             if rate >= cfg.min_value:
@@ -873,7 +902,7 @@ class CognitiveStallSentinel(BaseThymosSentinel):
                 Incident(
                     timestamp=now,
                     incident_class=IncidentClass.COGNITIVE_STALL,
-                    severity=IncidentSeverity.HIGH,
+                    severity=IncidentSeverity.MEDIUM,
                     fingerprint=fp,
                     source_system="synapse",
                     error_type="CognitiveStall",
@@ -892,6 +921,8 @@ class CognitiveStallSentinel(BaseThymosSentinel):
                     constitutional_impact=stall_impact,
                 )
             )
+            # Enter cooldown so this metric doesn't re-fire immediately.
+            self._cooldowns[name] = self._COOLDOWN_CYCLES
 
         return incidents
 
