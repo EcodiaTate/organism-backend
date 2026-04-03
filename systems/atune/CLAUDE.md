@@ -100,7 +100,7 @@ atune.set_market_pattern_detector(templates, axon)  # fast-path reflex arc
 
 ## What's Implemented
 
-### PERCEPT_ARRIVED (2026-03-07)
+### PERCEPT_ARRIVED
 `PerceptionGateway.ingest()` (`fovea/gateway.py`) emits `PERCEPT_ARRIVED` with `source_system="atune"` immediately after a percept clears the EIS gate. Fovea's `WorldModelAdapter` subscribes to this event for inter-event timing statistics. The spec_checker credits this event to the "atune" system. Payload: `percept_id`, `source_system`, `channel`, `timestamp_iso`, `modality`.
 
 Note: `PerceptionGateway` (in `fovea/`) is the live implementation of what Spec 03 calls "Atune". It is aliased as `AtuneService` for backward compatibility.
@@ -108,7 +108,7 @@ Note: `PerceptionGateway` (in `fovea/`) is the live implementation of what Spec 
 ### ATUNE_REPAIR_VALIDATION
 Emitted by Thymos (`service.py:_broadcast_repair_completed()`) with `source_system="thymos"` 60 cycles after a repair, checking whether the incident fingerprint re-fires. Thymos also subscribes to it. The event type exists in `SynapseEventType` and fires as part of the repair validation pipeline.
 
-### Arousal-Scaled Buffer Sizes (2026-03-08)
+### Arousal-Scaled Buffer Sizes
 `GlobalWorkspace` (`fovea/workspace.py`) now sizes its three deques dynamically based on Soma's arousal signal:
 
 ```python
@@ -135,7 +135,7 @@ When `ingest()` finds the percept queue full, it emits **`PERCEPT_DROPPED`** (Sy
 }
 ```
 
-### Evolvable Curiosity Parameters (2026-03-08)
+### Evolvable Curiosity Parameters
 Three curiosity parameters are registered with Evo's parameter tuner and are heritable via `AtuneGenomeFragment`:
 
 | Evo path | Default | Range | Step | Workspace field |
@@ -327,7 +327,7 @@ All three call sites in `service.py` now pass the instance-level adjustable thre
 
 ---
 
-## Synapse Subscriptions in `PerceptionGateway.set_synapse()` (2026-03-09)
+## Synapse Subscriptions in `PerceptionGateway.set_synapse()`
 
 | Event | Handler | Purpose |
 |-------|---------|---------|

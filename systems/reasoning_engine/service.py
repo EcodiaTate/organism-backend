@@ -289,7 +289,7 @@ class ReasoningEngineService(LLMProvider):
     ) -> LLMResponse:
         """Short evaluation call - wraps generate() with a minimal user message."""
         return await self.generate(
-            system_prompt="You are a precise evaluator. Answer concisely.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message(role="user", content=prompt)],
             max_tokens=max_tokens,
             temperature=temperature,

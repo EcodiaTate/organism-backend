@@ -114,10 +114,7 @@ async def extract_entities_and_relations(
         from clients.llm import Message
 
         response = await llm_client.generate(
-            system_prompt=(
-                "You are a precise entity extraction engine."
-                " Always respond with valid JSON only."
-            ),
+            system_prompt="Extract entities and relationships. Respond as JSON.",
             messages=[Message(role="user", content=prompt)],
             max_tokens=2000,
             temperature=0.2,

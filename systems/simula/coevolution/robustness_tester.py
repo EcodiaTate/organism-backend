@@ -34,23 +34,17 @@ logger = structlog.get_logger().bind(system="simula.coevolution.robustness_teste
 
 
 _ROBUSTNESS_TEST_PROMPT = """\
-You are a security and robustness testing expert. Generate robustness
-test cases that target edge cases and failure modes.
+Generate pytest robustness test functions targeting edge cases and failure modes.
 
 Files to test: {files}
 
 Known failure patterns from history:
 {failure_patterns}
 
-Generate pytest test functions that:
-1. Target boundary conditions and edge cases
-2. Exploit known failure patterns
-3. Test with malformed, extreme, or unexpected inputs
-4. Verify error handling and recovery
-5. Check for race conditions and state corruption
+Target: boundary conditions, known failure patterns, malformed/extreme inputs, error handling, race conditions.
 
-Output ONLY valid Python pytest test code. Include all necessary imports.
-Each test function should be independent and self-contained.
+Output ONLY valid Python pytest test code with all necessary imports.
+Each test function must be independent and self-contained.
 """
 
 
@@ -110,7 +104,7 @@ class RobustnessTestGenerator:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are an adversarial testing expert for Python systems.",
+                system=None,
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=4096,
             )

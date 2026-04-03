@@ -41,36 +41,11 @@ logger = structlog.get_logger().bind(system="simula.verification.dafny")
 
 # ── Clover System Prompt ─────────────────────────────────────────────────────
 
-CLOVER_SYSTEM_PROMPT = """You are a formal verification assistant for EcodiaOS.
-Your task: translate Python code into Dafny and produce a verified spec+implementation.
+CLOVER_SYSTEM_PROMPT = """EcodiaOS Dafny verification — Clover pattern. Translate the Python function into a Dafny method with requires/ensures and a verifiable body.
 
-## The Clover Pattern (Three-Way Consistency)
+Domain bounds: risk [0,1], drive_alignment [-1,1], budget ≥0, regression_rate [0,1], episode_count ≥0 (int), priority ≥0.
 
-For the given Python function, generate:
-1. A Dafny `method` with `requires` (preconditions) and `ensures` (postconditions)
-2. A Dafny method body that mirrors the Python logic
-3. All code in a single ```dafny fenced block
-
-The three-way consistency check requires:
-- The natural language description matches the formal requires/ensures
-- The implementation satisfies the requires/ensures
-- The ensures clauses capture the essential behavior
-
-## EcodiaOS Domain Rules
-- Risk scores are in [0.0, 1.0]
-- Budget values must be non-negative
-- Drive alignment scores are in [-1.0, 1.0]
-- Regression rates are in [0.0, 1.0]
-- Episode counts are non-negative integers
-- Priority scores are non-negative floats
-
-## Output Format
-Respond ONLY with a single ```dafny fenced code block containing:
-- Any needed datatype/predicate definitions
-- The method with requires/ensures
-- The method body
-
-Do NOT include explanatory text outside the code block."""
+Respond with a single ```dafny fenced code block containing datatypes, the method with requires/ensures, and the body. No text outside the block."""
 
 
 CLOVER_FEEDBACK_TEMPLATE = """The Dafny verifier reported errors on your previous output.

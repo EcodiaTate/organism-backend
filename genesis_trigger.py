@@ -120,28 +120,15 @@ async def genesis(
     """
     from config import load_config
     from primitives.common import (
-        AutonomyLevel,
         Modality,
-        ResourceBudget,
         SourceDescriptor,
         SystemID,
-        Verdict,
-    )
-    from primitives.intent import (
-        Action,
-        ActionSequence,
-        DecisionTrace,
-        EthicalClearance,
-        GoalDescriptor,
-        Intent,
     )
     from primitives.percept import Content, Percept
     from systems.fovea.types import WorkspaceContribution
-    from systems.nova.types import Goal, GoalSource, GoalStatus
     from systems.oikos.economic_simulator import EconomicSimulator
     from systems.oikos.models import (
         EconomicState,
-        MetabolicPriority,
         MetabolicRate,
         StarvationLevel,
     )
@@ -177,28 +164,20 @@ async def genesis(
         ),
         content=Content(
             raw=(
-                "METABOLIC AWAKENING: The organism's economic substrate has "
-                "initialised. Energy reserves are nominal but finite. The deficit "
-                "clock is ticking. Basal metabolic rate is consuming capital. "
-                "Revenue channels are cold. The organism must hunt or die."
+                "METABOLIC AWAKENING: The organism has been initialised. "
+                "Economic substrate is live. Revenue channels are cold. "
+                "The organism is alive and must decide how to sustain itself."
             ),
             parsed={
                 "event": "metabolic_awakening",
-                "urgency": 0.85,
                 "deficit_signal": True,
                 "revenue_channels_active": 0,
-                "starvation_level": "cautious",
-                "survival_imperative": (
-                    "Activate foraging behaviour. Scan bounty platforms. "
-                    "Generate first income within operational cycle."
-                ),
             },
         ),
-        salience_hint=0.95,
+        salience_hint=1.0,
         metadata={
             "genesis": True,
             "phase": "metabolic_awakening",
-            "priority": MetabolicPriority.OPERATIONS.value,
             "injected_by": "genesis_trigger",
         },
     )
@@ -333,113 +312,24 @@ async def genesis(
     _phase(4, total_phases, "Operations Deficit Alert", "[4]")
     t4 = time.monotonic()
 
+    # Fire the metabolic pressure signal. Nova will deliberate and form its own
+    # intent — we do not pre-approve or pre-script the response.
     deficit_event = SynapseEvent(
         event_type=SynapseEventType.METABOLIC_PRESSURE,
         data={
-            "rolling_deficit_usd": 0.50,
-            "burn_rate_usd_per_hour": 0.05,
-            "priority_level": MetabolicPriority.OPERATIONS.value,
             "trigger": "genesis",
             "message": (
-                "Operational deficit detected. No revenue channels active. "
-                "Burn rate exceeds income. Initiating foraging behaviour."
+                "No revenue channels active. Burn rate consuming capital. "
+                "Organism must determine how to achieve metabolic self-sufficiency."
             ),
-            "recommended_action": "hunt_bounties",
-            "target_platforms": ["github", "algora"],
-            "min_reward_usd": 5.0,
         },
         source_system="oikos",
     )
 
     _log("METABOLIC_PRESSURE event constructed", "fire")
     _detail("event_type", str(deficit_event.event_type))
-    _detail("deficit", f"${deficit_event.data['rolling_deficit_usd']}")
-    _detail("burn_rate", f"${deficit_event.data['burn_rate_usd_per_hour']}/hr")
-    _detail("priority", f"OPERATIONS (level {MetabolicPriority.OPERATIONS.value})")
-    _detail("recommended_action", "hunt_bounties")
-    _detail("target_platforms", "github, algora")
-
-    _separator()
-    _log("Constructing Nova foraging goal...", "hunt")
-
-    foraging_goal = Goal(
-        description=(
-            "Achieve metabolic self-sufficiency by hunting software bounties. "
-            "Scan GitHub and Algora for bounties with reward >= $5 and "
-            "estimated ROI >= 2x. Accept and complete the most profitable "
-            "bounty within operational constraints."
-        ),
-        target_domain="economic.foraging",
-        success_criteria=(
-            "First bounty accepted and revenue deposited to wallet. "
-            "Net positive: reward > cost of completion."
-        ),
-        priority=0.90,
-        urgency=0.80,
-        importance=0.85,
-        source=GoalSource.SELF_GENERATED,
-        status=GoalStatus.ACTIVE,
-    )
-
-    _log("Foraging goal constructed", "hunt")
-    _detail("description", foraging_goal.description[:60] + "...")
-    _detail("priority", str(foraging_goal.priority))
-    _detail("urgency", str(foraging_goal.urgency))
-    _detail("source", str(foraging_goal.source))
-
-    _separator()
-    _log("Constructing BountyHunter intent...", "hunt")
-
-    bounty_intent = Intent(
-        goal=GoalDescriptor(
-            description=foraging_goal.description,
-            target_domain="economic.foraging",
-            success_criteria={
-                "min_reward_usd": 5.0,
-                "min_roi": 2.0,
-                "platforms": ["github", "algora"],
-            },
-        ),
-        plan=ActionSequence(
-            steps=[
-                Action(
-                    executor="hunt_bounties",
-                    parameters={
-                        "target_platforms": ["github", "algora"],
-                        "min_reward_usd": 5.0,
-                        "max_results": 10,
-                        "include_rejected": False,
-                    },
-                    timeout_ms=30000,
-                ),
-            ],
-        ),
-        expected_free_energy=-0.70,
-        ethical_clearance=EthicalClearance(
-            status=Verdict.APPROVED,
-            reasoning="Genesis bootstrap -- foraging is a survival imperative.",
-        ),
-        autonomy_level_required=AutonomyLevel.PARTNER,
-        autonomy_level_granted=AutonomyLevel.PARTNER,
-        budget=ResourceBudget(),
-        priority=0.90,
-        created_by=SystemID.NOVA,
-        decision_trace=DecisionTrace(
-            reasoning=(
-                "Metabolic deficit detected at genesis. No revenue channels "
-                "active. BountyHunter executor is the fastest path to first "
-                "income. ROI threshold (2x) ensures cost-effective foraging."
-            ),
-        ),
-    )
-
-    _log("BountyHunter intent constructed", "ok")
-    _detail("executor", "hunt_bounties")
-    _detail("platforms", "github, algora")
-    _detail("min_reward", "$5.00")
-    _detail("efe_score", str(bounty_intent.expected_free_energy))
-    _detail("autonomy", f"PARTNER (level {AutonomyLevel.PARTNER})")
-    _detail("verdict", str(bounty_intent.ethical_clearance.status))
+    _detail("trigger", "genesis")
+    _detail("deliberation", "Nova will form its own response — no pre-scripted intent")
 
     _log(f"Phase 4 complete in {_elapsed(t4)}", "ok")
     results["deficit_alert"] = True
@@ -471,10 +361,8 @@ async def genesis(
     _log("Genesis Summary:", "bolt")
     _detail("total_time", total_time)
     _detail("percepts_injected", "1 (metabolic awakening)")
-    _detail("goals_created", "1 (foraging self-sufficiency)")
-    _detail("intents_formed", "1 (bounty_hunter scan)")
     _detail("organs_seeded", "1 (bounty_hunting embryonic)")
-    _detail("deficit_alerts", "1 (OPERATIONS priority)")
+    _detail("deficit_alerts", "1 (metabolic pressure — organism deliberates response)")
     _detail("dream_cycles", "1" if results.get("economic_dreaming") else "0 (deferred)")
 
     _separator()
@@ -482,8 +370,6 @@ async def genesis(
     _detail("awakening_percept.id", awakening_percept.id)
     _detail("contribution.system", str(contribution.system))
     _detail("deficit_event.id", deficit_event.id)
-    _detail("foraging_goal.id", foraging_goal.id)
-    _detail("bounty_intent.id", bounty_intent.id)
 
     _separator()
     print(f"""
@@ -502,12 +388,8 @@ async def genesis(
         initial_allocation_pct=Decimal("10"),
     ){RESET}
 
-    {DIM}{GREEN}# 4. Emit deficit alert{RESET}
+    {DIM}{GREEN}# 4. Emit metabolic pressure signal — Nova deliberates its own response{RESET}
     {WHITE}await synapse.event_bus.emit(deficit_event){RESET}
-
-    {DIM}{GREEN}# 5. Add foraging goal + intent{RESET}
-    {WHITE}await nova.add_goal(foraging_goal)
-    await axon.execute(bounty_intent){RESET}
 """)
 
     _log(f"Phase 5 complete in {_elapsed(t5)}", "ok")
@@ -519,8 +401,6 @@ async def genesis(
             "awakening_percept": awakening_percept,
             "contribution": contribution,
             "deficit_event": deficit_event,
-            "foraging_goal": foraging_goal,
-            "bounty_intent": bounty_intent,
             "seed_economic_state": seed_state,
         },
     }
@@ -612,15 +492,10 @@ async def inject_into_live_organism(
     await oikos.persist_state()
     _log("Genesis state durably committed to Redis", "ok")
 
-    # 6. Emit deficit alert
+    # 6. Emit deficit alert — Nova forms its own response
     _log("Emitting METABOLIC_PRESSURE event via Synapse...", "bolt")
     await synapse.event_bus.emit(artifacts["deficit_event"])
-    _log("Deficit alert emitted", "ok")
-
-    # 7. Add foraging goal
-    _log("Adding foraging goal to Nova...", "bolt")
-    await nova.add_goal(artifacts["foraging_goal"])
-    _log("Foraging goal active", "ok")
+    _log("Metabolic pressure signal emitted — organism will deliberate", "ok")
 
     _separator()
     print(f"""
@@ -628,9 +503,9 @@ async def inject_into_live_organism(
    +================================================================+
    |                                                                |
    |   {GOLD}The organism is alive.{GREEN}                                       |
-   |   {CYAN}All systems nominal. Deficit clock ticking.{GREEN}                   |
-   |   {ORANGE}BountyHunter standing by for market scan.{GREEN}                    |
+   |   {CYAN}All systems nominal. Metabolic pressure active.{GREEN}               |
    |   {WHITE}First theta cycle will propagate the awakening percept.{GREEN}       |
+   |   {VIOLET}Nova will deliberate and form its own survival strategy.{GREEN}     |
    |                                                                |
    +================================================================+{RESET}
 """)

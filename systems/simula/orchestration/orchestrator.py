@@ -172,17 +172,15 @@ class MultiAgentOrchestrator:
         from clients.llm import Message
 
         spec_prompt = (
-            f"Generate a precise technical specification for:\n"
+            f"Specification for this EcodiaOS evolution proposal:\n"
             f"  Category: {proposal.category.value}\n"
             f"  Description: {proposal.description}\n"
             f"  Files to change: {', '.join(files_to_change)}\n"
-            f"  Expected benefit: {proposal.expected_benefit}\n\n"
-            f"Output a structured spec with: objectives, constraints, "
-            f"interfaces to implement, and acceptance criteria."
+            f"  Expected benefit: {proposal.expected_benefit}"
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a technical specification writer for EcodiaOS.",
+            system="EcodiaOS Simula — evolution pipeline.",
             messages=[Message(role="user", content=spec_prompt)],
             max_tokens=2048,
         )
@@ -225,15 +223,13 @@ class MultiAgentOrchestrator:
         )
 
         design_prompt = (
-            f"Based on this specification, design the implementation:\n\n"
+            f"Design the implementation for this specification:\n\n"
             f"## Spec\n{spec_content[:4000]}\n\n"
-            f"## Files to modify\n{', '.join(files_to_change)}\n\n"
-            f"Output: class/function signatures, data flow, "
-            f"error handling strategy, and integration points."
+            f"## Files to modify\n{', '.join(files_to_change)}"
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a software architect for EcodiaOS.",
+            system="EcodiaOS Simula — evolution pipeline.",
             messages=[Message(role="user", content=design_prompt)],
             max_tokens=3072,
         )
@@ -491,13 +487,11 @@ class MultiAgentOrchestrator:
             f"  Description: {proposal.description}\n"
             f"  Category: {proposal.category.value}\n\n"
             f"## Code\n{code_content[:4000]}\n\n"
-            f"## Tests\n{test_content[:2000]}\n\n"
-            f"Check for: correctness, EOS conventions, type safety, "
-            f"edge cases, and potential regressions. List any issues found."
+            f"## Tests\n{test_content[:2000]}"
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a code reviewer for EcodiaOS. Be thorough but concise.",
+            system="EcodiaOS code review.",
             messages=[Message(role="user", content=review_prompt)],
             max_tokens=1024,
         )

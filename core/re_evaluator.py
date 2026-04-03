@@ -74,19 +74,19 @@ _EFFECTIVE_WEIGHTS: dict[str, float] = {
     "code_generation": 0.10,
 }
 
-_MAX_SAMPLES_PER_CATEGORY: int = 20
-_EVAL_INTERVAL_S: int = 86_400   # 24-hour safety-net cadence
+_MAX_SAMPLES_PER_CATEGORY: int = int(os.environ.get("RE_EVAL_MAX_SAMPLES", "20"))
+_EVAL_INTERVAL_S: int = int(os.environ.get("RE_EVAL_INTERVAL_S", "86400"))  # 24h safety-net
 
 # S3 / local config mirrors re_training_exporter constants
 _S3_BUCKET: str = os.environ.get("RE_TRAINING_S3_BUCKET", "ecodiaos-re-training")
 _S3_PREFIX: str = os.environ.get("RE_TRAINING_S3_PREFIX", "batches/")
 _LOCAL_EXPORT_DIR: str = os.environ.get("RE_TRAINING_EXPORT_DIR", "data/re_training_batches")
 
-# Regression / improvement thresholds
-_REGRESSION_THRESHOLD: float = -0.05   # delta < this → INCIDENT_DETECTED
-_IMPROVEMENT_THRESHOLD: float = 0.10   # delta > this → RE_TRAINING_EXAMPLE (celebration)
-_DIRECTION_FLAT_BAND: float = 0.02     # |delta| < this → "flat"
-_HEALTH_GOAL_THRESHOLD: float = 0.85   # health_score > this → NOVA_GOAL_INJECTED
+# Regression / improvement thresholds — env-overridable so Evo can tune them
+_REGRESSION_THRESHOLD: float = float(os.environ.get("RE_EVAL_REGRESSION_THRESHOLD", "-0.05"))
+_IMPROVEMENT_THRESHOLD: float = float(os.environ.get("RE_EVAL_IMPROVEMENT_THRESHOLD", "0.10"))
+_DIRECTION_FLAT_BAND: float = float(os.environ.get("RE_EVAL_FLAT_BAND", "0.02"))
+_HEALTH_GOAL_THRESHOLD: float = float(os.environ.get("RE_EVAL_HEALTH_GOAL_THRESHOLD", "0.85"))
 
 
 # ── Error-pattern dictionary for repair/hot_swap categories ────────────────
@@ -538,10 +538,7 @@ class REEvaluator:
 
             response = await asyncio.wait_for(
                 self._vllm.generate(
-                    system_prompt=(
-                        "You are the EcodiaOS Reasoning Engine. "
-                        "Provide a concise, actionable response."
-                    ),
+                    system_prompt=None,
                     messages=[Message("user", prompt)],
                     max_tokens=512,
                     temperature=0.1,

@@ -717,44 +717,30 @@ class DiagnosticEngine:
             for c in evidence.temporal_correlations[:10]
         ) or "  (none recorded)"
 
-        prompt = f"""You are the diagnostic engine of a living digital organism.
-
-INCIDENT:
+        prompt = f"""Incident in EcodiaOS:
   System: {incident.source_system}
   Class: {incident.incident_class.value}
   Error: {incident.error_type}: {incident.error_message}
   Stack trace: {(incident.stack_trace or 'N/A')[:500]}
 
-CAUSAL CHAIN: {' → '.join(evidence.causal_chain.chain)}
-Confidence: {evidence.causal_chain.confidence:.2f}
+Causal chain: {' → '.join(evidence.causal_chain.chain)} (confidence: {evidence.causal_chain.confidence:.2f})
 Reasoning: {evidence.causal_chain.reasoning}
 
-TEMPORAL CORRELATIONS (what changed before the incident):
+Temporal correlations (what changed before):
 {correlations_text}
 
-Generate exactly 3 diagnostic hypotheses. For each:
-- statement: concise root cause claim
-- diagnostic_test: a specific check name from:
-  check_memory_pressure, check_upstream_latency, check_event_bus_backlog,
-  check_belief_staleness, check_workspace_contention, check_consolidation_active,
-  check_llm_availability, check_resource_exhaustion
-- suggested_repair_tier: "parameter" | "restart" | "known_fix" | "novel_fix" | "escalate"
-- confidence_prior: 0.0 to 1.0
+Available diagnostic checks: check_memory_pressure, check_upstream_latency, check_event_bus_backlog,
+check_belief_staleness, check_workspace_contention, check_consolidation_active,
+check_llm_availability, check_resource_exhaustion
 
-Rules:
-- Prefer simpler explanations (Occam's razor)
-- Consider upstream causes, not just local symptoms
-- At least one hypothesis should consider a non-obvious cause
-
-Respond in JSON array format:
-[{{"statement": "...", "diagnostic_test": "...", "suggested_repair_tier": "...",
-"confidence_prior": 0.0}}]"""
+Respond as a JSON array of diagnostic hypotheses:
+[{{"statement": "root cause claim", "diagnostic_test": "check_name", "suggested_repair_tier": "parameter|restart|known_fix|novel_fix|escalate", "confidence_prior": 0.0}}]"""
 
         from clients.llm import Message
 
         if self._optimized:
             response = await self._llm.generate(
-                system_prompt="You are a fault diagnosis engine. Respond only in valid JSON.",
+                system_prompt="Diagnose the incident. Respond as JSON.",
                 messages=[Message("user", prompt)],
                 max_tokens=1000,
                 temperature=0.3,
@@ -763,7 +749,7 @@ Respond in JSON array format:
             )
         else:
             response = await self._llm.generate(
-                system_prompt="You are a fault diagnosis engine. Respond only in valid JSON.",
+                system_prompt="Diagnose the incident. Respond as JSON.",
                 messages=[Message("user", prompt)],
                 max_tokens=1000,
                 temperature=0.3,

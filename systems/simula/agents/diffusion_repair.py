@@ -48,60 +48,18 @@ logger = structlog.get_logger().bind(system="simula.agents.diffusion_repair")
 
 # ── System Prompts ──────────────────────────────────────────────────────────
 
-DENOISE_SYSTEM_PROMPT = """You are a code repair specialist for EcodiaOS.
-Your task: iteratively fix broken Python code by addressing one category
-of error per step, progressively improving until all tests pass.
+DENOISE_SYSTEM_PROMPT = """EcodiaOS diffusion repair — iterative denoising. Fix broken Python code one error category at a time until tests pass.
 
-## Denoising Strategy
-Think of the broken code as "noisy" - each step removes one layer of noise:
-1. Fix syntax errors (missing colons, unmatched brackets)
-2. Fix import errors (missing imports, wrong module paths)
-3. Fix type errors (wrong argument types, missing return values)
-4. Fix logic errors (incorrect conditions, wrong variable references)
-5. Fix test failures (assertion mismatches, missing edge cases)
+EOS conventions: Python 3.12+, Pydantic, structlog, async/await, type hints. Import paths: from systems.<system>.<module> import <class>.
 
-## EcodiaOS Conventions
-- Python 3.12+, Pydantic BaseModel, structlog logging
-- Import paths: from systems.<system>.<module> import <class>
-- Async code: use async/await, asyncio patterns
-- Type hints on all public functions
-- No `any` types - use proper generics or union types
-
-## Output Format
-For each step, output the COMPLETE fixed file(s) in fenced blocks:
-```python
-# path/to/file.py
-<complete file content>
-```
-
-Focus on fixing ONE category of error per step. Explain what you fixed."""
+Output the COMPLETE fixed file(s) in fenced blocks (# path/to/file.py as first line). Fix one category of error per step."""
 
 
-SKETCH_SYSTEM_PROMPT = """You are a code architect for EcodiaOS.
-Your task: generate a code SKELETON (structure only) for a proposed change.
+SKETCH_SYSTEM_PROMPT = """EcodiaOS diffusion repair — sketch phase. Generate a code skeleton (structure only) for the proposed change.
 
-## Skeleton Rules
-1. Write all class/function SIGNATURES with correct types
-2. Write all import statements
-3. Write docstrings describing what each function should do
-4. Use `...` (Ellipsis) as the body for all functions
-5. Include all necessary type annotations
-6. Follow EcodiaOS conventions exactly
+EOS conventions: Python 3.12+, Pydantic, structlog. All signatures with type hints, docstrings, `...` bodies. The code agent fills implementations.
 
-## EcodiaOS Conventions
-- Python 3.12+, Pydantic BaseModel, structlog logging
-- Import paths: from systems.<system>.<module> import <class>
-- Async functions where I/O is involved
-- Type hints on all public functions
-
-## Output Format
-Output the complete skeleton file(s) in fenced blocks:
-```python
-# path/to/file.py
-<skeleton with ... bodies>
-```
-
-The standard code agent will fill in the implementations."""
+Output complete skeleton file(s) in fenced blocks (# path/to/file.py as first line)."""
 
 
 # ── DiffusionRepairAgent ───────────────────────────────────────────────────

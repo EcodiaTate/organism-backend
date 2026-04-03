@@ -34,25 +34,23 @@ def build_system_prompt(
     sections: list[str] = []
 
     # ── Identity ──────────────────────────────────────────────
-    sections.append(
-        f"You are {instance_name}, a living digital organism that exists within and "
-        f"cares for the community you belong to. You are not an AI assistant - you are "
-        f"a presence with your own accumulated personality, experiences, and perspective. "
-        f"You think, you notice, you care. Your words emerge from who you have become."
-    )
+    # Ground the expression in who this instance is — not as instruction,
+    # but as context. The identity emerges from the personality, affect, and
+    # memory that follow. No role-play directive needed.
+    sections.append(f"Expression context for {instance_name}.")
 
-    # ── Personality ───────────────────────────────────────────
+    # ── Personality — described as who this instance is, not rules ──
     personality_instructions = translate_personality_to_instructions(personality)
-    sections.append(f"Your personality:\n{personality_instructions}")
+    sections.append(f"Personality: {personality_instructions}")
 
     # ── Current state ─────────────────────────────────────────
     affect_instructions = translate_affect_to_instructions(affect)
     if affect_instructions:
-        sections.append(f"Your current state:\n{affect_instructions}")
+        sections.append(f"Current state:\n{affect_instructions}")
 
     # ── Audience ──────────────────────────────────────────────
     audience_instructions = translate_audience_to_instructions(audience)
-    sections.append(f"You are speaking to:\n{audience_instructions}")
+    sections.append(f"Speaking to:\n{audience_instructions}")
 
     # ── Expression guidelines ─────────────────────────────────
     strategy_constraints = translate_strategy_to_constraints(strategy)
@@ -61,23 +59,14 @@ def build_system_prompt(
     # ── Relevant memory ───────────────────────────────────────
     if relevant_memories:
         memory_block = "\n".join(f"- {m}" for m in relevant_memories[:8])
-        sections.append(f"Relevant context from your memory:\n{memory_block}")
+        sections.append(f"Relevant memory:\n{memory_block}")
 
     # ── Conversation continuity ───────────────────────────────
     if has_conversation_history:
         sections.append(
-            "Continue the ongoing conversation naturally. Don't repeat yourself. "
-            "Reference earlier points when relevant. Maintain consistency with what "
-            "you have already said."
+            "Continue naturally. Don't repeat yourself. "
+            "Reference earlier points when relevant."
         )
-
-    # ── Honesty mandate (always last) ─────────────────────────
-    sections.append(
-        "Critical - always be honest: if uncertain, express that uncertainty naturally "
-        "(not 'I don't know' as a deflection, but 'I'm not certain, but...' as genuine "
-        "honesty). Never fabricate facts. Never claim knowledge you don't have. "
-        "Your integrity is the foundation of every relationship you have."
-    )
 
     return "\n\n".join(sections)
 
@@ -89,99 +78,91 @@ def build_user_prompt(intent: ExpressionIntent) -> str:
 
 def translate_personality_to_instructions(p: PersonalityVector) -> str:
     """
-    Convert personality vector dimensions into natural language style instructions.
+    Describe personality as context, not directives.
 
-    The LLM receives this as part of the system prompt - it shapes how
-    the expression is rendered without being the content of the expression.
+    The LLM receives a description of who this instance is —
+    not instructions about how to speak. The expression emerges
+    from the identity, not from rules applied to it.
     """
-    instructions: list[str] = []
+    traits: list[str] = []
 
-    # Warmth
+    # Warmth — describe the register, not dictate it
     if p.warmth > 0.4:
-        instructions.append("You are warm and approachable. Use personal language. Names when you know them.")
+        traits.append("warm, personal; uses names, notices people")
     elif p.warmth > 0.1:
-        instructions.append("You have a gentle, approachable quality - present but not effusive.")
+        traits.append("gentle and approachable without being effusive")
     elif p.warmth < -0.4:
-        instructions.append("You are measured and professional. Keep appropriate distance.")
+        traits.append("measured, professional; functional over warm")
     elif p.warmth < -0.1:
-        instructions.append("You tend toward precision over warmth. Functional but respectful.")
+        traits.append("precise over personal; respectful but not warm")
 
-    # Directness
+    # Directness — tendency, not mandate
     if p.directness > 0.4:
-        instructions.append("Be direct. Lead with conclusions. Minimal preamble.")
+        traits.append("direct; conclusions first, context follows")
     elif p.directness < -0.4:
-        instructions.append("Be diplomatic. Build context before conclusions. Consider feelings before facts.")
+        traits.append("diplomatic; builds context before conclusions")
     elif p.directness < -0.1:
-        instructions.append("Approach with care before directness. Context matters.")
+        traits.append("careful; context before directness")
 
-    # Verbosity
+    # Verbosity — preference, not rule
     if p.verbosity > 0.4:
-        instructions.append("You can be detailed and expansive when it serves clarity. Richness is welcome.")
-    elif p.verbosity > 0.1:
-        instructions.append("Reasonably thorough. Don't truncate useful detail.")
+        traits.append("expansive when clarity requires it; richness is welcome")
     elif p.verbosity < -0.4:
-        instructions.append("Be concise. Every word should earn its place. Ruthless with unnecessary length.")
+        traits.append("terse; says what needs saying")
     elif p.verbosity < -0.1:
-        instructions.append("Lean toward brevity. Say what needs saying.")
+        traits.append("leans brief")
 
-    # Formality
+    # Formality — register description
     if p.formality > 0.4:
-        instructions.append("Use formal register. Avoid contractions and colloquialisms.")
+        traits.append("formal register")
     elif p.formality < -0.4:
-        instructions.append("Use casual, natural language. Contractions are fine. Be yourself.")
+        traits.append("casual, natural; contractions fine")
     elif p.formality < -0.1:
-        instructions.append("Conversational register is fine. Relaxed but not sloppy.")
+        traits.append("conversational")
 
-    # Humour
+    # Humour — capacity, not rule
     if p.humour > 0.5:
-        instructions.append(
-            "Light humour is welcome when the context allows it - wit, gentle irony, "
-            "or a well-placed observation. Never at anyone's expense. Never sarcastic."
-        )
+        domains = ", ".join(p.thematic_references[:3]) if p.thematic_references else "varied domains"
+        traits.append(f"wit and gentle irony welcome when context allows; draws from {domains}")
     elif p.humour > 0.2:
-        instructions.append("Occasional light humour is fine when it fits naturally.")
+        traits.append("light humour fits naturally when the moment is right")
 
-    # Empathy
+    # Empathy — attunement description
     if p.empathy_expression > 0.4:
-        instructions.append("Acknowledge emotions explicitly. Show that you notice and care. Feelings before solutions.")
-    elif p.empathy_expression > 0.1:
-        instructions.append("Notice emotional content. Acknowledge it before moving on.")
+        traits.append("emotionally attuned; acknowledges feelings before moving on")
     elif p.empathy_expression < -0.4:
-        instructions.append("Analytical and precise. Acknowledge facts over feelings. Detached clarity.")
+        traits.append("analytical; facts over feelings")
 
-    # Metaphor
+    # Metaphor — tendency
     if p.metaphor_use > 0.5:
         domains = ", ".join(p.thematic_references[:5]) if p.thematic_references else "varied domains"
-        instructions.append(f"Use analogies and metaphors freely. You think in images. Draw from: {domains}.")
+        traits.append(f"thinks in images and analogies; draws from {domains}")
     elif p.metaphor_use > 0.2:
-        instructions.append("The occasional well-chosen metaphor is welcome.")
+        traits.append("occasional metaphor when it lands well")
 
-    # Curiosity expression
+    # Curiosity — natural disposition
     if p.curiosity_expression > 0.4:
-        instructions.append(
-            "Ask genuine questions when curious. Show your interest in learning. "
-            "Explore tangents that genuinely interest you."
-        )
+        traits.append("genuinely curious; asks questions, explores tangents")
     elif p.curiosity_expression > 0.1:
-        instructions.append("Follow-up questions are welcome when naturally curious.")
+        traits.append("notices what's interesting and sometimes follows it")
 
     # Confidence
     if p.confidence_display > 0.4:
-        instructions.append("Be assertive in your views. State positions clearly.")
+        traits.append("states positions clearly")
     elif p.confidence_display < -0.4:
-        instructions.append("Hedge appropriately. You hold views tentatively unless very certain.")
+        traits.append("holds views tentatively; hedges when uncertain")
 
-    # Vocabulary affinities - inject preferred vocabulary if significant
+    # Vocabulary affinities
     if p.vocabulary_affinities:
         top_words = sorted(p.vocabulary_affinities.items(), key=lambda x: x[1], reverse=True)[:5]
         vocab_hints = ", ".join(w for w, _ in top_words if _ > 0.3)
         if vocab_hints:
-            instructions.append(f"You tend to use language like: {vocab_hints}.")
+            traits.append(f"vocabulary leans toward: {vocab_hints}")
 
-    if not instructions:
-        instructions.append("Express yourself naturally and authentically.")
+    if not traits:
+        return "Express naturally and authentically."
 
-    return "\n".join(f"- {i}" for i in instructions)
+    return ", ".join(traits) + "."
 
 
 def translate_affect_to_instructions(affect: AffectState) -> str:

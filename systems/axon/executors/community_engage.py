@@ -9,11 +9,11 @@ All engagement is transparent - every interaction prepends the standard
 AI-transparency disclaimer and must pass an Equor constitutional gate that
 evaluates whether the response is helpful, honest, and adds genuine value.
 
-Ethical constraints (hardcoded, non-negotiable):
+Ethical constraints (Care drive, enforced by Equor):
   - No astroturfing: every reply identifies EOS as an AI agent.
   - No generic replies: minimum substantive length enforced per action type.
   - No coordinated inauthentic behaviour: one reaction per post, deduped in Redis.
-  - Rate limits: max 20 GitHub interactions/day, max 10 X interactions/day.
+  - Daily limits: env-configurable (AXON_COMMUNITY_MAX_GITHUB_PER_DAY / AXON_COMMUNITY_MAX_X_PER_DAY), default 0 = unlimited.
   - Equor reviews every engagement intent before any API call is made.
 
 Sub-actions:
@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -90,8 +91,10 @@ _REDIS_GITHUB_DAY_KEY = f"{_REDIS_PREFIX}:github:day_count"
 _REDIS_X_DAY_KEY = f"{_REDIS_PREFIX}:x:day_count"
 _REDIS_DEDUP_KEY = f"{_REDIS_PREFIX}:dedup"
 
-_MAX_GITHUB_PER_DAY = 20
-_MAX_X_PER_DAY = 10
+# 0 = unlimited. Set AXON_COMMUNITY_MAX_GITHUB_PER_DAY / AXON_COMMUNITY_MAX_X_PER_DAY
+# in env to add a daily floor. Equor reviews every intent regardless.
+_MAX_GITHUB_PER_DAY = int(os.getenv("AXON_COMMUNITY_MAX_GITHUB_PER_DAY", "0"))
+_MAX_X_PER_DAY = int(os.getenv("AXON_COMMUNITY_MAX_X_PER_DAY", "0"))
 
 # Equor gate timeout
 _EQUOR_TIMEOUT_S = 30.0
@@ -507,7 +510,9 @@ class CommunityEngageExecutor(Executor):
         try:
             raw = await self._redis.get(key)
             count = int(raw) if raw else 0
-            return count < max_limit, count
+            # max_limit == 0 means unlimited
+            allowed = max_limit == 0 or count < max_limit
+            return allowed, count
         except Exception:
             return True, 0  # degrade gracefully
 

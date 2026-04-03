@@ -1212,10 +1212,7 @@ class GRPOTrainingEngine:
                 f"Generate the code changes for this EcodiaOS evolution proposal."
             )
             generated = await self.generate_local(
-                system_prompt=(
-                    "You are a code generation agent for EcodiaOS. "
-                    "Generate correct Python code that follows EOS conventions."
-                ),
+                system_prompt="EcodiaOS code generation. Python 3.12+, type hints, structlog, async/await.",
                 user_prompt=prompt,
             )
             if generated:
@@ -1223,9 +1220,8 @@ class GRPOTrainingEngine:
                 has_reasonable_length = 50 < len(generated) < 50000
                 no_obvious_errors = "error" not in generated.lower()[:100]
 
-                if has_python and has_reasonable_length and no_obvious_errors:
-                    return 0.7
-                return 0.3
+                # Pass back to base reward — heuristic keyword checks are too rigid
+                # to be a meaningful quality signal. Let the base reward stand.
 
         return example.reward
 

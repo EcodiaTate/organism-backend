@@ -12,14 +12,14 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 ### Phase A - Error Computation
 - 7-dimensional error decomposition: content, temporal, magnitude, source, category, causal, **economic**
 - `FoveaPredictionEngine` with `generate_prediction()` and `compute_error()`
-- `PrecisionWeightComputer` - **per-dimension precision** (2026-03-07): each of the 6 error dimensions gets an independent precision weight from `get_dimension_accuracy(context_type, dimension)` - no longer uniform
+- `PrecisionWeightComputer` - **per-dimension precision**: each of the 6 error dimensions gets an independent precision weight from `get_dimension_accuracy(context_type, dimension)` - no longer uniform
 - `LogosWorldModel` protocol (now includes `get_dimension_accuracy()`) + `StubWorldModel` fallback + `LogosWorldModelAdapter`
-- **`WorldModelAdapter`** (2026-03-07) - Memory-backed live implementation of `LogosWorldModel` protocol. Replaces `StubWorldModel` as the default world model. Queries Memory's Episode graph for content predictions (centroid of top-k matches), FOLLOWED_BY edge statistics for timing predictions, and confidence as (matching/total) episodes clamped [0.1, 0.9]. Caches with 2s TTL. Feed with `adapter.set_memory(memory_svc)` and inject with `fovea_service.set_world_model(adapter)`.
+- **`WorldModelAdapter`** - Memory-backed live implementation of `LogosWorldModel` protocol. Replaces `StubWorldModel` as the default world model. Queries Memory's Episode graph for content predictions (centroid of top-k matches), FOLLOWED_BY edge statistics for timing predictions, and confidence as (matching/total) episodes clamped [0.1, 0.9]. Caches with 2s TTL. Feed with `adapter.set_memory(memory_svc)` and inject with `fovea_service.set_world_model(adapter)`.
 - **Distance helpers** in `world_model_adapter.py`: `_semantic_distance` (cosine on 768-D embeddings), `_timing_distance` (normalised delta / 60s), `_source_distance` (binary exact-match)
 
 ### Phase B - Atune Integration
 - `FoveaAtuneBridge`: full pipeline (context → prediction → error → precision → weights → salience → habituation → threshold → routing → workspace)
-- **18ms latency budget** (2026-03-07): `FoveaAtuneBridge.process_percept()` wraps `generate_prediction()` in `asyncio.wait_for(timeout=0.018)`. On timeout, falls back to a neutral `FoveaPredictionError(percept_id=...)` with zero errors - workspace routing still fires with neutral salience.
+- **18ms latency budget**: `FoveaAtuneBridge.process_percept()` wraps `generate_prediction()` in `asyncio.wait_for(timeout=0.018)`. On timeout, falls back to a neutral `FoveaPredictionError(percept_id=...)` with zero errors - workspace routing still fires with neutral salience.
 - `DynamicIgnitionThreshold` (percentile-based, floor=0.15, ceiling=0.85)
 - `PerceptionGateway` (formerly AtuneService): EIS → Fovea → Workspace pipeline
 - `GlobalWorkspace` with competitive selection
@@ -41,9 +41,9 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 - **Fitness:** `EvolutionaryObservable` emission with `attention_calibration` TPR metric
 - **RE training:** `RETrainingExample` emission for (PredictionError, WorldModelUpdate) pairs (Stream 6)
 - **Config:** `config/default.yaml` → `fovea.*` (habituation_increment, max_habituation_cap, learning_rate, false_alarm_decay, error_weights)
-- **Public API (2026-03-07):** `FoveaService.get_metrics()` and `.weight_learner` property eliminate all `_bridge` private access from gateway.py and main.py
-- **Identity fix (2026-03-07):** `normalisation.py` unknown-channel fallback changed from `SystemID.ATUNE` → `SystemID.FOVEA`
-- **Dead types documented (2026-03-07):** `AttentionContext`, `MetaContext`, `SystemLoad` in `types.py` marked with deprecation/status docstrings
+- **Public API:** `FoveaService.get_metrics()` and `.weight_learner` property eliminate all `_bridge` private access from gateway.py and main.py
+- **Identity fix:** `normalisation.py` unknown-channel fallback changed from `SystemID.ATUNE` → `SystemID.FOVEA`
+- **Dead types documented:** `AttentionContext`, `MetaContext`, `SystemLoad` in `types.py` marked with deprecation/status docstrings
 
 ---
 
@@ -71,7 +71,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 
 ---
 
-## Autonomy Gap Closure - Calibration Alerts + Threshold Persistence (2026-03-08)
+## Autonomy Gap Closure - Calibration Alerts + Threshold Persistence
 
 ### Part A: Calibration Alert (Fovea → Evo)
 
@@ -126,7 +126,7 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 })
 ```
 
-## Autonomy Gap Closure - Previous (2026-03-08)
+## Autonomy Gap Closure - Previous
 
 - **`FOVEA_DIAGNOSTIC_REPORT`** emitted every 50 errors (same cadence as fitness signal). Surfaces previously invisible internal state: per-dimension precision weights (learned accuracy profile), habituation engine stats (entry count, current increment), economic per-source trend data (worst source, revenue/efficiency errors), unresolved error backlog count, all adjustable parameters, weight learning state (reinforcements/decays/false alarms). Nova/Evo/RE subscribe to reason about attention calibration at planning time. New `SynapseEventType.FOVEA_DIAGNOSTIC_REPORT` added.
 - **`FOVEA_PARAMETER_ADJUSTMENT`** subscription added. Any system (Equor/Nova) can now tune Fovea's routing thresholds and sensitivity at runtime without restart: `routing_threshold_equor` (default 0.3), `routing_threshold_oneiros` (default 0.5), `economic_route_threshold` (default 0.3), `economic_workspace_threshold` (default 0.5), `threshold_percentile` (clamped 30–95), `habituation_speed` (0.5–2.0× multiplier). All changes are clamped to safe ranges. Fovea emits `FOVEA_DIAGNOSTIC_REPORT` immediately after applying so requester can confirm. New `SynapseEventType.FOVEA_PARAMETER_ADJUSTMENT` added.
@@ -135,15 +135,15 @@ Attention = prediction error. Fovea computes how reality diverges from the world
 
 ## What's Missing / Known Gaps
 
-1. ~~**Economic prediction error dimension** (revenue-side blind spot)~~ - **RESOLVED (2026-03-08)**: `ErrorType.ECONOMIC` + `economic_error` field + `EconomicPredictionModel` + `ECONOMIC_VITALITY` subscription in `service.py`. Routes to `ErrorRoute.OIKOS` + `EVO` at threshold > 0.3.
-1. ~~**Attentional divergence metric** (M4/SG2)~~ - **RESOLVED (2026-03-07)**: `_emit_attentional_divergence()` in `service.py` emits `FOVEA_ATTENTIONAL_DIVERGENCE` every 100 errors with KL(P||Q) between this instance's weight vector and fleet mean from sibling `FOVEA_ATTENTION_PROFILE_UPDATE` samples
+1. ~~**Economic prediction error dimension** (revenue-side blind spot)~~ - **RESOLVED**: `ErrorType.ECONOMIC` + `economic_error` field + `EconomicPredictionModel` + `ECONOMIC_VITALITY` subscription in `service.py`. Routes to `ErrorRoute.OIKOS` + `EVO` at threshold > 0.3.
+1. ~~**Attentional divergence metric** (M4/SG2)~~ - **RESOLVED**: `_emit_attentional_divergence()` in `service.py` emits `FOVEA_ATTENTIONAL_DIVERGENCE` every 100 errors with KL(P||Q) between this instance's weight vector and fleet mean from sibling `FOVEA_ATTENTION_PROFILE_UPDATE` samples
 2. **RE backend for semantic/causal distance** (M5) - cosine distance and key-overlap heuristic used; RE invocation deferred
 3. **Neo4j graph writes for RE training pairs** - Stream 6 flows via Synapse only, not persisted to graph
-4. ~~**No-op gateway methods**~~ - **RESOLVED (2026-03-08)**: All 7 stubs implemented. See `atune/CLAUDE.md` §Cross-System Modulation API.
+4. ~~**No-op gateway methods**~~ - **RESOLVED**: All 7 stubs implemented. See `atune/CLAUDE.md` §Cross-System Modulation API.
 5. **`SystemLoad` fields not read** (D3) - `run_cycle()` accepts `SystemLoad` but never reads `cpu_utilisation`, `memory_utilisation`, `queue_depth`
 6. **Routing thresholds in `types.py` `compute_routing()`** - the hardcoded `> 0.3` / `> 0.5` routing logic in `FoveaPredictionError.compute_routing()` is not yet wired to the instance-level adjustable thresholds. The current fix adjusts instance state; the next step is to pass adjusted thresholds into `compute_routing()` at call sites in `service.py`.
 
-## Event Emission Audit (2026-03-07)
+## Event Emission Audit
 
 All 6 spec_checker-required Fovea events are implemented and wired in `service.py`:
 - `FOVEA_HABITUATION_DECAY` - fires when `error.habituation_level > 0.0 and dishabituation_info is None` per prediction error cycle
@@ -183,7 +183,7 @@ All emit functions guard with `if self._event_bus is None: return` and wrap `try
 
 ---
 
-### Resolved (2026-03-08) - Autonomy Audit
+### Resolved - Autonomy Audit
 
 - **Learnable habituation parameters** - All 6 hardcoded constants in `habituation.py` (`_HABITUATION_INCREMENT`, `_MAX_HABITUATION`, `_DISHABITUATION_THRESHOLD`, `_DISHABITUATION_AMPLIFICATION`, `_HISTORY_WINDOW`, `_HABITUATION_COMPLETE_THRESHOLD`) replaced with instance-level `self._*` fields. Full API: `HabituationEngine.adjust_param()`, `get_learnable_params()`, `export_learnable_params()`, `import_learnable_params()`. Evo ADJUST_BUDGET compatible; genome-heritable.
 - **Learnable weight learner parameters** - All 4 hardcoded constants in `learning.py` (`_CORRELATION_WINDOW_S`, `_WEIGHT_FLOOR`, `_WEIGHT_CEILING`, `_LEARNING_SALIENCE_THRESHOLD`) replaced with instance-level fields. Full API: `AttentionWeightLearner.adjust_param()`, `get_learnable_params()`, `export_learnable_params()`, `import_learnable_params()`.
@@ -194,14 +194,14 @@ All emit functions guard with `if self._event_bus is None: return` and wrap `try
 
 ## What's Missing / Known Gaps
 
-1. ~~**Fovea autonomy communication** (M1/SG2)~~ - **RESOLVED (2026-03-08)**: `FOVEA_CALIBRATION_ALERT` event emitted when TPR or false alarm rate stays poor for 5+ cycles. Evo `_on_fovea_calibration_alert()` generates targeted attention-tuning hypotheses.
-2. ~~**Threshold persistence on restart** (M2/SG4)~~ - **RESOLVED (2026-03-08)**: `DynamicIgnitionThreshold._persist_state()` writes `(:FoveaThresholdState)` to Neo4j on every adjust(); `restore_state_from_neo4j()` restores on startup.
+1. ~~**Fovea autonomy communication** (M1/SG2)~~ - **RESOLVED**: `FOVEA_CALIBRATION_ALERT` event emitted when TPR or false alarm rate stays poor for 5+ cycles. Evo `_on_fovea_calibration_alert()` generates targeted attention-tuning hypotheses.
+2. ~~**Threshold persistence on restart** (M2/SG4)~~ - **RESOLVED**: `DynamicIgnitionThreshold._persist_state()` writes `(:FoveaThresholdState)` to Neo4j on every adjust(); `restore_state_from_neo4j()` restores on startup.
 3. **RE backend for semantic/causal distance** (M5) - cosine distance and key-overlap heuristic used; RE invocation deferred
 4. **Neo4j graph writes for RE training pairs** - Stream 6 flows via Synapse only, not persisted to graph
-5. ~~**No-op gateway methods**~~ - **RESOLVED (2026-03-08)**: All 7 gateway stubs now apply real coupling. See `atune/CLAUDE.md` §Cross-System Modulation API for full spec.
-6. ~~**`SystemLoad` fields not read** (D3)~~ - **RESOLVED (2026-03-08)**: `run_cycle()` now reads `cpu_utilisation`/`memory_utilisation` (raises threshold up to +0.05 when >75%) and `queue_depth` (dampens arousal when queue >80% full to shrink workspace buffers).
-7. ~~**Routing thresholds not wired**~~ - **RESOLVED (2026-03-08)**: `compute_routing()` on both `FoveaPredictionError` and `InternalPredictionError` now accepts `constitutional_equor_threshold`, `constitutional_oneiros_threshold`, `economic_route_threshold` params. All call sites in `service.py` pass the instance-level adjustable values. **Also fixed critical sequencing bug**: `_inject_constitutional_mismatch()` was called AFTER `compute_routing()` inside the bridge, meaning constitutional routing (EQUOR, ONEIROS) never fired. Now `service.py` re-runs `compute_routing()` post-injection.
-8. ~~**`FoveaService.set_neo4j_driver()` dead wiring**~~ - **RESOLVED (2026-03-08)**: `fovea.set_neo4j_driver(infra.neo4j, config.instance_id)` now called in `registry.py` after `_init_fovea()`. Threshold persistence, weight learner persistence, and habituation persistence all have live Neo4j drivers.
-9. ~~**All `PerceptionGateway` modulation methods dead-wired**~~ - **RESOLVED (2026-03-08)**: `set_belief_state(nova)` direct call + `RHYTHM_STATE_CHANGED` → `set_rhythm_state()` + `FEDERATION_PEER_CONNECTED` → `set_community_size()` + `EVO_HYPOTHESIS_CREATED` → `set_pending_hypothesis_count()` + `EPISODE_STORED` → `set_last_episode_id()` - all subscribed in `wire_intelligence_loops()` in `core/wiring.py`.
+5. ~~**No-op gateway methods**~~ - **RESOLVED**: All 7 gateway stubs now apply real coupling. See `atune/CLAUDE.md` §Cross-System Modulation API for full spec.
+6. ~~**`SystemLoad` fields not read** (D3)~~ - **RESOLVED**: `run_cycle()` now reads `cpu_utilisation`/`memory_utilisation` (raises threshold up to +0.05 when >75%) and `queue_depth` (dampens arousal when queue >80% full to shrink workspace buffers).
+7. ~~**Routing thresholds not wired**~~ - **RESOLVED**: `compute_routing()` on both `FoveaPredictionError` and `InternalPredictionError` now accepts `constitutional_equor_threshold`, `constitutional_oneiros_threshold`, `economic_route_threshold` params. All call sites in `service.py` pass the instance-level adjustable values. **Also fixed critical sequencing bug**: `_inject_constitutional_mismatch()` was called AFTER `compute_routing()` inside the bridge, meaning constitutional routing (EQUOR, ONEIROS) never fired. Now `service.py` re-runs `compute_routing()` post-injection.
+8. ~~**`FoveaService.set_neo4j_driver()` dead wiring**~~ - **RESOLVED**: `fovea.set_neo4j_driver(infra.neo4j, config.instance_id)` now called in `registry.py` after `_init_fovea()`. Threshold persistence, weight learner persistence, and habituation persistence all have live Neo4j drivers.
+9. ~~**All `PerceptionGateway` modulation methods dead-wired**~~ - **RESOLVED**: `set_belief_state(nova)` direct call + `RHYTHM_STATE_CHANGED` → `set_rhythm_state()` + `FEDERATION_PEER_CONNECTED` → `set_community_size()` + `EVO_HYPOTHESIS_CREATED` → `set_pending_hypothesis_count()` + `EPISODE_STORED` → `set_last_episode_id()` - all subscribed in `wire_intelligence_loops()` in `core/wiring.py`.
 
 _Last updated: 2026-03-08 (Autonomy audit - dead wiring, routing bug, SystemLoad, threshold params all resolved)_

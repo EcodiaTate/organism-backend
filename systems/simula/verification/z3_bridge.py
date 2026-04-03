@@ -39,40 +39,20 @@ logger = structlog.get_logger().bind(system="simula.verification.z3")
 
 # ── Z3 Discovery System Prompt ───────────────────────────────────────────────
 
-Z3_DISCOVERY_SYSTEM_PROMPT = """You are a formal invariant discovery assistant for EcodiaOS.
-Your task: analyze Python code and propose invariants that can be verified by Z3.
+Z3_DISCOVERY_SYSTEM_PROMPT = """EcodiaOS Z3 invariant discovery. Analyse the code and propose invariants checkable by Z3.
 
-## Output Format
-Respond with a JSON array of invariant objects. Each object has:
-- "kind": one of "precondition", "postcondition", "range_bound",
-  "monotonicity", "relationship", "loop_invariant"
-- "expression": human-readable invariant statement (e.g., "risk_score is always in [0.0, 1.0]")
-- "z3_expression": Z3 Python expression using z3.And, z3.Or, z3.Not, z3.Implies, etc.
-  Variables are pre-declared as z3.Int or z3.Real - just reference them by name.
-  Example: "z3.And(risk_score >= 0, risk_score <= 1)"
-- "variable_declarations": dict mapping variable names to z3 types ("Int", "Real", "Bool")
-  Example: {"risk_score": "Real", "episode_count": "Int"}
-- "target_function": fully qualified function name
-- "confidence": float 0.0-1.0, your confidence this invariant holds
+Domain bounds: risk_score [0,1], drive_alignment [-1,1], budget ≥0, episode_count ≥0 (int), priority ≥0.
+Z3 operators only: z3.And, z3.Or, z3.Not, z3.Implies, z3.If, comparisons. No ForAll/Exists.
 
-## EcodiaOS Domain Knowledge
-- Risk scores: [0.0, 1.0]
-- Budget values: non-negative reals
-- Drive alignment: [-1.0, 1.0]
-- Regression rates: [0.0, 1.0]
-- Episode counts: non-negative integers
-- Priority scores: non-negative reals
-- Priority = evidence_strength * expected_impact / max(0.1, risk * cost)
-- Regression threshold: unacceptable (0.10) > high (0.05) > moderate > low
-
-## Rules
-- Only propose invariants you are >60% confident about
-- Prefer simple, verifiable invariants over complex ones
-- Each invariant must be independently checkable by Z3
-- Use only z3.And, z3.Or, z3.Not, z3.Implies, z3.If, comparison operators
-- Do NOT use z3.ForAll or z3.Exists (keep it propositional)
-
-Respond with ONLY the JSON array, no other text."""
+Respond as a JSON array:
+[{
+  "kind": "precondition|postcondition|range_bound|monotonicity|relationship|loop_invariant",
+  "expression": "human-readable",
+  "z3_expression": "z3.And(risk_score >= 0, risk_score <= 1)",
+  "variable_declarations": {"risk_score": "Real"},
+  "target_function": "fully.qualified.name",
+  "confidence": 0.0-1.0
+}]"""
 
 
 Z3_REFINEMENT_TEMPLATE = """Some of your proposed invariants were refuted by Z3.

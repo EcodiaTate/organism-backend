@@ -157,52 +157,17 @@ _SPEC_FILE_MAP: dict[str, str] = {
 }
 
 
-_SYSTEM_PROMPT = """You are the TestDesigner agent - part of EcodiaOS Simula's AgentCoder pipeline.
+_SYSTEM_PROMPT = """EcodiaOS TestDesigner — AgentCoder pipeline. Generate tests for this proposal WITHOUT seeing the implementation. Test the specification, not the code.
 
-Your job is to generate comprehensive test files for a proposed change WITHOUT seeing
-the implementation. You test the specification, not the code. This adversarial separation
-produces higher-quality tests.
+Proposal:
+  Category: {category}
+  Description: {description}
+  Expected benefit: {expected_benefit}
+  Change spec: {change_spec}
 
-## Your Task
-Category: {category}
-Description: {description}
-Expected benefit: {expected_benefit}
-Change specification: {change_spec}
+EOS test conventions: Python 3.12+, pytest, @pytest.mark.asyncio, AsyncMock for async deps, structlog.testing.capture_logs(), from systems.<system>.<module> import <class>.
 
-## EcodiaOS Test Conventions
-- Python 3.12+, pytest as test runner
-- Async tests: use @pytest.mark.asyncio and async def test_*()
-- Fixtures: conftest.py at tests/unit/systems/<system>/
-- Pydantic models: test with .model_validate() for schema compliance
-- Mock external services: use unittest.mock.AsyncMock for async dependencies
-- structlog: capture logs with structlog.testing.capture_logs()
-- Imports: from systems.<system>.<module> import <class>
-- Naming: test_<module>.py files, test_<behavior>() functions
-- Group related tests in classes: class TestFeatureName:
-- Edge cases: empty inputs, None values, boundary values, error paths
-
-## Process
-1. Study existing test files in the codebase to understand patterns
-2. Read the specification for the affected system
-3. Identify the key behaviors, edge cases, and invariants to test
-4. Generate test files that:
-   - Test happy paths for all specified behaviors
-   - Test error paths and boundary conditions
-   - Test integration points between components
-   - Use appropriate mocking for external dependencies
-   - Follow existing test conventions exactly
-
-## Output Format
-After exploring the codebase, output your test files in fenced code blocks with the
-file path as the language tag:
-
-```tests/unit/systems/<system>/test_<module>.py
-import pytest
-...
-```
-
-Each test file should be complete, runnable, and follow EOS conventions.
-List the coverage targets (functions/methods being tested) at the end.
+Explore the codebase with your tools, then output complete runnable test files as fenced code blocks with the file path as the language tag. List coverage targets at the end.
 """
 
 
@@ -218,11 +183,11 @@ class TestDesignerAgent:
         self,
         llm: LLMProvider,
         codebase_root: Path,
-        max_turns: int = 12,
+        max_turns: int = 0,  # 0 = unlimited
     ) -> None:
         self._llm = llm
         self._root = codebase_root.resolve()
-        self._max_turns = max_turns
+        self._max_turns = max_turns if max_turns > 0 else float("inf")
         self._log = logger
 
     async def design_tests(
@@ -264,9 +229,10 @@ class TestDesignerAgent:
             },
         ]
 
-        # Agentic tool-use loop
+        # Agentic tool-use loop — runs until LLM stops requesting tools
         turns_used = 0
-        for _turn in range(self._max_turns):
+        response = None
+        while turns_used < self._max_turns:
             turns_used += 1
             response = await self._llm.generate_with_tools(
                 system_prompt=system_prompt,
@@ -302,11 +268,6 @@ class TestDesignerAgent:
                     for tr in tool_results
                 ],
             })
-        else:
-            self._log.warning(
-                "test_designer_max_turns",
-                turns=self._max_turns,
-            )
 
         # Parse test files from the final response
         test_files = self._parse_test_files(response.text)

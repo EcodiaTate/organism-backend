@@ -62,8 +62,7 @@ _DOMAIN_KEYWORDS: dict[SymbolicDomain, tuple[str, ...]] = {
 
 
 _PROPERTY_EXTRACTION_PROMPT = """\
-You are a formal verification expert. Given a Python function, extract
-mathematical properties that should hold for ALL valid inputs.
+Given this Python function, extract mathematical properties that should hold for ALL valid inputs.
 
 Function source:
 ```python
@@ -72,10 +71,10 @@ Function source:
 
 Domain: {domain}
 
-Generate a list of properties as Z3 Python code. Each property should:
-1. Declare Z3 variables matching the function parameters
-2. Express the property as a Z3 boolean expression
-3. Use z3.Int, z3.Real, z3.Bool for variable declarations
+Generate properties as Z3 Python code. Each property:
+1. Declares Z3 variables matching the function parameters
+2. Expresses the property as a Z3 boolean expression
+3. Uses z3.Int, z3.Real, z3.Bool for variable declarations
 
 Output ONLY a JSON array of objects with these fields:
 - "property_name": short descriptive name
@@ -269,7 +268,7 @@ class SymbolicExecutionEngine:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are a formal verification expert specializing in Z3 SMT encoding.",
+                system=None,
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=2048,
             )

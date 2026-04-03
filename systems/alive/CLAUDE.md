@@ -94,7 +94,7 @@ Each gatherer wraps exceptions independently - failure in one section returns `{
 
 ---
 
-## Autonomy Fixes (2026-03-08)
+## Autonomy Fixes
 
 ### Dead Wiring Fixed
 1. **`fovea` not passed to `_init_alive_ws`** (registry.py line 531): `fovea=fovea` now passed so `_gather_attention()` is populated. Previously `_gather_attention()` always returned `{"available": False}`.
@@ -108,7 +108,7 @@ Each gatherer wraps exceptions independently - failure in one section returns `{
    - `RESOURCE_PRESSURE` (elevated: 5 Hz affect / 0.5 Hz state; high: 2 Hz affect / 0.2 Hz state)
    - `CONSERVATION_MODE_ENTERED`: minimum viable rates (2 Hz affect / 0.2 Hz state)
    - `CONSERVATION_MODE_EXITED`: restore nominal rates
-   - `SYSTEM_MODULATION` (2026-03-09): when `"alive"` in `halt_systems` or level is `safe_mode/emergency`, throttle poll rates to `_AFFECT_POLL_INTERVAL_MAX` / `_STATE_POLL_INTERVAL_MAX`; restore nominal on `level="nominal"`. Alive does NOT emit `SYSTEM_MODULATION_ACK` (passive bridge; sync callback).
+   - `SYSTEM_MODULATION`: when `"alive"` in `halt_systems` or level is `safe_mode/emergency`, throttle poll rates to `_AFFECT_POLL_INTERVAL_MAX` / `_STATE_POLL_INTERVAL_MAX`; restore nominal on `level="nominal"`. Alive does NOT emit `SYSTEM_MODULATION_ACK` (passive bridge; sync callback).
    `restore_nominal_poll_rates()` is also callable by operators. `health()` now reports `affect_poll_interval_s`, `state_poll_interval_s`, `affect_throttled`, `state_throttled`.
 
 ### Wiring Added to registry.py

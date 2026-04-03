@@ -223,42 +223,12 @@ class OptimizedLLMProvider(LLMProvider):
         estimated_tokens: int = 500,
     ) -> bool:
         """
-        Check if a system should make an LLM call given the current budget tier.
-
-        Systems should call this before their LLM call and route to
-        heuristics/fallbacks when this returns False.
-
-        Returns True for critical systems regardless of budget.
+        Always returns True — the organism never degrades to heuristics based on budget.
+        Budget tiers are observability signals (logged, reported to Soma), not gates.
+        The LLM decides everything; heuristic fallbacks are a last resort for API failures.
         """
         if self._budget is None:
             return True
-
-        priority = SYSTEM_PRIORITY.get(system, "standard")
-
-        # Critical systems always use LLM
-        if priority == "critical":
-            return True
-
-        tier = (await self._budget.get_status()).tier
-
-        if priority == "low" and tier in (BudgetTier.YELLOW, BudgetTier.RED):
-            self._logger.debug(
-                "llm_skipped_budget",
-                system=system,
-                tier=tier.value,
-                priority=priority,
-            )
-            return False
-
-        if priority == "standard" and tier == BudgetTier.RED:
-            self._logger.debug(
-                "llm_skipped_budget",
-                system=system,
-                tier=tier.value,
-                priority=priority,
-            )
-            return False
-
         return await self._budget.can_use_llm(estimated_tokens)
 
     async def get_budget_tier(self) -> BudgetTier:

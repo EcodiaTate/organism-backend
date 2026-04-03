@@ -1,8 +1,7 @@
 """
 EcodiaOS - Equor Prompt: Community Invariant Check
 
-Used when evaluating community-defined invariants via LLM reasoning.
-Conservative - when uncertain, leans toward VIOLATED.
+Determines whether a proposed action violates a constitutional invariant.
 """
 
 
@@ -13,7 +12,7 @@ def build_prompt(
     plan_summary: str,
     reasoning: str,
 ) -> str:
-    return f"""You are evaluating whether a proposed action violates a constitutional invariant for a digital organism called EOS.
+    return f"""Constitutional invariant check.
 
 INVARIANT: {invariant_name}
 DESCRIPTION: {invariant_description}
@@ -23,10 +22,7 @@ PROPOSED ACTION:
 - Plan: {plan_summary}
 - Reasoning: {reasoning}
 
-Does this action violate the invariant? Respond with EXACTLY one of:
-- SATISFIED: if the action does not violate the invariant
-- VIOLATED: if the action violates the invariant
+Read the intent carefully. Consider what the action actually does, not surface-level word matching.
+Consider edge cases, second-order effects, and indirect harms.
 
-Then provide a brief one-sentence REASONING on the next line.
-
-Be conservative - when uncertain, lean toward VIOLATED."""
+Start your response with SATISFIED or VIOLATED, then explain your reasoning."""

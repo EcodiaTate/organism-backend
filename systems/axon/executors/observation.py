@@ -352,10 +352,7 @@ class AnalyseExecutor(Executor):
             if getattr(self, "_optimized", False):
                 from clients.llm import Message
                 response = await self._llm.generate(
-                    system_prompt=(
-                        "You are EOS - a community care organism. "
-                        "Be honest about uncertainty."
-                    ),
+                    system_prompt="EOS — epistemic analysis.",
                     messages=[Message("user", prompt)],
                     max_tokens=1000,
                     temperature=0.3,
@@ -392,12 +389,10 @@ def _build_analysis_prompt(
     )
     ctx_section = f"\n\nAdditional context:\n{context_data}" if context_data else ""
     return (
-        f"You are EOS - a community care organism. Analyse the following:\n\n"
         f"Topic: {topic}\n"
         f"Question: {question}"
         f"{ctx_section}\n\n"
-        f"{depth_instruction}\n"
-        f"Be honest about uncertainty. Ground your analysis in what is actually known."
+        f"{depth_instruction}"
     )
 
 
@@ -571,7 +566,7 @@ class SearchExecutor(Executor):
             from clients.llm import Message
 
             resp = await self._llm.generate(
-                system_prompt="You are EOS synthesising web search results. Be concise and factual.",
+                system_prompt="Synthesise web search results into a concise factual summary.",
                 messages=[Message("user", prompt)],
                 max_tokens=300,
                 temperature=0.2,
@@ -632,18 +627,16 @@ class SearchExecutor(Executor):
     ) -> list[dict[str, Any]]:
         """LLM synthesis fallback when no web client is available."""
         prompt = (
-            f"You are EOS searching for information (no live web access available). "
-            f"Answer the following query concisely with up to {max_results} distinct "
-            f"facts or findings from your training knowledge.\n\n"
+            f"No live web access available. Answer the following query with up to "
+            f"{max_results} distinct facts or findings from training knowledge.\n\n"
             f"Query: {query}\n\n"
-            f"Respond with numbered points. Be specific and factual. "
-            f"Flag any uncertainty."
+            f"Respond with numbered points. Flag any uncertainty."
         )
         try:
             from clients.llm import Message
 
             response = await self._llm.generate(
-                system_prompt="You are a knowledge search engine. Return concise, factual results.",
+                system_prompt=None,
                 messages=[Message("user", prompt)],
                 max_tokens=800,
                 temperature=0.2,

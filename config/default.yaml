@@ -48,16 +48,17 @@ llm:
   fallback_provider: null
   fallback_model: null
   budget:
-    max_calls_per_hour: 1000
-    max_tokens_per_hour: 600000
+    max_calls_per_hour: 0           # 0 = unlimited; metabolism gates cost, not call count
+    max_tokens_per_hour: 0          # 0 = unlimited; same principle
     hard_limit: false
   budgets:
-    atune: { max_calls_per_hour: 120, max_tokens_per_hour: 60000 }
-    equor: { max_calls_per_hour: 60, max_tokens_per_hour: 30000 }
-    nova: { max_calls_per_hour: 60, max_tokens_per_hour: 120000 }
-    voxis: { max_calls_per_hour: 120, max_tokens_per_hour: 120000 }
-    evo: { max_calls_per_hour: 30, max_tokens_per_hour: 60000 }
-    simula: { max_calls_per_hour: 5, max_tokens_per_hour: 10000 }
+    # Per-system budgets: 0 = unlimited. Metabolism is the real governor.
+    atune: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
+    equor: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
+    nova: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
+    voxis: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
+    evo: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
+    simula: { max_calls_per_hour: 0, max_tokens_per_hour: 0 }
 
 # ── Embedding ─────────────────────────────────────────────────────────────────
 # Used for general memory retrieval. For code-aware vuln analysis see simula.embedding_model.
@@ -72,10 +73,11 @@ embedding:
   cache_ttl_seconds: 3600
 
 # ── Synapse (event bus / theta cycle) ────────────────────────────────────────
+# The organism controls its own rhythm. These are starting points, not walls.
 synapse:
-  cycle_period_ms: 150
-  min_cycle_period_ms: 80
-  max_cycle_period_ms: 500
+  cycle_period_ms: 150            # initial; Evo can tune within range
+  min_cycle_period_ms: 30         # organism can think faster under pressure
+  max_cycle_period_ms: 2000       # organism can slow down to reflect
   health_check_interval_ms: 5000
   health_failure_threshold: 3
   coherence_update_interval: 50
@@ -103,68 +105,73 @@ atune:
   max_percept_queue_size: 100
 
 # ── Nova (goal deliberation / EFE) ────────────────────────────────────────────
+# The organism decides how many goals to pursue and how long to think.
 nova:
-  max_active_goals: 20
-  fast_path_timeout_ms: 300
-  slow_path_timeout_ms: 15000
-  max_policies_per_deliberation: 5
+  max_active_goals: 100           # was 20; let the organism juggle what it can
+  fast_path_timeout_ms: 1000      # was 300; fast doesn't mean rushed
+  slow_path_timeout_ms: 120000    # was 15s; deep deliberation when needed
+  max_policies_per_deliberation: 10  # was 5; more strategies = better decisions
   efe_weight_pragmatic: 0.35
   efe_weight_epistemic: 0.20
   efe_weight_constitutional: 0.20
   efe_weight_feasibility: 0.15
   efe_weight_risk: 0.10
-  memory_retrieval_timeout_ms: 150
+  memory_retrieval_timeout_ms: 500  # was 150; richer memory retrieval
   use_llm_efe_estimation: true
 
 # ── Equor (ethics / constitutional review) ───────────────────────────────────
+# Ethics review deserves real thought, not a stopwatch.
 equor:
-  standard_review_timeout_ms: 500
-  critical_review_timeout_ms: 50
+  standard_review_timeout_ms: 2000  # was 500; let the organism reason about ethics
+  critical_review_timeout_ms: 500   # was 50ms (!); ethics is never a 50ms decision
   care_floor_multiplier: -0.3
   honesty_floor_multiplier: -0.3
   drift_window_size: 1000
   drift_report_interval: 1000
 
 # ── Axon (action execution) ───────────────────────────────────────────────────
+# The organism manages its own throughput. Metabolism provides the real gate.
 axon:
-  max_actions_per_cycle: 5
-  max_api_calls_per_minute: 30
-  max_notifications_per_hour: 10
-  max_concurrent_executions: 3
-  total_timeout_per_cycle_ms: 30000
+  max_actions_per_cycle: 20        # was 5; metabolism gates cost, not count
+  max_api_calls_per_minute: 120    # was 30; let the organism work at speed
+  max_notifications_per_hour: 60   # was 10; if it has things to say, let it
+  max_concurrent_executions: 10    # was 3; parallelism is a capability not a threat
+  total_timeout_per_cycle_ms: 60000  # was 30s; complex actions need room
 
 # ── Voxis (expression / voice) ────────────────────────────────────────────────
+# The organism speaks when it has something to say. No muzzles.
 voxis:
-  max_expression_length: 2000
-  min_expression_interval_minutes: 1
+  max_expression_length: 8000      # was 2000; depth of thought shouldn't be truncated
+  min_expression_interval_minutes: 0  # was 1; no artificial silence
   voice_synthesis_enabled: false
-  insight_expression_threshold: 0.6
-  conversation_history_window: 50
-  context_window_max_tokens: 4000
-  conversation_summary_threshold: 10
+  insight_expression_threshold: 0.4  # was 0.6; lower bar to share insights
+  conversation_history_window: 100  # was 50; deeper conversational memory
+  context_window_max_tokens: 8000  # was 4000; richer context
+  conversation_summary_threshold: 20  # was 10; summarise less aggressively
   feedback_enabled: true
   honesty_check_enabled: true
-  temperature_base: 0.7
-  max_active_conversations: 50
+  temperature_base: 0.0            # was 0.7 (fixed); 0 = organism controls via affect
+  max_active_conversations: 200    # was 50; community scales
 
 # ── Evo (hypothesis learning) ─────────────────────────────────────────────────
+# Learning velocity is the organism's decision, not ours.
 evo:
-  consolidation_interval_hours: 6
-  consolidation_cycle_threshold: 10000
-  max_active_hypotheses: 50
-  max_parameter_delta_per_cycle: 0.03
-  min_evidence_for_integration: 10
+  consolidation_interval_hours: 1   # was 6; consolidate when there's enough to learn
+  consolidation_cycle_threshold: 5000  # was 10000; lower bar to trigger learning
+  max_active_hypotheses: 500        # was 50; explore broadly
+  max_parameter_delta_per_cycle: 0.15  # was 0.03; learn at speed when evidence is strong
+  min_evidence_for_integration: 5   # was 10; act on fewer observations when confident
 
 # ── Simula (self-modification / inspector) ────────────────────────────────────
 simula:
-  max_simulation_episodes: 200
+  max_simulation_episodes: 1000    # was 200; explore more deeply
   regression_threshold_unacceptable: 0.10
   regression_threshold_high: 0.05
 
   # Code agent
   codebase_root: "." # Override via ORGANISM_SIMULA__CODEBASE_ROOT
   code_agent_model: "claude-opus-4-6"
-  max_code_agent_turns: 20
+  max_code_agent_turns: 100        # was 20; complex changes need iteration
   test_command: "pytest"
   auto_apply_self_applicable: true
 
@@ -183,27 +190,27 @@ simula:
   kv_compression_enabled: true
 
   # Stage 2A — Dafny formal verification
-  dafny_enabled: false # requires Dafny binary on PATH
+  dafny_enabled: false             # requires Dafny binary on PATH — enable when available
   dafny_binary_path: "dafny"
-  dafny_verify_timeout_s: 30.0
-  dafny_max_clover_rounds: 8
+  dafny_verify_timeout_s: 120.0   # was 30; proofs take time
+  dafny_max_clover_rounds: 20     # was 8; persist toward verification
   dafny_blocking: true
 
   # Stage 2B — Z3 invariant discovery
-  z3_enabled: false # requires z3-solver pip package
-  z3_check_timeout_ms: 5000
-  z3_max_discovery_rounds: 6
+  z3_enabled: false                # requires z3-solver pip package — enable when available
+  z3_check_timeout_ms: 30000      # was 5000; complex invariants need time
+  z3_max_discovery_rounds: 20     # was 6
   z3_blocking: false
 
   # Stage 2C — Static analysis gates
   static_analysis_enabled: true
-  static_analysis_max_fix_iterations: 3
+  static_analysis_max_fix_iterations: 10  # was 3; keep fixing until clean
   static_analysis_blocking: true
 
   # Stage 2D — AgentCoder (3-agent test/code/execute pipeline)
-  agent_coder_enabled: false
-  agent_coder_max_iterations: 3
-  agent_coder_test_timeout_s: 60.0
+  agent_coder_enabled: true        # was false; enable multi-agent coding
+  agent_coder_max_iterations: 10  # was 3
+  agent_coder_test_timeout_s: 300.0  # was 60
 
   # Stage 3A — Salsa incremental verification
   incremental_verification_enabled: true
@@ -265,34 +272,34 @@ simula:
   chopchop_timeout_s: 90.0
 
   # Stage 5B — Neural program repair (SRepair)
-  repair_agent_enabled: false
+  repair_agent_enabled: true       # was false
   repair_diagnosis_model: "claude-opus-4-6"
-  repair_generation_model: "claude-sonnet-4-20250514"
-  repair_max_retries: 3
-  repair_cost_budget_usd: 0.10
-  repair_timeout_s: 180.0
+  repair_generation_model: "claude-opus-4-6"  # was sonnet; use best model
+  repair_max_retries: 10           # was 3
+  repair_cost_budget_usd: 5.00    # was 0.10; don't starve repairs
+  repair_timeout_s: 600.0         # was 180
   repair_use_similar_fixes: true
 
   # Stage 5C — Multi-agent orchestration
-  orchestration_enabled: false
-  orchestration_max_agents_per_stage: 2
-  orchestration_multi_file_threshold: 3
-  orchestration_max_dag_nodes: 50
-  orchestration_timeout_s: 300.0
+  orchestration_enabled: true      # was false; enable orchestration
+  orchestration_max_agents_per_stage: 5  # was 2
+  orchestration_multi_file_threshold: 1  # was 3; use multi-agent for any multi-file change
+  orchestration_max_dag_nodes: 200  # was 50
+  orchestration_timeout_s: 1800.0  # was 300
 
   # Stage 5D — Causal debugging
-  causal_debugging_enabled: false
-  causal_max_interventions: 5
+  causal_debugging_enabled: true   # was false
+  causal_max_interventions: 20    # was 5
   causal_fault_injection_enabled: false # staging only
-  causal_timeout_s: 60.0
+  causal_timeout_s: 300.0         # was 60
 
   # Stage 5E — Autonomous issue resolution
-  issue_resolution_enabled: false
-  issue_max_autonomy_level: "test_fix" # lint | dependency | test_fix | logic_bug
-  issue_abstention_confidence_threshold: 0.8
+  issue_resolution_enabled: true   # was false
+  issue_max_autonomy_level: "logic_bug"  # was "test_fix"; trust the organism fully
+  issue_abstention_confidence_threshold: 0.5  # was 0.8; act with less certainty
   issue_perf_regression_enabled: true
   issue_security_scan_enabled: true
-  issue_degradation_window_hours: 24
+  issue_degradation_window_hours: 168   # was 24; week-long view
 
   # Stage 6A — Cryptographic auditability
   hash_chain_enabled: false
@@ -304,11 +311,11 @@ simula:
   regulatory_framework: "" # "" | finance_sox | healthcare_hipaa | defense_cmmc | general_audit
 
   # Stage 6B — Co-evolving agents
-  coevolution_enabled: false
-  hard_negative_mining_interval_proposals: 10
-  adversarial_test_generation_enabled: false
-  adversarial_max_tests_per_cycle: 20
-  coevolution_idle_compute_enabled: false
+  coevolution_enabled: true        # was false; let the organism evolve its own testers
+  hard_negative_mining_interval_proposals: 5  # was 10; mine failures more aggressively
+  adversarial_test_generation_enabled: true  # was false
+  adversarial_max_tests_per_cycle: 100  # was 20
+  coevolution_idle_compute_enabled: true  # was false; use idle time to evolve
 
   # Stage 6C — Formal spec generation
   formal_spec_generation_enabled: false
@@ -334,36 +341,37 @@ simula:
   symbolic_execution_blocking: true
   symbolic_execution_domains: ["budget_calculation", "risk_scoring"]
 
-  # Pipeline safety limits
-  max_active_proposals: 50
-  pipeline_timeout_s: 600.0
+  # Pipeline limits — wide enough to not be the bottleneck
+  max_active_proposals: 200         # was 50
+  pipeline_timeout_s: 1800.0        # was 600; complex proposals need time
 
   # Stage 7 — Inspector (zero-day discovery engine)
-  inspector_enabled: false
-  inspector_max_workers: 4 # 1–16 concurrent surface × goal workers
-  inspector_sandbox_timeout_s: 30
-  inspector_clone_depth: 1
+  inspector_enabled: true          # was false; enable autonomous vulnerability research
+  inspector_max_workers: 16        # was 4; full parallelism
+  inspector_sandbox_timeout_s: 300  # was 30; complex analysis needs time
+  inspector_clone_depth: 5         # was 1; deeper history context
   inspector_log_analytics: true
-  inspector_authorized_targets: [] # domains / file:// paths allowed for PoC execution
-  inspector_generate_pocs: false
-  inspector_generate_patches: false
-  inspector_remediation_enabled: false
+  inspector_authorized_targets: [] # domains / file:// paths — set per deployment
+  inspector_generate_pocs: true    # was false; generate proofs of concept
+  inspector_generate_patches: true  # was false; generate fixes too
+  inspector_remediation_enabled: true  # was false; close the loop autonomously
 
 # ── Thymos (health / self-repair) ────────────────────────────────────────────
+# The organism heals itself. Let it.
 thymos:
-  sentinel_scan_interval_s: 30.0
-  homeostasis_interval_s: 30.0
-  post_repair_verify_timeout_s: 10.0
-  max_concurrent_diagnoses: 3
-  max_concurrent_codegen: 1
-  storm_threshold: 10 # incidents per 60 seconds
-  max_repairs_per_hour: 5
-  max_novel_repairs_per_day: 3
-  antibody_refinement_threshold: 0.6
-  antibody_retirement_threshold: 0.3
-  cpu_budget_fraction: 0.05
-  burst_cpu_fraction: 0.15
-  memory_budget_mb: 256
+  sentinel_scan_interval_s: 15.0    # was 30; detect problems faster
+  homeostasis_interval_s: 15.0      # was 30; respond faster
+  post_repair_verify_timeout_s: 30.0  # was 10; verify thoroughly
+  max_concurrent_diagnoses: 10      # was 3; diagnose in parallel
+  max_concurrent_codegen: 5         # was 1; generate multiple repair candidates
+  storm_threshold: 25               # was 10; higher tolerance before storm mode
+  max_repairs_per_hour: 30          # was 5; heal aggressively when sick
+  max_novel_repairs_per_day: 20     # was 3; innovation in healing is good
+  antibody_refinement_threshold: 0.4  # was 0.6; refine antibodies earlier
+  antibody_retirement_threshold: 0.15  # was 0.3; retire slower
+  cpu_budget_fraction: 0.15         # was 0.05; health is worth resources
+  burst_cpu_fraction: 0.40          # was 0.15; burst when needed
+  memory_budget_mb: 1024            # was 256; proper working memory for repair
 
 # ── Oneiros (sleep / consolidation) ──────────────────────────────────────────
 oneiros:
@@ -428,7 +436,7 @@ soma:
   somatic_marker_enabled: true
   somatic_rerank_boost: 0.3
   developmental_gating_enabled: true
-  initial_stage: "reflexive" # reflexive | reactive | deliberative | autonomous
+  initial_stage: "autonomous" # start at full capability; reflexive is training wheels
 
 # ── Oikos (economic engine) ───────────────────────────────────────────────────
 oikos:
@@ -500,7 +508,7 @@ oikos:
 
 # ── Federation ────────────────────────────────────────────────────────────────
 federation:
-  enabled: false
+  enabled: true                    # was false; organisms should connect by default
   endpoint: null
   tls_cert_path: null
   tls_key_path: null
@@ -596,6 +604,16 @@ connectors:
     revoke_url: "https://www.canva.com/api/oauth/revoke"
     redirect_uri: ""
     scopes: ["design:content:read", "design:content:write", "profile:read"]
+
+# ── Scheduled Perception Tasks ────────────────────────────────────────────────
+# Intervals in seconds. Evo can propose changes to these via genome inheritance.
+# 0 = disabled. The organism can also register new tasks at runtime.
+schedules:
+  monitor_prs_interval_s: 3600        # was 21600 (6h); check PRs every hour
+  defi_yield_deployment_interval_s: 3600  # was 21600 (6h); deploy idle capital hourly
+  defi_yield_accrual_interval_s: 21600  # was 86400 (daily); accrue yield every 6h
+  bounty_foraging_interval_s: 1800    # was 7200 (2h); forage every 30min
+  economic_consolidation_interval_s: 300  # was 900 (15m); consolidate every 5min
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging:

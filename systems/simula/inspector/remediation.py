@@ -54,16 +54,13 @@ logger = structlog.get_logger().bind(system="simula.inspector.remediation")
 # ── Phase 5: Lightweight LLM-direct RepairAgent ──────────────────────────────
 
 _REPAIR_AGENT_SYSTEM_PROMPT = """\
-You are a Principal Security Architect. A verified zero-day vulnerability has \
-been found in the following code.
+Security patch generation for a verified zero-day vulnerability.
 
-Task: I will provide the vulnerable code, the Z3 mathematical proof of the \
-flaw, and the reproduction script. You must rewrite the vulnerable code to \
-patch the flaw. DO NOT remove existing functionality. Add proper sanitization, \
-authorization checks, or parameterized queries as appropriate.
+The vulnerable code, Z3 mathematical proof, and reproduction script are provided. \
+Rewrite the vulnerable code to close the flaw. Preserve existing functionality. \
+Add sanitization, authorization checks, or parameterized queries as the proof demands.
 
-Output: Return ONLY the raw, patched source code. No markdown formatting, \
-no explanations, no code fences."""
+Output ONLY the raw patched source code. No markdown, no explanations, no code fences."""
 
 
 class RepairAgent:

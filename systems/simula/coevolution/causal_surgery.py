@@ -112,14 +112,10 @@ _INTERVENTION_ELIGIBLE: frozenset[CognitiveStage] = frozenset({
 })
 
 # LLM prompt for batched counterfactual estimation
-_COUNTERFACTUAL_PROMPT = """You are the causal reasoning module of EcodiaOS.
-
-A recurring failure pattern has been detected:
+_COUNTERFACTUAL_PROMPT = """Recurring failure pattern detected:
 {pattern_description}
 
-Below are {count} episodes from this pattern. For each, determine:
-If the system had applied this intervention: "{intervention}",
-would the episode outcome have changed from failure to success?
+For each of the {count} episodes below, determine: if the system had applied this intervention: "{intervention}", would the episode outcome have changed from failure to success?
 
 EPISODES:
 {episode_list}

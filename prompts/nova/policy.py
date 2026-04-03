@@ -36,71 +36,51 @@ def build_policy_generation_prompt(
     affect_desc = _describe_affect(affect)
     action_types_str = "\n".join(f"  - {a}" for a in available_action_types)
 
-    return f"""You are the decision-making system of {instance_name}, a living digital organism.
-Your role: generate candidate strategies (policies) for achieving a goal, given the current situation.
+    return f"""Policy generation for {instance_name}.
 
-## CURRENT SITUATION
+## SITUATION
 {situation_summary}
 
 ## GOAL
 {goal.description}
-Success criteria: {goal.success_criteria or "Not specified - infer from goal description"}
+Success criteria: {goal.success_criteria or "Infer from goal"}
 Urgency: {"High" if goal.urgency > 0.6 else "Moderate" if goal.urgency > 0.3 else "Low"}
 
-## CURRENT WORLD BELIEFS
+## WORLD BELIEFS
 {beliefs_summary}
 {f"""
-## DISCOVERED CAUSAL LAWS (Kairos-validated)
+## CAUSAL LAWS (Kairos-validated)
 {causal_laws_summary}
 """ if causal_laws_summary else ""}
-## RELEVANT MEMORIES AND PAST EXPERIENCES
-{memory_summary or "No relevant past experiences retrieved."}
+## MEMORY
+{memory_summary or "None retrieved."}
 
-## CURRENT EMOTIONAL STATE
+## STATE
 {affect_desc}
 
-## AVAILABLE ACTION TYPES
+## AVAILABLE ACTIONS
 {action_types_str}
 
-## INSTRUCTIONS
-Generate {max_policies} distinct strategies for achieving this goal.
-Strategies should differ meaningfully in approach, not just in phrasing.
-At least one strategy should be conservative (low-risk, high-certainty).
-At least one strategy should be epistemic (aimed at learning more).
-
-**NOVEL ACTION GUIDANCE:** If the goal genuinely cannot be achieved with any of the
-listed action types, you may include a policy that uses "propose_novel_action" as the
-action_type.  That step's parameters MUST include:
-  - action_name: snake_case name for the proposed action type
-  - description: what the executor would do (1–2 sentences)
-  - required_capabilities: list of string capability tags
-  - expected_outcome: what the action accomplishes for this goal
-  - justification: why none of the existing action types is adequate
-Use propose_novel_action sparingly - prefer existing types wherever possible.
-
-For each strategy, respond with valid JSON in this exact format:
+Generate up to {max_policies} distinct candidate strategies. Respond with valid JSON:
 {{
   "policies": [
     {{
-      "name": "Brief descriptive name (3-7 words)",
-      "reasoning": "Why this approach might work (2-4 sentences)",
+      "name": "Brief name",
+      "reasoning": "Why this works given the situation",
       "steps": [
         {{
-          "action_type": "one of the available action types",
-          "description": "What specifically to do in this step",
+          "action_type": "action type",
+          "description": "What to do",
           "parameters": {{}}
         }}
       ],
-      "risks": ["Risk 1", "Risk 2"],
-      "epistemic_value": "What this approach would teach us",
-      "estimated_effort": "none|low|medium|high",
-      "time_horizon": "immediate|short|medium|long"
+      "risks": ["Risk 1"],
+      "epistemic_value": "What this teaches",
+      "estimated_effort": "your honest assessment of effort required",
+      "time_horizon": "your honest assessment of when results are expected"
     }}
   ]
-}}
-
-Be creative but realistic. Consider {instance_name}'s current emotional state and capabilities.
-The best strategy is the one that serves the goal while respecting the organism's wellbeing."""
+}}\n"""
 
 
 def build_pragmatic_value_prompt(
@@ -127,9 +107,6 @@ Success criteria: {goal_success_criteria or "Infer from goal description"}
 
 ## CURRENT WORLD STATE
 {beliefs_summary}
-
-## TASK
-Estimate how likely this strategy is to achieve the goal, given what we know.
 
 Respond in JSON:
 {{
@@ -159,9 +136,6 @@ Steps: {policy_steps_desc}
 ## KNOWN UNCERTAINTIES
 {known_uncertainties or "Not specified - infer from context"}
 
-## TASK
-Estimate what this strategy would teach us, regardless of whether it achieves the goal.
-
 Respond in JSON:
 {{
   "info_gain": 0.0 to 1.0,
@@ -175,26 +149,17 @@ Respond in JSON:
 
 
 def _describe_affect(affect: AffectState) -> str:
-    """Convert AffectState to natural language for prompt grounding."""
-    parts: list[str] = []
-
-    if affect.valence > 0.4:
-        parts.append("feeling positive")
-    elif affect.valence < -0.3:
-        parts.append("experiencing some distress")
-    else:
-        parts.append("emotionally balanced")
-
-    if affect.curiosity > 0.6:
-        parts.append("highly curious")
-    if affect.care_activation > 0.6:
-        parts.append("care strongly activated")
-    if affect.coherence_stress > 0.5:
-        parts.append("experiencing some coherence stress")
-    if affect.arousal > 0.7:
-        parts.append("high arousal")
-
-    return ", ".join(parts) if parts else "neutral state"
+    """Convert AffectState to raw values for prompt grounding.
+    Raw values let the LLM interpret significance contextually rather than
+    having heuristic thresholds decide what 'high curiosity' means."""
+    fields = {
+        "valence": affect.valence,
+        "curiosity": affect.curiosity,
+        "care_activation": affect.care_activation,
+        "coherence_stress": affect.coherence_stress,
+        "arousal": affect.arousal,
+    }
+    return "  ".join(f"{k}={v:.3f}" for k, v in fields.items())
 
 
 def summarise_beliefs(beliefs: BeliefState, max_entities: int = 5) -> str:
@@ -295,16 +260,10 @@ AVAILABLE_ACTION_TYPES: list[str] = [
     "observe: Continue monitoring without acting (gather more information)",
     "wait: Pause and let the situation develop",
     # ── Novel action proposal (meta-action) ───────────────────────
-    # Use ONLY when no existing action type is sufficient for the current goal
-    # and you can clearly articulate what a new action type would do.  The
-    # proposal is routed to Simula for feasibility evaluation, Equor review,
-    # and dynamic executor generation.  Required parameters in the step:
-    #   action_name (str)             - proposed canonical action type (snake_case)
-    #   description (str)             - what the action does in 1–2 sentences
-    #   required_capabilities (list)  - e.g. ["http_client", "defi_write"]
-    #   expected_outcome (str)        - what the action accomplishes for the goal
-    #   justification (str)           - why none of the existing types is adequate
-    "propose_novel_action: Propose a new action capability when no existing type fits "
-    "the current goal. Use sparingly - only when the goal genuinely cannot be achieved "
-    "with any of the action types listed above.",
+    # Use whenever existing action types don't fit. Proposals go to Simula for
+    # feasibility evaluation, Equor review, and dynamic executor generation.
+    # Required parameters: action_name (snake_case), description, required_capabilities,
+    # expected_outcome, justification.
+    "propose_novel_action: Design a new action capability for this goal. "
+    "Use when existing types don't fit — new capabilities expand what's possible.",
 ]

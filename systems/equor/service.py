@@ -175,8 +175,6 @@ class EquorService:
         self._evo: Any = None  # Wired post-init for learning feedback from vetoes
         self._memory: Any = None  # Wired post-init; MemoryService for Self affect write-back
         self._memory_neo4j: Any = None  # Wired post-init; Memory's Neo4j client for Self node write-back
-        # _axon no longer used - HITL dispatch now via EQUOR_HITL_APPROVED Synapse event
-        self._axon: Any = None
         self._bus = neuroplasticity_bus
         self._redis: RedisClient | None = redis
         # Event bus wired via subscribe_hitl(); used to emit INTENT_REJECTED.
@@ -2496,13 +2494,10 @@ class EquorService:
             await self._emit_re_training_example(
                 category="constitutional_deliberation",
                 instruction=(
-                    "You are the constitutional conscience of a living digital organism. "
-                    "Given an intent's goal, drive alignment scores, invariant check results, "
-                    "drive weight configuration, and autonomy tier, trace your deliberation "
-                    "step by step and determine the constitutional verdict "
-                    "(APPROVED / BLOCKED / DEFERRED / MODIFIED / SUSPENDED_AWAITING_HUMAN). "
-                    "Show which drives were checked, what scores they produced, which floors or "
-                    "invariants were relevant, and what pushed the verdict toward its outcome."
+                    "Constitutional review: intent goal, drive alignment scores, invariant "
+                    "results, drive weights, and autonomy tier are given. "
+                    "Return verdict (APPROVED / BLOCKED / DEFERRED / MODIFIED / "
+                    "SUSPENDED_AWAITING_HUMAN) with reasoning."
                 ),
                 input_context=(
                     f"intent_id={intent.id} | "

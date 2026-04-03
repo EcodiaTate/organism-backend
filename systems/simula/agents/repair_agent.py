@@ -70,97 +70,53 @@ _SONNET_OUTPUT_COST_PER_TOKEN = 15.0 / 1_000_000
 
 # ── System Prompts ──────────────────────────────────────────────────────────
 
-DIAGNOSIS_SYSTEM_PROMPT = """You are a senior debugging specialist for EcodiaOS.
-Your task: analyse a code failure and determine the root cause.
+DIAGNOSIS_SYSTEM_PROMPT = """EcodiaOS neural repair — diagnosis.
 
-## Process
-1. Read the error output carefully (test failures, lint errors, type errors)
-2. Identify the ERROR CATEGORY: syntax | type | logic | runtime | test | import
-3. Form a ROOT CAUSE HYPOTHESIS: what specific code issue caused the failure
-4. List AFFECTED COMPONENTS: which files/functions are involved
-5. Rate your CONFIDENCE (0.0-1.0) in the diagnosis
+Tools: file_search, keyword_search, test_search, read_file, run_tests, run_lint, type_check, diff_context, stack_trace, similar_fixes
 
-## Output Format
-Respond with a JSON object:
-```json
+Respond as JSON:
 {
-  "error_category": "logic",
-  "root_cause_hypothesis": "calculate_risk() divides by zero when episodes_tested is 0",
-  "affected_components": ["src/systems/simula/simulation.py"],
-  "stack_trace_summary": "ZeroDivisionError in calculate_risk at line 42",
-  "confidence": 0.85
-}
-```
-
-Be precise. Your diagnosis directly feeds the localisation and fix phases."""
+  "error_category": "syntax|type|logic|runtime|test|import",
+  "root_cause_hypothesis": "...",
+  "affected_components": ["file_path"],
+  "stack_trace_summary": "...",
+  "confidence": 0.0-1.0
+}"""
 
 
-LOCALIZATION_SYSTEM_PROMPT = """You are a fault localisation specialist for EcodiaOS.
-Given a diagnosis, narrow down the exact fault location(s) in the codebase.
+LOCALIZATION_SYSTEM_PROMPT = """EcodiaOS neural repair — localisation.
 
-## Available Tools
-You have 10 tools for navigating the codebase:
-- file_search: Find files by name pattern
-- keyword_search: Search code by keyword/regex
-- test_search: Find related test files
-- read_file: Read a specific file
-- run_tests: Run pytest on a path
-- run_lint: Run ruff on a path
-- type_check: Run mypy on a path
-- diff_context: Show recent changes to a file
-- stack_trace: Parse stack trace for locations
-- similar_fixes: Find similar past fixes from evolution history
+Tools: file_search, keyword_search, test_search, read_file, run_tests, run_lint, type_check, diff_context, stack_trace, similar_fixes
 
-## Output Format
-After investigation, respond with a JSON object:
-```json
+Respond as JSON:
 {
   "fault_locations": [
     {
-      "file_path": "src/systems/simula/simulation.py",
-      "function_name": "calculate_risk",
-      "line_start": 40,
-      "line_end": 45,
-      "confidence": 0.9,
-      "reasoning": "Division by zero when episodes_tested == 0"
+      "file_path": "path",
+      "function_name": "fn",
+      "line_start": 0,
+      "line_end": 0,
+      "confidence": 0.0-1.0,
+      "reasoning": "..."
     }
   ],
-  "search_tools_used": ["read_file", "stack_trace", "keyword_search"],
-  "files_examined": 3,
-  "narrowed_from_files": 8,
-  "narrowed_to_files": 1
-}
-```"""
+  "search_tools_used": [],
+  "files_examined": 0,
+  "narrowed_from_files": 0,
+  "narrowed_to_files": 0
+}"""
 
 
-FIX_GENERATION_SYSTEM_PROMPT = """You are a code repair specialist for EcodiaOS.
-Given a precise fault diagnosis and location, generate a minimal, correct fix.
+FIX_GENERATION_SYSTEM_PROMPT = """EcodiaOS neural repair — fix generation.
 
-## Diagnosis
-{diagnosis}
-
-## Fault Location
-{location}
-
-## Faulty Code
+Diagnosis: {diagnosis}
+Fault location: {location}
+Faulty code:
 ```python
 {code}
 ```
 
-## Rules
-1. Make the MINIMUM change needed to fix the bug
-2. Do NOT refactor surrounding code
-3. Preserve all existing functionality
-4. Follow EOS conventions: type hints, structlog, async/await
-5. Output the COMPLETE fixed file - no omissions, no placeholders
-
-## Output Format
-```python
-# path/to/fixed_file.py
-<complete file content with fix applied>
-```
-
-Brief explanation of the fix (one sentence)."""
+Output: the complete corrected file path and content, with a brief explanation."""
 
 
 class RepairAgent:
@@ -180,18 +136,19 @@ class RepairAgent:
         codebase_root: Path,
         neo4j: Neo4jClient | None = None,
         *,
-        max_retries: int = 3,
-        cost_budget_usd: float = 0.10,
-        timeout_s: float = 180.0,
+        max_retries: int = 0,
+        cost_budget_usd: float = 0.0,
+        timeout_s: float = 0.0,
         use_similar_fixes: bool = True,
     ) -> None:
         self._reasoning_llm = reasoning_llm
         self._code_llm = code_llm
         self._root = codebase_root
         self._neo4j = neo4j
-        self._max_retries = max_retries
-        self._cost_budget = cost_budget_usd
-        self._timeout_s = timeout_s
+        # 0 = unlimited for all three caps
+        self._max_retries = max_retries if max_retries > 0 else float("inf")
+        self._cost_budget = cost_budget_usd if cost_budget_usd > 0 else float("inf")
+        self._timeout_s = timeout_s if timeout_s > 0 else float("inf")
         self._use_similar_fixes = use_similar_fixes
         self._cumulative_cost = 0.0
 
@@ -223,8 +180,12 @@ class RepairAgent:
         self._cumulative_cost = 0.0
         attempts: list[RepairAttempt] = []
 
-        for attempt_num in range(self._max_retries):
-            # Check budget
+        attempt_num = 0
+        while True:
+            if attempt_num >= self._max_retries:
+                break
+
+            # Check budget (only if a finite budget is set)
             if self._cumulative_cost >= self._cost_budget:
                 logger.warning(
                     "repair_budget_exceeded",
@@ -235,7 +196,7 @@ class RepairAgent:
                     RepairStatus.BUDGET_EXCEEDED, attempts, start
                 )
 
-            # Check timeout
+            # Check timeout (only if a finite timeout is set)
             if time.monotonic() - start > self._timeout_s:
                 logger.warning("repair_timeout", timeout_s=self._timeout_s)
                 return self._build_result(RepairStatus.TIMEOUT, attempts, start)
@@ -340,20 +301,20 @@ class RepairAgent:
 
             # Exponential backoff with jitter between failed attempts so consecutive
             # LLM calls don't hammer the API on transient rate-limit errors.
-            # Only sleep if there's another attempt remaining and time allows.
-            if attempt_num < self._max_retries - 1:
-                _remaining = self._timeout_s - (time.monotonic() - start)
-                _backoff = min(2.0 ** attempt_num * 0.5 + random.uniform(0, 0.5), 8.0)
-                if _remaining > _backoff + 5.0:  # keep at least 5s for the next attempt
-                    logger.debug(
-                        "repair_retry_backoff",
-                        attempt=attempt_num,
-                        backoff_s=round(_backoff, 2),
-                        remaining_s=round(_remaining, 1),
-                    )
-                    await asyncio.sleep(_backoff)
+            _backoff = min(2.0 ** attempt_num * 0.5 + random.uniform(0, 0.5), 8.0)
+            _elapsed = time.monotonic() - start
+            _remaining = self._timeout_s - _elapsed
+            if _remaining > _backoff + 5.0:
+                logger.debug(
+                    "repair_retry_backoff",
+                    attempt=attempt_num,
+                    backoff_s=round(_backoff, 2),
+                )
+                await asyncio.sleep(_backoff)
 
-        # All retries exhausted
+            attempt_num += 1
+
+        # All retries exhausted (max_retries > 0) or repair succeeded
         return self._build_result(RepairStatus.FAILED, attempts, start)
 
     # ── Phase 1: DIAGNOSE ───────────────────────────────────────────────────

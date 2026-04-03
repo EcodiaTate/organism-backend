@@ -70,18 +70,6 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("systems.synapse")
 
-# How often to compute coherence (in cycles)
-_COHERENCE_INTERVAL: int = 50
-
-# How often to capture a resource snapshot (in cycles)
-_RESOURCE_SNAPSHOT_INTERVAL: int = 33
-
-# How often to rebalance resource allocations (in cycles)
-_REBALANCE_INTERVAL: int = 100
-
-# How often to snapshot metabolic state and emit pressure events (in cycles)
-_METABOLIC_INTERVAL: int = 50
-
 # Burn rate threshold (USD/hour) above which METABOLIC_PRESSURE fires
 _METABOLIC_PRESSURE_THRESHOLD_USD_HR: float = 1.0
 
@@ -867,7 +855,7 @@ class SynapseService:
         )
 
         # ── 3. Periodic: compute coherence → adapt clock ──
-        if self._cycle_count % _COHERENCE_INTERVAL == 0:
+        if self._cycle_count % self._config.coherence_update_interval == 0:
             snapshot = await self._coherence.compute()
 
             # Use coherence to modulate clock speed: low coherence → slow
@@ -940,11 +928,11 @@ class SynapseService:
                     pass  # KPI emission must never block the cycle
 
         # ── 4. Periodic: resource snapshot ──
-        if self._cycle_count % _RESOURCE_SNAPSHOT_INTERVAL == 0:
+        if self._cycle_count % self._config.resource_snapshot_interval == 0:
             self._resources.capture_snapshot()
 
         # ── 5. Periodic: rebalance resources ──
-        if self._cycle_count % _REBALANCE_INTERVAL == 0:
+        if self._cycle_count % self._config.rebalance_interval == 0:
             self._resources.rebalance(self._clock.state.current_period_ms)
             # Emit RESOURCE_REBALANCE so Alive/Benchmarks can observe allocation changes (Spec 09 §18 P5)
             _alloc_data = {
@@ -993,7 +981,7 @@ class SynapseService:
             ))
 
         # ── 5b. Periodic: metabolic snapshot + pressure event ──
-        if self._cycle_count % _METABOLIC_INTERVAL == 0:
+        if self._cycle_count % self._config.metabolic_interval == 0:
             meta_snap = self._metabolism.snapshot()
 
             # Emit METABOLIC_SNAPSHOT unconditionally so consumers always receive data

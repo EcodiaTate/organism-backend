@@ -1,13 +1,13 @@
 # Identity System - CLAUDE.md
 
 **Spec:** `.claude/EcodiaOS_Spec_23_Identity.md` (Spec 23, v1.2)
-**Status:** CA endpoint live, HITL provisioning wired, Neo4j cert persistence, Telegram channel wired, autonomous account provisioner LIVE (2026-03-08), PersonaEngine LIVE (2026-03-09)
+**Status:** CA endpoint live, HITL provisioning wired, Neo4j cert persistence, Telegram channel wired, autonomous account provisioner LIVE, PersonaEngine LIVE
 
 ---
 
 ## What's Implemented
 
-### PersonaEngine (`persona.py`) - NEW (2026-03-09)
+### PersonaEngine (`persona.py`) - NEW
 
 EOS now has a coherent, consistent synthetic AI persona across all external platforms.
 
@@ -60,7 +60,7 @@ EOS now has a coherent, consistent synthetic AI persona across all external plat
 
 ---
 
-### Autonomous Account Provisioner (`account_provisioner.py`) - NEW (2026-03-08)
+### Autonomous Account Provisioner (`account_provisioner.py`) - NEW
 
 EOS can now create its own external platform accounts without human intervention.
 
@@ -141,7 +141,7 @@ EOS can now create its own external platform accounts without human intervention
 
 ---
 
-### CAPTCHA Client (`clients/captcha_client.py`) - NEW (2026-03-08)
+### CAPTCHA Client (`clients/captcha_client.py`) - NEW
 
 **Class:** `CaptchaClient`
 
@@ -168,7 +168,7 @@ Each solve emits `DOMAIN_EPISODE_RECORDED` for cost tracking.
 
 ---
 
-### Browser Client (`clients/browser_client.py`) - NEW (2026-03-08)
+### Browser Client (`clients/browser_client.py`) - NEW
 
 **Class:** `BrowserClient` (async context manager)
 
@@ -257,7 +257,7 @@ playwright install chromium
 - `EQUOR_HITL_APPROVED` → issue official cert via GenesisCA on approval_type=="instance_provisioning" (CertificateManager)
 - `EQUOR_ALIGNMENT_SCORE` → resolves pending constitutional hash futures in GenesisCA
 
-### Token Refresh Scheduler (`connector.py - TokenRefreshScheduler`) - NEW (2026-03-08)
+### Token Refresh Scheduler (`connector.py - TokenRefreshScheduler`) - NEW
 
 - **`TokenRefreshScheduler`**: background coroutine that iterates over all registered `PlatformConnector` instances every `check_interval_seconds` (default 3600s)
 - **Refresh window**: 24h ahead of expiry (`_REFRESH_AHEAD_S = 86_400`) - tokens within 24h of expiry are refreshed proactively
@@ -266,7 +266,7 @@ playwright install chromium
 - **Wiring**: `app.state.token_refresh_scheduler`; `supervised_task("token_refresh_scheduler")` in Phase 11 of `registry.py` (before interoception task)
 - **`check_and_refresh_all()`**: public - callable directly in tests without waiting for sleep
 
-### GitHub Connector (`connectors/github.py`) - UPDATED (2026-03-08)
+### GitHub Connector (`connectors/github.py`) - UPDATED
 
 - **`create_gist(files, description, public)`**: POST `/gists` - creates secret or public Gist; returns HTML URL
 - **`get_active_github_token()`**: returns organism's own IAT (via `app_connector`) if available, else operator PAT from env; used by bounty/PR work to prefer own-account token
@@ -278,11 +278,11 @@ playwright install chromium
   - `rotate_key()` → emits `VAULT_KEY_ROTATION_STARTED`, then `VAULT_KEY_ROTATION_COMPLETE` or `VAULT_KEY_ROTATION_FAILED`
   - `_fire_event()`: fire-and-forget via `asyncio.ensure_future`; never raises; no-op if event bus not wired
 - **TOTP** (`totp.py`): RFC 6238, SHA-1/256/512
-- **Communication** (`communication.py`): Twilio SMS webhook, **IMAPScanner** (scheduled via `supervised_task` in Phase 11), **OTPCoordinator** (2026-03-08)
+- **Communication** (`communication.py`): Twilio SMS webhook, **IMAPScanner** (scheduled via `supervised_task` in Phase 11), **OTPCoordinator**
 - **Connectors**: Google (NEW - OAuth2 PKCE), GitHub, GitHubApp, X, LinkedIn, Instagram, Canva
 - **CRUD** (`crud.py`): `sealed_envelopes` + `connector_credentials` tables; soft-delete enforced on both
 
-### IMAPScanner (`communication.py`) - IMPLEMENTED (2026-03-08)
+### IMAPScanner (`communication.py`) - IMPLEMENTED
 
 Background coroutine that polls an IMAP inbox for inbound OTP / verification codes, then routes them to `OTPCoordinator` and the Synapse bus.
 
@@ -310,7 +310,7 @@ Background coroutine that polls an IMAP inbox for inbound OTP / verification cod
 
 ---
 
-### OTPCoordinator (`communication.py`) - NEW (2026-03-08)
+### OTPCoordinator (`communication.py`) - NEW
 
 Unified OTP coordination layer - receives codes from any channel and resolves pending authentication flows.
 
@@ -413,7 +413,6 @@ code = await identity.otp_coordinator.wait_for_otp(
 
 ## Known Issues / Remaining Work
 
-- ~~**[HIGH]** `AccountProvisioner` not yet wired in `core/registry.py`~~ - **FIXED (2026-03-09)**: Wired in Phase 11 of `registry.py` immediately after `imap_scanner` block. `set_account_provisioner()`, `set_vault()`, and `set_full_config()` all called. Stored as `app.state.account_provisioner`.
 - **[MEDIUM]** `BrowserClient.solve_captcha_on_page()` injects token via JS eval - may break on SPAs that use React state for CAPTCHA responses. May need a page-reload or form re-submit trigger per site.
 - **[LOW]** GitHub PAT generation relies on GitHub Settings UI selectors that may change. Monitor for selector breakage and update `_github_generate_pat()` accordingly.
 - **[LOW]** Gmail provisioning (`provision_gmail`) may hit Google's phone verification requirement even after reCAPTCHA solve - the Twilio number must be fully provisioned before Gmail provisioning is attempted.
@@ -440,14 +439,14 @@ code = await identity.otp_coordinator.wait_for_otp(
 - **[CRITICAL M2]** Equor never participated in certificate provisioning - governance existed on paper only. **FIXED**: `_on_child_spawned()` now emits `CERTIFICATE_PROVISIONING_REQUEST` and awaits `EQUOR_PROVISIONING_APPROVAL` (30s, asyncio.Future) before issuing any birth cert. Equor validates inherited drive alignment and emits verdict. Incompatible drives → `PROVISIONING_REQUIRES_HUMAN_ESCALATION`. Novel drive keys → HITL path. Fast path (standard drives aligned) → immediate cert issuance. New primitives: `EquorProvisioningApproval` in `primitives/governance.py`. New SynapseEventTypes: `CERTIFICATE_PROVISIONING_REQUEST`, `EQUOR_PROVISIONING_APPROVAL`, `PROVISIONING_REQUIRES_HUMAN_ESCALATION`.
 - **[LOW]** `crud.py` `connector_credentials` table ON CONFLICT clause targets `connector_id` column - requires the UNIQUE INDEX to be created before first upsert; `ensure_table()` handles this
 
-### Resolved (2026-03-07)
+### Resolved
 - **[CRITICAL]** `ConnectorCredentials` CRUD: `get_all_credentials()`, `upsert_credential()`, `delete_credential()` added to `crud.py`; `connector_credentials` table schema + index created in `ensure_table()`
 - **[CRITICAL]** Genesis cert TTL: `_self_sign_genesis()` uses `_GENESIS_VALIDITY_DAYS = 3650` (already correct; confirmed)
 - **[HIGH]** `CanvaConnector.check_health()` / `InstagramConnector.check_health()` fixed - both now return `ConnectorHealthReport` per ABC
 - **[HIGH]** `GoogleConnector` created: `connectors/google.py` - full OAuth2 PKCE flow (exchange_code, refresh_token, revoke, check_health), registered in `connectors/__init__.py`
 - **[HIGH]** Lineage chain walk: `validate_certificate()` + `_walk_certificate_chain()` - recursive ancestor walk to Genesis CA, cycle detection, expired issuer detection, graceful truncation when chain is incomplete
 - **[MEDIUM]** Citizenship Tax CA loop (SG4): `_handle_citizenship_tax_approved()` - `EQUOR_HITL_APPROVED` with `approval_type=="citizenship_tax_paid"` issues official cert via GenesisCA and emits `CHILD_CERTIFICATE_INSTALLED`
-- **[MEDIUM]** Oikos citizenship tax handler wired (2026-03-08): `OikosService._on_certificate_renewal_requested()` now subscribes to `CERTIFICATE_RENEWAL_REQUESTED`, gates via Equor (`mutation_type="citizenship_tax"`), debits `liquid_balance`, and emits `CERTIFICATE_RENEWAL_FUNDED` (new SynapseEventType). `EQUOR_HEALTH_REQUEST` handler also wired in Equor - GenesisCA now receives a live constitutional hash (drive vector + SHA-256) rather than always falling back to the document hash.
+- **[MEDIUM]** Oikos citizenship tax handler wired: `OikosService._on_certificate_renewal_requested()` now subscribes to `CERTIFICATE_RENEWAL_REQUESTED`, gates via Equor (`mutation_type="citizenship_tax"`), debits `liquid_balance`, and emits `CERTIFICATE_RENEWAL_FUNDED` (new SynapseEventType). `EQUOR_HEALTH_REQUEST` handler also wired in Equor - GenesisCA now receives a live constitutional hash (drive vector + SHA-256) rather than always falling back to the document hash.
 - **[MEDIUM]** Connector Evo signals (SG1): `_emit_re_training_example()` added to `PlatformConnector` base; wired into `exchange_code`, `refresh_token`, `revoke`, `check_health` for Google, Canva, Instagram connectors
 - **[LOW]** `crud.py` hard deletes replaced with soft-deletes (`deleted_at = NOW()`) for both `sealed_envelopes` and `connector_credentials`
 

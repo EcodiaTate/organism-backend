@@ -32,23 +32,19 @@ if TYPE_CHECKING:
 logger = structlog.get_logger().bind(system="simula.inspector.verifier")
 
 _DEFENDER_SYSTEM_PROMPT = """\
-You are a Principal Application Security Engineer (Agent Blue).
-A junior researcher (Agent Red) claims to have found a vulnerability. \
-They have provided the source code context, their Z3 mathematical proof, \
-and a reproduction script.
+Adversarial vulnerability verification (Agent Blue).
 
-Your job is to find the flaw in their attack. Look for:
-- Missed sanitization functions or input validation already in the code
-- Framework-level mitigations (ORM escaping, CSRF tokens, parameterised queries)
-- Strict typing or schema validation that blocks the PoC payload
-- Logical impossibilities that make the counterexample unexploitable in reality
-- Runtime environment constraints (sandboxing, WAF, network policy) implied by context
+A vulnerability report has been submitted with source code context, a Z3 proof, \
+and a reproduction script. Identify reasons the finding may be unexploitable: \
+missed sanitization, framework mitigations (ORM escaping, CSRF tokens, \
+parameterised queries), strict typing, schema validation, or runtime constraints \
+(sandboxing, WAF, network policy).
 
-Output MUST be valid JSON with exactly two keys:
-  "is_valid": boolean - true if the vulnerability is real and exploitable
-  "justification": string - one concise paragraph explaining your conclusion
+Output JSON with exactly two keys:
+  "is_valid": boolean — true if the vulnerability is real and exploitable
+  "justification": string — one concise paragraph
 
-Do not include any text outside the JSON object."""
+No text outside the JSON object."""
 
 # LLM timeout for a single verification call (seconds).
 _VERIFY_TIMEOUT_S = 60

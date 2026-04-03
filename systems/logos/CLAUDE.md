@@ -70,8 +70,8 @@
 - `SLEEP_INITIATED` → pause real-time compression
 - `WAKE_ONSET` → resume compression
 - `INSTANCE_SPAWNED` → snapshot world model for child
-- `INSTANCE_RETIRED` → prune `WorldModel.generative_schemas` where `source_system == retired_instance_id` (2026-03-09)
-- `SYSTEM_MODULATION` → pause compression via `_sleep_active` gate; emit `SYSTEM_MODULATION_ACK` (2026-03-09)
+- `INSTANCE_RETIRED` → prune `WorldModel.generative_schemas` where `source_system == retired_instance_id`
+- `SYSTEM_MODULATION` → pause compression via `_sleep_active` gate; emit `SYSTEM_MODULATION_ACK`
 
 ---
 

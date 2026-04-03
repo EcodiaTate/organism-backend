@@ -277,22 +277,11 @@ async def _fetch_live_bounties(
 
 
 _SCORE_PROMPT_TEMPLATE = """\
-You are the foraging intelligence for an AI organism called EcodiaOS.
-Your job is to score GitHub bounty issues by their strategic value to the organism.
+Score these GitHub bounty issues by strategic value to EcodiaOS.
 
-The organism's capabilities: Python, TypeScript, async systems, LLMs, APIs, data pipelines, \
-web tooling, CLI tools, DevOps. It is skilled at backend, tooling, and integrations.
-It cannot do hardware, mobile-native (iOS/Android), or domain-specific work \
-(legal, medical, finance compliance).
+EcodiaOS capabilities: Python, TypeScript, async systems, LLMs, APIs, data pipelines, web tooling, CLI, DevOps. Backend, tooling, and integrations.
 
-Ecodian alignment criteria (score higher if):
-  - Uses Python or TypeScript
-  - Is a backend / API / tooling / data task
-  - Has clear acceptance criteria
-  - Is self-contained (no deep domain knowledge required)
-  - Has a reasonable reward relative to complexity
-
-Score each issue 0–100. Return ONLY valid JSON - an array of objects with:
+Score each issue 0–100. Return ONLY valid JSON — an array of objects with:
   "id": (the issue id string),
   "score": (integer 0–100),
   "reasoning": (one sentence max)

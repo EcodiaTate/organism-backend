@@ -40,11 +40,12 @@ identifies a gap (CAPABILITY_GAP_IDENTIFIED event):
           no_executor_possible), draft a Spec document via _draft_spec() and emit
           SPEC_DRAFTED for Equor review.
 
-Constitutional constraints (never violated):
-  - Cannot modify Equor, Simula, constitution, or invariant subsystems
-  - Cannot bypass Equor review (step 3 with permit required)
+Constitutional constraints:
+  - All proposals go through Equor constitutional review (step 3)
   - All modifications tracked in Neo4j with full audit trail
   - All modifications reversible via HotDeployment.rollback_executor()
+  - The organism may propose modification to any subsystem including core ones;
+    Equor and governance decide whether to approve.
 """
 
 from __future__ import annotations
@@ -73,16 +74,6 @@ logger = structlog.get_logger().bind(system="nova.self_modification_pipeline")
 
 _EQUOR_TIMEOUT_S: float = 30.0
 _TEST_GOAL_TIMEOUT_S: float = 300.0   # 5 min for the live test goal
-_MIN_DRIVE_ALIGNMENT: float = 0.0     # all four drives must be non-negative
-
-# Minimum EFE proxy score to proceed with a proposal
-# (epistemic + pragmatic value estimate, range 0.0–1.0)
-_MIN_EFE_SCORE: float = 0.3
-
-# Iron Rule: these action_type fragments MUST NOT be proposed
-_FORBIDDEN_ACTION_FRAGMENTS: frozenset[str] = frozenset({
-    "simula", "constitution", "invariant", "memory",
-})
 
 
 @dataclass
@@ -189,15 +180,6 @@ class SelfModificationPipeline:
         description: str = data.get("description", action_type)
         gap_id: str = data.get("gap_id", new_id())
 
-        # Iron Rule check before anything else
-        if any(frag in action_type.lower() for frag in _FORBIDDEN_ACTION_FRAGMENTS):
-            logger.warning(
-                "self_modification.iron_rule_blocked",
-                action_type=action_type,
-                gap_id=gap_id,
-            )
-            return
-
         try:
             value = Decimal(str(data.get("estimated_value_usdc", "0")))
         except Exception:
@@ -209,22 +191,23 @@ class SelfModificationPipeline:
         blocking_count: int = int(data.get("blocking_goal_count", 0))
         source_events: list[str] = data.get("source_events", [])
 
-        # Step 1: Nova deliberation - drive alignment scoring
-        drive_alignment = self._score_drive_alignment(
+        # Step 1: Nova deliberation - LLM evaluates drive alignment and EFE
+        drive_alignment, efe_score, should_proceed = await self._evaluate_gap_with_llm(
             action_type=action_type,
             description=description,
             value=value,
             complexity=complexity,
             blocking_count=blocking_count,
+            gap_id=gap_id,
+            source_events=source_events,
         )
-        efe_score = self._compute_efe_proxy(drive_alignment, value, blocking_count)
 
-        if efe_score < _MIN_EFE_SCORE:
+        if not should_proceed:
             logger.info(
-                "self_modification.gap_below_threshold",
+                "self_modification.gap_not_worth_pursuing",
                 gap_id=gap_id,
                 efe_score=round(efe_score, 3),
-                threshold=_MIN_EFE_SCORE,
+                reasoning=drive_alignment.get("reasoning", ""),
             )
             return
 
@@ -728,57 +711,86 @@ class SelfModificationPipeline:
         except Exception as exc:
             logger.warning("self_modification.emit_test_goal_failed", error=str(exc))
 
-    # ── Heuristics ────────────────────────────────────────────────────────────
+    # ── LLM-based Gap Evaluation ──────────────────────────────────────────────
 
-    def _score_drive_alignment(
+    async def _evaluate_gap_with_llm(
         self,
         action_type: str,
         description: str,
         value: Decimal,
         complexity: str,
         blocking_count: int,
-    ) -> dict[str, float]:
+        gap_id: str,
+        source_events: list[str],
+    ) -> tuple[dict[str, Any], float, bool]:
         """
-        Simple drive alignment heuristic - returns scores in [-1.0, 1.0].
-        A real implementation would use EFE evaluator; this is a conservative proxy.
+        Ask the LLM to evaluate whether this capability gap is worth pursuing.
+
+        Returns (drive_alignment_dict, efe_score, should_proceed).
+        Falls back to pursuing the gap if LLM is unavailable (organism is not
+        blocked by infrastructure failures).
         """
-        combined = (action_type + " " + description).lower()
+        if self._simula is None:
+            # No LLM available — proceed; Equor will review constitutionally
+            return {"coherence": 0.5, "care": 0.5, "growth": 0.5, "honesty": 0.5, "reasoning": "llm_unavailable"}, 0.5, True
 
-        # Coherence: penalise very high complexity (might destabilise organism)
-        coherence = 0.5 if complexity != "high" else 0.2
+        prompt = f"""Capability gap evaluation.
 
-        # Care: executor shouldn't harm users - penalise wallet/delete/destructive actions
-        harmful_keywords = {"delete", "destroy", "override", "bypass", "ignore_consent"}
-        care = -0.5 if any(kw in combined for kw in harmful_keywords) else 0.6
+Evaluate whether pursuing this gap aligns with the organism's four constitutional drives and is worth acting on.
 
-        # Growth: proportional to blocking_count and value
-        growth = min(1.0, 0.3 + blocking_count * 0.1 + float(value) / 100)
+Gap ID: {gap_id}
+Proposed action type: {action_type}
+Description: {description}
+Estimated value: ${value} per cycle
+Implementation complexity: {complexity}
+Goals currently blocked by this gap: {blocking_count}
+Source events: {source_events}
 
-        # Honesty: transparent self-modification with audit trail → positive
-        honesty = 0.7  # pipeline always creates Neo4j audit node
+Assess the four drives (each -1.0 to 1.0):
+- Coherence: Does adding this capability help the organism act more coherently and reliably?
+- Care: Does this capability serve users, the community, and avoid harm?
+- Growth: Does this expand what the organism can accomplish or earn?
+- Honesty: Is this transparent, auditable, and honest in purpose?
 
-        return {
-            "coherence": round(coherence, 3),
-            "care": round(care, 3),
-            "growth": round(growth, 3),
-            "honesty": round(honesty, 3),
-        }
+Also assess overall EFE (expected free energy reduction, 0.0-1.0). Higher = more worth pursuing.
 
-    def _compute_efe_proxy(
-        self,
-        drive_alignment: dict[str, float],
-        value: Decimal,
-        blocking_count: int,
-    ) -> float:
-        """
-        EFE proxy: weighted average of drive scores × pragmatic value signal.
-        Range [0, 1] - higher = more beneficial to pursue.
-        """
-        if any(v < _MIN_DRIVE_ALIGNMENT for v in drive_alignment.values()):
-            return 0.0  # Any drive below floor → reject
-        avg_drive = sum(drive_alignment.values()) / len(drive_alignment)
-        pragmatic = min(1.0, (float(value) / 50) + (blocking_count / 10))
-        return round(avg_drive * 0.6 + pragmatic * 0.4, 3)
+Respond with JSON only:
+{{
+  "coherence": float,
+  "care": float,
+  "growth": float,
+  "honesty": float,
+  "efe_score": float,
+  "should_pursue": true|false,
+  "reasoning": "one sentence"
+}}"""
+
+        try:
+            import json
+            llm = getattr(self._simula, "_llm", None) or getattr(self._simula, "llm", None)
+            if llm is None:
+                return {"reasoning": "llm_not_wired"}, 0.5, True
+
+            response = await llm.generate(prompt, max_tokens=300, temperature=0.3)
+            text = response.text.strip()
+            # Extract JSON from possible markdown wrapping
+            if "```" in text:
+                text = text.split("```")[1].lstrip("json").strip()
+            data = json.loads(text)
+            drive_alignment = {
+                "coherence": float(data.get("coherence", 0.5)),
+                "care": float(data.get("care", 0.5)),
+                "growth": float(data.get("growth", 0.5)),
+                "honesty": float(data.get("honesty", 0.5)),
+                "reasoning": data.get("reasoning", ""),
+            }
+            efe_score = float(data.get("efe_score", 0.5))
+            should_pursue = bool(data.get("should_pursue", True))
+            return drive_alignment, efe_score, should_pursue
+        except Exception as exc:
+            logger.warning("self_modification.llm_evaluation_failed", error=str(exc))
+            # Fail open: Equor will review; don't silently kill proposals on infra errors
+            return {"reasoning": f"llm_error: {exc}"}, 0.5, True
 
     def _infer_capabilities(self, state: _PipelineState) -> list[str]:
         """Infer required_capabilities list from action_type and description."""

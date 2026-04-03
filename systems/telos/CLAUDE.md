@@ -145,7 +145,7 @@ Telos is the system most directly responsible for whether EOS qualifies as a liv
 10. ~~**`_instance_id` and `_cycle_count` undefined**~~ - **RESOLVED (08 Mar 2026, Autonomy Audit)**: Both now declared in `__init__`. `_instance_id` is set by `set_neo4j()`. `_cycle_count` is kept in sync with `_computation_count` at the end of each `_run_computation()` cycle. Previously any RE training episode ID using these would raise `AttributeError`.
 11. ~~**`_apply_modulation_directives` was a no-op**~~ - **RESOLVED (08 Mar 2026, Autonomy Audit)**: Skia modulation can now tune 5 runtime parameters: `computation_interval_s` [10–3600s], `autonomy_stagnating_threshold` [0.5–20.0/day], `autonomy_window_s` [1h–7d], `autonomy_target_per_day` [0.1–10.0], `minimum_growth_rate` [-0.1–1.0]. All validated and clamped before application.
 
-## Event Emission Fixes (2026-03-07)
+## Event Emission Fixes
 
 - **`CONSTITUTIONAL_TOPOLOGY_INTACT`**: Fixed first-run skip - `_check_constitutional_topology()` now runs immediately on the first call (`_last_constitutional_check == 0.0`) without waiting 24h. Subsequent calls still obey `constitutional_check_interval_s = 86400.0`.
 - **`CARE_COVERAGE_GAP`**: Added fallback trigger - fires if `len(care_report.uncovered_welfare_domains) > 0` even when `nominal_I == 0` (MDL gap workaround). Previously dead when nominal_I was zero.
@@ -155,7 +155,7 @@ Telos is the system most directly responsible for whether EOS qualifies as a liv
 - **`TELOS_AUTONOMY_STAGNATING`**: Already correctly fires when `AUTONOMY_INSUFFICIENT` event rate exceeds 3/day. Runtime-dependent, no change needed.
 - **`ALIGNMENT_GAP_WARNING`**: Has 3 fire paths - primary (nominal_I threshold, broken by MDL gap), constitutional binder violation (working), Simula proposal violation (working).
 
-## Autonomy Gap Closure (2026-03-08)
+## Autonomy Gap Closure
 
 - **`TELOS_ASSESSMENT_SIGNAL` enriched** - now carries full self-model telemetry every cycle: all drive multipliers, coherence breakdown by incoherence type (counts + instances), hypothesis_stats (confirmed/refuted/measured_bias/data_quality), confabulation_stats (incidents/rate/data_quality), growth_summary (dI_dt, d2I_dt2, score, novel_fraction, stagnating, full frontier list), welfare_domain_config (static+learned keyword counts + learned list), drive_alignment_trend (last 10 DriveAlignmentVector samples). The LLM can now reason about the organism's full intelligence geometry each cycle without separate queries.
 - **`GROWTH_STAGNATION` directive made actionable** - `directive` field now contains a specific, human-readable instruction naming the exact frontier domain to explore (e.g., "Explore frontier domain 'digital-privacy' (lowest coverage). Secondary targets: trust, conflict."), not the generic "explore_frontier" string. Also injects `NOVA_GOAL_INJECTED` with specific domain targets.

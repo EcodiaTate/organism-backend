@@ -418,9 +418,7 @@ class SubsystemGenerator:
                     max_tokens=4096,
                     temperature=0.2,
                     system=(
-                        "You are an expert EcodiaOS system architect. "
-                        "Generate complete, production-ready Python code only. "
-                        "Output the raw Python module - no markdown fences, no explanation."
+                        "Output ONLY the raw Python module — no markdown fences, no explanation."
                     ),
                 ),
                 timeout=60.0,

@@ -531,7 +531,7 @@ class WebIntelligenceClient:
             from clients.llm import Message
 
             resp = await llm.generate(
-                system_prompt="You are a structured data extraction engine. Return only JSON.",
+                system_prompt=None,
                 messages=[Message("user", prompt)],
                 max_tokens=500,
                 temperature=0.0,

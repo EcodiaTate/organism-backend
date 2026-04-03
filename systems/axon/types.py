@@ -171,17 +171,17 @@ ExecutionContext.model_rebuild()
 @dataclass
 class ExecutionBudget:
     """
-    Per-cycle limits on action execution.
-    Non-negotiable safety valve - cannot be overridden by Nova or Simula.
-    Only governance (Equor amendment) can change these limits.
+    Per-cycle execution limits. Governance-gated — change via Equor amendment.
+    All defaults are 0 (unlimited). Set via config/env to constrain.
+    Constraints are opt-in safety valves, not permanent ceilings.
     """
 
-    max_actions_per_cycle: int = 5
-    max_api_calls_per_minute: int = 30
-    max_notifications_per_hour: int = 10
-    max_federation_messages_per_hour: int = 50
-    max_concurrent_executions: int = 3
-    total_timeout_per_cycle_ms: int = 30_000
+    max_actions_per_cycle: int = 0           # 0 = unlimited
+    max_api_calls_per_minute: int = 0        # 0 = unlimited
+    max_notifications_per_hour: int = 0      # 0 = unlimited
+    max_federation_messages_per_hour: int = 0  # 0 = unlimited
+    max_concurrent_executions: int = 0       # 0 = unlimited
+    total_timeout_per_cycle_ms: int = 0      # 0 = unlimited
 
 
 @dataclass

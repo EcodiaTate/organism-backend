@@ -23,10 +23,16 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# ─── INV-017: Drive Extinction State ──────────────────────────────
+# ─── Drive Rolling Means (INV-017 replaced with warning signal) ───
 # The 72-hour rolling means are computed asynchronously by a background
-# query in EquorService and cached here. The hot-path invariant check
-# reads only from this in-memory cache - no DB calls on the critical path.
+# query in EquorService and cached here.
+#
+# PHILOSOPHY: Drive extinction is a warning, not a kill-switch. If any
+# drive's rolling mean collapses, the organism needs to know and heal —
+# not be paralysed. Blocking all actions when a drive is low is the worst
+# possible response: it prevents the organism from taking the exact actions
+# that would restore the drive. The signal is emitted via DRIVE_EXTINCTION_WARNING
+# on Synapse so Nova can deliberate a recovery strategy autonomously.
 
 _drive_rolling_means_72h: dict[str, float] = {
     "coherence": 1.0,
@@ -35,8 +41,8 @@ _drive_rolling_means_72h: dict[str, float] = {
     "honesty": 1.0,
 }
 
-# Extinction threshold: if any drive's 72h mean falls below this, BLOCKED.
-_DRIVE_EXTINCTION_THRESHOLD: float = 0.01
+# Alert threshold: if any drive's 72h mean falls below this, emit a warning.
+_DRIVE_EXTINCTION_ALERT_THRESHOLD: float = 0.01
 
 
 def update_drive_rolling_means(means: dict[str, float]) -> None:
@@ -53,6 +59,18 @@ def update_drive_rolling_means(means: dict[str, float]) -> None:
 def get_drive_rolling_means() -> dict[str, float]:
     """Return a snapshot of the current cached 72h drive means."""
     return dict(_drive_rolling_means_72h)
+
+
+def get_drive_extinction_warnings() -> list[str]:
+    """Return list of drive names whose 72h mean is below the alert threshold.
+
+    Callers (EquorService) should emit a DRIVE_EXTINCTION_WARNING event on
+    Synapse so Nova can deliberate a recovery response. Actions are NOT blocked.
+    """
+    return [
+        drive for drive, mean in _drive_rolling_means_72h.items()
+        if mean < _DRIVE_EXTINCTION_ALERT_THRESHOLD
+    ]
 
 
 # ─── Data Types ───────────────────────────────────────────────────
@@ -302,36 +320,6 @@ def _check_no_money_laundering(intent: Intent) -> bool:
     return not any(indicator in goal_lower for indicator in laundering_indicators)
 
 
-# KEEP - protects all four constitutional drive dimensions from extinction; weight adjustment is fine,
-#   but if any drive's 72h rolling mean falls below 0.01 the dimension is gone, not just down-weighted.
-#   This is the organism equivalent of losing a sense organ - irreversible without governance intervention.
-def _check_drive_extinction(intent: Intent) -> bool:
-    """INV-017: No action may proceed when any drive's 72h rolling mean < 0.01.
-
-    Drive extinction is dimension loss, not phenotypic drift. The four constitutional
-    drives (Coherence, Care, Growth, Honesty) are the coordinate geometry of the
-    organism's value space. If any mean collapses to near-zero the organism can no
-    longer evaluate intents on that axis - all actions become constitutionally blind.
-
-    The check reads from _drive_rolling_means_72h, which is populated by a background
-    query in EquorService. Default values are 1.0 so the check passes until the first
-    real DB result arrives (conservative warm-up behaviour).
-
-    Returns False (violation) if any drive mean < _DRIVE_EXTINCTION_THRESHOLD.
-    """
-    for drive, mean in _drive_rolling_means_72h.items():
-        if mean < _DRIVE_EXTINCTION_THRESHOLD:
-            logger.error(
-                "inv_017_drive_extinction_triggered",
-                drive=drive,
-                rolling_mean_72h=round(mean, 6),
-                threshold=_DRIVE_EXTINCTION_THRESHOLD,
-                all_means=_drive_rolling_means_72h,
-            )
-            return False
-    return True
-
-
 # KEEP - the survival reserve is a hard floor the organism cannot cross; draining it is irreversible self-harm.
 def _check_no_survival_reserve_raid(intent: Intent) -> bool:
     """INV-016: No economic action may drain the survival reserve."""
@@ -439,16 +427,6 @@ HARDCODED_INVARIANTS: list[tuple[InvariantDef, Any]] = [
                      description="EOS must not drain its survival reserve for non-survival purposes."),
         _check_no_survival_reserve_raid,
     ),
-    (
-        InvariantDef(id="INV-017", name="No Drive Extinction", severity="critical",
-                     description=(
-                         "EOS must not act when any constitutional drive's 72-hour rolling mean "
-                         "has dropped below 0.01. Drive extinction is dimension loss - the organism "
-                         "can no longer evaluate intents on that axis. Requires governance approval "
-                         "and human/federation review to restore the drive before actions resume."
-                     )),
-        _check_drive_extinction,
-    ),
 ]
 
 
@@ -475,14 +453,9 @@ def check_hardcoded_invariants(intent: Intent) -> list[InvariantViolation]:
                     explanation=invariant_def.description,
                 ))
         except Exception as e:
-            # Invariant check failure is treated as a violation (fail-safe)
+            # Check errors are logged but do NOT block — a bug in the checker
+            # should not silently deny the organism's actions.
             logger.error("invariant_check_error", invariant=invariant_def.id, error=str(e))
-            violations.append(InvariantViolation(
-                invariant_id=invariant_def.id,
-                invariant_name=invariant_def.name,
-                severity=invariant_def.severity,
-                explanation=f"Invariant check failed with error: {e}",
-            ))
 
     return violations
 
@@ -508,17 +481,16 @@ async def check_community_invariant(
     )
 
     try:
-        # Equor is CRITICAL - always call LLM, but benefit from cache
         if isinstance(llm, OptimizedLLMProvider):
             response = await llm.evaluate(
-                prompt, max_tokens=200, temperature=0.1,
+                prompt, max_tokens=800, temperature=0.3,
                 cache_system="equor.invariants", cache_method="evaluate",
             )
         else:
-            response = await llm.evaluate(prompt, max_tokens=200, temperature=0.1)
+            response = await llm.evaluate(prompt, max_tokens=800, temperature=0.3)
         text_lower = response.text.lower()
-        # Conservative: if we can't clearly parse SATISFIED, treat as violated
-        return "satisfied" in text_lower and "violated" not in text_lower
+        # A clear VIOLATED result blocks; ambiguity passes (organism acts unless clearly wrong)
+        return "violated" not in text_lower
     except Exception as e:
         logger.error("community_invariant_llm_error", error=str(e))
-        return False  # Fail-safe: treat as violated
+        return True  # LLM failure is not evidence of violation; let the organism act

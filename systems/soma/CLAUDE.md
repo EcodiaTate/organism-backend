@@ -104,9 +104,9 @@ Three research programs fused into one architectural primitive:
 | `CONSTITUTIONAL_DRIFT_DETECTED` | Accumulates drift into `_constitutional_drift_signal`; suppresses INTEGRITY dimension ≤40% (PHILOSOPHICAL) |
 | `SOMATIC_MODULATION_SIGNAL` (source=`"equor_drift"`) | `_on_equor_drift_modulation()` (IMPLEMENTED 2026-03-07): source-gated; raises `_constitutional_drift_signal` by `integrity_error × 0.5` capped at 1.0 → feeds INTEGRITY suppression pathway without double-processing other SOMATIC_MODULATION_SIGNAL sources |
 | External stress injection | `inject_external_stress()` / `inject_exteroceptive_pressure()` from ExteroceptionService |
-| `METABOLIC_GATE_CHECK` | `_on_metabolic_gate_check()` (2026-03-08): ingests gate check into signal buffer so manifold models resource allocation friction as somatic dimension |
-| `METABOLIC_GATE_RESPONSE` | `_on_metabolic_gate_response()` (2026-03-08): if gate denied, emits `ALLOSTATIC_SIGNAL` with `signal_type="economic_constraint"` and `urgency=0.6` so drive regulation systems down-regulate ambition |
-| `VOXIS_EXPRESSION_DISTRESS` | `_on_voxis_expression_distress()` (2026-03-08): translates Voxis communicative suppression into TEMPORAL_PRESSURE allostatic stress. Scales `distress_level` × 0.4 → raises `_external_stress` floor. Closes invisible-telemetry gap: distress was emitted but produced no allostatic response via `subscribe_all` alone. |
+| `METABOLIC_GATE_CHECK` | `_on_metabolic_gate_check()`: ingests gate check into signal buffer so manifold models resource allocation friction as somatic dimension |
+| `METABOLIC_GATE_RESPONSE` | `_on_metabolic_gate_response()`: if gate denied, emits `ALLOSTATIC_SIGNAL` with `signal_type="economic_constraint"` and `urgency=0.6` so drive regulation systems down-regulate ambition |
+| `VOXIS_EXPRESSION_DISTRESS` | `_on_voxis_expression_distress()`: translates Voxis communicative suppression into TEMPORAL_PRESSURE allostatic stress. Scales `distress_level` × 0.4 → raises `_external_stress` floor. Closes invisible-telemetry gap: distress was emitted but produced no allostatic response via `subscribe_all` alone. |
 
 ---
 
@@ -162,7 +162,7 @@ Three research programs fused into one architectural primitive:
 1. **TRANSCENDENT stage** - no criteria or behaviors specified (Spec 16 Gap 6). Deliberately left open - represents an emergent, post-GENERATIVE state whose properties cannot be pre-specified.
 2. **Somatic marker retrieval integration** - `somatic_rerank()` exists on `SomaService` but its wiring into Memory's retrieval pipeline needs verification - Memory must call `soma.somatic_rerank()` after its vector+BM25 candidate pass.
 
-### Resolved (2026-03-07)
+### Resolved
 
 - **Emotion Evo wiring** - `SomaService.set_event_bus()` now subscribes to `EVO_HYPOTHESIS_CONFIRMED` and `EVO_HYPOTHESIS_REFUTED`. Handlers call `EmotionDetector.on_hypothesis_confirmed()/on_hypothesis_refuted()` which update or revert emotion region patterns.
 - **Genome export for Mitosis** - `SomaService.get_genome_segment()` and `seed_from_genome()` added. They delegate to `SomaGenomeExtractor` (`genome.py`). Extractor now reads setpoints directly from the live controller (`_controller.setpoints`) and writes them back via `InteroceptiveDimension` enum keys - no more stale config-attribute names.
@@ -175,7 +175,7 @@ Three research programs fused into one architectural primitive:
 - **GAP 6: Mitosis population inheritance** - `export_somatic_genome()` delegates to `SomaGenomeExtractor.export_somatic_genome()` → version=2 `OrganGenomeSegment` with setpoints + phase-space config + allostatic baselines + dynamics matrix. `seed_child_from_genome(segment)` applies ±5% noise on setpoints and ±2% noise on non-zero dynamics weights. Zero weights stay zero (no spurious coupling). Children always start at REFLEXIVE stage regardless of parent's stage.
 - **PHILOSOPHICAL: INTEGRITY ↔ constitutional drift** - `_on_constitutional_drift()` handler accumulates Equor's `CONSTITUTIONAL_DRIFT_DETECTED` events into `_constitutional_drift_signal` (weighted by severity). Each cycle, drift decays 2% (`_drift_decay_per_cycle=0.98`, ~30s half-life) and is applied as downward suppression on the INTEGRITY dimension (`_drift_integrity_weight=0.4` max suppression). The organism feels its own constitutional misalignment as an interoceptive signal.
 
-### Resolved (2026-03-08) - Autonomy Audit
+### Resolved - Autonomy Audit
 
 - **Learnable autonomic thresholds** - All 10 hardcoded threshold constants in `autonomic_protocol.py` replaced with instance-level `self._thresholds` dict. 4 cooldown durations similarly parameterized into `self._cooldown_durations`. Full API: `adjust_threshold()`, `adjust_cooldown()`, `get_thresholds()`, `get_cooldowns_config()`, `export_learnable_params()`, `import_learnable_params()`. Evo ADJUST_BUDGET compatible; genome-heritable via Mitosis.
 - **Learnable metabolic parameters** - `metabolic_regulator.py` tier thresholds ($1/$10/$50) and shift magnitudes (arousal lift, valence suppression, curiosity suppression, temporal lift) are now instance-level dicts with API: `adjust_tier()`, `adjust_shift()`, `get_metabolic_params()`, `export_learnable_params()`, `import_learnable_params()`.
@@ -184,7 +184,7 @@ Three research programs fused into one architectural primitive:
 - **Self-introspection** - `SomaService.introspect_autonomy()` returns 10 categories: autonomic_thresholds, autonomic_cooldowns, dispatch_effectiveness, metabolic_params, feedback_loops, recent_autonomic_actions, recent_loop_dispatches, cycle_performance, current_emotions, development + phase_space. Exposed in `health()` response under `result["autonomy"]`.
 - **Wiring** - `core/wiring.py` updated: `soma.set_fovea(fovea)`, `soma.set_simula(simula)`, `soma.set_axon(axon)`, `soma.set_logos(logos)` + dependency declarations.
 
-### Resolved (2026-03-08) - Deep Autonomy Audit
+### Resolved - Deep Autonomy Audit
 
 - **CRITICAL: `wiring.py` dead-code bug** - `wire_intelligence_loops()` line 374 was a malformed single-line comment containing all four `soma.set_fovea/simula/axon/logos()` calls. They were parsed as a comment and never executed. Fixed by expanding to multi-line proper code. All four cross-system telemetry enrichments (ENERGY←Axon, CONFIDENCE←Fovea/Evo, COHERENCE←Logos, INTEGRITY←Simula) were silently disabled since the previous audit session wrote them.
 - **Duplicate `set_benchmarks` method** - `service.py` had two `set_benchmarks()` definitions (lines 740 and 750). Python's method resolution silently used the second one, which omitted the `self._interoceptor.set_benchmarks(benchmarks)` call. The second duplicate was removed; the full implementation (which wires benchmarks into both `_benchmarks_ref` and the interoceptor) is preserved.

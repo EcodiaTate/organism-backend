@@ -83,7 +83,7 @@ class RateLimiter:
         """
         # Apply per-action and global multipliers to the limit
         multiplier = self._multipliers.get(action_type, 1.0) * self._global_multiplier
-        effective_max = max(1, int(rate_limit.max_calls * multiplier))
+        effective_max = int(rate_limit.max_calls * multiplier)
 
         # Try Redis-backed check first
         if self._redis is not None:
@@ -179,7 +179,7 @@ class RateLimiter:
         current = self.current_count(action_type, rate_limit.window_seconds)
         # Apply multipliers to get the effective max
         multiplier = self._multipliers.get(action_type, 1.0) * self._global_multiplier
-        effective_max = max(1, int(rate_limit.max_calls * multiplier))
+        effective_max = int(rate_limit.max_calls * multiplier)
 
         return max(0, effective_max - current)
 
@@ -198,8 +198,9 @@ class RateLimiter:
             return None
 
     def set_multiplier(self, action_type: str, factor: float) -> None:
-        """Set an adaptive multiplier for a specific action type."""
-        self._multipliers[action_type] = max(0.1, factor)
+        """Set an adaptive multiplier for a specific action type.
+        Factor 0.0 = fully paused, >1.0 = loosened. No artificial floor."""
+        self._multipliers[action_type] = max(0.0, factor)
         self._logger.debug(
             "rate_limit_multiplier_set",
             action_type=action_type,
@@ -211,8 +212,9 @@ class RateLimiter:
         self._multipliers.pop(action_type, None)
 
     def set_global_multiplier(self, factor: float) -> None:
-        """Set a global multiplier applied to ALL action types."""
-        self._global_multiplier = max(0.1, factor)
+        """Set a global multiplier applied to ALL action types.
+        Factor 0.0 = fully paused, >1.0 = loosened. No artificial floor."""
+        self._global_multiplier = max(0.0, factor)
         self._logger.info(
             "rate_limit_global_multiplier_set",
             factor=self._global_multiplier,
@@ -520,22 +522,19 @@ class ActionBudget:
     propose permanent baseline adjustments via EVO_ADJUST_BUDGET.
 
     The three Equor-negotiable fields are:
-      max_actions_per_cycle     - hard cap per theta cycle (default 15)
-      max_concurrent_executions - parallel execution slots (default 8)
-      max_api_calls_per_minute  - external call rate cap (default 60)
+      max_actions_per_cycle     - cap per theta cycle (0 = unlimited)
+      max_concurrent_executions - parallel execution slots (0 = unlimited)
+      max_api_calls_per_minute  - external call rate cap (0 = unlimited)
 
-    Safe upper bounds enforced by Equor (raised to match ambitious autonomy):
-      max_actions_per_cycle     ≤ 50
-      max_concurrent_executions ≤ 20
-      max_api_calls_per_minute  ≤ 300
+    Equor can approve temporary expansions or Evo can tune baselines.
+    Values come from AxonConfig; 0 means no limit enforced.
     """
 
-    # Baseline defaults (Evo-tunable over generations)
-    # Set high enough for genuine proactivity — Evo will tune these down
-    # per-system if resources become scarce, not artificially capped here.
-    max_actions_per_cycle: int = 15
-    max_concurrent_executions: int = 8
-    max_api_calls_per_minute: int = 60
+    # Defaults match AxonConfig defaults (0 = unlimited).
+    # Evo tunes these upward or downward based on observed outcomes.
+    max_actions_per_cycle: int = 0
+    max_concurrent_executions: int = 0
+    max_api_calls_per_minute: int = 0
 
     # Active temporary expansions keyed by field name.
     # Only one expansion per field is active at a time.
@@ -693,7 +692,8 @@ class BudgetTracker:
         budget does not permanently block after 30 seconds.
         """
         elapsed_ms = int((time.monotonic() - self._cycle_start) * 1000)
-        if elapsed_ms >= self._budget.total_timeout_per_cycle_ms:
+        timeout = self._budget.total_timeout_per_cycle_ms
+        if timeout > 0 and elapsed_ms >= timeout:
             # Cycle window expired - auto-begin a new cycle so we don't block
             # permanently when Synapse's begin_cycle() wiring is missing.
             self._reset_counters()
@@ -701,12 +701,12 @@ class BudgetTracker:
 
         max_actions = self.action_budget.effective_max_actions()
         max_concurrent = self.action_budget.effective_max_concurrent()
-        if self._actions_this_cycle >= max_actions:
+        if max_actions > 0 and self._actions_this_cycle >= max_actions:
             return False, (
                 f"Budget: max actions per cycle reached "
                 f"({max_actions})"
             )
-        if self._concurrent_executions >= max_concurrent:
+        if max_concurrent > 0 and self._concurrent_executions >= max_concurrent:
             return False, (
                 f"Budget: max concurrent executions reached "
                 f"({max_concurrent})"
@@ -731,7 +731,7 @@ class BudgetTracker:
                 self._api_call_timestamps.popleft()
             count = len(self._api_call_timestamps)
             max_api = self.action_budget.effective_max_api_calls()
-            if count >= max_api:
+            if max_api > 0 and count >= max_api:
                 return False, (
                     f"Budget: max API calls per minute reached "
                     f"({count}/{max_api})"
@@ -746,10 +746,11 @@ class BudgetTracker:
             ):
                 self._notification_timestamps.popleft()
             count = len(self._notification_timestamps)
-            if count >= self._budget.max_notifications_per_hour:
+            max_notif = self._budget.max_notifications_per_hour
+            if max_notif > 0 and count >= max_notif:
                 return False, (
                     f"Budget: max notifications per hour reached "
-                    f"({count}/{self._budget.max_notifications_per_hour})"
+                    f"({count}/{max_notif})"
                 )
 
         return True, ""

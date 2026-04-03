@@ -52,14 +52,11 @@ _POC_TIMEOUT_S = 60
 # ── Concurrency encoding system prompt ───────────────────────────────────────
 
 _CONCURRENCY_ENCODING_SYSTEM_PROMPT = """\
-You are a Formal Verification Engineer specialising in concurrent systems.
+Z3 concurrency encoding task: model two concurrent threads and prove invariant violation.
 
-I will give you source code for a transactional function (e.g. a withdrawal,
-purchase, stock-decrement, or any read-modify-write operation).
+Given source code for a transactional function (e.g. a withdrawal, purchase, stock-decrement, or any read-modify-write operation):
 
-Your task: write a Z3 Python expression that models TWO concurrent threads
-(Thread 1 and Thread 2) executing this function simultaneously and proves that
-both can succeed while violating a critical invariant.
+Write a Z3 Python expression that models TWO concurrent threads (Thread 1 and Thread 2) executing this function simultaneously and proves that both can succeed while violating a critical invariant.
 
 ## Encoding Rules
 
@@ -112,8 +109,7 @@ Respond with ONLY a JSON object - no markdown, no extra text:
 # ── PoC script generation prompt ─────────────────────────────────────────────
 
 _RACE_POC_SYSTEM_PROMPT = """\
-You are a security verification engineer generating async race-condition
-reproduction scripts from Z3 concurrency counterexamples.
+Generate an async race-condition reproduction script from a Z3 concurrency counterexample.
 
 Given:
 - The Z3 counterexample (concrete variable assignments)

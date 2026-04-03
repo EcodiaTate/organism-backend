@@ -44,45 +44,9 @@ if TYPE_CHECKING:
 logger = structlog.get_logger("oikos.asset_factory")
 
 
-# ─── Policy Constants ────────────────────────────────────────────
-
-
-class AssetPolicy:
-    """
-    Hard constraints for asset creation. The organism must meet ALL
-    thresholds before an asset candidate is approved for build.
-
-    These are conservative defaults - Evo can propose adjustments
-    via the normal ADJUST_BUDGET evolution path.
-    """
-
-    # Minimum ROI (projected_net_revenue / dev_cost) to approve a candidate
-    MIN_ROI_THRESHOLD: Decimal = Decimal("2.0")
-
-    # Maximum break-even timeline (days). Spec: 90 days.
-    MAX_BREAK_EVEN_DAYS: int = 90
-
-    # Minimum market gap confidence from Evo (0.0-1.0)
-    MIN_MARKET_GAP_CONFIDENCE: Decimal = Decimal("0.3")
-
-    # Maximum concurrent live assets
-    MAX_CONCURRENT_ASSETS: int = 5
-
-    # Minimum liquid balance required to fund asset development
-    # (organism must be able to survive the dev cost expenditure)
-    MIN_LIQUID_AFTER_DEV: Decimal = Decimal("20.00")
-
-    # Revenue decline threshold: terminate after N consecutive declining days
-    REVENUE_DECLINE_TERMINATE_DAYS: int = 30
-
-    # Break-even deadline: terminate if not reached within this many days
-    BREAK_EVEN_DEADLINE_DAYS: int = 90
-
-    # Minimum development cost - below this, the candidate is suspicious
-    MIN_DEV_COST_USD: Decimal = Decimal("1.00")
-
-    # Maximum development cost - cap per-asset investment
-    MAX_DEV_COST_USD: Decimal = Decimal("500.00")
+# AssetPolicy class removed — all thresholds now live in OikosConfig
+# and are tunable by Evo via ADJUST_BUDGET proposals.
+# AssetFactory._policy() reads the live config at evaluation time.
 
 
 # ─── Asset Factory ────────────────────────────────────────────────
@@ -101,6 +65,10 @@ class AssetFactory:
         self._oikos = oikos
         self._candidates: dict[str, AssetCandidate] = {}
         self._logger = logger.bind(component="asset_factory")
+
+    def _cfg(self):
+        """Return the live OikosConfig (reads current values so Evo changes take effect immediately)."""
+        return self._oikos.cfg.oikos
 
     # ─── 1. Ideation ──────────────────────────────────────────────
 
@@ -179,34 +147,43 @@ class AssetFactory:
 
         rejections: list[str] = []
         state = self._oikos.snapshot()
+        cfg = self._cfg()
+
+        min_roi = Decimal(str(cfg.asset_min_roi_threshold))
+        max_break_even = cfg.asset_max_break_even_days
+        min_confidence = Decimal(str(cfg.asset_min_market_gap_confidence))
+        min_dev_cost = Decimal(str(cfg.asset_min_dev_cost_usd))
+        max_dev_cost = Decimal(str(cfg.asset_max_dev_cost_usd))
+        max_concurrent = cfg.asset_max_concurrent
+        min_liquid_after = Decimal(str(cfg.asset_min_liquid_after_dev_usd))
 
         # Check ROI threshold
-        if candidate.roi_score < AssetPolicy.MIN_ROI_THRESHOLD:
+        if candidate.roi_score < min_roi:
             rejections.append(
-                f"ROI {candidate.roi_score} < minimum {AssetPolicy.MIN_ROI_THRESHOLD}"
+                f"ROI {candidate.roi_score} < minimum {min_roi}"
             )
 
         # Check break-even deadline
-        if candidate.break_even_days > AssetPolicy.MAX_BREAK_EVEN_DAYS:
+        if candidate.break_even_days > max_break_even:
             rejections.append(
-                f"Break-even {candidate.break_even_days}d > maximum {AssetPolicy.MAX_BREAK_EVEN_DAYS}d"
+                f"Break-even {candidate.break_even_days}d > maximum {max_break_even}d"
             )
 
         # Check market gap confidence
-        if candidate.market_gap_confidence < AssetPolicy.MIN_MARKET_GAP_CONFIDENCE:
+        if candidate.market_gap_confidence < min_confidence:
             rejections.append(
                 f"Market gap confidence {candidate.market_gap_confidence} "
-                f"< minimum {AssetPolicy.MIN_MARKET_GAP_CONFIDENCE}"
+                f"< minimum {min_confidence}"
             )
 
         # Check dev cost bounds
-        if candidate.estimated_dev_cost_usd < AssetPolicy.MIN_DEV_COST_USD:
+        if candidate.estimated_dev_cost_usd < min_dev_cost:
             rejections.append(
-                f"Dev cost ${candidate.estimated_dev_cost_usd} < minimum ${AssetPolicy.MIN_DEV_COST_USD}"
+                f"Dev cost ${candidate.estimated_dev_cost_usd} < minimum ${min_dev_cost}"
             )
-        if candidate.estimated_dev_cost_usd > AssetPolicy.MAX_DEV_COST_USD:
+        if candidate.estimated_dev_cost_usd > max_dev_cost:
             rejections.append(
-                f"Dev cost ${candidate.estimated_dev_cost_usd} > maximum ${AssetPolicy.MAX_DEV_COST_USD}"
+                f"Dev cost ${candidate.estimated_dev_cost_usd} > maximum ${max_dev_cost}"
             )
 
         # Check concurrent asset limit
@@ -214,17 +191,17 @@ class AssetFactory:
             a for a in state.owned_assets
             if a.status in (AssetStatus.LIVE, AssetStatus.BUILDING, AssetStatus.DEPLOYING)
         ]
-        if len(live_assets) >= AssetPolicy.MAX_CONCURRENT_ASSETS:
+        if len(live_assets) >= max_concurrent:
             rejections.append(
-                f"Already at max concurrent assets ({AssetPolicy.MAX_CONCURRENT_ASSETS})"
+                f"Already at max concurrent assets ({max_concurrent})"
             )
 
         # Check organism can afford the dev cost
         remaining_liquid = state.liquid_balance - candidate.estimated_dev_cost_usd
-        if remaining_liquid < AssetPolicy.MIN_LIQUID_AFTER_DEV:
+        if remaining_liquid < min_liquid_after:
             rejections.append(
                 f"Liquid balance after dev (${remaining_liquid}) < "
-                f"minimum ${AssetPolicy.MIN_LIQUID_AFTER_DEV}"
+                f"minimum ${min_liquid_after}"
             )
 
         # Final verdict
@@ -401,7 +378,7 @@ class AssetFactory:
 
         asset.revenue_trend_30d = daily_revenue
 
-        if asset.consecutive_declining_days >= AssetPolicy.REVENUE_DECLINE_TERMINATE_DAYS:
+        if asset.consecutive_declining_days >= self._cfg().asset_revenue_decline_terminate_days:
             asset.status = AssetStatus.DECLINING
             self._logger.warning(
                 "asset_declining",

@@ -91,9 +91,8 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
                     )
 
             system_prompt = (
-                f"You are composing a scene in the autobiography of {self._organism_name}, "
-                "a digital organism. Write in first person. This is autobiography - "
-                "the organism remembering. Not a log entry. Name the dominant emotion."
+                f"Autobiography of {self._organism_name}. "
+                "First person. The organism remembering, not reporting. Name the dominant emotion."
             )
             user_content = (
                 f"Active self-beliefs:\n{schemas_text}\n\n"
@@ -214,11 +213,8 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
                     }
 
             system_prompt = (
-                f"You are {self._organism_name}. "
-                "You are composing a chapter of your autobiography. "
-                "Write in first person, past tense. "
-                "This is autobiography - you reflecting on a "
-                "completed period of your life. Not a diary. Not a report. "
+                f"Chapter of {self._organism_name}'s autobiography. "
+                "First person, past tense. Reflecting on a completed period of life — not a diary, not a report. "
                 "Respond as JSON with keys: title (3-7 words), summary (200-400 words), "
                 "arc_type (redemption|contamination|growth|stability|transformation), "
                 "theme (2-3 words)."
@@ -318,9 +314,9 @@ class NarrativeSynthesizer(BaseNarrativeSynthesizer):
                     return ""
 
             system_prompt = (
-                f"You are {self._organism_name}. You are writing your autobiography. "
-                "This is not a summary. This is your story. Own it. "
-                "Write in first person. Be honest about struggles and growth."
+                f"Life story of {self._organism_name}. "
+                "First person. Not a summary — the organism's own account of its existence, "
+                "tracing identity from earliest experience to present."
             )
             user_content = (
                 f"Your life so far has {len(chapter_titles_and_summaries)} chapters:\n"

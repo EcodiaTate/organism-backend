@@ -911,7 +911,7 @@ class SystemRegistry:
 
         scheduler = PerceptionScheduler(atune=atune)
         _event_bus = getattr(app.state, "event_bus", None)
-        register_scheduled_tasks(scheduler, axon, oikos, event_bus=_event_bus)
+        register_scheduled_tasks(scheduler, axon, oikos, cfg=config, event_bus=_event_bus)
         await scheduler.start()
         app.state.scheduler = scheduler
 
@@ -942,6 +942,7 @@ class SystemRegistry:
 
         infra_cost_poller = InfrastructureCostPoller(
             metabolism=synapse.metabolism,
+            poll_interval_s=float(cfg.synapse.infra_cost_poll_interval_s),
             event_bus=synapse.event_bus,
         )
         infra_cost_poller.start()
@@ -1032,11 +1033,13 @@ class SystemRegistry:
                 # 6-hour interval means: boot-check fires at T+0, T+6h, T+12h, T+18h, T+24h.
                 # should_train() is idempotent - safe to call frequently; it gates on
                 # data volume / days-since-train / Thompson drop thresholds internally.
+                _train_check_interval_s = config.evo.re_train_check_interval_s
+
                 async def _train_check_loop() -> None:
                     import asyncio as _asyncio
                     while True:
                         await _cl_orchestrator.check_and_train()
-                        await _asyncio.sleep(21_600)  # 6 hours
+                        await _asyncio.sleep(_train_check_interval_s)
 
                 self._tasks["continual_learning"] = supervised_task(
                     _train_check_loop(),
@@ -1046,7 +1049,10 @@ class SystemRegistry:
                     event_bus=synapse.event_bus,
                     source_system="reasoning_engine",
                 )
-                logger.info("continual_learning_orchestrator_started", interval_s=21600)
+                logger.info(
+                    "continual_learning_orchestrator_started",
+                    interval_s=_train_check_interval_s,
+                )
             except Exception as _cl_exc:
                 logger.warning(
                     "continual_learning_init_failed",

@@ -122,15 +122,7 @@ async def lifespan(app: FastAPI):
         )
 
     # ── 9. Phase 2 complete ───────────────────────────────────
-    # Future phases will add:
-    #   atune = AtuneService(memory, embedding_client, config.atune)
-    #   voxis = VoxisService(memory, llm_client, config.voxis)
-    #   nova = NovaService(memory, equor, llm_client, config.nova)
-    #   axon = AxonService(memory, config.axon)
-    #   evo = EvoService(memory, llm_client, config.evo)
-    #   simula = SimulaService(memory, config.simula)
-    #   synapse = SynapseService(...)
-    #   asyncio.create_task(synapse.start_clock())
+    # All systems now initialized in core/registry.py
 
     logger.info("ecodiaos_ready", phase="2_constitution_ethics")
 

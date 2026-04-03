@@ -41,23 +41,18 @@ logger = structlog.get_logger().bind(system="simula.synthesis.hysynth")
 
 # ── System prompt for grammar weight assignment ─────────────────────────────
 
-GRAMMAR_WEIGHT_PROMPT = """You are an expert Python code architect for EcodiaOS.
-Given a set of CFG production rules extracted from exemplar code, assign a
-probability weight (0.0-1.0) to each rule indicating how likely it is to
-appear in the target synthesis output.
+GRAMMAR_WEIGHT_PROMPT = """Given a set of CFG production rules extracted from exemplar code, assign a probability weight (0.0-1.0) to each rule indicating how likely it is to appear in the target synthesis output.
 
-## Input
-You will receive:
+Input:
 1. The change specification (what code to synthesise)
 2. A list of CFG rules extracted from exemplar code
 
-## Output
 Respond with a JSON array of objects, one per rule:
 [{"rule_index": 0, "weight": 0.8}, {"rule_index": 1, "weight": 0.3}, ...]
 
 Higher weight = more likely to appear in the target.
-Only adjust weights - do not add or remove rules.
-Be precise: weights directly affect beam search priority."""
+Only adjust weights — do not add or remove rules.
+Weights directly affect beam search priority."""
 
 
 class HySynthEngine:

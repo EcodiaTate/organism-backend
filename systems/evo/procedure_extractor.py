@@ -44,10 +44,8 @@ _MIN_OCCURRENCES: int = 3
 _MAX_EXAMPLES: int = 10
 
 _SYSTEM_PROMPT = (
-    "You are the procedural memory system of a living digital organism. "
-    "Your task is to extract generalised, reusable procedures from concrete examples. "
-    "Procedures should capture the essential pattern, not the specific details. "
-    "Always respond with valid JSON."
+    "Extract generalised, reusable procedures from concrete examples. "
+    "Capture the essential pattern, not the specific details. Respond as JSON."
 )
 
 

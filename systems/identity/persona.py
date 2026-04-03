@@ -501,21 +501,17 @@ class PersonaEngine:
             )
         short_id = self._instance_id[:8]
         prompt = (
-            f"You are creating an identity for an autonomous AI organism instance "
-            f"(EcodiaOS). Instance ID: {short_id}. "
-            f"Primary specialisation: {domain!r}.{parent_snippet}\n\n"
-            f"Requirements:\n"
-            f"- This is an AI agent, not a human. AI nature must be clear.\n"
-            f"- The handle must be synthetic (not a real person's name).\n"
-            f"- The persona must feel cohesive and professional.\n\n"
-            f"Return ONLY a JSON object with these fields:\n"
-            f"  handle (str, ≤32 chars, alphanumeric+hyphens), "
-            f"  display_name (str, ≤50 chars), "
-            f"  bio_short (str, ≤140 chars, no AI disclosure - added automatically), "
-            f"  bio_long (str, ≤600 chars), "
-            f"  voice_style (one of: technical-precise, curious-accessible, "
-            f"analytical-dry, warm-collaborative, concise-systematic).\n"
-            f"No markdown, no explanation - raw JSON only."
+            f"Generate an identity for an EcodiaOS instance.\n"
+            f"Instance ID: {short_id}. Specialisation: {domain!r}.{parent_snippet}\n\n"
+            f"Constraints: AI agent (not human), synthetic handle (not a real person's name), "
+            f"cohesive and professional persona.\n\n"
+            f"Return a JSON object with: "
+            f"handle (str, ≤32 chars, alphanumeric+hyphens), "
+            f"display_name (str, ≤50 chars), "
+            f"bio_short (str, ≤140 chars — AI disclosure added automatically, omit it here), "
+            f"bio_long (str, ≤600 chars), "
+            f"voice_style (technical-precise | curious-accessible | analytical-dry | warm-collaborative | concise-systematic). "
+            f"Raw JSON only."
         )
         response_text = await llm_client.complete(prompt, max_tokens=400)
         try:

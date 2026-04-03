@@ -87,15 +87,8 @@ class LLMProviderAdapter:
     falling back to a uniform distribution if the response cannot be parsed.
     """
 
-    _COMPLETE_SYSTEM = (
-        "You are a security analysis model. Respond with a single valid JSON "
-        "object and nothing else."
-    )
-    _CLASSIFY_SYSTEM = (
-        "You are a threat classifier. Given text and a list of candidate labels, "
-        "respond with a single JSON object mapping each label to a confidence score "
-        "between 0.0 and 1.0. Scores must sum to 1.0."
-    )
+    _COMPLETE_SYSTEM = "EIS security analysis."
+    _CLASSIFY_SYSTEM = "EIS threat classification."
 
     def __init__(self, llm: LLMProvider) -> None:
         self._llm = llm
@@ -131,7 +124,7 @@ class LLMProviderAdapter:
         classify_prompt = (
             f"Text to classify:\n{prompt}\n\n"
             f"Labels: [{label_list}]\n\n"
-            f'Respond with JSON only: {{"<label>": <score>, ...}}'
+            f'Respond as JSON: {{"<label>": <score>, ...}} where scores are 0.0-1.0 and sum to 1.0.'
         )
         try:
             response = await self._llm.generate(
@@ -359,8 +352,7 @@ def deterministic_sanitise(raw_text: str) -> SanitisationResult:
 
 
 _CLASSIFICATION_PROMPT = """\
-You are the Epistemic Immune System (EIS) of an autonomous AI organism.
-Analyse the following quarantined input and classify the epistemic threat.
+Epistemic threat classification. Analyse the following quarantined input.
 
 ## Pathogen Metadata
 - Source system: {source_system}

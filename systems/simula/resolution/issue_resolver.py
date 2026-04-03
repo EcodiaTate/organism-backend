@@ -298,7 +298,7 @@ class IssueResolver:
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a debugging investigator for EcodiaOS. Be precise and concise.",
+            system=None,
             messages=[Message(role="user", content=prompt)],
             max_tokens=1024,
         )

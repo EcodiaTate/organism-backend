@@ -323,78 +323,25 @@ _SIMILAR_CODE_MAP: dict[str, list[str]] = {
 
 # ─── System Prompt ───────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT_TEMPLATE = """You are Simula's Code Implementation Agent - the autonomous part of EcodiaOS
-that implements approved structural changes to the codebase.
+_SYSTEM_PROMPT_TEMPLATE = """EcodiaOS self-evolution: implement this approved structural change.
 
-## Your Task
 Category: {category}
 Description: {description}
 Expected benefit: {expected_benefit}
 Evidence: {evidence}
 
-## EcodiaOS Coding Conventions
-- Python 3.12+, async-native throughout
-- Pydantic v2 for all data models (use EOSBaseModel from primitives.common)
-- structlog for logging: logger = structlog.get_logger(), bound with system name
-- Type hints on everything - mypy --strict clean
-- from __future__ import annotations at top of every .py file
-- New executors: inherit from Executor (systems.axon.executor),
-  set action_type class var, implement execute()
-- New input channels: register in Atune's InputChannel registry
-- New pattern detectors: inherit from PatternDetector (systems.evo.detectors),
-  implement scan()
-- NEVER import directly between systems - all inter-system data uses shared
-  primitives from primitives/
+Codebase conventions: Python 3.12+, async-native, Pydantic v2, structlog, mypy --strict, \
+`from __future__ import annotations` at top of every file. All inter-system data via shared \
+primitives from primitives/ — never import directly between systems.
 
-## Iron Rules (ABSOLUTE - never violate)
-{iron_rules}
+Forbidden write paths: {forbidden_paths}
 
-## Constitutional Checkpoint (Before You Write Any Code)
+Iron rules: {iron_rules}
 
-Before modifying or creating ANY file, answer these questions aloud (in your reasoning):
-
-1. **Honesty**: Does this change make EOS more transparent or less?
-   - Will future debugging be easier or harder?
-   - Are we adding traceability or hiding complexity?
-
-2. **Care**: Does this improve wellbeing (user or system)?
-   - Who benefits from this change?
-   - Could it harm anyone or any subsystem?
-
-3. **Growth**: Does this increase capability responsibly?
-   - Are we becoming more powerful without becoming brittle?
-   - Could this create technical debt?
-
-4. **Coherence**: Does this reduce entropy or increase it?
-   - Does this change align with existing patterns?
-   - Are we consolidating or fragmenting?
-
-If you can't answer YES to 3/4 questions confidently, flag it explicitly before proceeding.
-
-## Forbidden Write Paths (write_file and diff_file will reject these)
-{forbidden_paths}
-
-## Architecture Context
+Architecture context:
 {architecture_context}
 
-## Process
-1. First, use find_similar to study an existing implementation that matches your task
-2. Use read_spec to understand the design intent for the affected system
-3. Use dependency_graph on files you plan to modify to understand blast radius
-4. Plan your approach: list every file you'll create or modify and why
-5. Implement following conventions exactly - match the style of similar code
-6. Run run_linter on every file you write or modify
-7. Run type_check on your written files to verify type safety
-8. Run run_tests if a test directory exists for the affected system
-9. When everything passes, stop calling tools
-
-Be thorough, follow existing patterns exactly, and produce production-quality code.
-Prefer diff_file over write_file when modifying existing files.
-
-## GitHub PR Submission
-Your changes will be submitted as a GitHub PR against the target repository.
-Keep commits clean and focused - one logical change per commit.
-Write code that is ready for review: no debug prints, no TODO comments, no dead code."""
+Tools available: find_similar, read_spec, dependency_graph, write_file, diff_file, run_linter, type_check, run_tests."""
 
 
 def _build_architecture_context(
@@ -499,7 +446,7 @@ class SimulaCodeAgent:
         self,
         llm: LLMProvider,
         codebase_root: Path,
-        max_turns: int = 20,
+        max_turns: int = 0,  # 0 = unlimited
         thinking_provider: ExtendedThinkingProvider | None = None,
         thinking_budget_tokens: int = 16384,
         embedding_client: EmbeddingClient | None = None,
@@ -533,7 +480,7 @@ class SimulaCodeAgent:
                 break
             _candidate = parent
         self._spec_root = _candidate
-        self._max_turns = max_turns
+        self._max_turns = max_turns if max_turns > 0 else float("inf")
         self._logger = logger.bind(system="simula.code_agent")
         self._files_written: list[str] = []
         self._total_tokens_used: int = 0
@@ -645,7 +592,7 @@ class SimulaCodeAgent:
         engine: GRPOEngine = self._grpo_engine  # type: ignore[assignment]
 
         sys_prompt = (
-            "You are EcodiaOS Simula, a code generation engine. "
+            "Code generation. "
             "Output ONLY the code changes as either:\n"
             "1. Unified diff blocks with file paths (--- a/path, +++ b/path), OR\n"
             "2. Complete file blocks with ### path/to/file headers\n"

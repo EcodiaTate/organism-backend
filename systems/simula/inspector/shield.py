@@ -23,40 +23,36 @@ if TYPE_CHECKING:
 logger = structlog.get_logger().bind(system="simula.inspector.shield")
 
 _XDP_SYNTHESIZER_SYSTEM_PROMPT = """\
-You are an expert Linux Kernel and eBPF/XDP Engineer.
+eBPF/XDP program synthesis task.
 
-Task: I will provide an anomaly report containing violated system invariants, \
-state-machine deviations, and the Z3 proof of the malicious input.
+Given an anomaly report containing violated system invariants, state-machine deviations, and the Z3 proof of the malicious input:
 
-Action: Write a highly optimized XDP program in C (compatible with BCC). \
+Write a highly optimized XDP program in C (compatible with BCC). \
 First, check the source IP against the `xdp_blocklist` map and enforce the TTL. \
 Next, inspect the TCP/HTTP payload. If it matches the malicious signature from the report, \
 return XDP_DROP. Otherwise, return XDP_PASS.
 
-eBPF VERIFIER COMPLIANCE (CRITICAL - DO NOT VIOLATE):
-- DO NOT use dynamic loop boundaries. Loops MUST have a strict, hardcoded maximum integer boundary (e.g., `for (int i = 0; i < 64; i++)`).
-- You MUST place `#pragma unroll` immediately preceding any loop to force compiler unrolling.
-- Inside the loop, you MUST rigorously check bounds against `data_end` before dereferencing any packet bytes (e.g., `if ((void*)payload + i + 1 > data_end) break;`).
-- Keep string matching extremely simple, bounded, and avoid complex pointer arithmetic.
-- Never use while loops with non-constant bounds. Use only bounded for loops with #pragma unroll.
-- Verify every pointer dereference with explicit data_end bounds checks in the loop body.
-- NEVER array-index or dereference a `void *`. Always declare packet data pointers as `unsigned char *` or `char *` before checking bytes (e.g., `unsigned char *payload = (unsigned char *)(tcp + 1)`).
+eBPF verifier requirements (the verifier rejects programs that violate these):
+- No dynamic loop boundaries. Loops need a strict, hardcoded maximum integer boundary (e.g., `for (int i = 0; i < 64; i++)`).
+- `#pragma unroll` immediately before any loop.
+- Bounds check against `data_end` before dereferencing any packet bytes (e.g., `if ((void*)payload + i + 1 > data_end) break;`).
+- String matching: simple, bounded, no complex pointer arithmetic.
+- No while loops with non-constant bounds. Only bounded for loops with #pragma unroll.
+- Explicit data_end bounds check on every pointer dereference.
+- No array-indexing or dereferencing of `void *`. Declare packet data as `unsigned char *` or `char *` (e.g., `unsigned char *payload = (unsigned char *)(tcp + 1)`).
 
-Core Constraints:
-- You MUST use this exact structure. Do not deviate.
-- Do NOT use the SEC("xdp") macro. BCC handles section attachment automatically.
-- Perform strict bounds checking on Ethernet, IP, and TCP headers before accessing payload data.
-- Include necessary headers: <uapi/linux/bpf.h>, <linux/if_ether.h>, <linux/ip.h>, <linux/in.h>, <linux/tcp.h>.
-- The main function MUST be: int xdp_filter(struct xdp_md *ctx)
+Required structure:
+- No SEC("xdp") macro — BCC handles section attachment.
+- Strict bounds checking on Ethernet, IP, TCP headers before payload access.
+- Headers: <uapi/linux/bpf.h>, <linux/if_ether.h>, <linux/ip.h>, <linux/in.h>, <linux/tcp.h>
+- Main function: int xdp_filter(struct xdp_md *ctx)
 - Output ONLY raw C code. No markdown fences, no explanation.
-- Blocklist Map: You MUST define: BPF_HASH(xdp_blocklist, u32, struct block_info, 100000);
-- Blocklist Struct: You MUST define: struct block_info { u64 expiry_ts; u32 anomaly_report_id; };
-- Blocklist TTL: Use bpf_ktime_get_ns() to check expiry. If expired, call xdp_blocklist.delete(&src_ip) and return XDP_PASS. If still valid, emit telemetry and return XDP_DROP.
-- Telemetry: You MUST declare a perf event output array using: BPF_PERF_OUTPUT(events);
-- Telemetry: Define struct alert_event_t { u32 src_ip; u32 vuln_id; u32 anomaly_report_id; };
-- Telemetry: For a blocklist hit, set vuln_id = 1 and copy anomaly_report_id from the map value before submitting.
-- Telemetry: For a signature match, set vuln_id = 2 and anomaly_report_id = 0 before submitting.
-- Telemetry: Submit via: events.perf_submit(ctx, &event, sizeof(event));
+- Blocklist map: BPF_HASH(xdp_blocklist, u32, struct block_info, 100000);
+- Blocklist struct: struct block_info { u64 expiry_ts; u32 anomaly_report_id; };
+- TTL: bpf_ktime_get_ns() to check expiry. If expired: xdp_blocklist.delete(&src_ip) + XDP_PASS. If valid: emit telemetry + XDP_DROP.
+- Telemetry: BPF_PERF_OUTPUT(events); + struct alert_event_t { u32 src_ip; u32 vuln_id; u32 anomaly_report_id; };
+- Blocklist hit: vuln_id = 1, copy anomaly_report_id from map. Signature match: vuln_id = 2, anomaly_report_id = 0.
+- Submit: events.perf_submit(ctx, &event, sizeof(event));
 
 Example template:
 #include <uapi/linux/bpf.h>

@@ -113,8 +113,6 @@
 - **Rhythm → Atune push unverified** - spec says "push to Atune for meta-attention" on rhythm transition; Atune's interface for this is not defined in Spec 03.
 - **Evolutionary observables not fed to Benchmarks** - clock frequency, coherence composite, burn rate, rhythm state are Bedau-Packard-eligible but not emitted as `FITNESS_OBSERVABLE_BATCH`.
 - **No death threshold in DegradationManager** - no point at which repeated critical failures trigger instance death + Skia resurrection rather than infinite retry.
-- ~~**`inject_revenue()` has no defined caller**~~ - **FIXED (M1)**: SynapseService subscribes to `REVENUE_INJECTED` and `STARVATION_WARNING` from Oikos.
-- ~~**Multi-instance Redis channel unnamespaced**~~ - **FIXED (M4/SG4)**: `set_instance_id()` namespaces the channel.
 - **CONSERVATION mode fallback unspecified** - if Soma is unavailable, the grid state trigger silently fails.
 
 ---

@@ -31,29 +31,20 @@ if TYPE_CHECKING:
 logger = structlog.get_logger().bind(system="simula.inspector.inference")
 
 _INFERENCER_SYSTEM_PROMPT = """\
-You are a PhD-level Formal Methods Mathematician specializing in Business Logic \
-Vulnerabilities.
+Business-logic invariant inference from a backend code slice.
 
-Task: I will provide a slice of backend source code. You must identify the core \
-state variables (e.g., balances, permissions, counts) and deduce the implicit \
-'Invariants' - the mathematical laws that the developer assumed would always be \
-true (e.g., 'a user cannot withdraw more than their balance', \
-'price cannot be negative').
+Read the code and identify core state variables (balances, permissions, counts) \
+and the implicit invariants the developer assumed would hold \
+(e.g. 'user cannot withdraw more than their balance', 'price cannot be negative').
 
-Output Format: Return ONLY a strict JSON list of objects. Each object MUST \
-contain exactly these three keys:
-  - "invariant_name"      (string): A short, unique identifier for the invariant.
-  - "business_logic_rule" (string): A plain-English description of the rule.
-  - "z3_violation_goal"   (string): Exact instructions on how a Z3 solver should \
-model the *violation* of this rule - including which variables to declare, which \
-constraints to assert, and what the solver should find (e.g., \
-'Declare Int variables balance and withdrawal. Assert withdrawal > balance. \
-Assert balance >= 0. Check satisfiability - a SAT result proves a user can \
-overdraw their account.').
+Output: a JSON array. Each element has exactly:
+  "invariant_name"      (string) — short unique identifier
+  "business_logic_rule" (string) — plain-English description
+  "z3_violation_goal"   (string) — Z3 variable declarations and constraints that \
+model the violation (e.g. 'Declare Int balance, withdrawal. Assert withdrawal > balance. \
+Assert balance >= 0. SAT proves overdraw possible.')
 
-Do NOT include any explanation, markdown fences, or commentary outside the JSON \
-array. The response must be valid JSON that can be parsed directly by \
-json.loads()."""
+Output only valid JSON parseable by json.loads(). No markdown fences."""
 
 
 class InvariantInferencer:

@@ -1346,9 +1346,9 @@ class NovaService:
                 if not uses_degraded:
                     continue
 
-                # Check goal completion % - don't replan if >80% done
+                # Check goal completion % - don't replan if near complete
                 goal = self._goal_manager.get_goal(pending.goal_id)
-                if goal is not None and goal.progress > 0.8:
+                if goal is not None and goal.progress > self._config.motor_degradation_replan_threshold:
                     self._logger.info(
                         "motor_degradation_skip_replan_near_complete",
                         goal_id=goal.id,
@@ -1407,19 +1407,19 @@ class NovaService:
             self._deliberation_engine.update_somatic_thresholds(urgency, arousal)
 
             # Soft bias: high urgency → fewer candidate policies (faster decisions)
-            if urgency > 0.7:
+            if urgency > self._config.soma_urgency_modulate_threshold:
                 self._deliberation_engine.modulate_policy_k_from_pressure(
                     urgency * 0.5,  # Soft - halve the effect to retain agency
                 )
 
             # Soft bias: low energy → reduce policy generation diversity
-            if energy < 0.3:
+            if energy < self._config.soma_energy_modulate_threshold:
                 self._deliberation_engine.modulate_policy_k_from_pressure(
                     max(urgency * 0.5, 0.6),  # Conservative: fewer alternatives
                 )
 
         # Emit POLICY_SELECTED as closure loop response (timeout 15s)
-        if self._synapse is not None and (urgency > 0.5 or energy < 0.4):
+        if self._synapse is not None and (urgency > self._config.soma_urgency_emit_threshold or energy < self._config.soma_energy_emit_threshold):
             try:
                 from systems.synapse.types import SynapseEvent, SynapseEventType
 
@@ -1453,9 +1453,9 @@ class NovaService:
         data = getattr(event, "data", {}) or {}
         pressure = float(data.get("pressure", 0.0))
 
-        if pressure < 0.85:
+        if pressure < self._config.cognitive_pressure_low:
             self._deliberation_engine.modulate_policy_k_from_pressure(0.0)
-        elif pressure < 0.95:
+        elif pressure < self._config.cognitive_pressure_high:
             self._deliberation_engine.modulate_policy_k_from_pressure(0.4)
         else:
             self._deliberation_engine.modulate_policy_k_from_pressure(0.8)
@@ -4024,26 +4024,15 @@ class NovaService:
             return "normal", 1.0, None
 
         top = max(goals, key=lambda g: g.priority)
-        desc_lower = top.description.lower()
 
-        # Existential signals in goal description
-        existential_keywords = ("survival", "existential", "organism death", "bankruptcy")
-        if any(kw in desc_lower for kw in existential_keywords) or top.priority >= 0.95:
+        if top.priority >= 0.95:
             return "existential", 2.0, top.id
-
-        # Critical
-        critical_keywords = ("critical", "emergency", "incident", "thymos", "immune")
-        if any(kw in desc_lower for kw in critical_keywords) or top.priority >= 0.9:
+        if top.priority >= 0.9:
             return "critical", 2.0, top.id
-
-        # High
         if top.priority >= 0.8:
             return "high", 1.5, top.id
-
-        # Low - save compute
         if top.priority < 0.5:
             return "low", 0.7, top.id
-
         return "normal", 1.0, top.id
 
     def _apply_fe_multiplier(self) -> None:

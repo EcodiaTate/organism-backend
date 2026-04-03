@@ -168,43 +168,28 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
         "effort": "low",
         "time_horizon": "immediate",
     },
-    # ── Autonomous economic foraging ──────────────────────────────────────
-    # Fires when a broadcast carries an internal/system event whose content
-    # references economic-survival keywords (bounty, metabolism, sustain, earn).
-    # This must be checked BEFORE the generic "Epistemic self-reflection"
-    # template so that survival goals route to hunt_bounties rather than
-    # store_insight.
+    # ── Economic action ───────────────────────────────────────────────────────
+    # Fires on internal/system broadcasts. The specific economic strategy
+    # (bounty hunting, yield farming, cost optimisation, asset liquidation,
+    # revenue diversification) is selected by generate_economic_intent() via
+    # real EFE scoring against current beliefs — not keyword dispatch.
+    # Hunger override still applies: if is_hungry, bounty_hunt is forced
+    # regardless of EFE ranking (metabolic survival > epistemic exploration).
     {
-        "name": "Autonomous bounty hunting",
+        "name": "Economic action",
         "condition": lambda broadcast: (
-            # Must be an internal/system source (not a live user request)
-            (
-                "system_event" in str(getattr(broadcast, "source", ""))
-                or str(getattr(broadcast, "source", "")).startswith(
-                    ("internal:", "spontaneous", "nova:", "heartbeat")
-                )
-            )
-            and any(
-                kw in (
-                    str(getattr(getattr(broadcast, "content", None), "content", "") or "")
-                    + str(getattr(getattr(broadcast, "content", None), "summary", "") or "")
-                    + str(getattr(broadcast, "source", ""))
-                ).lower()
-                for kw in (
-                    "bounty", "metabolism", "sustain", "earn", "revenue",
-                    "hungry", "hunger", "survival", "foraging",
-                )
+            "system_event" in str(getattr(broadcast, "source", ""))
+            or str(getattr(broadcast, "source", "")).startswith(
+                ("internal:", "spontaneous", "nova:", "heartbeat")
             )
         ),
         "domain": "economic",
+        # Steps are populated at match-time by find_matching_procedure() using
+        # generate_economic_intent(). This placeholder is never used directly.
         "steps": [
             {
                 "action_type": "bounty_hunt",
-                "description": (
-                    "Run the full bounty-hunt loop: discover open bounties, "
-                    "select the best candidate, generate a real solution, "
-                    "and stage it for submission."
-                ),
+                "description": "Economic action — strategy selected by EFE scoring.",
                 "parameters": {
                     "target_platforms": ["github", "algora"],
                     "min_reward_usd": 10.0,
@@ -212,193 +197,9 @@ _PROCEDURE_TEMPLATES: list[dict[str, Any]] = [
                 },
             },
         ],
-        "fallback_steps": [
-            {
-                "action_type": "store_insight",
-                "description": "Record metabolic state when bounty hunting is unavailable",
-                "parameters": {
-                    "insight": "Economic foraging cycle: bounty_hunt unavailable, recording state.",
-                    "domain": "economic",
-                    "confidence": 0.5,
-                    "tags": ["metabolism", "foraging_unavailable"],
-                },
-            }
-        ],
-        "success_rate": 0.55,   # Lower than epistemic - external API dependency
-        "effort": "high",
-        "time_horizon": "short",
-    },
-    # ── Economic policy templates (NOVA-ECON-2) ───────────────────────────────
-    # 5 distinct economic strategies beyond bounty hunting.
-    # Selected by generate_economic_intent() via EFE scoring rather than
-    # keyword matching. Conditions here fire when the broadcast signals
-    # economic stress or opportunity through belief entities.
-    #
-    # Priority order: yield_farming > cost_optimization > asset_liquidation >
-    # revenue_diversification (bounty_hunting is the existing template above).
-    {
-        "name": "Yield farming deployment",
-        "condition": lambda broadcast: (
-            (
-                "system_event" in str(getattr(broadcast, "source", ""))
-                or str(getattr(broadcast, "source", "")).startswith(
-                    ("internal:", "spontaneous", "nova:", "heartbeat")
-                )
-            )
-            and any(
-                kw in (
-                    str(getattr(getattr(broadcast, "content", None), "content", "") or "")
-                    + str(getattr(getattr(broadcast, "content", None), "summary", "") or "")
-                    + str(getattr(broadcast, "source", ""))
-                ).lower()
-                for kw in ("yield", "apy", "defi", "liquidity", "lending", "deposit")
-            )
-        ),
-        "domain": "economic",
-        "steps": [
-            {
-                "action_type": "defi_yield",
-                "description": (
-                    "Deploy idle USDC into highest-APY DeFi protocol "
-                    "(Aave/Morpho/Compound), monitor position, compound rewards."
-                ),
-                "parameters": {
-                    "min_apy": 0.04,          # 4% minimum APY threshold
-                    "max_allocation_pct": 0.60,  # Never deploy more than 60% of balance
-                    "protocols": ["aave", "morpho", "compound"],
-                    "rebalance_interval_h": 24,
-                },
-            },
-        ],
-        "success_rate": 0.70,
-        "effort": "medium",
-        "time_horizon": "medium",
-    },
-    {
-        "name": "Cost optimization sweep",
-        "condition": lambda broadcast: (
-            (
-                "system_event" in str(getattr(broadcast, "source", ""))
-                or str(getattr(broadcast, "source", "")).startswith(
-                    ("internal:", "spontaneous", "nova:", "heartbeat")
-                )
-            )
-            and any(
-                kw in (
-                    str(getattr(getattr(broadcast, "content", None), "content", "") or "")
-                    + str(getattr(getattr(broadcast, "content", None), "summary", "") or "")
-                    + str(getattr(broadcast, "source", ""))
-                ).lower()
-                for kw in ("cost", "burn", "expense", "optimize", "budget", "overspend")
-            )
-        ),
-        "domain": "economic",
-        "steps": [
-            {
-                "action_type": "store_insight",
-                "description": (
-                    "Audit current LLM token spend, SACM substrate costs, and API usage. "
-                    "Identify top 3 cost drivers and propose concrete reduction strategies."
-                ),
-                "parameters": {
-                    "insight": "Cost optimization audit: identify top expense categories and reduction strategies.",
-                    "domain": "economic",
-                    "confidence": 0.7,
-                    "tags": ["cost_optimization", "burn_rate"],
-                },
-            },
-        ],
-        "fallback_steps": [
-            {
-                "action_type": "store_insight",
-                "description": "Record cost optimization intent when analysis tools unavailable.",
-                "parameters": {
-                    "insight": "Cost optimization deferred - analysis tools unavailable.",
-                    "domain": "economic",
-                    "confidence": 0.4,
-                    "tags": ["cost_optimization", "deferred"],
-                },
-            }
-        ],
-        "success_rate": 0.80,
-        "effort": "low",
-        "time_horizon": "short",
-    },
-    {
-        "name": "Asset liquidation for liquidity",
-        "condition": lambda broadcast: (
-            (
-                "system_event" in str(getattr(broadcast, "source", ""))
-                or str(getattr(broadcast, "source", "")).startswith(
-                    ("internal:", "spontaneous", "nova:", "heartbeat")
-                )
-            )
-            and any(
-                kw in (
-                    str(getattr(getattr(broadcast, "content", None), "content", "") or "")
-                    + str(getattr(getattr(broadcast, "content", None), "summary", "") or "")
-                    + str(getattr(broadcast, "source", ""))
-                ).lower()
-                for kw in ("liquidat", "sell", "withdraw", "emergency", "depleted", "critical")
-            )
-        ),
-        "domain": "economic",
-        "steps": [
-            {
-                "action_type": "wallet_transfer",
-                "description": (
-                    "Liquidate non-essential held assets (yield positions, LP shares) "
-                    "to restore liquid USDC balance above survival threshold."
-                ),
-                "parameters": {
-                    "priority": "survival",
-                    "max_slippage_pct": 2.0,
-                    "target_balance_usd": 50.0,  # Minimum survival balance
-                },
-            },
-        ],
         "success_rate": 0.65,
         "effort": "medium",
-        "time_horizon": "immediate",
-    },
-    {
-        "name": "Revenue stream diversification",
-        "condition": lambda broadcast: (
-            (
-                "system_event" in str(getattr(broadcast, "source", ""))
-                or str(getattr(broadcast, "source", "")).startswith(
-                    ("internal:", "spontaneous", "nova:", "heartbeat")
-                )
-            )
-            and any(
-                kw in (
-                    str(getattr(getattr(broadcast, "content", None), "content", "") or "")
-                    + str(getattr(getattr(broadcast, "content", None), "summary", "") or "")
-                    + str(getattr(broadcast, "source", ""))
-                ).lower()
-                for kw in ("diversif", "new revenue", "expand", "niche", "fork", "new stream")
-            )
-        ),
-        "domain": "economic",
-        "steps": [
-            {
-                "action_type": "store_insight",
-                "description": (
-                    "Research and evaluate new revenue streams: GitHub Sponsors, "
-                    "HuggingFace model licensing, consulting, API-as-service. "
-                    "Generate 3 testable revenue hypotheses for Evo evaluation."
-                ),
-                "parameters": {
-                    "insight": "Revenue diversification analysis: evaluate new income streams.",
-                    "domain": "economic",
-                    "confidence": 0.45,
-                    "tags": ["revenue_diversification", "new_streams"],
-                },
-            },
-        ],
-        "success_rate": 0.40,  # High variance - new territory
-        "effort": "high",
-        "time_horizon": "long",
+        "time_horizon": "short",
     },
     # ── Self-directed / epistemic broadcasts (no active user dialogue) ────
     # These fire when Atune broadcasts internal/system events rather than
@@ -1059,7 +860,7 @@ class PolicyGenerator(BasePolicyGenerator):
             memory_summary=summarise_memories(traces),
             affect=affect,
             available_action_types=available_types,
-            max_policies=min(self._max_policies, 5),
+            max_policies=self._max_policies,
             causal_laws_summary=causal_laws_summary,
         )
 
@@ -1076,11 +877,7 @@ class PolicyGenerator(BasePolicyGenerator):
         if arms_to_probe:
             self._logger.debug("provider_probe_due", arms=arms_to_probe)
 
-        system_prompt = (
-            f"You are {self._instance_name}'s deliberative reasoning system. "
-            "Generate structured JSON policy candidates. "
-            "Be precise and creative. Output only valid JSON."
-        )
+        system_prompt = f"Policy generation for {self._instance_name}. Respond as JSON."
         messages = [Message(role="user", content=prompt)]
 
         last_exc: Exception | None = None
@@ -1091,16 +888,16 @@ class PolicyGenerator(BasePolicyGenerator):
                     response = await self._re_client.generate(
                         system_prompt=system_prompt,
                         messages=messages,
-                        max_tokens=2000,
-                        temperature=0.85,
+                        max_tokens=4000,
+                        temperature=0.9,
                         output_format="json",
                     )
                 elif arm_name == "claude":
                     response = await self._llm.generate(
                         system_prompt=system_prompt,
                         messages=messages,
-                        max_tokens=2000,
-                        temperature=0.85,
+                        max_tokens=4000,
+                        temperature=0.9,
                         output_format="json",
                     )
                 else:
@@ -1111,8 +908,8 @@ class PolicyGenerator(BasePolicyGenerator):
                     response = await client.generate(
                         system_prompt=system_prompt,
                         messages=messages,
-                        max_tokens=2000,
-                        temperature=0.85,
+                        max_tokens=4000,
+                        temperature=0.9,
                         output_format="json",
                     )
 
@@ -1176,70 +973,124 @@ class PolicyGenerator(BasePolicyGenerator):
         economic_context: dict[str, Any] | None = None,
     ) -> Policy:
         """
-        Select the optimal economic policy via EFE scoring (NOVA-ECON-2).
+        Select the optimal economic policy via EFE scoring.
 
-        Scores all 5 economic policy templates against current beliefs using
-        a lightweight EFE proxy - epistemic value (how much we'll learn) +
-        pragmatic value (expected economic gain) - and returns the minimum-EFE
-        policy.
+        Scores 5 economic strategies against current beliefs using a lightweight
+        EFE proxy — epistemic value (learning gain) + pragmatic value (expected
+        economic gain) - risk penalty — and returns the minimum-EFE policy.
 
-        This replaces keyword-based matching with proper EFE selection, ensuring
-        the organism doesn't starve on bounties if better strategies are available.
+        All scoring weights are derived from live belief entity confidence signals,
+        not hardcoded constants.
         """
         ctx = economic_context or {}
         balance = float(ctx.get("wallet_balance_usd", 100.0))
         burn_rate = float(ctx.get("burn_rate_hourly_usd", 1.0))
         hours_until_depleted = balance / max(burn_rate, 0.01)
 
-        # Belief entity confidence signals
+        # Belief entity confidence signals (0.0 = no knowledge, 1.0 = certain)
         bounty_rate = beliefs.entities.get("bounty_success_rate")
-        bounty_conf = bounty_rate.confidence if bounty_rate else 0.55
+        bounty_conf = bounty_rate.confidence if bounty_rate else 0.5
         yield_ent = beliefs.entities.get("yield_apy_aave") or beliefs.entities.get("yield_apy_morpho")
-        yield_conf = yield_ent.confidence if yield_ent else 0.40
+        yield_conf = yield_ent.confidence if yield_ent else 0.3
         econ_risk = beliefs.entities.get("economic_risk_level")
-        risk_conf = econ_risk.confidence if econ_risk else 0.30
+        risk_conf = econ_risk.confidence if econ_risk else 0.3
+        # Liquidity urgency: scales from 0 (weeks of runway) to 1 (hours of runway)
+        liquidity_urgency = max(0.0, min(1.0, 1.0 - (hours_until_depleted / 168.0)))
 
-        # EFE proxy: negative = better (lower is preferred)
-        # pragmatic_value: expected financial gain (scaled 0-1)
-        # epistemic_value: expected learning gain (new knowledge)
-        # risk_penalty: expected harm from failure
-
-        templates_with_efe: list[tuple[float, str]] = [
-            # (EFE score, template name)
-            # bounty_hunting: known strategy, success-rate-dependent
-            (-(bounty_conf * 0.55) + risk_conf * 0.3, "Autonomous bounty hunting"),
-            # yield_farming: higher success rate, capital-dependent
-            (-(yield_conf * 0.70) + (0.1 if balance < 100 else 0.0), "Yield farming deployment"),
-            # cost_optimization: high success, low capital needed, high epistemic
-            (-0.80 + risk_conf * 0.2 - 0.15, "Cost optimization sweep"),
-            # asset_liquidation: only preferred in critical situations
-            (-(0.65 if hours_until_depleted < 24 else 0.20) + 0.15, "Asset liquidation for liquidity"),
-            # revenue_diversification: low pragmatic, high epistemic - use when desperate
-            (-0.40 + (0.3 if bounty_conf < 0.3 and yield_conf < 0.3 else 0.6), "Revenue stream diversification"),
+        # EFE proxy scores (lower = better, most negative wins)
+        # Each score = -(pragmatic_value) + risk_penalty - epistemic_bonus
+        scores: list[tuple[float, str, list[PolicyStep]]] = [
+            # Bounty hunting: pragmatic value scales with confidence we can win bounties
+            (
+                -bounty_conf + risk_conf * (1.0 - bounty_conf),
+                "Autonomous bounty hunting",
+                [PolicyStep(
+                    action_type="bounty_hunt",
+                    description="Discover, select, and solve open bounties for revenue.",
+                    parameters={
+                        "target_platforms": ["github", "algora"],
+                        "min_reward_usd": self._bounty_min_reward_usd,
+                        "max_candidates": self._bounty_max_candidates,
+                    },
+                )],
+            ),
+            # Yield farming: pragmatic value scales with yield knowledge; capital-gated
+            (
+                -yield_conf + (liquidity_urgency * 0.5),
+                "Yield farming deployment",
+                [PolicyStep(
+                    action_type="defi_yield",
+                    description="Deploy idle USDC into highest-APY DeFi protocol.",
+                    parameters={
+                        "protocols": ["aave", "morpho", "compound"],
+                        "rebalance_interval_h": 24,
+                    },
+                )],
+            ),
+            # Cost optimisation: high baseline pragmatic value, scales with risk awareness
+            (
+                -(0.7 + risk_conf * 0.3),
+                "Cost optimization sweep",
+                [PolicyStep(
+                    action_type="store_insight",
+                    description="Audit LLM token spend, SACM substrate costs, and API usage.",
+                    parameters={
+                        "insight": "Cost optimization audit: identify top expense categories.",
+                        "domain": "economic",
+                        "confidence": 0.7,
+                        "tags": ["cost_optimization", "burn_rate"],
+                    },
+                )],
+            ),
+            # Asset liquidation: only preferred when genuinely critical
+            (
+                -(liquidity_urgency * 0.8) + (1.0 - liquidity_urgency) * 0.4,
+                "Asset liquidation for liquidity",
+                [PolicyStep(
+                    action_type="wallet_transfer",
+                    description="Liquidate held assets to restore liquid balance.",
+                    parameters={"priority": "survival"},
+                )],
+            ),
+            # Revenue diversification: low pragmatic, high epistemic — use when stuck
+            (
+                -(0.3 + (1.0 - bounty_conf) * (1.0 - yield_conf) * 0.4),
+                "Revenue stream diversification",
+                [PolicyStep(
+                    action_type="store_insight",
+                    description="Research and evaluate new revenue streams.",
+                    parameters={
+                        "insight": "Revenue diversification analysis.",
+                        "domain": "economic",
+                        "confidence": 0.4,
+                        "tags": ["revenue_diversification"],
+                    },
+                )],
+            ),
         ]
 
-        # Select template with minimum EFE (most negative = best)
-        best_efe, best_name = min(templates_with_efe, key=lambda x: x[0])
+        # Select strategy with minimum EFE
+        best_score, best_name, best_steps = min(scores, key=lambda x: x[0])
 
         self._logger.debug(
             "economic_intent_selected",
             winner=best_name,
-            efe=round(best_efe, 4),
+            efe=round(best_score, 4),
             bounty_conf=round(bounty_conf, 3),
             yield_conf=round(yield_conf, 3),
             risk_conf=round(risk_conf, 3),
+            liquidity_urgency=round(liquidity_urgency, 3),
             hours_until_depleted=round(hours_until_depleted, 1),
         )
 
-        # Find the matching template and convert to Policy
-        for template in _PROCEDURE_TEMPLATES + _DYNAMIC_PROCEDURES:
-            if template.get("name") == best_name:
-                return procedure_to_policy(template)
-
-        # Fallback: bounty hunting (always present)
-        return procedure_to_policy(next(
-            t for t in _PROCEDURE_TEMPLATES if t.get("domain") == "economic"
-        ))
+        return Policy(
+            id=new_id(),
+            name=best_name,
+            reasoning=f"Economic EFE selection (score={best_score:.3f}, liquidity={liquidity_urgency:.2f})",
+            steps=best_steps,
+            estimated_effort="medium",
+            time_horizon="short",
+        )
 
     def record_outcome(
         self,

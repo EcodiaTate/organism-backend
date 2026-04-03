@@ -614,8 +614,7 @@ class ExecutorGenerator:
                     max_tokens=4096,
                     timeout=60.0,
                     system=(
-                        "You are a precise Python code generator. "
-                        "Output ONLY valid Python source code with no markdown formatting."
+                        "Output ONLY valid Python source code — no markdown formatting."
                     ),
                 )
                 code = response.strip()

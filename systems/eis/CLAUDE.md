@@ -18,7 +18,7 @@
 - **L8 Quarantine Gate** (`quarantine_gate.py`) - taint + threat library + anomaly context
 - **L9 Taint Analysis** (`taint_engine.py`, `constitutional_graph.py`) - BFS propagation, 17 constitutional paths
 
-### Speciation Wiring (2026-03-07)
+### Speciation Wiring
 - **Benchmarks**: `_maybe_emit_threat_metrics()` - 60s aggregated metrics via `EIS_THREAT_METRICS`
 - **Soma bidirectional**: `_maybe_emit_threat_spike()` - proportional urgency via `EIS_THREAT_SPIKE`
 - **RE training**: `_emit_re_training_example()` - structural features only, `eis_quarantine` stream
@@ -70,14 +70,10 @@
 
 ## What's Missing
 
-- ~~**integration.py not consumed**~~ - **RESOLVED 2026-03-08**: `belief_update_weight()` consumed by `nova/belief_updater.py`; `compute_risk_salience_factor()` consumed by `fovea/gateway.py`
-- ~~**Federation percept screening**~~ - **RESOLVED 2026-03-08**: `federation.set_eis(eis)` now called in `wire_federation_phase()` so `FederationIngestionPipeline._run_eis_check()` has a live EIS
 - **RE routing in L5** - no Thompson sampling between Claude and RE
 - **Safe-mode threshold** - undefined; no transition logic
 - **Pathogen retirement** - no background task to prune stale/high-FP entries
 - **ConstitutionalGraph static** - doesn't update when organism evolves
-- ~~**Child-side EIS genome apply**~~ - **RESOLVED 2026-03-08**: `EISService.initialize()` reads `ORGANISM_EIS_GENOME_PAYLOAD` and calls `self._genome_extractor.seed_from_genome_segment()`. `self._genome_extractor` is now instantiated in `__init__` (eager, not lazy) so it's available immediately. Genesis nodes skip apply via `ORGANISM_IS_GENESIS_NODE=true` guard.
-- ~~**Neo4j not wired in registry**~~ - **RESOLVED 2026-03-07**: `eis.set_neo4j(infra.neo4j)` added to `SystemRegistry.startup()` Phase 2 after `set_metrics()`
 
 ---
 

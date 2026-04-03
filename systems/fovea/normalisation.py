@@ -66,47 +66,19 @@ class NormalisationLLMClient(Protocol):
 # ---------------------------------------------------------------------------
 
 _SENTIMENT_PROMPT = """\
-Analyse the sentiment of the following text and return a JSON object.
+Sentiment analysis of the following text. Respond as JSON:
+{{"valence": -1.0 to 1.0, "arousal": 0.0 to 1.0, "dominant_emotion": "joy|sadness|anger|fear|surprise|disgust|trust", "summary": "one sentence"}}
 
 TEXT:
 {text}
-
-Return exactly this JSON structure:
-{{
-  "valence": <float from -1.0 (very negative) to 1.0 (very positive)>,
-  "arousal": <float from 0.0 (calm) to 1.0 (highly activated)>,
-  "dominant_emotion": "<single word: joy, sadness, anger, fear, surprise, disgust, trust>",
-  "summary": "<one sentence describing the emotional tone>"
-}}
-
-Be precise. Base your analysis only on the text provided.
 """
 
 _ENTITY_EXTRACTION_PROMPT = """\
-Extract entities and relationships from the following text.
+Extract entities and relationships from the following text. Respond as JSON:
+{{"entities": [{{"name": "...", "type": "person|place|organisation|concept|object|event|emotion|value", "description": "...", "confidence": 0.0-1.0}}], "relations": [{{"from_entity": "...", "to_entity": "...", "type": "...", "strength": 0.0-1.0}}]}}
 
 TEXT:
 {text}
-
-For each entity, provide:
-- name: canonical name
-- type: one of [person, place, organisation, concept, object, event, emotion, value]
-- description: brief description in context
-- confidence: 0.0 to 1.0
-
-For each relationship between entities, provide:
-- from_entity: source entity name
-- to_entity: target entity name
-- type: relationship type (e.g., works_for, located_in, caused_by, part_of)
-- strength: 0.0 to 1.0
-
-Return exactly this JSON structure:
-{{
-  "entities": [{{...}}],
-  "relations": [{{...}}]
-}}
-
-Only extract entities and relations clearly present in the text.
 """
 
 
@@ -129,10 +101,7 @@ async def _analyse_sentiment_llm(
         from clients.llm import Message
 
         response = await llm_client.generate(
-            system_prompt=(
-                "You are a precise sentiment analysis engine."
-                " Always respond with valid JSON only."
-            ),
+            system_prompt="Analyse sentiment. Respond as JSON.",
             messages=[Message(role="user", content=prompt)],
             max_tokens=300,
             temperature=0.1,
@@ -169,10 +138,7 @@ async def _extract_entities_llm(
         from clients.llm import Message
 
         response = await llm_client.generate(
-            system_prompt=(
-                "You are a precise entity extraction engine."
-                " Always respond with valid JSON only."
-            ),
+            system_prompt="Extract entities and relations. Respond as JSON.",
             messages=[Message(role="user", content=prompt)],
             max_tokens=2000,
             temperature=0.2,

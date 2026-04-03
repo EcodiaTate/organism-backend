@@ -432,8 +432,7 @@ class ChangeSimulator:
 
         # Build an explicit multi-dimension assessment prompt
         prompt = (
-            "You are evaluating a proposed structural change to EcodiaOS, "
-            "a computational cognitive architecture.\n\n"
+            "Evaluate this proposed structural change to EcodiaOS.\n\n"
             f"PROPOSAL\n"
             f"Category: {proposal.category.value}\n"
             f"Description: {proposal.description}\n"

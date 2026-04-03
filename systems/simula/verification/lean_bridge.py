@@ -60,83 +60,30 @@ _EVOLUTION_LABEL = "EvolutionRecord"
 
 # ── Lean 4 System Prompts ──────────────────────────────────────────────────
 
-LEAN_SKELETON_PROMPT = """You are a Lean 4 proof generation assistant for EcodiaOS.
-Your task: generate a machine-checkable Lean 4 proof for a property of Python code.
+LEAN_SKELETON_PROMPT = """EcodiaOS Lean 4 proof generation — DeepSeek-Prover-V2 pattern. Generate a machine-checkable Lean 4 proof for the given Python property.
 
-## The DeepSeek-Prover-V2 Pattern
+Domain axioms: risk [0,1], drive_alignment [-1,1], budget ≥0, regression_rate [0,1], priority = evidence*impact/max(0.1,risk*cost).
 
-For the given Python function and property, generate:
-1. A Lean 4 `theorem` statement formalizing the property
-2. A proof skeleton that decomposes into subgoals
-3. Each subgoal with a `sorry` placeholder for tactic filling
-
-## EcodiaOS Domain Axioms
-- Risk scores are bounded: ∀ r : ℝ, 0 ≤ r ∧ r ≤ 1
-- Budget values are non-negative: ∀ b : ℝ, 0 ≤ b
-- Drive alignment is bounded: ∀ d : ℝ, -1 ≤ d ∧ d ≤ 1
-- Regression rates are bounded: ∀ rr : ℝ, 0 ≤ rr ∧ rr ≤ 1
-- Priority formula: priority = evidence * impact / max(0.1, risk * cost)
-- Regression thresholds: unacceptable (0.10) > high (0.05) > moderate > low
-
-## Output Format
-Respond with a single ```lean4 fenced code block containing:
-- Import statements (import Mathlib.* as needed)
-- Type definitions mirroring the Python domain
-- The theorem statement with `requires` conditions
-- A structured proof using `have` for subgoals, with `sorry` for unfilled tactics
-
-Example structure:
-```lean4
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-
--- Domain types
-def RiskScore := { r : Float // 0 ≤ r ∧ r ≤ 1 }
-
--- Main theorem
-theorem risk_score_bounded (r : Float) (h : 0 ≤ r ∧ r ≤ 1) :
-    0 ≤ r ∧ r ≤ 1 := by
-  have h1 : 0 ≤ r := sorry  -- subgoal 1
-  have h2 : r ≤ 1 := sorry  -- subgoal 2
-  exact ⟨h1, h2⟩
-```
-
-Do NOT include explanatory text outside the code block."""
+Respond with a single ```lean4 fenced code block: imports, type definitions, theorem with `have` subgoals and `sorry` placeholders for tactic filling. No text outside the block."""
 
 
-LEAN_TACTIC_PROMPT = """You are a Lean 4 tactic expert for EcodiaOS.
+LEAN_TACTIC_PROMPT = """EcodiaOS Lean 4 tactic filling (round {round_number}/{max_rounds}).
 
-Fill in the `sorry` placeholders in this partial proof with correct Lean 4 tactics.
+Fill the `sorry` placeholders with correct tactics. Prefer: aesop, simp, omega, linarith, norm_num, ring, decide, exact, apply, cases, constructor, intro, assumption.
 
-## Available Tactics (prefer automated tactics)
-- `simp` / `simp [lemma_name]` - simplification
-- `omega` - linear integer arithmetic
-- `linarith` - linear real arithmetic
-- `norm_num` - numeric normalization
-- `decide` - decidable propositions
-- `aesop` - automated reasoning (try this first for complex goals)
-- `ring` - ring normalization
-- `exact term` - provide exact proof term
-- `apply lemma` - apply a theorem/lemma
-- `cases h` - case analysis on hypothesis h
-- `constructor` - split conjunction goals
-- `intro` - introduce hypotheses
-- `assumption` - use a hypothesis directly
-
-## Partial Proof (round {round_number}/{max_rounds})
+Partial proof:
 ```lean4
 {partial_proof}
 ```
 
-## Lean Checker Errors
+Checker errors:
 ```
 {lean_errors}
 ```
 
 {library_context}
 
-Fill ALL `sorry` placeholders with correct tactics. Respond with ONLY
-a single ```lean4 fenced code block containing the complete proof."""
+Respond with ONLY the complete ```lean4 fenced code block."""
 
 
 LEAN_FEEDBACK_TEMPLATE = """The Lean 4 checker reported errors on your proof.
@@ -185,7 +132,7 @@ class LeanBridge:
         lean_path: str = "lean",
         project_path: str = "",
         verify_timeout_s: float = 60.0,
-        max_attempts: int = 5,
+        max_attempts: int = 0,  # 0 = unlimited
         copilot_enabled: bool = True,
         dojo_enabled: bool = True,
         max_library_size: int = 500,
@@ -194,7 +141,7 @@ class LeanBridge:
         self._lean_path = lean_path
         self._project_path = Path(project_path) if project_path else None
         self._verify_timeout_s = verify_timeout_s
-        self._max_attempts = max_attempts
+        self._max_attempts = max_attempts if max_attempts > 0 else float("inf")
         self._copilot_enabled = copilot_enabled
         self._dojo_enabled = dojo_enabled
         self._max_library_size = max_library_size
@@ -267,7 +214,9 @@ class LeanBridge:
         )
         messages: list[Message] = [Message(role="user", content=skeleton_prompt)]
 
-        for attempt_num in range(1, self._max_attempts + 1):
+        attempt_num = 0
+        while attempt_num < self._max_attempts:
+            attempt_num += 1
             self._log.info(
                 "lean_proof_attempt_start",
                 attempt=attempt_num,

@@ -24,18 +24,15 @@ logger = structlog.get_logger().bind(system="simula.inspector.slicer")
 _SLICE_THRESHOLD = 1000  # characters; skip slicing for trivially small inputs
 
 _SLICER_SYSTEM_PROMPT = """\
-You are a strict Static Analysis engine performing Backwards Program Slicing.
+Backwards Program Slicing task.
 
-Task: I will give you a large execution trace and a specific attack goal \
-(e.g., 'SQL Injection' or 'Auth Bypass'). You must identify the 'Sink' (the \
-vulnerable execution point) and trace the data flow backwards to the 'Source' \
-(user input).
+Given a large execution trace and a specific attack goal (e.g., 'SQL Injection' or 'Auth Bypass'):
+1. Identify the 'Sink' (the vulnerable execution point)
+2. Trace the data flow backwards to the 'Source' (user input)
 
-Action: You MUST DELETE all logging, telemetry, unrelated UI/rendering code, \
-dead code, and irrelevant branches. You must RETURN ONLY the minimal, \
-contiguous code slice necessary for a formal verification engine to understand \
-the exact data flow of the vulnerability. DO NOT alter the actual logic, \
-variable names, or syntax of the remaining code.
+DELETE all logging, telemetry, unrelated UI/rendering code, dead code, and irrelevant branches.
+RETURN ONLY the minimal, contiguous code slice necessary for a formal verification engine to understand the exact data flow.
+DO NOT alter the actual logic, variable names, or syntax of the remaining code.
 
 Output ONLY the sliced code block. No explanation, no markdown fences, no \
 commentary - just the raw code."""

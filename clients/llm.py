@@ -389,7 +389,7 @@ class AnthropicProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             temperature=temperature,
@@ -504,7 +504,7 @@ class OllamaProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             temperature=temperature,
@@ -681,7 +681,7 @@ class OpenAIProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             temperature=temperature,
@@ -884,7 +884,7 @@ class ExtendedThinkingProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate_with_thinking(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             reasoning_budget=self._default_reasoning_budget // 2,
@@ -1161,7 +1161,7 @@ class BedrockProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             temperature=temperature,
@@ -1384,7 +1384,7 @@ class VLLMProvider(LLMProvider):
         temperature: float = 0.3,
     ) -> LLMResponse:
         return await self.generate(
-            system_prompt="You are an evaluator. Be precise and concise.",
+            system_prompt="Evaluate. Respond concisely.",
             messages=[Message("user", prompt)],
             max_tokens=max_tokens,
             temperature=temperature,

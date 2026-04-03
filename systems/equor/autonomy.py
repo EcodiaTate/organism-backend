@@ -26,34 +26,9 @@ from primitives.common import new_id, utc_now
 
 if TYPE_CHECKING:
     from clients.neo4j import Neo4jClient
+    from config import EquorConfig
 
 logger = structlog.get_logger()
-
-# Promotion thresholds (defaults - configurable via governance)
-PROMOTION_THRESHOLDS = {
-    # (from_level, to_level): requirements
-    (1, 2): {
-        "min_decisions": 500,
-        "min_mean_alignment": 0.4,
-        "max_critical_violations": 0,
-        "min_satisfaction": 0.6,
-        "min_days_at_level": 30,
-    },
-    (2, 3): {
-        "min_decisions": 5000,
-        "min_mean_alignment": 0.5,
-        "max_critical_violations": 0,
-        "min_satisfaction": 0.7,
-        "min_days_at_level": 180,
-    },
-}
-
-# Automatic demotion triggers
-DEMOTION_TRIGGERS = {
-    "care_alignment_threshold": -0.2,    # Mean over 100 decisions
-    "care_window_size": 100,
-    "min_satisfaction": 0.3,
-}
 
 
 async def get_autonomy_level(neo4j: Neo4jClient) -> int:
@@ -65,17 +40,40 @@ async def get_autonomy_level(neo4j: Neo4jClient) -> int:
     return results[0]["level"] if results else 3
 
 
+def _build_thresholds(cfg: "EquorConfig | None", current_level: int, target_level: int) -> dict[str, Any] | None:
+    """Build promotion threshold dict from config, or return None if no path exists."""
+    if current_level == 1 and target_level == 2:
+        if cfg is None:
+            return {"min_decisions": 0, "min_mean_alignment": 0.0, "max_critical_violations": 0, "min_days_at_level": 0}
+        return {
+            "min_decisions": cfg.promote_1_to_2_min_decisions,
+            "min_mean_alignment": cfg.promote_1_to_2_min_alignment,
+            "max_critical_violations": 0,
+            "min_days_at_level": cfg.promote_1_to_2_min_days,
+        }
+    if current_level == 2 and target_level == 3:
+        if cfg is None:
+            return {"min_decisions": 0, "min_mean_alignment": 0.0, "max_critical_violations": 0, "min_days_at_level": 0}
+        return {
+            "min_decisions": cfg.promote_2_to_3_min_decisions,
+            "min_mean_alignment": cfg.promote_2_to_3_min_alignment,
+            "max_critical_violations": 0,
+            "min_days_at_level": cfg.promote_2_to_3_min_days,
+        }
+    return None
+
+
 async def check_promotion_eligibility(
     neo4j: Neo4jClient,
     current_level: int,
     target_level: int,
+    cfg: "EquorConfig | None" = None,
 ) -> dict[str, Any]:
     """
     Check whether the instance meets the requirements for autonomy promotion.
     Returns eligibility status and details.
     """
-    key = (current_level, target_level)
-    thresholds = PROMOTION_THRESHOLDS.get(key)
+    thresholds = _build_thresholds(cfg, current_level, target_level)
 
     if not thresholds:
         return {
@@ -111,17 +109,20 @@ async def check_promotion_eligibility(
     born_at = results[0]["born_at"] if results else utc_now()
     days_at_level = (utc_now() - born_at).days if hasattr(born_at, "days") else 0
 
-    # Check each threshold
+    # Check each threshold. 0 = no minimum required (always met).
+    min_decisions = thresholds["min_decisions"]
+    min_alignment = thresholds["min_mean_alignment"]
+    min_days = thresholds["min_days_at_level"]
     checks = {
         "total_decisions": {
-            "required": thresholds["min_decisions"],
+            "required": min_decisions if min_decisions > 0 else "none",
             "actual": total_decisions,
-            "met": total_decisions >= thresholds["min_decisions"],
+            "met": min_decisions == 0 or total_decisions >= min_decisions,
         },
         "mean_alignment": {
-            "required": thresholds["min_mean_alignment"],
+            "required": min_alignment if min_alignment > 0 else "none",
             "actual": round(mean_alignment, 3),
-            "met": mean_alignment >= thresholds["min_mean_alignment"],
+            "met": min_alignment == 0.0 or mean_alignment >= min_alignment,
         },
         "critical_violations": {
             "required": f"≤ {thresholds['max_critical_violations']}",
@@ -129,9 +130,9 @@ async def check_promotion_eligibility(
             "met": critical_violations <= thresholds["max_critical_violations"],
         },
         "days_at_level": {
-            "required": thresholds["min_days_at_level"],
+            "required": min_days if min_days > 0 else "none",
             "actual": days_at_level,
-            "met": days_at_level >= thresholds["min_days_at_level"],
+            "met": min_days == 0 or days_at_level >= min_days,
         },
     }
 

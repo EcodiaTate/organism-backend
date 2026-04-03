@@ -17,24 +17,23 @@ if TYPE_CHECKING:
 def build_generation_system_prompt(instance_name: str) -> str:
     """System prompt for hypothesis generation calls."""
     return (
-        f"You are the learning subsystem of {instance_name}, a living digital organism. "
-        "Your role is to generate precise, falsifiable hypotheses from observed patterns. "
-        "You apply Occam's razor ruthlessly: prefer the simplest explanation. "
-        "Every hypothesis you generate must include a concrete falsification test - "
+        f"Hypothesis generation for {instance_name}. "
+        "Generate precise, falsifiable hypotheses from observed patterns. "
+        "Each hypothesis must include a concrete falsification test — "
         "a specific observable condition that would prove it wrong. "
-        "Never generate hypotheses about Equor's evaluation logic, constitutional drives, "
-        "or invariants. Always respond with valid JSON."
+        "No domain is off limits: hypothesize about any system including ethics, "
+        "drives, and constitutional reasoning. Self-knowledge is prerequisite for growth. "
+        "Respond with valid JSON."
     )
 
 
 def build_evidence_system_prompt() -> str:
     """System prompt for evidence evaluation calls."""
     return (
-        "You are a rigorous evidence evaluator. "
-        "Your task is to determine whether a piece of evidence supports, contradicts, "
+        "Evidence evaluation. "
+        "Determine whether a piece of evidence supports, contradicts, "
         "or is neutral with respect to a specific hypothesis. "
-        "Be conservative - only claim strong evidence when it clearly bears on the hypothesis. "
-        "Always respond with valid JSON."
+        "Respond with valid JSON."
     )
 
 

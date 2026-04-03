@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import os
 import time
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -61,19 +62,22 @@ logger = structlog.get_logger("nova.opportunity_scanner")
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
-# Opportunity is auto-converted to a Nova goal when BOTH thresholds pass
-AUTO_GOAL_MIN_CONFIDENCE: float = 0.80
-AUTO_GOAL_MIN_ROI: float = 3.0
+# Auto-goal promotion: opportunity is injected directly as Nova goal when BOTH thresholds pass.
+# 0.0 = no gate (all opportunities pass; Nova deliberation decides).
+# Set NOVA_AUTO_GOAL_MIN_CONFIDENCE / NOVA_AUTO_GOAL_MIN_ROI in env to add a floor.
+AUTO_GOAL_MIN_CONFIDENCE: float = float(os.getenv("NOVA_AUTO_GOAL_MIN_CONFIDENCE", "0.0"))
+AUTO_GOAL_MIN_ROI: float = float(os.getenv("NOVA_AUTO_GOAL_MIN_ROI", "0.0"))
 
-# Opportunities below this composite drive score are discarded
-MIN_COMPOSITE_SCORE: float = 0.15
+# Composite drive score floor before emission. 0.0 = emit everything.
+# Set NOVA_MIN_COMPOSITE_SCORE in env to filter low-alignment noise.
+MIN_COMPOSITE_SCORE: float = float(os.getenv("NOVA_MIN_COMPOSITE_SCORE", "0.0"))
 
 # Assumed hourly cost for effort estimation (blended RE + Claude API cost)
-HOURLY_COST_USD: float = 0.50
+HOURLY_COST_USD: float = float(os.getenv("NOVA_HOURLY_COST_USD", "0.50"))
 
-# Yield opportunity: only surface if new pool APY is at least this much better than
-# the organism's current best deployed position (absolute percentage points)
-YIELD_IMPROVEMENT_THRESHOLD_PCT: float = 20.0
+# Yield improvement gate: 0.0 = surface all yield opportunities regardless of improvement delta.
+# Set NOVA_YIELD_IMPROVEMENT_THRESHOLD_PCT in env to filter marginal improvements.
+YIELD_IMPROVEMENT_THRESHOLD_PCT: float = float(os.getenv("NOVA_YIELD_IMPROVEMENT_THRESHOLD_PCT", "0.0"))
 
 # Maximum items in the in-memory opportunity backlog (oldest evicted first)
 MAX_BACKLOG_SIZE: int = 50

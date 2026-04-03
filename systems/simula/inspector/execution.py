@@ -74,27 +74,16 @@ _HEALTHY_STATUS_CODES = frozenset({200, 201, 204, 301, 302, 400, 401, 403, 404, 
 # ── LLM prompt for Dockerfile generation ──────────────────────────────────────
 
 _DOCKERFILE_GENERATION_PROMPT = """\
-You are a DevOps engineer generating minimal Dockerfiles for development servers.
+Minimal Dockerfile for a development server.
 
-Given the detected language and list of build files present in a repository,
-generate a Dockerfile that:
-1. Uses the smallest appropriate base image (e.g., python:3.12-slim, node:22-alpine).
-2. Copies the workspace contents into /app.
-3. Installs dependencies.
-4. Exposes the default port for the framework.
-5. Starts the development server.
+Detected language and build files are provided below. Generate a Dockerfile using:
+- The smallest appropriate base image (e.g., python:3.12-slim, node:22-alpine)
+- COPY workspace into /app, install dependencies, EXPOSE the default port, CMD to start
+- CMD (not ENTRYPOINT); no multi-stage builds; no test dependencies
+- Python: `pip install --no-cache-dir -r requirements.txt` then uvicorn/flask as appropriate
+- Node: `npm ci --production` then `npm start`
 
-Rules:
-- The Dockerfile must be self-contained and build without external context.
-- Use EXPOSE for the port(s) the server listens on.
-- Use CMD (not ENTRYPOINT) so the container can be overridden.
-- For Python: prefer `pip install --no-cache-dir -r requirements.txt` then
-  `uvicorn main:app --host 0.0.0.0` or `python -m flask run --host 0.0.0.0`
-  depending on framework detected.
-- For Node: `npm ci --production` then `npm start`.
-- Keep it minimal - no multi-stage builds, no test dependencies.
-
-Respond with ONLY the Dockerfile content. No markdown fences, no explanations."""
+Output ONLY the Dockerfile content. No markdown fences."""
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

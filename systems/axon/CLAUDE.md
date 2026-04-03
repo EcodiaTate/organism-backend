@@ -29,7 +29,7 @@ Steps execute **sequentially** by default. Parallel group batching (`parallel_gr
 - Gates: template active + **staleness check (≤60s since last Equor review)** + capital ceiling + rate limit
 - Target: ≤150ms; no planning, no full constitutional review cycle
 - Full audit trail still written
-- **Staleness gate (2026-03-09)**: `FastPathExecutor.execute()` checks `(utc_now() - template.last_approved_at).total_seconds() > 60.0` and fails the execution if stale. This mirrors `TemplateLibrary.find_match()` but is enforced at execution time so constitutional drift after registration cannot be exploited.
+- **Staleness gate**: `FastPathExecutor.execute()` checks `(utc_now() - template.last_approved_at).total_seconds() > 60.0` and fails the execution if stale. This mirrors `TemplateLibrary.find_match()` but is enforced at execution time so constitutional drift after registration cannot be exploited.
 
 ---
 
@@ -53,7 +53,7 @@ Steps execute **sequentially** by default. Parallel group batching (`parallel_gr
 
 - **`RateLimiter`** (`safety.py`) - Redis-backed sliding window; in-memory fallback; adaptive multipliers
 - **`CircuitBreaker`** (`safety.py`) - CLOSED/OPEN/HALF_OPEN FSM; 5 failures → OPEN; 300s → HALF_OPEN; state persisted to Redis and restored on `initialize()` (via `load_all_states()`)
-- **`BudgetTracker`** (`safety.py`) - per-cycle reset; `max_actions_per_cycle=5`, `max_concurrent_executions=3`; sub-limits enforced via sliding-window deques: `max_api_calls_per_minute` (checked in Stage 3) and `max_notifications_per_hour` (checked in Stage 3); recorded on step success via `record_action_type()`
+- **`BudgetTracker`** (`safety.py`) - per-cycle reset; all limits default to 0 (unlimited) via `AxonConfig`; 0 means no cap — set in config to restrict; sub-limits enforced via sliding-window deques: `max_api_calls_per_minute` (checked in Stage 3) and `max_notifications_per_hour` (checked in Stage 3); recorded on step success via `record_action_type()`
 - **`CredentialStore`** (`credentials.py`) - HMAC-signed scoped tokens; heuristic service detection
 - **`TransactionShield`** (`shield.py`) - 5 checks: blacklist, slippage, gas/ROI, eth_call simulation, MEV
 - **`AxonReactiveAdapter`** (`reactive.py`) - subscribes to 11 Synapse event types; adaptive budget tightening, circuit-breaker pre-emption, sleep queue with post-wake drain
@@ -71,10 +71,10 @@ Full 8-stage pipeline confirmed (`pipeline.py`). All safety systems (`safety.py`
 - NeuroplasticityBus hot-reload - live executor hot-swap without restart
 - `AxonReactiveAdapter` - 11 Synapse subscriptions for adaptive behavior
 - Bus-first execution lifecycle - `AXON_EXECUTION_REQUEST` emitted before pipeline; `AXON_EXECUTION_RESULT` emitted after; `AXON_ROLLBACK_INITIATED` on rollback; Nova/Thymos/Fovea subscribe - no direct cross-system calls
-- `MOTOR_DEGRADATION_DETECTED` now has two trigger paths: (1) rolling-window degradation (≥5 samples, <50% success, 60s cooldown) via `_performance_monitor.record()` → `_emit_motor_degradation()`; (2) metabolic emergency circuit breaker force-opens non-essential executors (social_post, bounty_hunt, deploy_asset, phantom_liquidity) and immediately fires `_emit_motor_degradation()` - closes Motor Degradation → Replanning closure loop (2026-03-07)
-- `asyncio` import added to `service.py` (was missing, required for `asyncio.create_task()` in metabolic emergency handler) (2026-03-07)
+- `MOTOR_DEGRADATION_DETECTED` now has two trigger paths: (1) rolling-window degradation (≥5 samples, <50% success, 60s cooldown) via `_performance_monitor.record()` → `_emit_motor_degradation()`; (2) metabolic emergency circuit breaker force-opens non-essential executors (social_post, bounty_hunt, deploy_asset, phantom_liquidity) and immediately fires `_emit_motor_degradation()` - closes Motor Degradation → Replanning closure loop
+- `asyncio` import added to `service.py` (was missing, required for `asyncio.create_task()` in metabolic emergency handler)
 
-### Dynamic Executor System (2026-03-08)
+### Dynamic Executor System
 
 **`ExecutorTemplate`** (`types.py`) - blueprint for a dynamically generated executor. Fields: `name`, `action_type`, `description`, `protocol_or_platform`, `required_apis`, `risk_tier`, `max_budget_usd`, `capabilities`, `safety_constraints`, `source_hypothesis_id`, `source_opportunity_id`. `required_autonomy` is derived from `risk_tier` (low→2, medium→3, high→4).
 
@@ -90,7 +90,7 @@ Full 8-stage pipeline confirmed (`pipeline.py`). All safety systems (`safety.py`
 - `_record_incident(...)` - 24h rolling window; `_auto_disable()` at ≥3 incidents → `EXECUTOR_DISABLED` emitted
 - Abstract: `_execute_action(params, context)`, `_validate_action_params(params)`
 
-**`InstanceAdapterRegistry`** (`adapter_registry.py`) - NEW (2026-03-08):
+**`InstanceAdapterRegistry`** (`adapter_registry.py`) - NEW:
 - Tracks which LoRA adapters are available per domain; persists `(:LoRAAdapter)` nodes to Neo4j
 - `initialize()` - loads `status='ready'` adapter paths from Neo4j on boot
 - `load_for_domain(domain)` - switches effective adapter; emits `ADAPTER_LOAD_REQUESTED` if changed
@@ -121,7 +121,7 @@ Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (new DeFi/bounty protocol, no exec
   → EXECUTOR_REGISTERED emitted - Thymos opens 24h monitoring window
 ```
 
-**Safety guarantees (non-negotiable):**
+**Safety guarantees (enforced by architecture):**
 - Generated code cannot import from `systems.*`
 - Budget hard cap enforced at `DynamicExecutorBase` level - never in generated code
 - Equor must PERMIT every individual action (no batch pre-approval)
@@ -161,7 +161,7 @@ Oikos ProtocolScanner: OPPORTUNITY_DISCOVERED (new DeFi/bounty protocol, no exec
 
 ---
 
-## Bounty PR Pipeline (2026-03-08)
+## Bounty PR Pipeline
 
 ### New SynapseEventTypes
 | Event | Trigger | Key Payload |
@@ -208,7 +208,7 @@ Resolved PRs (merged or rejected) have their Redis keys deleted by `MonitorPRsEx
 - Equor DENY aborts PR submission before any GitHub API call is made
 - PR polling is Level 1 (ADVISOR) - read-only GitHub API; never writes
 
-## Web Intelligence System (2026-03-09)
+## Web Intelligence System
 
 ### New: `clients/web_client.py` - `WebIntelligenceClient`
 
@@ -221,7 +221,7 @@ First-class real-time web data gathering. All methods degrade gracefully - never
 - `monitor_url(url)` - SHA-256 hash-based change detection; returns `ChangeReport`
 - `check_robots(url)` - robots.txt compliance check (cached 24h per domain)
 
-**Legal/ethical invariants (hardcoded, non-negotiable):**
+**Legal/ethical invariants (enforced at runtime):**
 - robots.txt gate on every `fetch_page()` call - disallowed → `PageContent(status_code=403)` + `WEB_SCRAPE_BLOCKED` emitted
 - Rate limit: `≥1s` between requests to same domain; hard ceiling `60 req/hr` per domain
 - Neo4j audit trail: every fetch/search writes `(:WebIntelligenceEvent)-[:HAS_EVENT]->(:WebDomain)`
@@ -377,50 +377,13 @@ All originally-tracked gaps are now resolved. See Spec §20 Resolved Gaps table 
 
 **`AXON_INTENT_PIVOT`** - `_emit_intent_pivot(intent_id, execution_id, failed_step_index, failed_action_type, failure_reason, remaining_steps, fallback_goal, context)`. Emitted when a step fails and the organism should replan rather than abort. Nova subscribes and can inject revised steps. Salience fixed at 0.8. Closes the binary abort/continue gap.
 
-### Dead Wiring Closed (8 Mar 2026 - autonomy audit)
-
-- ~~**`axon.set_synapse(synapse)` never called**~~ - **FIXED 2026-03-08**: `wire_synapse_phase()` in `core/wiring.py` now calls `axon.set_synapse(synapse)` after `axon.set_sacm(sacm_client)`. This wires `RequestFundingExecutor._synapse` so it can read live metabolic state (`rolling_deficit`, `burn_rate`) from Synapse. Previously the setter was implemented but never invoked - funding-request executors had no Synapse reference.
-- ~~**`axon.set_block_competition_monitor()` never called**~~ - **FIXED 2026-03-08**: `registry.py` Phase 8 (after `wire_intelligence_loops()`) now instantiates `BlockCompetitionMonitor` from `systems.fovea.block_competition` (the correct injection point - no cross-system import in Axon) and calls `axon.set_block_competition_monitor(_bcm)` when `config.mev.enabled=True`. Previously the MEV analyzer had no block competition data - it could never do adaptive transaction timing. Monitor creation is wrapped in try/except so a failed RPC connection degrades gracefully to heuristic-only MEV scoring.
-
-### Previously Resolved (8 Mar 2026)
-- **`AXON_TELEMETRY_REPORT` - NEW (2026-03-08)**: `AxonIntrospector.full_report` + `drain_recommendations()` were generated but never emitted to the bus - invisible to Nova/Evo/RE at planning time. Fixed by subscribing to `CYCLE_COMPLETED` in `set_event_bus()`; every 50 cycles `_on_theta_cycle_complete()` fires `asyncio.create_task(_emit_axon_telemetry_report())`. Payload: `executor_profiles`, `reliable_patterns`, `failure_hotspots`, `recommendations` (drained - surfaced exactly once), `stats`, `circuit_breaker_states`, `budget_utilisation`, `starvation_level`. New `SynapseEventType.AXON_TELEMETRY_REPORT` added. `_telemetry_cycle_counter` + `_telemetry_emit_interval=50` added to `__init__`.
-- ~~`YIELD_DEPLOYMENT_REQUEST` had no Axon subscriber~~ - **FIXED 2026-03-08**: `set_event_bus()` now subscribes to `YIELD_DEPLOYMENT_REQUEST`; `_on_yield_deployment_request()` dispatches to the registered `DeFiYieldExecutor` and emits `YIELD_DEPLOYMENT_RESULT` - closes the Oikos request/response future
-- **Constitutional gate added to `_on_yield_deployment_request` (2026-03-09)**: Before dispatching to `DeFiYieldExecutor`, emits `EQUOR_ECONOMIC_INTENT` and awaits `EQUOR_ECONOMIC_PERMIT` (30s timeout → auto-permit on timeout only, DENY aborts). Oikos metabolic decisions are not equivalent to Equor constitutional review - capital deployments require both.
-- ~~`YIELD_DEPLOYMENT_RESULT` never emitted by Axon~~ - **FIXED 2026-03-08**: (1) `_on_yield_deployment_request()` emits it after direct executor dispatch; (2) `_emit_financial_events()` now also emits it for `defi_yield` steps that run through the normal Nova/Equor pipeline path - both paths covered
-- Helper `_emit_yield_deployment_result()` added to `service.py` - DRY emit with full `{request_id, success, tx_hash, protocol, amount, action, error}` payload
-
-### Previously Resolved (2026-03-07)
-- ~~Circuit breaker state not persisted to Redis~~ - **FIXED 2026-03-07**: `CircuitBreaker` now receives `redis_client`+`event_bus` at construction; `initialize()` calls `load_all_states()` to restore tripped states across restarts
-- ~~BudgetTracker sub-limits not enforced~~ - **FIXED 2026-03-07**: `can_execute_action_type()` + `record_action_type()` wired into Stage 3 and step execution; sliding-window deques enforce API calls/min and notifications/hr across cycle boundaries
-- ~~AV3: `from systems.fovea.types import InternalErrorType`~~ - **FIXED 2026-03-07**: replaced with string literal `"COMPETENCY"` in `service.py`
-- ~~`SendEmailExecutor` / `FederationSendExecutor` / `AllocateResourceExecutor` / `AdjustConfigExecutor`~~ - all now implemented and registered in `build_default_registry()`
-- **`SendEmailExecutor` EmailClient wiring** (2026-03-08): `set_email_client(client)` injection method added; `EmailClient` (`clients/email_client.py`) instantiated in `core/registry.py` Phase 11 and injected via `axon.executor_registry.get("send_email").set_email_client(client)`. Supports AWS SES primary backend (boto3 in thread executor) + SMTP fallback (aiosmtplib). Config via `ORGANISM_EMAIL__*` env vars. Returns `{}` on all failures (never raises).
-- **`SendTelegramExecutor`** (`executors/send_telegram.py`) - NEW (2026-03-08, Phase 16h): `action_type="send_telegram"`, `required_autonomy=2` (COLLABORATOR), `reversible=False`, `rate_limit=RateLimit.per_hour(30)`. Params: `message` (required, ≤4096 chars), `chat_id` (optional - falls back to `ORGANISM_CONNECTORS__TELEGRAM__ADMIN_CHAT_ID`), `parse_mode` (default "Markdown"). Injection: `set_telegram_connector(connector)` + `set_event_bus(bus)`. RE training on each send with `constitutional_alignment={honesty:1.0, care:0.8, growth:0.6, coherence:0.9}`. Returns `ExecutionResult(success=False)` when connector or chat_id absent - never raises.
-- ~~`axon.stats` incomplete~~ - `stats` property includes `circuit_trips`, `budget_utilisation`, `introspection`, `reactive`
-
 ---
 
-## Dead Code (Do Not Reuse)
+## Known Issues
 
-- `executors/synapse_simula_codegen_stall_repair.py` - wrong ABC signatures, not registered
-- `executors/thymos_t4_simula_codegen_repair.py` - wrong ABC signatures, not registered
-- `executors/thymos_t4_simula_codegen_stall_repair.py`, `executors/synapse_memory_repair.py`, `executors/thymos_t4_fovea_simula_codegen_repair.py` - likely same pattern
-- `BudgetTracker.can_execute_intent()` (`safety.py:411`) - dead, never called by pipeline
-- `AxonReactiveAdapter._active_threat_level` - set in handler, never read
-
----
-
-## Architecture Violations
-
-- **AV1 [CRITICAL]:** `pipeline.py` - missing executor incident reporting uses `SynapseEventType.SYSTEM_FAILED` with a raw dict payload - Thymos receives this but with no `Incident` primitive (acceptable workaround, avoids cross-import)
-- **AV4 [MEDIUM]:** `fast_path.py` - direct handle to `TemplateLibrary` (Equor subsystem); runtime coupling even if TYPE_CHECKING guarded
-- **AV5:** `executors/__init__.py` - `from systems.sacm.remote_compute_executor import RemoteComputeExecutor` - irregular ownership; SACM owns this executor, lazy-imported at registration only
-
-### Resolved Architecture Violations
-- ~~AV2 [CRITICAL]: `pipeline._deliver_to_nova()` direct Nova fallback~~ - **FIXED 2026-03-07**: fallback removed; warning logged when no event bus wired; bus-first enforced
-- ~~AV3 [HIGH]: `from systems.fovea.types import InternalErrorType`~~ - **FIXED 2026-03-07** (string literal)
-- ~~AV3 [HIGH]: `from systems.fovea.types import WorkspaceContribution`~~ - already removed before this session
-- ~~AV6 [HIGH]: `from systems.fovea.block_competition import BlockCompetitionMonitor` runtime import in `initialize()`~~ - **FIXED 2026-03-07**: replaced with injection pattern (`set_block_competition_monitor(monitor: Any)`); wiring layer creates and injects the monitor post-initialize; no cross-system import at any call site
+- **AV1:** `pipeline.py` - missing executor incident uses `SynapseEventType.SYSTEM_FAILED` with raw dict payload (no `Incident` primitive — acceptable, avoids cross-import)
+- **AV4:** `fast_path.py` - direct handle to `TemplateLibrary` (Equor subsystem); TYPE_CHECKING guarded but still runtime coupling
+- **AV5:** `executors/__init__.py` - `from systems.sacm.remote_compute_executor import RemoteComputeExecutor` — SACM owns this, lazy-imported at registration only
 
 ---
 

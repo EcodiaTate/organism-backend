@@ -51,14 +51,15 @@ logger = structlog.get_logger()
 
 # ─── Constants ──────────────────────────────────────────────────────────────────
 
-_MIN_NICHE_POPULATION: int = 5          # Minimum hypotheses to sustain a niche
-_MAX_NICHES: int = 12                   # Global cap on concurrent niches
-_ISOLATION_DECAY_RATE: float = 0.02     # Reproductive isolation strengthens over time
-_INITIAL_ISOLATION: float = 0.3         # Starting reproductive barrier
-_FULL_ISOLATION_THRESHOLD: float = 0.85 # Above this → fully reproductively isolated
-_GENE_FLOW_ATTENUATION: float = 0.5    # Evidence strength multiplier for cross-niche flow
-_NICHE_STARVATION_CYCLES: int = 5      # Cycles with no output → extinction
-_MATURITY_THRESHOLD: float = 0.75      # Niche coherence needed for forking eligibility
+import os as _os
+
+_MIN_NICHE_POPULATION: int = int(_os.environ.get("EVO_NICHE_MIN_POPULATION", "5"))
+_NICHE_STARVATION_CYCLES: int = int(_os.environ.get("EVO_NICHE_STARVATION_CYCLES", "5"))
+_ISOLATION_DECAY_RATE: float = float(_os.environ.get("EVO_NICHE_ISOLATION_DECAY_RATE", "0.02"))
+_INITIAL_ISOLATION: float = float(_os.environ.get("EVO_NICHE_INITIAL_ISOLATION", "0.3"))
+_FULL_ISOLATION_THRESHOLD: float = float(_os.environ.get("EVO_NICHE_FULL_ISOLATION_THRESHOLD", "0.85"))
+_GENE_FLOW_ATTENUATION: float = float(_os.environ.get("EVO_NICHE_GENE_FLOW_ATTENUATION", "0.5"))
+_MATURITY_THRESHOLD: float = float(_os.environ.get("EVO_NICHE_MATURITY_THRESHOLD", "0.75"))
 
 
 # ─── Types ──────────────────────────────────────────────────────────────────────
@@ -211,13 +212,8 @@ class NicheRegistry:
         """
         Promote a CognitiveSpecies to a full CognitiveNiche.
 
-        Returns None if max niches reached or species too small.
+        Returns None if species too small or metabolic pressure too high.
         """
-        alive_niches = [n for n in self._niches.values() if n.alive]
-        if len(alive_niches) >= _MAX_NICHES:
-            self._logger.warning("max_niches_reached", max=_MAX_NICHES)
-            return None
-
         if len(species.member_ids) < _MIN_NICHE_POPULATION:
             return None
 

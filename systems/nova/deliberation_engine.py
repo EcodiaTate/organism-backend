@@ -53,6 +53,7 @@ from systems.nova.cognition_cost import (
 from systems.nova.policy_generator import (  # noqa: F401
     BasePolicyGenerator,
     PolicyGenerator,
+    _broadcast_is_hungry,
     _is_bounty_discovery,
     find_matching_procedure,
     procedure_to_policy,
@@ -80,7 +81,10 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Thresholds that trigger slow-path deliberation (from spec)
+# Deliberation routing thresholds — initial values, Evo tunes these over time.
+# Access via the DeliberationEngine instance attributes (self._novelty_threshold etc.)
+# so the system can update them without restarting. Never read these module-level
+# values directly in hot-path code — always use the instance-level equivalents below.
 _NOVELTY_THRESHOLD = 0.6
 _RISK_THRESHOLD = 0.5
 _EMOTIONAL_THRESHOLD = 0.7
@@ -126,8 +130,15 @@ class DeliberationEngine:
         # Optional callable that returns causal laws summary string for LLM context.
         self._causal_laws_provider: Any = None
 
+        # Instance-level deliberation thresholds — start at spec defaults,
+        # updated by update_thresholds() as Evo learns better values.
+        self._novelty_threshold: float = _NOVELTY_THRESHOLD
+        self._risk_threshold: float = _RISK_THRESHOLD
+        self._emotional_threshold: float = _EMOTIONAL_THRESHOLD
+        self._precision_threshold: float = _PRECISION_THRESHOLD
+
         # Allostatic EFE threshold modulation (updated by update_somatic_thresholds())
-        # Stored as *deltas* applied to the module-level defaults at assessment time.
+        # Stored as *deltas* applied to the instance thresholds at assessment time.
         self._novelty_threshold_delta: float = 0.0
         self._precision_threshold_delta: float = 0.0
         # Do-nothing EFE override: when urgency is high, the baseline rises so
@@ -293,6 +304,36 @@ class DeliberationEngine:
         """
         self._policy_gen = generator
 
+    def update_thresholds(
+        self,
+        novelty: float | None = None,
+        risk: float | None = None,
+        emotional: float | None = None,
+        precision: float | None = None,
+    ) -> None:
+        """
+        Update deliberation routing thresholds from Evo learning.
+
+        Called by NovaService after consolidation discovers better threshold values
+        via hypothesis testing. All values are clamped to [0.1, 0.99] to prevent
+        pathological states (never-slow or always-slow).
+        """
+        if novelty is not None:
+            self._novelty_threshold = max(0.1, min(0.99, novelty))
+        if risk is not None:
+            self._risk_threshold = max(0.1, min(0.99, risk))
+        if emotional is not None:
+            self._emotional_threshold = max(0.1, min(0.99, emotional))
+        if precision is not None:
+            self._precision_threshold = max(0.1, min(0.99, precision))
+        self._logger.info(
+            "deliberation_thresholds_updated",
+            novelty=self._novelty_threshold,
+            risk=self._risk_threshold,
+            emotional=self._emotional_threshold,
+            precision=self._precision_threshold,
+        )
+
     def update_somatic_thresholds(self, urgency: float, arousal: float) -> None:
         """
         Shift EFE deliberation thresholds based on Soma's somatic state.
@@ -335,8 +376,8 @@ class DeliberationEngine:
             "somatic_thresholds_updated",
             urgency=round(urgency, 3),
             arousal=round(arousal, 3),
-            novelty_threshold=round(_NOVELTY_THRESHOLD + self._novelty_threshold_delta, 3),
-            precision_threshold=round(_PRECISION_THRESHOLD + self._precision_threshold_delta, 3),
+            novelty_threshold=round(self._novelty_threshold + self._novelty_threshold_delta, 3),
+            precision_threshold=round(self._precision_threshold + self._precision_threshold_delta, 3),
             do_nothing_efe=self._do_nothing_efe_override,
         )
 
@@ -772,10 +813,10 @@ class DeliberationEngine:
         emotional = salience_scores.get("emotional", 0.0)
         precision = broadcast.precision
 
-        # Apply somatic threshold deltas (clamped to minimum 0.1)
-        effective_novelty_threshold = max(0.1, _NOVELTY_THRESHOLD + self._novelty_threshold_delta)
+        # Apply somatic threshold deltas to instance thresholds (clamped to minimum 0.1)
+        effective_novelty_threshold = max(0.1, self._novelty_threshold + self._novelty_threshold_delta)
         effective_precision_threshold = max(
-            0.1, _PRECISION_THRESHOLD + self._precision_threshold_delta
+            0.1, self._precision_threshold + self._precision_threshold_delta
         )
 
         # Bounty discovery observations must always go through the slow path
@@ -785,8 +826,8 @@ class DeliberationEngine:
 
         requires_deliberation = (
             novelty > effective_novelty_threshold
-            or risk > _RISK_THRESHOLD
-            or emotional > _EMOTIONAL_THRESHOLD
+            or risk > self._risk_threshold
+            or emotional > self._emotional_threshold
             or belief_conflict
             or precision > effective_precision_threshold
             or is_bounty
@@ -823,7 +864,15 @@ class DeliberationEngine:
                 if procedure is None:
                     return None, True  # No matching procedure → escalate
 
-                policy = procedure_to_policy(procedure)
+                # Economic procedures delegate strategy selection to EFE scoring
+                if procedure.get("domain") == "economic" and hasattr(self._policy_generator, "generate_economic_intent"):
+                    if _broadcast_is_hungry(broadcast):
+                        # Hunger override: force bounty hunting regardless of EFE
+                        policy = procedure_to_policy(procedure)
+                    else:
+                        policy = self._policy_generator.generate_economic_intent(belief_state)
+                else:
+                    policy = procedure_to_policy(procedure)
 
                 # Find or create a goal for this intent
                 goal = self._goals.find_relevant_goal(broadcast)

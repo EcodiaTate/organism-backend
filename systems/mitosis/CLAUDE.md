@@ -84,7 +84,7 @@ When a child transitions to `INDEPENDENT`, `on_child_health_report()` sets `chil
 - Only active when `ORGANISM_IS_GENESIS_NODE != 'true'`
 - Collects: cpu_usage (Soma or psutil fallback), memory_usage, hypothesis_count (Evo), drive_alignment_scores, constitutional_drift_severity (Equor), financial fields
 - First report delayed 30s to allow boot
-- **Subscribes to `CHILD_HEALTH_REQUEST`** (2026-03-08): `_on_child_health_request()` responds immediately when parent probes this child instance - calls `_emit_report()` directly rather than waiting for the next 10-min cycle. Filters by `child_instance_id` to ignore probes for other children.
+- **Subscribes to `CHILD_HEALTH_REQUEST`**: `_on_child_health_request()` responds immediately when parent probes this child instance - calls `_emit_report()` directly rather than waiting for the next 10-min cycle. Filters by `child_instance_id` to ignore probes for other children.
 
 ### HIGH #3 - Deferred seed capital completion
 - `OikosService._on_child_wallet_reported()`: handles `CHILD_WALLET_REPORTED` event
@@ -369,7 +369,6 @@ Two hardcoded values had no runtime adjustment path:
 ## Known Remaining Issues
 
 - **Weekly dividend: `net_income_7d` source** - `ChildPosition.net_income_7d` must be populated from `CHILD_HEALTH_REPORT` processing in OikosService
-- ~~**Equor not yet subscribed to `EQUOR_ECONOMIC_INTENT`**~~ - **FIXED (v2.3, 2026-03-07)**: Equor subscribes and emits genuine PERMIT/DENY. 30s auto-permit is safety fallback only.
 - **LoRA weight mutation** - deferred; children don't have their own adapters yet
 
 ## Architecture Notes
@@ -382,7 +381,7 @@ Two hardcoded values had no runtime adjustment path:
 - Rescue max: 2 per child (configurable via `max_rescues_per_child`), restores to 60-day runway
 - `FleetManager.get_metrics(state)` is the public API - do not call `_compute_metrics()` directly
 
-## New SynapseEventTypes Added (2026-03-07)
+## New SynapseEventTypes Added
 
 Added to `synapse/types.py`:
 - `OIKOS_METABOLIC_SNAPSHOT` - for reactive fitness re-evaluation

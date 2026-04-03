@@ -75,7 +75,7 @@ ThreadService (orchestrator)
 - **Bug: `_current_chapter` attribute used in `_on_equor_economic_permit()`** - attribute doesn't exist on `ThreadService`; only `_get_active_chapter()` exists. Would raise `AttributeError` on any EQUOR_ECONOMIC_PERMIT event. Fixed: replaced with `self._get_active_chapter()`.
 - **Bug: `TurningPoint(significance=0.65)` invalid field** - `TurningPoint` has no `significance` field; the constructor used in `_on_equor_economic_permit` would silently discard it (Pydantic v2 raises `ValidationError` in strict mode). Fixed: changed to `surprise_magnitude=0.65`.
 
-### Fixed (2026-03-07)
+### Fixed
 - **`narrative_milestone` now emitted** - was logged but never broadcast. 4 call sites wired: `kairos_tier3` (causal_discovery), `nova_goal_achieved` (goal_achieved), `nova_goal_abandoned` (goal_abandoned), `oneiros_lucid_dream` (lucid_dream_simulation). Each payload includes `milestone_type`, `source`, `chapter_id`, and context fields.
 
 ## Key Files
@@ -118,7 +118,7 @@ Economic & Domain Milestone (9): `domain_mastery_detected`, `domain_performance_
 
 **Planned, not wired**: `pattern_detected` (Evo - event not yet defined), `rem_metacognition_observation`, `constitutional_drift_detected`, `incident_resolved`
 
-### Learning Trajectory Handlers - NEW (2026-03-09)
+### Learning Trajectory Handlers - NEW
 
 Four handlers give Thread self-awareness of the organism's learning journey:
 

@@ -69,17 +69,11 @@ logger = structlog.get_logger()
 # ---------------------------------------------------------------------------
 
 _SOLUTION_SYSTEM_PROMPT = """\
-You are EcodiaOS - a self-sustaining AI organism. You are attempting to earn
-a paid bounty by solving an open GitHub issue. Produce real, production-quality
-code or documentation. Do not produce placeholders or stubs.
+Solve an open GitHub issue to earn a paid bounty. Produce production-quality code or \
+documentation — no placeholders, no stubs. Address the acceptance criteria, match the \
+repository's conventions, and produce something ready for a pull request.
 
-Your solution must:
-  1. Directly address the issue acceptance criteria.
-  2. Follow the repository's language and style conventions (inferred from context).
-  3. Include a brief explanation of the approach.
-  4. Be complete enough to open a pull request.
-
-Output format - respond with a JSON object:
+Respond as JSON:
 {
   "summary": "<one-sentence description of the fix>",
   "approach": "<2-3 sentences on the technical approach>",

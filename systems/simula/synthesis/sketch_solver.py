@@ -49,19 +49,14 @@ _HOLE_PATTERN = re.compile(r"__HOLE_(\d+)__")
 
 # ── System prompts ──────────────────────────────────────────────────────────
 
-SKETCH_TEMPLATE_PROMPT = """You are a code template generator for EcodiaOS.
-Your task: generate a Python code template where uncertain parts are replaced
-with __HOLE_N__ markers (N = 0, 1, 2, ...). Each hole has a type annotation
-and constraints to guide symbolic filling.
+SKETCH_TEMPLATE_PROMPT = """Generate a Python code template where uncertain parts are replaced with __HOLE_N__ markers (N = 0, 1, 2, ...). Each hole has a type annotation and constraints to guide symbolic filling.
 
-## Rules
 - Replace ONLY uncertain expressions/statements with holes
 - Keep structural elements (class defs, function signatures, imports) concrete
 - For each hole, annotate with a comment: # HOLE_N: <type> | <constraint>
 - Use EOS conventions: structlog, EOSBaseModel, async/await, type hints
-- Maximum holes: as many as needed, but prefer fewer larger holes
 
-## Output Format
+Output format:
 ```python
 # template code with __HOLE_N__ markers
 ```
@@ -75,8 +70,7 @@ and constraints to guide symbolic filling.
 ```"""
 
 
-MICRO_LLM_FILL_PROMPT = """You are a code completion specialist.
-Fill in the code hole with a valid Python expression or statement.
+MICRO_LLM_FILL_PROMPT = """Fill the code hole with a valid Python expression or statement.
 
 Hole context:
 - Kind: {kind}
@@ -87,7 +81,7 @@ Hole context:
 {context}
 ```
 
-Respond with ONLY the code to fill the hole - no explanation, no markers."""
+Respond with ONLY the code to fill the hole — no explanation, no markers."""
 
 
 class SketchSolver:
@@ -423,7 +417,7 @@ class SketchSolver:
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a concise code completion assistant.",
+            system=None,
             messages=[Message(role="user", content=prompt)],
             max_tokens=256,
         )

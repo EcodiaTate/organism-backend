@@ -244,7 +244,6 @@ class DirectedExploration:
         ("constraint", "Under tight resource constraints, how does '{insight}' change?"),
     ]
     HIGH_COHERENCE_THRESHOLD: float = 0.85
-    MAX_SOURCE_INSIGHTS: int = 5           # cap to avoid combinatorial explosion
     EXPLORATION_DOMAINS: list[str] = [
         "memory", "causal", "economic", "social", "temporal", "structural",
     ]
@@ -305,7 +304,6 @@ class DirectedExploration:
           AND i.status = 'pending'
         RETURN i.insight_text AS text, i.domain AS domain
         ORDER BY i.coherence_score DESC
-        LIMIT $limit
         """
         try:
             result = await self._neo4j.execute_read(
@@ -313,7 +311,6 @@ class DirectedExploration:
                 {
                     "cycle_id": sleep_cycle_id,
                     "threshold": self.HIGH_COHERENCE_THRESHOLD,
-                    "limit": self.MAX_SOURCE_INSIGHTS,
                 },
             )
             for record in result.records:
@@ -321,7 +318,7 @@ class DirectedExploration:
         except Exception:
             self._logger.exception("directed_exploration_source_query_error")
 
-        return sources[: self.MAX_SOURCE_INSIGHTS]
+        return sources
 
     def _apply_operator(self, template: str, insight: str, domain: str) -> str:
         """Fill operator template. Picks a random exploration domain if none given."""

@@ -98,7 +98,7 @@ Honesty check: if forced positivity detected when `valence < -0.2`, regenerate w
 
 ---
 
-## Autonomy Audit Fixes (2026-03-08)
+## Autonomy Audit Fixes
 
 ### GAP 1 - Invisible telemetry: `VOXIS_EXPRESSION_DISTRESS` → Soma
 `VOXIS_EXPRESSION_DISTRESS` was emitted by `_allostatic_signal_loop()` but Soma only absorbed it via `subscribe_all()` into the generic signal buffer - no dedicated handler, no allostatic response. Fixed in `soma/service.py`:

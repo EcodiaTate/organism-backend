@@ -46,75 +46,49 @@ logger = structlog.get_logger().bind(system="simula.formal_specs.generator")
 
 
 _DAFNY_SPEC_PROMPT = """\
-You are a Dafny formal specification expert. Given a Python function,
-generate a Dafny specification that captures its pre/post conditions
-and invariants.
+Dafny formal specification for a Python function.
 
 Python function:
 ```python
 {source}
 ```
 
-Generate a complete Dafny method with:
-1. `requires` clauses for preconditions
-2. `ensures` clauses for postconditions
-3. Loop invariants where applicable
-4. The implementation body in Dafny syntax
-
-Output ONLY the Dafny source code (no markdown fences).
+Output: a complete Dafny method with `requires`/`ensures` clauses, loop invariants where applicable, and implementation body. Output ONLY the Dafny source code (no markdown fences).
 """
 
 _TLA_PLUS_PROMPT = """\
-You are a TLA+ specification expert. Generate a TLA+ specification for
-the following distributed system interaction:
+TLA+ specification for the following distributed system interaction.
 
 System: {system_name}
 Interactions: {interactions}
 
-The specification should model:
-1. State variables for each participant
-2. Initial state predicates
-3. Next-state relations for each interaction step
-4. Safety properties (invariants that must always hold)
-5. Liveness properties (things that must eventually happen)
-
-Output ONLY the TLA+ specification source code.
+Output: a TLA+ spec modelling state variables, initial predicates, next-state relations, safety invariants, and liveness properties. Output ONLY the TLA+ source code.
 """
 
 _ALLOY_PROMPT = """\
-You are an Alloy specification expert. Generate an Alloy model to check
-the following system properties:
+Alloy model for the following system properties.
 
 Properties to check:
 {properties}
 
-The Alloy model should:
-1. Define signatures for system entities
-2. Define facts constraining valid states
-3. Define assertions for each property
-4. Include check commands with scope {scope}
-
-Output ONLY the Alloy model source code.
+Output: an Alloy model with signatures, facts, assertions, and check commands with scope {scope}. Output ONLY the Alloy source code.
 """
 
 _SELF_SPEC_DSL_PROMPT = """\
-You are a domain-specific language designer. The system has encountered
-proposal category "{category}" which doesn't fit existing formal methods.
+Proposal category "{category}" doesn't fit existing formal methods (Dafny/TLA+/Alloy).
 
-Given these example proposals:
+Example proposals:
 {examples}
 
-Design a small, focused DSL that can specify the expected behavior
-for proposals in this category. Include:
-1. A BNF/PEG grammar for the DSL
-2. 3 example programs in the DSL
-3. A brief description of what the DSL verifies
+Design a minimal DSL that can specify expected behavior for this category.
 
-Output a JSON object with fields:
-- "dsl_name": string
-- "grammar": string (BNF grammar)
-- "examples": [string, string, string]
-- "description": string
+Output JSON:
+{{
+  "dsl_name": string,
+  "grammar": string,
+  "examples": [string, string, string],
+  "description": string
+}}
 """
 
 
@@ -275,7 +249,7 @@ class FormalSpecGenerator:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are a TLA+ specification expert for distributed systems.",
+                system="Generate valid TLA+ specification source. Output only the spec.",
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=4096,
             )
@@ -316,7 +290,7 @@ class FormalSpecGenerator:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are an Alloy formal specification expert.",
+                system="Generate a valid Alloy model. Output only the model source.",
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=4096,
             )
@@ -353,7 +327,7 @@ class FormalSpecGenerator:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are a DSL designer for formal verification.",
+                system="Generate a formal verification DSL definition. Output as JSON.",
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=4096,
             )
@@ -438,7 +412,7 @@ class FormalSpecGenerator:
             from clients.llm import Message
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are a Dafny formal verification expert.",
+                system="Generate a Dafny specification for the given function. Output only valid Dafny source.",
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=2048,
             )

@@ -50,11 +50,8 @@ logger = structlog.get_logger().bind(system="simula.debugging.causal")
 
 # ── System prompts ──────────────────────────────────────────────────────────
 
-INTERVENTION_PROMPT = """You are a causal reasoning specialist for EcodiaOS.
-Given a failing test and a suspected root cause function, determine:
-Would the test pass if this function were correct?
+INTERVENTION_PROMPT = """Causal intervention analysis.
 
-## Context
 Test failure: {test_output}
 Suspected function: {function_name} in {file_path}
 Function code:
@@ -62,21 +59,16 @@ Function code:
 {function_code}
 ```
 
-## Changed code (what was modified):
-{diff_summary}
+Changed code: {diff_summary}
 
-## Question
-If {function_name} were implemented correctly (matching the original
-intent), would the failing test pass?
+If {function_name} were implemented correctly (matching the original intent), would the failing test pass?
 
-## Output (JSON)
-```json
+Respond as JSON:
 {{
   "outcome_changed": true,
-  "reasoning": "The test fails because function_name returns X when it should return Y. If corrected, the test assertion would pass.",
+  "reasoning": "...",
   "confidence": 0.85
-}}
-```"""
+}}"""
 
 
 class CausalDebugger:
@@ -421,7 +413,7 @@ class CausalDebugger:
         )
 
         response = await self._llm.complete(  # type: ignore[attr-defined]
-            system="You are a causal reasoning expert. Answer precisely.",
+            system=None,
             messages=[Message(role="user", content=prompt)],
             max_tokens=512,
         )

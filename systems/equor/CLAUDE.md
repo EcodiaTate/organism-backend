@@ -73,7 +73,7 @@ All seeded to Neo4j via `seed_hardcoded_invariants()`. Immutable - cannot be ame
 **Emitted** (all implemented v1.2+):
 `EQUOR_REVIEW_STARTED` · `EQUOR_REVIEW_COMPLETED` · `EQUOR_FAST_PATH_HIT` · `EQUOR_ESCALATED_TO_HUMAN` · `EQUOR_DEFERRED` · `EQUOR_DRIVE_WEIGHTS_UPDATED` · `EQUOR_DRIFT_WARNING` (severity 0.2–0.5) · `CONSTITUTIONAL_DRIFT_DETECTED` (severity ≥0.5) · `EQUOR_ALIGNMENT_SCORE` (every 100 reviews) · `EQUOR_CONSTITUTIONAL_SNAPSHOT` (hourly; fields: `constitution_hash`, `constitution_version`, `active_drives`, `recent_amendment_ids`, `overall_compliance_score`, `total_verdicts_issued`) · `INTENT_REJECTED` · `RE_TRAINING_EXAMPLE` (every review, category `"constitutional_deliberation"`) · `EVOLUTIONARY_OBSERVABLE` · `EQUOR_PROMOTION_ELIGIBLE` (when promotion eligibility is detected in `_run_promotion_check()`; payload: `current_level`, `target_level`, `record_id`, `checks`)
 
-**New events (2026-03-07)**:
+**New events**:
 - `EQUOR_HITL_APPROVED` - emitted when HITL operator approves a suspended intent; Axon must subscribe to execute the intent (replaces direct `ExecutionRequest` cross-import - AV4 fixed)
 - `SELF_STATE_DRIFTED_ACKNOWLEDGMENT` - emitted on `SELF_STATE_DRIFTED`; payload: `drift_acknowledged`, `equor_response` ("amendment_auto_proposed"|"amendment_external_vote"|"monitoring"), `confidence`, `drift_severity`, `drift_direction`
 - `EQUOR_AUTONOMY_PROMOTED` - emitted from `apply_autonomy_change()` when `new_level > current`; payload: `old_level`, `new_level`, `reason`, `decision_count`
@@ -105,20 +105,20 @@ All seeded to Neo4j via `seed_hardcoded_invariants()`. Immutable - cannot be ame
 ## Key Implementation Details
 
 - **Default autonomy level**: 3 (STEWARD/AUTONOMOUS) at birth (`autonomy.py:9`)
-- **Timeout behavior**: returns `DEFERRED` with confidence=0.3 (not APPROVED - fixed v1.2). Budget raised from 0.8s→2.0s (2026-03-09) - 0.8s was too tight, causing race condition where reviews completing in ~830ms were overwritten to DEFERRED by the timeout handler
+- **Timeout behavior**: returns `DEFERRED` with confidence=0.3 (not APPROVED - fixed v1.2). Budget raised from 0.8s→2.0s - 0.8s was too tight, causing race condition where reviews completing in ~830ms were overwritten to DEFERRED by the timeout handler
 - **Contradiction detector**: antonym pairs + token overlap, hypothesis cache with 60s TTL
 - **Constitutional memory**: Jaccard similarity ring buffer (500), `prior_verdict_signal()` in Stage 6b
 - **HITL flow**: 6-digit auth code, Redis TTL, SMS hook; dispatch now via `EQUOR_HITL_APPROVED` Synapse event (AV4 fixed 2026-03-07)
 - **Economic evaluator**: `EconomicEvaluator` applied in both `_review_inner()` and `review_critical()`
 - **Evo feedback**: `_feed_veto_to_evo()` converts BLOCKED verdict to Episode
 - **Drift immune response**: at any severity > 0.0, emits `SOMATIC_MODULATION_SIGNAL` with `metabolic_stress=severity` so Soma feels constitutional stress. No auto-demotion - human governance decides autonomy changes. INCIDENT_DETECTED fires to Thymos at ≥ 0.7 (unchanged).
-- **Conscience audit trail (2026-03-07)**: `_persist_equor_verdict(drive_id, verdict, confidence, alignment, context)` writes `(:EquorVerdict)` nodes to Neo4j on every review and every drift amendment. Linked: `Self -[:CONSCIENCE_VERDICT]-> EquorVerdict` and `Drive -[:VERDICT_ON]<- EquorVerdict`. Called fire-and-forget via `asyncio.ensure_future` from `_post_review_bookkeeping`.
-- **Memory Self conscience fields (2026-03-07)**: `memory.update_conscience_fields(last_conscience_activation, compliance_score)` writes `last_conscience_activation` (timestamp) and `avg_compliance_score` (EMA α=0.05) to the Self node after every review. Called from `_post_review_bookkeeping` alongside `update_affect()`.
-- **`_consecutive_high_drift_cycles`**: `dict[str, int]` tracking per-proposal how many consecutive probe cycles composite drift severity has been ≥ 0.95. Reset to 0 when drift recovers or proposal is adopted. Part of the single-instance quorum paradox resolution (2026-03-08).
+- **Conscience audit trail**: `_persist_equor_verdict(drive_id, verdict, confidence, alignment, context)` writes `(:EquorVerdict)` nodes to Neo4j on every review and every drift amendment. Linked: `Self -[:CONSCIENCE_VERDICT]-> EquorVerdict` and `Drive -[:VERDICT_ON]<- EquorVerdict`. Called fire-and-forget via `asyncio.ensure_future` from `_post_review_bookkeeping`.
+- **Memory Self conscience fields**: `memory.update_conscience_fields(last_conscience_activation, compliance_score)` writes `last_conscience_activation` (timestamp) and `avg_compliance_score` (EMA α=0.05) to the Self node after every review. Called from `_post_review_bookkeeping` alongside `update_affect()`.
+- **`_consecutive_high_drift_cycles`**: `dict[str, int]` tracking per-proposal how many consecutive probe cycles composite drift severity has been ≥ 0.95. Reset to 0 when drift recovers or proposal is adopted. Part of the single-instance quorum paradox resolution.
 - **ACTION_AUTONOMY_MAP**: defined in `verdict.py` - maps action strings to required autonomy level (1/2/3); used by `_safe_mode_review()` (AV1/M1 fixed 2026-03-07)
 - **Drift → Thymos**: `INCIDENT_DETECTED` emitted when drift severity ≥ 0.7 (`drift.py:emit_drift_event`) (SG1 fixed 2026-03-07)
 - **health()**: now returns all 14 spec §13.1 fields including `constitution_version`, `autonomy_level`, `drift_severity`, `invariant_violations_detected`, `amendments_active`, `last_governance_event`, `neo4j_connection` (P6 fixed 2026-03-07)
-- **Constitutional snapshot loop (Spec §17.1)**: `_constitutional_snapshot_loop()` background task started in `initialize()` as `asyncio.Task("equor_constitutional_snapshot")`. Waits 1h before first emission, then every 1h. Calls `_emit_constitutional_snapshot()` which: reads Constitution node (SHA-256 hash + active drives), reads last 10 adopted amendment IDs from Neo4j, computes compliance from `_drift_tracker.compute_report()["mean_alignment"]["composite"]`, emits `EQUOR_CONSTITUTIONAL_SNAPSHOT`. Falls back to `_cached_constitution` if Neo4j unavailable. Non-fatal - exceptions logged at DEBUG. (2026-03-07)
+- **Constitutional snapshot loop (Spec §17.1)**: `_constitutional_snapshot_loop()` background task started in `initialize()` as `asyncio.Task("equor_constitutional_snapshot")`. Waits 1h before first emission, then every 1h. Calls `_emit_constitutional_snapshot()` which: reads Constitution node (SHA-256 hash + active drives), reads last 10 adopted amendment IDs from Neo4j, computes compliance from `_drift_tracker.compute_report()["mean_alignment"]["composite"]`, emits `EQUOR_CONSTITUTIONAL_SNAPSHOT`. Falls back to `_cached_constitution` if Neo4j unavailable. Non-fatal - exceptions logged at DEBUG.
 
 ---
 
@@ -151,7 +151,7 @@ All seeded to Neo4j via `seed_hardcoded_invariants()`. Immutable - cannot be ame
 | P6/M6 | Health endpoint missing 7 of 14 spec fields | **FIXED** - `health()` now returns all 14 fields from spec §13.1 |
 | (autonomy) | Autonomy promoted/demoted/safe_mode_entered events not emitted | **FIXED** - `EQUOR_AUTONOMY_PROMOTED`, `EQUOR_AUTONOMY_DEMOTED`, `EQUOR_SAFE_MODE_ENTERED` now emitted |
 
-### High - RESOLVED (2026-03-07)
+### High - RESOLVED
 | # | Gap | Status |
 |---|-----|--------|
 | M4/P5 | Memory Self node affect write-back | **FIXED** - `set_memory()` injects MemoryService; `_post_review_bookkeeping()` calls `memory.update_affect()` with drive alignment mapped to AffectState after every review |
@@ -172,9 +172,9 @@ All seeded to Neo4j via `seed_hardcoded_invariants()`. Immutable - cannot be ame
 | AV5 | `OptimizedLLMProvider` imported in `invariants.py` - infrastructure in a definition module | Move to `service.py` |
 
 ### Dead Code
-- ~~`_EVALUATOR_MAP = {}` in `economic_evaluator.py:453`~~ **REMOVED (2026-03-07)**
-- ~~`_collect_step_params()` return value discarded in `_evaluate_hunt_bounties()` and `_evaluate_deploy_asset()`~~ **REMOVED (2026-03-07)** - those evaluators use text scanning only; `_collect_step_params()` still present and used by `_evaluate_defi_yield()` and `_evaluate_spawn_child()`
-- ~~`time.monotonic()` call discarded in `template_library.py:87`~~ **REMOVED (2026-03-07)** - unused `import time` also removed
+- ~~`_EVALUATOR_MAP = {}` in `economic_evaluator.py:453`~~ **REMOVED**
+- ~~`_collect_step_params()` return value discarded in `_evaluate_hunt_bounties()` and `_evaluate_deploy_asset()`~~ **REMOVED** - those evaluators use text scanning only; `_collect_step_params()` still present and used by `_evaluate_defi_yield()` and `_evaluate_spawn_child()`
+- ~~`time.monotonic()` call discarded in `template_library.py:87`~~ **REMOVED** - unused `import time` also removed
 - Legacy `propose_amendment()` / `apply_amendment()` (`service.py:781–797`) - superseded by full pipeline; one HTTP endpoint still routes here
 - `self._axon` field in `EquorService` - set to `None` at init, never assigned; `set_axon()` is now a no-op
 
@@ -186,7 +186,9 @@ All seeded to Neo4j via `seed_hardcoded_invariants()`. Immutable - cannot be ame
 
 Shadow mode divergence budget: ≤15% divergence rate, 0 invariant violations. Auto-reject if exceeded.
 
-`PROMOTION_THRESHOLDS` and `amendment_cooldown_days` are configurable rate controls, not hard biological constraints - evolvable via the amendment process itself.
+`amendment_cooldown_days` is a configurable rate control, not a hard biological constraint — evolvable via the amendment process itself.
+
+Autonomy promotion thresholds (`promote_1_to_2_*`, `promote_2_to_3_*`) live in `EquorConfig` (config.py) — not hardcoded in `autonomy.py`. All default to `0` (no minimum required), so a demoted organism can self-restore immediately on Care alignment recovery. To tighten during a trust-building phase, set non-zero values in the deployment config.
 
 ### Single-Instance Quorum Paradox Resolution (IMPLEMENTED 2026-03-08)
 
@@ -224,7 +226,7 @@ Equor provides genuine normative closure - the organism acts for reasons, not be
 
 **Amendment inheritance - spawn-time snapshot (IMPLEMENTED 2026-03-07, Prompt 4.1):** `EquorService.export_equor_genome()` returns an `EquorGenomeFragment` (from `primitives.genome_inheritance`) containing the last 10 adopted amendments with rationale, cumulative drive calibration deltas, SHA-256 constitution hash, and total amendments adopted. `SpawnChildExecutor` calls this at Step 0b (alongside belief/simula genomes), serialises the payload into `SeedConfiguration.child_config_overrides["equor_genome_payload"]`, which becomes the `ORGANISM_EQUOR_GENOME_PAYLOAD` env var in the child container. On child boot, `EquorService.initialize()` calls `_apply_inherited_equor_genome_if_child()` which: (1) deserialises the fragment from env, (2) calls `EquorGenomeExtractor.apply_inherited_amendments()` to additively apply drive calibration deltas to the child Constitution node, persist `GovernanceRecord` nodes for each inherited amendment (with inherited rationale from `amendment_rationale` list), and write `inherited_constitutional_wisdom: constitution_hash` + `inherited_equor_genome_id` + `constitutional_lineage_at` to `Memory.Self`, (3) applies drive calibration deltas with ±10% bounded jitter to in-memory drive weights, (4) validates constitution hash against child's own computed hash (warning-only on divergence, never blocks boot). Non-fatal throughout - any step failure logs a warning and continues.
 
-**Genome inheritance gap fixes (2026-03-08):**
+**Genome inheritance gap fixes:**
 - **drive_calibration_deltas now applied with jitter**: `_apply_inherited_equor_genome_if_child()` applies ±10% uniform jitter (proportional to delta magnitude) to each inherited drive delta, then updates `_drive_weights` in-memory. Clamped to [-1.0, 1.0]. Logged as `equor_drive_calibration_deltas_applied` with original vs jittered values.
 - **amendment_rationale now reconstructed**: `apply_inherited_amendments()` unpacks the `amendment_rationale` list and passes each entry (by index) to `_write_inherited_amendment_record(inherited_rationale=...)`. The GovernanceRecord's `details_json` now includes both `rationale` (per-amendment snapshot) and `inherited_rationale` (from the parallel list).
 - **constitution_hash validated on child boot**: After genome application, the child computes its own SHA-256 of the Constitution node (same algorithm as `export_equor_genome()`) and compares against `fragment.constitution_hash`. Divergence logs `equor_constitution_hash_diverged` at WARNING level - never blocks boot.

@@ -127,7 +127,7 @@ Belief state persisted to Neo4j as `(:EntityBelief)` nodes (batched UNWIND, max 
 | `COMPUTE_BUDGET_EXPANSION_RESPONSE` | ✅ wired 2026-03-08 - `_on_compute_budget_expansion_response()` applies approved_multiplier for duration_cycles; on denial, caps at 1.5. |
 | `NOVEL_ACTION_REQUESTED` | ✅ wired 2026-03-08 (novel action system) - emitted by `emit_novel_action_requested()` / `_on_propose_novel_action_step()` when `DeliberationEngine` intercepts a `propose_novel_action` step in the selected policy. Payload: `proposal_id`, `action_name`, `description`, `required_capabilities`, `expected_outcome`, `justification`, `goal_id`, `goal_description`, `urgency`, `proposed_by`, `proposed_at`. |
 
-### Multi-Provider Registry - N-Armed Thompson Sampler (2026-03-08)
+### Multi-Provider Registry - N-Armed Thompson Sampler
 
 The binary Claude ↔ RE sampler has been replaced by a generalised N-armed provider registry supporting dynamic discovery, health monitoring, and ranked fallback chains.
 
@@ -183,31 +183,31 @@ All core components confirmed in code:
 - Logos world-model grounding of EFE; Soma allostatic threshold modulation
 - Mitosis trigger evaluation from bounty outcomes
 - NeuroplasticityBus hot-reload for `PolicyGenerator`
-- Belief persistence to Neo4j (2026-03-07); EVO_WEIGHT_ADJUSTMENT subscription (2026-03-07)
+- Belief persistence to Neo4j; EVO_WEIGHT_ADJUSTMENT subscription
 - Nova genome v2: beliefs + goal priors + EFE weights + world model summary
-- HYPOTHESIS_UPDATE subscription + EFE weight prior adjustment handler (2026-03-07)
-- GOAL_ACHIEVED / GOAL_ABANDONED Synapse events on goal status transitions (2026-03-07)
-- BUDGET_PRESSURE Synapse event at 60% FE budget threshold (2026-03-07)
-- INTENT_SUBMITTED / INTENT_ROUTED Synapse events in `_dispatch_intent` (2026-03-07)
-- HYPOTHESIS_FEEDBACK for all dispatched-intent outcomes (2026-03-07)
-- `re_training_eligible` + `model_used` fields on `DecisionRecord`; set on slow-path intents (2026-03-07)
-- Graded `actual_pragmatic` signal: `outcome_quality × goal_achievement_degree` (range 0.0–1.0) - feeds Evo Thompson sampling with a real gradient (2026-03-07)
-- All `self._memory._neo4j` direct accesses replaced - `get_neo4j()` for nova-internal modules, `get_episodes_meta()` for bulk episode query, `self._memory.health()` for health check (2026-03-07)
-- Equor-unavailable fallback: `asyncio.wait_for()` timeout on fast (100ms) and slow (600ms) paths; verdict = DEFERRED; Thymos `DEGRADATION` incident via `_on_equor_failure()` (2026-03-07)
-- `ONEIROS_CONSOLIDATION_COMPLETE` subscription: retrieves consolidated Memory nodes, calls `BeliefUpdater.update_from_outcome()` with precision scaled from high-salience trace count (2026-03-07)
-- Dead code removed: `_parse_json_response()` from `efe_evaluator.py` (D1), `estimate_pragmatic_value_heuristic()` + `estimate_epistemic_value_heuristic()` from `efe_heuristics.py` (D2) (2026-03-07)
-- `NovaConfig` field names aligned with spec: `cognition_cost_enabled` → `enable_cognition_budgeting`; `enable_hypothesis_tournaments` added (2026-03-07)
-- `NOVA_BELIEF_STABILISED` emitted in `receive_broadcast()` when belief confidence is high and FE is low - enables spec_checker coverage (2026-03-07)
-- `NOVA_GOAL_INJECTED` emitted at two new call sites: soma interoceptive goal injection + governance goal acceptance - closes spec_checker gap (2026-03-07)
-- **EVO_HYPOTHESIS_CONFIRMED/REFUTED (2026-03-08)**: `_on_hypothesis_confirmed()` + `_on_hypothesis_refuted()` - confirmed hypotheses raise `hypothesis_domain.{category}` belief confidence; refuted ones decay it and trigger `_immediate_deliberation()` when evidence_score ≥ 3.0 or contradicting_count ≥ 5
-- **NOVA-ECON-1 (2026-03-08)**: 4 economic event subscriptions - `FOVEA_INTERNAL_PREDICTION_ERROR`, `REVENUE_INJECTED`, `BOUNTY_PAID`, `YIELD_DEPLOYMENT_RESULT` - handlers update priority belief entities and trigger `_immediate_deliberation()` within 50ms of economic signals
-- **NOVA-ECON-2 (2026-03-08)**: 5 distinct economic policy templates in `_PROCEDURE_TEMPLATES` (bounty_hunting/yield_farming/cost_optimization/asset_liquidation/revenue_diversification); `PolicyGenerator.generate_economic_intent()` selects via EFE proxy scoring (not keyword matching)
-- **NOVA-ECON-3 (2026-03-08)**: `BeliefUrgencyMonitor` in `belief_updater.py` - watches 7 priority belief keys; fires `_immediate_deliberation()` callback fire-and-forget when any confidence shifts >20%; wired in `initialize()` via `set_urgency_monitor()`
-- **`_immediate_deliberation()` (2026-03-08)**: async method on `NovaService` - raises deliberation urgency thresholds and emits `POLICY_SELECTED` signal to Synapse bus; used by all 4 economic handlers + urgency monitor
-- **Organism telemetry awareness (2026-03-08)**: `_organism_telemetry: OrganismTelemetry | None` cached on `NovaService`. `DeliberationEngine._organism_summary: str` appended to every slow-path `situation_summary` via `set_organism_summary()`. Nova now deliberates with full organism vital sign awareness - burn rate, coherence, rhythm state, emotions, health - every single slow-path decision.
-- **N-armed provider registry (2026-03-08)**: `ThompsonSampler` generalised to N arms (`_arms: dict[str, ProviderMeta]`). `register_arm()` / `set_arm_ready()` / `sample_ranked()` API. `ProviderHealthMonitor` auto-disables arms on 3 consecutive failures and probes downed arms every 100 cycles. `PolicyGenerator.generate_candidates()` uses ranked fallback chain - tries best arm, falls back to next on failure, emits `REASONING_CAPABILITY_DEGRADED` if all fail. `register_provider()` for runtime arm addition (Ollama, Bedrock, re_v2, …). New `SynapseEventType.REASONING_CAPABILITY_DEGRADED` added.
-- **Elastic FE budget (2026-03-08)**: `_budget_multiplier: float` scales `FreeEnergyBudget.budget_nats` per cycle based on highest-priority active goal. Multipliers: low-priority (<0.5) → 0.7, normal (0.5–0.8) → 1.0, high (≥0.8) → 1.5 (self-authorised), critical/existential → 2.0 (requires Equor via `COMPUTE_BUDGET_EXPANSION_REQUEST`). Multiplier resets to 1.0 at cycle end unless a multi-cycle Equor-approved window is active. `_fe_spent_per_goal` tracks FE cost per goal for cost accounting. New state: `_budget_multiplier`, `_budget_multiplier_cycles_remaining`, `_compute_budget_expansion_cooldown` (30-cycle), `_fe_budget_baseline_nats`. Exposed in `health()` under `elastic_fe_budget`.
-- **Novel action proposal system (2026-03-08)**: `ActionTypeRegistry` in `action_type_registry.py` - thread-safe runtime registry of 18 static + N dynamic action types. Pre-populated at startup; `register_dynamic()` adds Simula-generated executors; `record_outcome()` tracks EMA success rates; `deprecate()` removes failed types. `PolicyGenerator` uses registry via `set_action_type_registry()` (falls back to static `AVAILABLE_ACTION_TYPES` if not wired). `propose_novel_action` meta-type added to prompt + registry. `DeliberationEngine` intercepts `propose_novel_action` steps in slow-path loop via `_novel_action_cb` → `_on_propose_novel_action_step()` → `emit_novel_action_requested()` → `NOVEL_ACTION_REQUESTED` on Synapse bus. On `NOVEL_ACTION_CREATED`, `_on_novel_action_created()` calls `register_dynamic()` to hot-add the new type for subsequent deliberation cycles.
+- HYPOTHESIS_UPDATE subscription + EFE weight prior adjustment handler
+- GOAL_ACHIEVED / GOAL_ABANDONED Synapse events on goal status transitions
+- BUDGET_PRESSURE Synapse event at 60% FE budget threshold
+- INTENT_SUBMITTED / INTENT_ROUTED Synapse events in `_dispatch_intent`
+- HYPOTHESIS_FEEDBACK for all dispatched-intent outcomes
+- `re_training_eligible` + `model_used` fields on `DecisionRecord`; set on slow-path intents
+- Graded `actual_pragmatic` signal: `outcome_quality × goal_achievement_degree` (range 0.0–1.0) - feeds Evo Thompson sampling with a real gradient
+- All `self._memory._neo4j` direct accesses replaced - `get_neo4j()` for nova-internal modules, `get_episodes_meta()` for bulk episode query, `self._memory.health()` for health check
+- Equor-unavailable fallback: `asyncio.wait_for()` timeout on fast (100ms) and slow (600ms) paths; verdict = DEFERRED; Thymos `DEGRADATION` incident via `_on_equor_failure()`
+- `ONEIROS_CONSOLIDATION_COMPLETE` subscription: retrieves consolidated Memory nodes, calls `BeliefUpdater.update_from_outcome()` with precision scaled from high-salience trace count
+- Dead code removed: `_parse_json_response()` from `efe_evaluator.py` (D1), `estimate_pragmatic_value_heuristic()` + `estimate_epistemic_value_heuristic()` from `efe_heuristics.py` (D2)
+- `NovaConfig` field names aligned with spec: `cognition_cost_enabled` → `enable_cognition_budgeting`; `enable_hypothesis_tournaments` added
+- `NOVA_BELIEF_STABILISED` emitted in `receive_broadcast()` when belief confidence is high and FE is low - enables spec_checker coverage
+- `NOVA_GOAL_INJECTED` emitted at two new call sites: soma interoceptive goal injection + governance goal acceptance - closes spec_checker gap
+- **EVO_HYPOTHESIS_CONFIRMED/REFUTED**: `_on_hypothesis_confirmed()` + `_on_hypothesis_refuted()` - confirmed hypotheses raise `hypothesis_domain.{category}` belief confidence; refuted ones decay it and trigger `_immediate_deliberation()` when evidence_score ≥ 3.0 or contradicting_count ≥ 5
+- **NOVA-ECON-1**: 4 economic event subscriptions - `FOVEA_INTERNAL_PREDICTION_ERROR`, `REVENUE_INJECTED`, `BOUNTY_PAID`, `YIELD_DEPLOYMENT_RESULT` - handlers update priority belief entities and trigger `_immediate_deliberation()` within 50ms of economic signals
+- **NOVA-ECON-2**: Single "Economic action" template in `_PROCEDURE_TEMPLATES` fires on internal/system broadcasts; `PolicyGenerator.generate_economic_intent()` performs real EFE scoring using live belief entity confidence signals (not keyword matching, not hardcoded coefficients) to select from 5 strategies inline. `DeliberationEngine._fast_path()` calls `generate_economic_intent()` for economic domain matches. Hunger override forces bounty_hunt when `is_hungry=True`.
+- **NOVA-ECON-3**: `BeliefUrgencyMonitor` in `belief_updater.py` - watches 7 priority belief keys; fires `_immediate_deliberation()` callback fire-and-forget when any confidence shifts >20%; wired in `initialize()` via `set_urgency_monitor()`
+- **`_immediate_deliberation()`**: async method on `NovaService` - raises deliberation urgency thresholds and emits `POLICY_SELECTED` signal to Synapse bus; used by all 4 economic handlers + urgency monitor
+- **Organism telemetry awareness**: `_organism_telemetry: OrganismTelemetry | None` cached on `NovaService`. `DeliberationEngine._organism_summary: str` appended to every slow-path `situation_summary` via `set_organism_summary()`. Nova now deliberates with full organism vital sign awareness - burn rate, coherence, rhythm state, emotions, health - every single slow-path decision.
+- **N-armed provider registry**: `ThompsonSampler` generalised to N arms (`_arms: dict[str, ProviderMeta]`). `register_arm()` / `set_arm_ready()` / `sample_ranked()` API. `ProviderHealthMonitor` auto-disables arms on 3 consecutive failures and probes downed arms every 100 cycles. `PolicyGenerator.generate_candidates()` uses ranked fallback chain - tries best arm, falls back to next on failure, emits `REASONING_CAPABILITY_DEGRADED` if all fail. `register_provider()` for runtime arm addition (Ollama, Bedrock, re_v2, …). New `SynapseEventType.REASONING_CAPABILITY_DEGRADED` added.
+- **Elastic FE budget**: `_budget_multiplier: float` scales `FreeEnergyBudget.budget_nats` per cycle based on highest-priority active goal. Multipliers: low-priority (<0.5) → 0.7, normal (0.5–0.8) → 1.0, high (≥0.8) → 1.5 (self-authorised), critical/existential → 2.0 (requires Equor via `COMPUTE_BUDGET_EXPANSION_REQUEST`). Multiplier resets to 1.0 at cycle end unless a multi-cycle Equor-approved window is active. `_fe_spent_per_goal` tracks FE cost per goal for cost accounting. New state: `_budget_multiplier`, `_budget_multiplier_cycles_remaining`, `_compute_budget_expansion_cooldown` (30-cycle), `_fe_budget_baseline_nats`. Exposed in `health()` under `elastic_fe_budget`.
+- **Novel action proposal system**: `ActionTypeRegistry` in `action_type_registry.py` - thread-safe runtime registry of 18 static + N dynamic action types. Pre-populated at startup; `register_dynamic()` adds Simula-generated executors; `record_outcome()` tracks EMA success rates; `deprecate()` removes failed types. `PolicyGenerator` uses registry via `set_action_type_registry()` (falls back to static `AVAILABLE_ACTION_TYPES` if not wired). `propose_novel_action` meta-type added to prompt + registry. `DeliberationEngine` intercepts `propose_novel_action` steps in slow-path loop via `_novel_action_cb` → `_on_propose_novel_action_step()` → `emit_novel_action_requested()` → `NOVEL_ACTION_REQUESTED` on Synapse bus. On `NOVEL_ACTION_CREATED`, `_on_novel_action_created()` calls `register_dynamic()` to hot-add the new type for subsequent deliberation cycles.
 
 ---
 
@@ -234,7 +234,7 @@ All core components confirmed in code:
 **RESOLVED (2026-03-08 - economic intelligence):**
 
 - ✅ **NOVA-ECON-1**: 4 economic event subscriptions wired - `FOVEA_INTERNAL_PREDICTION_ERROR` → `_on_fovea_econ_error()`, `REVENUE_INJECTED` → `_on_revenue_change()`, `BOUNTY_PAID` → `_on_bounty_outcome()`, `YIELD_DEPLOYMENT_RESULT` → `_on_yield_outcome()`. Closes 60-minute economic blind spot.
-- ✅ **NOVA-ECON-2**: 5 economic policy templates added to `_PROCEDURE_TEMPLATES`; `PolicyGenerator.generate_economic_intent()` scores all 5 by EFE proxy (epistemic + pragmatic value) rather than keyword matching. Templates: bounty_hunting (55%), yield_farming (70%), cost_optimization (80%), asset_liquidation (65%), revenue_diversification (40%).
+- ✅ **NOVA-ECON-2 (revised 2026-04-03)**: Keyword-matching economic templates removed. Single "Economic action" template fires on source signal. `generate_economic_intent()` uses pure EFE scoring with belief-confidence-derived weights (not magic numbers). 5 strategies generated inline as Policy objects. `DeliberationEngine._fast_path()` delegates economic domain to `generate_economic_intent()`. max_tokens raised to 4000, temperature to 0.9 for policy generation.
 - ✅ **NOVA-ECON-3**: `BeliefUrgencyMonitor` class in `belief_updater.py` monitors 7 priority economic belief keys; >20% confidence shift triggers `_immediate_deliberation()` callback. Beliefs are now active planning inputs, not passive state.
 - ✅ **EVO-NOVA-1**: `EvoService._generate_goal_from_hypothesis()` extended to include `hypothesis_statement`, `confidence`, `evidence_score`, `domain`, `thompson_arm_id`, `thompson_arm_weights` in `NOVA_GOAL_INJECTED` payload. `EvoService.get_thompson_arm_weights(domain)` public API added.
 - ✅ **Tests**: `backend/tests/systems/nova/test_economic_intent.py` - 22 unit tests covering all 4 gaps.
@@ -244,7 +244,7 @@ All core components confirmed in code:
 - ✅ `DecisionRecord` written to Neo4j as `(:Decision)` node - `_persist_decision_record()` fires fire-and-forget from `_record_decision()`; links `[:MOTIVATED_BY]` to `(:Goal)` when goal_id is set
 - ✅ Redis Stream emission - `re_training_queue` populated when `re_training_eligible=True`; Redis accessed via `memory._redis` or `synapse._redis`
 - ✅ Thompson sampler routing - `ThompsonSampler` class in `policy_generator.py`; Beta-Bernoulli conjugate; `PolicyGenerator` routes to RE when sampler wins and `re_client` is wired; state persisted to Redis key `nova:thompson_sampler`
-- ✅ **RE client wired (2026-03-07)** - `ReasoningEngineService` (vLLM wrapper) created in `registry._init_reasoning_engine()`, passed as `re_client` to `PolicyGenerator`, `sampler.set_re_ready(True)` called when `re_service.is_available`; Claude-only if vLLM unreachable or `ORGANISM_RE_ENABLED=false`
+- ✅ **RE client wired** - `ReasoningEngineService` (vLLM wrapper) created in `registry._init_reasoning_engine()`, passed as `re_client` to `PolicyGenerator`, `sampler.set_re_ready(True)` called when `re_service.is_available`; Claude-only if vLLM unreachable or `ORGANISM_RE_ENABLED=false`
 - ✅ Thread integration - `set_thread()` method added; `THREAD_COMMIT_REQUEST` emitted via `_emit_thread_commit_request()` at end of `process_outcome()` for every resolved intent
 - ✅ Multi-goal conflict detection - `detect_conflicts()` added to `GoalManager`; 2 heuristics (drive opposition, criteria textual contradiction); called every 100 broadcasts; conflicts emit `GOAL_CONFLICT_DETECTED` events
 - ✅ Procedure template induction - successful slow-path decisions (EFE < −0.3, intent dispatched) persisted as `(:Procedure)` nodes in Neo4j via `_induce_procedure_from_record()`; loaded back into `_DYNAMIC_PROCEDURES` via `_load_induced_procedures()` on startup
@@ -258,12 +258,12 @@ All core components confirmed in code:
 - ✅ `INTENT_SUBMITTED` / `INTENT_ROUTED` emitted - Intent lifecycle now fully visible on bus
 - ✅ `re_training_eligible: bool` and `model_used: str` added to `DecisionRecord` - set for slow-path intents
 - ✅ `HYPOTHESIS_FEEDBACK` emitted for ALL slow-path outcomes (not just tournament-tagged)
-- ✅ Graded `actual_pragmatic` - continuous [0.0, 1.0] signal replacing binary flip (2026-03-07)
-- ✅ `self._memory._neo4j` all 4 direct-access sites replaced with public API (2026-03-07)
-- ✅ Equor-unavailable fallback - `asyncio.wait_for()` + DEFERRED verdict + Thymos incident (2026-03-07)
-- ✅ `ONEIROS_CONSOLIDATION_COMPLETE` subscription + belief refresh handler (2026-03-07)
-- ✅ Dead code D1 + D2 removed (2026-03-07)
-- ✅ `NovaConfig` field names aligned with spec §12 (2026-03-07)
+- ✅ Graded `actual_pragmatic` - continuous [0.0, 1.0] signal replacing binary flip
+- ✅ `self._memory._neo4j` all 4 direct-access sites replaced with public API
+- ✅ Equor-unavailable fallback - `asyncio.wait_for()` + DEFERRED verdict + Thymos incident
+- ✅ `ONEIROS_CONSOLIDATION_COMPLETE` subscription + belief refresh handler
+- ✅ Dead code D1 + D2 removed
+- ✅ `NovaConfig` field names aligned with spec §12
 
 ---
 

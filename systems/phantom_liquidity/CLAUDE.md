@@ -15,7 +15,7 @@
 | `types.py` | ✅ Complete | `PoolHealth`, `PhantomLiquidityPool`, `PhantomPriceFeed`, `PoolSelectionCandidate` - all use `EOSBaseModel` |
 | `pool_selector.py` | ✅ Complete | Static 5-pool curated list; `select_pools()` with TVL filter + budget cap; `compute_tick_range()` with ±80%/±50% spread; `get_static_pools()` public API |
 | `price_listener.py` | ✅ Complete | `eth_getLogs` polling; `_decode_swap_data` (all 5 Swap event fields, signed int256/int24); `sqrt_price_x96_to_price` formula; graceful degradation |
-| `executor.py` | ✅ Complete | `mint_position()` approve×2 + mint + receipt parse; `burn_position()` decreaseLiquidity → collect → burn; `_parse_mint_receipt` uses **full 32-byte** `IncreaseLiquidity` topic (fixed 2026-03-07) |
+| `executor.py` | ✅ Complete | `mint_position()` approve×2 + mint + receipt parse; `burn_position()` decreaseLiquidity → collect → burn; `_parse_mint_receipt` uses **full 32-byte** `IncreaseLiquidity` topic |
 | `service.py` | ✅ Complete | Full lifecycle; `get_price()` staleness-aware; `get_price_with_fallback()` CoinGecko; `maintenance_cycle()` staleness + IL; Synapse emission; `get_candidates()` public API |
 
 ### Synapse Events
@@ -70,7 +70,7 @@ Direct call (acceptable per Spec §9): `register_phantom_position()`, `update_ph
 - ~~**NOVA_INTENT_REQUESTED event type missing**~~ - Added to `SynapseEventType` in `synapse/types.py`. Nova subscribes via `_on_nova_intent_requested()`; fires `_immediate_deliberation()` so any system can trigger Nova deliberation without bypassing Equor.
 - ~~**PHANTOM_PARAMETER_ADJUSTED event type missing**~~ - Added to `SynapseEventType` in `synapse/types.py`. Evo subscribes to confirm hypothesis outcomes.
 
-### Closed Gaps (2026-03-07)
+### Closed Gaps
 
 - ~~Identity/wallet key management~~ - `store_lp_key()` / `retrieve_lp_key()` via `IdentityVault`. Never in config/env.
 - ~~TimescaleDB → Memory bridge~~ - `_write_price_observation_to_neo4j()` writes `(:PriceObservation)` nodes per swap event.
@@ -84,8 +84,8 @@ Direct call (acceptable per Spec §9): `register_phantom_position()`, `update_ph
 
 - **No cross-system imports at runtime** - all inter-system comms via Synapse events or direct Oikos method call (explicitly permitted in Spec §9)
 - `from systems.oikos.models import YieldPosition` in `service.py:register_pool()` creates a cross-system type dependency - acceptable per spec but worth monitoring
-- Router no longer imports private `_STATIC_POOLS` - uses `svc.get_candidates()` or `PoolSelector.get_static_pools()` (fixed 2026-03-07)
-- `PoolHealth` comparisons in `pool_selector.py` now use enum values, not raw strings (fixed 2026-03-07)
+- Router no longer imports private `_STATIC_POOLS` - uses `svc.get_candidates()` or `PoolSelector.get_static_pools()`
+- `PoolHealth` comparisons in `pool_selector.py` now use enum values, not raw strings
 
 ---
 

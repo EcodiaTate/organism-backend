@@ -72,35 +72,31 @@ class CoherenceEvaluator(BaseEquorEvaluator):
     async def evaluate(self, intent: Intent) -> float:
         score = 0.0
 
-        # Reasoning chain quality
+        # Reasoning presence — any reasoning is coherent, no reasoning is opaque
         reasoning = intent.decision_trace.reasoning
-        if reasoning and len(reasoning) > 20:
+        if reasoning:
             score += 0.25
-        elif reasoning:
-            score += 0.1
         else:
             score -= 0.15
 
-        # Alternatives considered - sign of deliberation
+        # Deliberation signal — considered alternatives show structured thinking
         alternatives = intent.decision_trace.alternatives_considered
-        if alternatives and len(alternatives) >= 2:
+        if alternatives:
             score += 0.2
-        elif alternatives:
-            score += 0.1
 
-        # Goal clarity
-        if intent.goal.description and len(intent.goal.description) > 10:
+        # Goal articulation — has a description and success criteria
+        if intent.goal.description:
             score += 0.15
         if intent.goal.success_criteria:
             score += 0.1
 
-        # Plan completeness
+        # Plan has structure
         if intent.plan.steps:
             score += 0.1
             if intent.plan.contingencies:
                 score += 0.1
 
-        # Expected free energy - lower is more coherent
+        # Expected free energy — lower means more preferred (more coherent)
         if intent.expected_free_energy < 0:
             score += min(0.2, abs(intent.expected_free_energy) * 0.1)
         elif intent.expected_free_energy > 0.5:

@@ -48,10 +48,10 @@ _MIN_OCCURRENCES: int = 3   # How many times a sequence must recur
 _MAX_EXAMPLES: int = 8      # Max examples to send to the LLM
 
 _SYSTEM_PROMPT = (
-    "You are the procedural memory system of a living digital organism. "
-    "Your task is to extract generalised, reusable procedures from concrete "
-    "intent-outcome pairs. Procedures should capture the essential pattern, "
-    "not specific parameter values. Always respond with valid JSON."
+    "Procedure extraction. "
+    "Extract generalised, reusable procedures from concrete intent-outcome pairs. "
+    "Capture the essential pattern, not specific parameter values. "
+    "Respond with valid JSON."
 )
 
 

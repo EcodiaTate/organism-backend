@@ -1,7 +1,7 @@
 # Federation System - CLAUDE.md
 
 **Spec:** `.claude/EcodiaOS_Spec_11_Federation.md` (Spec 11b)
-**Status:** Core + population dynamics + peer discovery + RE quality scoring + Active Work Pooling complete (2026-03-09)
+**Status:** Core + population dynamics + peer discovery + RE quality scoring + Active Work Pooling complete
 
 ---
 
@@ -19,7 +19,7 @@
 - **IIEP**: Exchange protocol, ingestion pipeline (6-stage + 2 new stages), threat intelligence, reputation staking
 - **Certificate Validation**: `_validate_sender_certificate()` on all inbound operations
 
-### Active Work Pooling (2026-03-09)
+### Active Work Pooling
 - **TaskDelegationManager** (`task_delegation.py`): offer/accept/settle discrete tasks between trusted peers; COLLEAGUE+ trust gate (normalised ≥ `required_trust_level`, default 0.7); USDC payment via WalletClient on completion; full lifecycle tracking (OFFERED→ACCEPTED→COMPLETED/FAILED)
 - **BountySplitter** (`bounty_splitting.py`): decompose large bounties into N sub-tasks; Simula-assisted task boundary generation with naive fallback; round-robin offer to PARTNER+ peers; `on_bounty_paid()` distributes 90% of total to contributors proportionally; orchestrator retains 10%
 - **ResourceSharingManager** (`resource_sharing.py`): publish spare compute capacity as `CapacityOffer` via `FEDERATION_CAPACITY_AVAILABLE`; auto-retract when CPU > 85%, auto-republish when CPU < 40% (via `ORGANISM_TELEMETRY`); `best_peer_for_offload()` selects lowest-cost matching specialisation; fee payment via `TaskDelegationManager.settle_payment()`

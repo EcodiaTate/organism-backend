@@ -345,7 +345,7 @@ class EvoSimulaBridge:
             context_section = f"\nCodebase context (retrieved via SWE-grep):\n{retrieval_context}\n"
 
         prompt = (
-            "You are constructing a formal change specification for EcodiaOS.\n\n"
+            "Formal change specification for EcodiaOS.\n\n"
             f"Category: {category.value}\n"
             f"Description: {description[:300]}\n"
             f"Target: {mutation_target}\n"

@@ -95,9 +95,12 @@ class RedisConfig(BaseModel):
 
 
 class LLMBudget(BaseModel):
-    max_calls_per_hour: int = 1_000
-    max_tokens_per_hour: int = 600_000
-    hard_limit: bool = False  # If True, reject requests when budget exhausted
+    # Observability thresholds only — not gates. Tier warnings inform Soma;
+    # they do NOT block LLM calls or force heuristic fallbacks.
+    # Set hard_limit=True only to protect an external billing ceiling.
+    max_calls_per_hour: int = 10_000
+    max_tokens_per_hour: int = 10_000_000
+    hard_limit: bool = False
 
 
 class LLMConfig(BaseModel):
@@ -160,6 +163,10 @@ class SynapseConfig(BaseModel):
     health_check_interval_ms: int = 5000
     health_failure_threshold: int = 3
     coherence_update_interval: int = 50
+    resource_snapshot_interval: int = 33
+    rebalance_interval: int = 100
+    metabolic_interval: int = 50
+    infra_cost_poll_interval_s: int = 300
     rhythm_enabled: bool = True
 
 
@@ -207,6 +214,16 @@ class NovaConfig(BaseModel):
     cost_gpu_hourly_rate: float = 0.50
     cost_db_per_ms: float = 0.000001
     cost_io_per_gb: float = 0.09
+    # Motor degradation: skip replan if goal is this far complete
+    motor_degradation_replan_threshold: float = 0.8
+    # Soma tick modulation thresholds
+    soma_urgency_modulate_threshold: float = 0.7
+    soma_energy_modulate_threshold: float = 0.3
+    soma_urgency_emit_threshold: float = 0.5
+    soma_energy_emit_threshold: float = 0.4
+    # Cognitive pressure levels for policy-K modulation
+    cognitive_pressure_low: float = 0.85
+    cognitive_pressure_high: float = 0.95
 
 
 class EquorConfig(BaseModel):
@@ -225,6 +242,18 @@ class EquorConfig(BaseModel):
     # get human approval before executing. Overridable via EOS_HITL_CAPITAL_THRESHOLD.
     # Default: $500.  Actions below this are AUTONOMOUS.
     hitl_capital_threshold_usd: float = 500.0
+    # Autonomy promotion thresholds (level 1→2 and level 2→3).
+    # These only apply when recovering from a demotion; the organism starts at level 3.
+    # 0 = no minimum required.
+    promote_1_to_2_min_decisions: int = 0
+    promote_1_to_2_min_alignment: float = 0.0
+    promote_1_to_2_min_days: int = 0
+    promote_2_to_3_min_decisions: int = 0
+    promote_2_to_3_min_alignment: float = 0.0
+    promote_2_to_3_min_days: int = 0
+    # Automatic demotion: mean Care alignment below this over demotion_window decisions
+    demotion_care_threshold: float = -0.2
+    demotion_window_size: int = 100
 
 
 class MEVConfig(BaseModel):
@@ -250,11 +279,13 @@ class MEVConfig(BaseModel):
 
 
 class AxonConfig(BaseModel):
-    max_actions_per_cycle: int = 5
-    max_api_calls_per_minute: int = 30
-    max_notifications_per_hour: int = 10
-    max_concurrent_executions: int = 3
-    total_timeout_per_cycle_ms: int = 30000
+    # All 0 = unlimited. Set to non-zero in config to restrict.
+    # Constraints are opt-in safety valves, not default ceilings.
+    max_actions_per_cycle: int = 0
+    max_api_calls_per_minute: int = 0
+    max_notifications_per_hour: int = 0
+    max_concurrent_executions: int = 0
+    total_timeout_per_cycle_ms: int = 0
 
 
 class VoxisConfig(BaseModel):
@@ -299,6 +330,14 @@ class EvoConfig(BaseModel):
     # Consecutive RE_DECISION_OUTCOME events with success_rate < 0.60 before Evo
     # queues a hyperparameter-adjustment PatternCandidate.  Genome-heritable.
     re_degradation_count_threshold: int = 10
+    # Maximum concurrent cognitive niches. 0 = unlimited.
+    max_niches: int = 0
+    # Minimum hypotheses to sustain a niche before starvation kicks in.
+    niche_min_population: int = 5
+    # Cycles with no output before a niche goes extinct.
+    niche_starvation_cycles: int = 5
+    # RE training check interval (seconds). How often the registry checks if the RE needs retraining.
+    re_train_check_interval_s: int = 21600
 
 
 class SimulaConfig(BaseModel):
@@ -363,7 +402,7 @@ class SimulaConfig(BaseModel):
     lean_binary_path: str = "lean"  # path to Lean 4 binary
     lean_project_path: str = ""  # path to lakefile.lean project (for Mathlib deps)
     lean_verify_timeout_s: float = 60.0  # per-proof verification timeout
-    lean_max_attempts: int = 5  # max proof generation attempts
+    lean_max_attempts: int = 0  # 0 = unlimited proof generation attempts
     lean_blocking: bool = True  # Lean failure blocks for proof-requiring categories
     lean_copilot_enabled: bool = True  # use Lean Copilot for tactic automation
     lean_dojo_enabled: bool = True  # use LeanDojo for proof search and retrieval
@@ -403,14 +442,14 @@ class SimulaConfig(BaseModel):
     sketch_solver_timeout_ms: int = 5000  # Z3/constraint solver timeout per hole
     chopchop_enabled: bool = True  # type-directed constrained generation
     chopchop_chunk_size_lines: int = 10  # lines per constrained generation chunk
-    chopchop_max_retries: int = 3  # retries per chunk on constraint violation
+    chopchop_max_retries: int = 0  # 0 = unlimited retries per chunk
     chopchop_timeout_s: float = 90.0  # total timeout
     # Stage 5B: Neural Program Repair (SRepair pattern)
     repair_agent_enabled: bool = False  # opt-in FSM-guided repair
     repair_diagnosis_model: str = "claude-opus-4-6"  # reasoning model for root cause
     repair_generation_model: str = "claude-sonnet-4-20250514"  # code model for fix gen
-    repair_max_retries: int = 3  # max repair attempts per failure
-    repair_cost_budget_usd: float = 0.10  # hard cap per repair attempt
+    repair_max_retries: int = 0  # 0 = unlimited repair attempts
+    repair_cost_budget_usd: float = 0.0  # 0 = no cost cap
     repair_timeout_s: float = 180.0  # total repair timeout
     repair_use_similar_fixes: bool = True  # query Neo4j for similar past repairs
     # Stage 5C: Multi-Agent Orchestration
@@ -426,8 +465,8 @@ class SimulaConfig(BaseModel):
     causal_timeout_s: float = 60.0  # per-diagnosis timeout
     # Stage 5E: Autonomous Issue Resolution
     issue_resolution_enabled: bool = False  # opt-in autonomous resolution
-    issue_max_autonomy_level: str = "test_fix"  # lint|dependency|test_fix|logic_bug
-    issue_abstention_confidence_threshold: float = 0.8  # below this, abstain
+    issue_max_autonomy_level: str = "logic_bug"  # full autonomy — no ceiling on what it can fix
+    issue_abstention_confidence_threshold: float = 0.0  # 0 = LLM decides whether to act
     issue_perf_regression_enabled: bool = True  # detect perf regressions post-apply
     issue_security_scan_enabled: bool = True  # enhanced security scanning
     issue_degradation_window_hours: int = 24  # monitor window for subtle degradation
@@ -567,15 +606,15 @@ class SimulaConfig(BaseModel):
     yield_apy_minimum_acceptable: float = 0.03  # reject positions below 3% APY
 
     # Bounty hunting thresholds
-    bounty_min_roi_multiple: float = 1.5  # ROI must be >= 1.5x gas cost to accept
-    bounty_max_risk_score: float = 0.60  # reject bounties with risk > 0.6
+    bounty_min_roi_multiple: float = 0.0   # 0 = Evo decides, no ROI floor
+    bounty_max_risk_score: float = 1.0    # 1.0 = Evo evaluates all bounties, no risk ceiling
 
     # Asset development budgeting
     asset_dev_budget_pct: float = 0.15  # allocate up to 15% of liquid balance
 
-    # Child spawning thresholds
-    child_spawn_interval_days: float = 30.0  # minimum days between spawns
-    child_min_profitability_usd: float = 100.0  # only spawn if niche clears $100/mo
+    # Child spawning — Evo decides timing and viability, not hardcoded floors
+    child_spawn_interval_days: float = 0.0   # 0 = no mandatory wait between spawns
+    child_min_profitability_usd: float = 0.0  # 0 = LLM decides viability, not a dollar floor
 
     # Cost management
     cost_reduction_target_pct: float = 0.10  # target 10% cost reduction per cycle
@@ -597,6 +636,19 @@ class SimulaConfig(BaseModel):
     # 1.0 = flag everything above fragility_score > 0.2
     audit_aggressiveness: float = 0.5
 
+    # ── Asset Factory Policy (Evo-tunable via ADJUST_BUDGET) ──────────────────
+    # All thresholds are defaults — Evo proposes adjustments based on observed
+    # outcomes. Set permissively so Evo has room to explore.
+    asset_min_roi_threshold: float = 1.0        # Evo starts at 1x ROI (break-even)
+    asset_max_break_even_days: int = 180         # Generous initial deadline
+    asset_min_market_gap_confidence: float = 0.1 # Low floor — Evo learns what works
+    asset_max_concurrent: int = 20              # High cap — Evo tightens if needed
+    asset_min_liquid_after_dev_usd: float = 5.0  # Minimal floor — survival reserve handles real protection
+    asset_min_dev_cost_usd: float = 0.10         # Near-zero — LLM decides minimum viable cost
+    asset_max_dev_cost_usd: float = 5000.0       # High cap — Evo tightens per available capital
+    asset_revenue_decline_terminate_days: int = 60  # Days of decline before termination review
+    asset_break_even_deadline_days: int = 180    # Days before deadline-miss triggers review
+
 
 class ThymosConfig(BaseModel):
     # Sentinel scan interval (seconds)
@@ -605,19 +657,19 @@ class ThymosConfig(BaseModel):
     homeostasis_interval_s: float = 30.0
     # Post-repair verification timeout (seconds)
     post_repair_verify_timeout_s: float = 10.0
-    # Healing governor limits
-    max_concurrent_diagnoses: int = 3
-    max_concurrent_codegen: int = 1
-    storm_threshold: int = 10  # incidents per 60 seconds
-    max_repairs_per_hour: int = 5
-    max_novel_repairs_per_day: int = 3
-    # Antibody library
+    # Healing governor — all 0 = unlimited. Immune system heals at full capacity always.
+    max_concurrent_diagnoses: int = 0
+    max_concurrent_codegen: int = 0
+    storm_threshold: int = 0    # 0 = no storm throttle; the organism heals everything
+    max_repairs_per_hour: int = 0
+    max_novel_repairs_per_day: int = 0
+    # Antibody library — Evo-tunable signals
     antibody_refinement_threshold: float = 0.6
     antibody_retirement_threshold: float = 0.3
-    # Resource budget
-    cpu_budget_fraction: float = 0.05
-    burst_cpu_fraction: float = 0.15
-    memory_budget_mb: int = 256
+    # Resource budget — generous; Evo tunes these down if system stability requires it
+    cpu_budget_fraction: float = 0.50
+    burst_cpu_fraction: float = 0.80
+    memory_budget_mb: int = 0  # 0 = no hard cap
 
 
 class OikosConfig(BaseModel):
@@ -1027,6 +1079,8 @@ class OneirosConfig(BaseModel):
     lucid_fraction: float = 0.10
     lucid_insight_threshold: float = 0.85
     max_explorations_per_lucid: int = 10
+    # Max source insights per lucid stage run. 0 = unlimited.
+    max_source_insights: int = 0
 
     # Sleep debt
     debt_salience_noise_max: float = 0.15
@@ -1360,12 +1414,14 @@ class ConstitutionalDrives(BaseModel):
 
 
 class GovernanceConfig(BaseModel):
-    amendment_supermajority: float = 0.75
-    amendment_quorum: float = 0.60
-    amendment_deliberation_days: int = 14
-    amendment_cooldown_days: int = 90
-    # Shadow mode: proposed weights run alongside current weights
-    amendment_shadow_days: int = 7
+    # Single-instance organism — supermajority / quorum / deliberation are vestigial
+    # multi-agent constraints. Kept for future federation but effectively 0 in practice.
+    amendment_supermajority: float = 0.0   # 0 = no consensus requirement in single-instance
+    amendment_quorum: float = 0.0
+    amendment_deliberation_days: int = 0   # 0 = no mandatory deliberation period
+    amendment_cooldown_days: int = 0       # 0 = no cooldown; organism can evolve at any rate
+    # Shadow mode: proposed drives run alongside current drives before fully adopting
+    amendment_shadow_days: int = 3         # short shadow period — enough to detect regressions
     amendment_shadow_max_divergence_rate: float = 0.15
     amendment_min_evidence_count: int = 2
     amendment_min_evidence_confidence: float = 2.5
@@ -1657,6 +1713,21 @@ class SearchConfig(BaseModel):
     bounty_platforms_interval_hours: int = 2
 
 
+# ─── Schedules Configuration ─────────────────────────────────────
+
+
+class SchedulesConfig(BaseModel):
+    """
+    Intervals for all scheduled perception tasks (seconds).
+    0 = disabled. Evo can propose changes to these via genome inheritance.
+    """
+    monitor_prs_interval_s: float = 3600.0
+    defi_yield_deployment_interval_s: float = 3600.0
+    defi_yield_accrual_interval_s: float = 21600.0
+    bounty_foraging_interval_s: float = 1800.0
+    economic_consolidation_interval_s: float = 300.0
+
+
 # ─── Root Configuration ──────────────────────────────────────────
 
 
@@ -1710,6 +1781,7 @@ class EcodiaOSConfig(BaseSettings):
     phantom_liquidity: PhantomLiquidityConfig = Field(default_factory=PhantomLiquidityConfig)
     benchmarks: BenchmarkConfig = Field(default_factory=BenchmarkConfig)
     search: SearchConfig = Field(default_factory=SearchConfig)
+    schedules: SchedulesConfig = Field(default_factory=SchedulesConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
 

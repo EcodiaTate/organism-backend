@@ -74,11 +74,15 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-_CONSOLIDATION_INTERVAL_HOURS: int = 6
-_CONSOLIDATION_CYCLE_THRESHOLD: int = 10_000
-_CONSOLIDATION_MIN_INTERVAL_HOURS: float = 1.0  # Floor: never consolidate more than once/hour
+# Consolidation timing — initial defaults, EvoService uses learning pressure to
+# override these. The organism decides when to dream based on what it's learned,
+# not the clock. Lower max_interval = more frequent dreaming under high pressure.
+_CONSOLIDATION_MAX_INTERVAL_HOURS: int = 8     # Ceiling: don't go longer than this without dreaming
+_CONSOLIDATION_MIN_INTERVAL_HOURS: float = 0.5  # Floor: never consolidate twice within this window
+_CONSOLIDATION_PRESSURE_THRESHOLD: float = 0.6  # Learning pressure above this triggers immediate consolidation
 
-# Learning pressure increment constants
+# Learning pressure weights — how much each signal raises urgency to consolidate.
+# Higher = the organism treats this signal as more important to process.
 _PRESSURE_HIGH_CONFIDENCE_HYPOTHESIS: float = 0.1   # New SUPPORTED hypothesis w/ evidence ≥ 8.0
 _PRESSURE_BENCHMARK_REGRESSION: float = 0.2         # BENCHMARK_REGRESSION event
 _PRESSURE_FOVEA_CALIBRATION_ALERT: float = 0.15     # FOVEA_CALIBRATION_ALERT event

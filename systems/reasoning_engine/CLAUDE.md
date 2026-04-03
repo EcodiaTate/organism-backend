@@ -131,12 +131,12 @@ ReasoningEngineService.load_adapter() - hot-swap into vLLM, no restart
 | `RE_ADAPTER_QUALITY_CONFIRMED` | Post-deploy quality check passed (post_rate > pre_rate × 1.05); payload: run_id, pre_success_rate, post_success_rate, improvement_pct, window_attempts |
 | `RE_TRAINING_EXAMPLE` | Emitted on adapter rollback as a training signal for future cycles |
 
-### Trigger reasons (added 2026-03-08)
+### Trigger reasons
 | Reason | Threshold | Description |
 |--------|-----------|-------------|
 | `tier2_urgent_requested` | ≥50 examples (lowered from 300) | `RE_TRAINING_REQUESTED` event received; `_urgent_training_requested = True` |
 
-### Post-Deployment Quality Monitoring (2026-03-08)
+### Post-Deployment Quality Monitoring
 
 After every successful adapter deploy, the CLO opens a 500-cycle monitoring window.
 `NovaService._on_axon_execution_result()` calls `clo.record_re_outcome(success)` for every
@@ -550,7 +550,7 @@ Both `wandb.init()` and `wandb.finish()` are wrapped in `try/except` with `flush
 
 ---
 
-## Round 5B Gap Closure (2026-03-07)
+## Round 5B Gap Closure
 
 ### Thompson Sampling Persistence (bible §4.2)
 
@@ -610,7 +610,7 @@ if re_service is not None and infra.neo4j is not None:
 
 ---
 
-## Round 5A Gap Closure (2026-03-07)
+## Round 5A Gap Closure
 
 ### Training Exclusion Filter (`training_exclusions.py`)
 

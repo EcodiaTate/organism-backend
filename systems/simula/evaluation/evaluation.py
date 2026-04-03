@@ -198,10 +198,8 @@ _COGNITIVE_REFERENCE_ABSTRACT = (
 )
 
 _COGNITIVE_SUMMARIZATION_PROMPT = (
-    "You are a research scientist. Summarize the following arXiv abstract in exactly "
-    "3 sentences. The summary must: (1) identify the core technique, (2) state the "
-    "key quantitative result, (3) note the practical implication. Be precise and "
-    "avoid filler words.\n\n"
+    "Summarize the following arXiv abstract in exactly 3 sentences: "
+    "(1) the core technique, (2) the key quantitative result, (3) the practical implication.\n\n"
     f"Abstract:\n{_COGNITIVE_REFERENCE_ABSTRACT}\n\n"
     "Summary:"
 )
@@ -857,7 +855,7 @@ class ModelEvaluator:
         from clients.llm import Message
 
         baseline_response = await self._llm.generate(
-            system_prompt="You are a research scientist.",
+            system_prompt=None,
             messages=[Message(role="user", content=_COGNITIVE_SUMMARIZATION_PROMPT)],
             max_tokens=self._config.max_tokens,
             temperature=self._config.temperature,

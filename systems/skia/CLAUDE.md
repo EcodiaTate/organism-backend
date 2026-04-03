@@ -136,7 +136,7 @@
 - Mutation rates must be small enough to preserve organism viability (max 5%)
 - All inter-system comms via Synapse events - no direct imports
 
-## Genuine Precariousness - §8.2 (2026-03-07)
+## Genuine Precariousness - §8.2
 
 **New file: `systems/skia/degradation.py`**
 
@@ -167,7 +167,7 @@
 
 ---
 
-### Autonomy Audit - Full Visibility Pass (2026-03-08)
+### Autonomy Audit - Full Visibility Pass
 
 **Principle: the organism must see everything about itself, including its own blindness.**
 
@@ -207,7 +207,7 @@
 
 ---
 
-### Shadow Worker (2026-03-08)
+### Shadow Worker
 
 **RestorationOrchestrator** (`restoration.py`) - self-deploying shadow watchdog:
 
@@ -245,7 +245,7 @@
 - **Federation quorum polling**: `ChannelManager.send_message()` is designed for handshake/exchange payloads, not generic poll messages - resurrection poll degrades gracefully to auto-approve when peers don't respond (survival imperative preserved)
 - **Shadow SDL template**: `_patch_sdl_for_shadow()` regex-downgrades the main SDL at deploy time. Operators should maintain a dedicated `config/skia/akash_shadow_sdl_template.yaml` for predictable shadow provisioning.
 
-## Autonomy Audit Fixes (2026-03-08)
+## Autonomy Audit Fixes
 
 ### Dead Wiring - ALL FIXED (`core/registry.py`)
 
@@ -281,8 +281,8 @@
 `SOMA_VITALITY_SIGNAL`, `METABOLIC_PRESSURE`, `EVO_PARAMETER_ADJUSTED`, `ORGANISM_DIED`, `FEDERATION_RESURRECTION_APPROVED`, `DRIVE_EXTINCTION_DETECTED`, `ONEIROS_CONSOLIDATION_COMPLETE`, `EVO_BELIEF_CONSOLIDATED`, `SYSTEM_MODULATION_ACK`
 
 ### Wiring Points (called at organism bootstrap - all now LIVE)
-- `skia.set_memory(memory_service)` - **WIRED** in `_init_skia()` before `initialize()` (2026-03-08)
+- `skia.set_memory(memory_service)` - **WIRED** in `_init_skia()` before `initialize()`
 - `skia.set_event_bus(event_bus)` - **WIRED** in `_init_skia()` after `initialize()` (registry.py)
-- `skia.wire_vitality_systems(clock, oikos, thymos, equor, telos)` - **WIRED** in `_init_skia()` after `start()` (2026-03-08)
-- `restore_from_ipfs(..., memory=memory)` - **WIRED** in `_check_skia_restore()` (2026-03-08); event_bus deferred (Synapse not yet available at restore time)
+- `skia.wire_vitality_systems(clock, oikos, thymos, equor, telos)` - **WIRED** in `_init_skia()` after `start()`
+- `restore_from_ipfs(..., memory=memory)` - **WIRED** in `_check_skia_restore()`; event_bus deferred (Synapse not yet available at restore time)
 - Shadow worker loop: auto-started in `SkiaService.start()` when `not standalone and config.enabled and restoration is wired`; no explicit external wiring needed

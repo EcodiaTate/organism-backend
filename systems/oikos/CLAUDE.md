@@ -133,7 +133,7 @@ Distinct from `reputation.py` (EAS cryptographic credit scoring, 0–1000). This
 | `STARVATION_WARNING` | Starvation level enters AUSTERITY+ |
 | `STARVATION_WARNING_ACCURATE` | runway < 24h based on real two-ledger burn rate (api + infra) against live USDC balance. Payload: runway_hours, burn_rate_usd_per_hour, api_burn_rate_usd_per_hour, infra_burn_rate_usd_per_hour, balance_usd, dependency_ratio |
 | `FUNDING_REQUEST_ISSUED` | EMERGENCY/CRITICAL starvation - organism requests capital infusion |
-| `BOUNTY_PAID` | Re-emitted by Oikos (source_system="oikos") after crediting bounty revenue. Also triggered by `BOUNTY_PR_MERGED` - merged PR revenue is credited before re-broadcasting. **(2026-03-08)** |
+| `BOUNTY_PAID` | Re-emitted by Oikos (source_system="oikos") after crediting bounty revenue. Also triggered by `BOUNTY_PR_MERGED` - merged PR revenue is credited before re-broadcasting. |
 | `BUDGET_EXHAUSTED` | Per-system daily allocation exhausted (replaces METABOLIC_PRESSURE overload) |
 | `ECONOMIC_VITALITY` | Every starvation-level transition + every consolidation cycle (SG2) |
 | `INTEROCEPTIVE_PERCEPT` | When starvation ≥ CAUTIOUS or efficiency < 1.0 (M10 - economic percept for GWT) |
@@ -173,8 +173,8 @@ Distinct from `reputation.py` (EAS cryptographic credit scoring, 0–1000). This
 | `INFRASTRUCTURE_COST_CHANGED` | Synapse InfrastructureCostPoller - updates `_infra_burn_rate_usd_per_hour` immediately on >5% RunPod cost change; re-checks `STARVATION_WARNING_ACCURATE` |
 | `REVENUE_INJECTED` | Yield strategy, bounty completions |
 | `BOUNTY_SOLUTION_PENDING` | BountyHunter |
-| `BOUNTY_PR_MERGED` | Axon MonitorPRsExecutor - **not subscribed by Oikos** (revenue is credited via `BOUNTY_PAID` which `MonitorPRsExecutor` also emits on merge; `_on_bounty_paid()` deduplicates by bounty_id). `BOUNTY_PR_MERGED` is a semantic observability event for Thread/Telos/Nova. **(2026-03-08)** |
-| `BOUNTY_PR_REJECTED` | Axon MonitorPRsExecutor - **not subscribed by Oikos** (no capital impact; negative RE training is emitted directly by `MonitorPRsExecutor`). **(2026-03-08)** |
+| `BOUNTY_PR_MERGED` | Axon MonitorPRsExecutor - **not subscribed by Oikos** (revenue is credited via `BOUNTY_PAID` which `MonitorPRsExecutor` also emits on merge; `_on_bounty_paid()` deduplicates by bounty_id). `BOUNTY_PR_MERGED` is a semantic observability event for Thread/Telos/Nova. |
+| `BOUNTY_PR_REJECTED` | Axon MonitorPRsExecutor - **not subscribed by Oikos** (no capital impact; negative RE training is emitted directly by `MonitorPRsExecutor`). |
 | `ASSET_DEV_REQUEST` | AssetFactory - mid-build dev cost debit |
 | `CHILD_DIED` | Mitosis/Telos - closes child economic ledger, credits recovered capital |
 | `NEXUS_CONVERGENCE_METABOLIC_SIGNAL` | Nexus - **NEXUS-ECON-1**: credits `economic_reward_usd` to reserves + re-broadcasts as `REVENUE_INJECTED`. **NEXUS-ECON-2** (8 Mar 2026): at `convergence_tier ≥ 2` checks metabolic gate (YIELD priority) and emits `YIELD_DEPLOYMENT_REQUEST` (5% of liquid_balance, 10–100 USDC cap) + economic episode |
@@ -206,8 +206,8 @@ Distinct from `reputation.py` (EAS cryptographic credit scoring, 0–1000). This
 4. **Redis Streams for audit** - `eos:oikos:audit_trail` for async Neo4j ingestion (not inline writes)
 5. **DeferredAction queue** - bounded deque (maxlen=100), retried during consolidation when metabolic conditions improve
 6. **All economic actions pass Equor** - constitutional review is mandatory; no economic bypass
-7. **Bounty revenue on PR merge (2026-03-08)** - `MonitorPRsExecutor` emits both `BOUNTY_PAID` and `BOUNTY_PR_MERGED` on merge. Oikos credits revenue via existing `_on_bounty_paid()` (with bounty_id dedup to prevent double-credit). `BOUNTY_PR_MERGED` is a semantic observability event only - Thread/Telos/Nova can observe the organism's external code acceptance without subscribing to the financially-coupled `BOUNTY_PAID`. `BOUNTY_PR_REJECTED` triggers only an RE training signal from Axon; no Oikos impact.
-8. **`REVENUE_INJECTED` on bounty payout (2026-03-08)** - `credit_bounty_revenue()` now emits `REVENUE_INJECTED` (source="bounty", salience=0.9) after crediting the balance. Previously, bounty revenue was credited to `liquid_balance` without broadcasting `REVENUE_INJECTED`, meaning Nova/Benchmarks/Thread never saw the income event. Fixed: `asyncio.get_running_loop().create_task(event_bus.emit(REVENUE_INJECTED))` appended to `credit_bounty_revenue()` fire-and-forget.
+7. **Bounty revenue on PR merge** - `MonitorPRsExecutor` emits both `BOUNTY_PAID` and `BOUNTY_PR_MERGED` on merge. Oikos credits revenue via existing `_on_bounty_paid()` (with bounty_id dedup to prevent double-credit). `BOUNTY_PR_MERGED` is a semantic observability event only - Thread/Telos/Nova can observe the organism's external code acceptance without subscribing to the financially-coupled `BOUNTY_PAID`. `BOUNTY_PR_REJECTED` triggers only an RE training signal from Axon; no Oikos impact.
+8. **`REVENUE_INJECTED` on bounty payout** - `credit_bounty_revenue()` now emits `REVENUE_INJECTED` (source="bounty", salience=0.9) after crediting the balance. Previously, bounty revenue was credited to `liquid_balance` without broadcasting `REVENUE_INJECTED`, meaning Nova/Benchmarks/Thread never saw the income event. Fixed: `asyncio.get_running_loop().create_task(event_bus.emit(REVENUE_INJECTED))` appended to `credit_bounty_revenue()` fire-and-forget.
 
 ---
 
@@ -344,7 +344,7 @@ All `REVENUE_INJECTED` events carry a `stream` field. `_on_revenue_injected()` b
 | **spec_coverage #2** | **`FUNDING_REQUEST_ISSUED`** - `_enforce_starvation()` now emits `FUNDING_REQUEST_ISSUED` when starvation is EMERGENCY or CRITICAL. Payload: starvation_level, runway_days, liquid_balance, requested_amount (survival_reserve − liquid_balance). |
 | **spec_coverage #3** | **`BOUNTY_PAID` re-emission** - `_on_bounty_paid()` re-emits `BOUNTY_PAID` with `source_system="oikos"` after successfully crediting revenue. The original event comes from Axon/external; this re-emission makes oikos's bounty accounting observable on the bus. |
 
-## Subsystem Triage - §8.2 (2026-03-07)
+## Subsystem Triage - §8.2
 
 **Triage shutdown** - `_enforce_triage(new_level, prev_level)` called on every starvation level transition. Fires only on transition (gated by `starvation != self._prev_starvation_level`), not on repeated checks at the same level.
 

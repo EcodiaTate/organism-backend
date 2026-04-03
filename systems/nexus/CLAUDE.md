@@ -71,7 +71,7 @@
 
 ---
 
-## Event Coverage Fix (2026-03-07)
+## Event Coverage Fix
 
 **Root cause of 0% event coverage**: `_emit_divergence_observables(scores)` had an early return `if not scores: return`. In single-instance deployments with no federation peers, `measure_all_divergences()` returns `{}` (no active link IDs), so `NEXUS_EPISTEMIC_VALUE`, `DIVERGENCE_PRESSURE`, and `TRIANGULATION_WEIGHT_UPDATE` never fired. `FRAGMENT_SHARED` only fired when broadcast got ACCEPTED responses from peers - impossible without federation.
 

@@ -61,12 +61,10 @@ _MIN_AGE_HOURS: int = VELOCITY_LIMITS["min_hypothesis_age_hours"]
 _MAX_ACTIVE: int = VELOCITY_LIMITS["max_active_hypotheses"]
 
 # LLM generation limits
-_MAX_PER_BATCH: int = 3
+_MAX_PER_BATCH: int = 5
 _SYSTEM_PROMPT = (
-    "You are the learning subsystem of a living digital organism. "
-    "Your role is to generate precise, falsifiable hypotheses from observed patterns "
-    "and evaluate evidence rigorously. Prefer simple explanations. "
-    "Always respond with valid JSON matching the requested schema."
+    "Generate falsifiable hypotheses from observed patterns. "
+    "Respond as valid JSON matching the requested schema."
 )
 
 
@@ -219,8 +217,8 @@ class HypothesisEngine:
                 response = await self._llm.generate(  # type: ignore[call-arg]
                     system_prompt=_SYSTEM_PROMPT,
                     messages=[Message("user", prompt)],
-                    max_tokens=1200,
-                    temperature=0.5,
+                    max_tokens=2000,
+                    temperature=0.7,
                     output_format="json",
                     cache_system="evo.hypothesis",
                     cache_method="generate",
@@ -229,8 +227,8 @@ class HypothesisEngine:
                 response = await self._llm.generate(
                     system_prompt=_SYSTEM_PROMPT,
                     messages=[Message("user", prompt)],
-                    max_tokens=1200,
-                    temperature=0.5,
+                    max_tokens=2000,
+                    temperature=0.7,
                     output_format="json",
                 )
             raw = _parse_json_safe(response.text)
@@ -296,16 +294,16 @@ class HypothesisEngine:
             if self._optimized:
                 response = await self._llm.evaluate(  # type: ignore[call-arg]
                     prompt=prompt,
-                    max_tokens=300,
-                    temperature=0.3,
+                    max_tokens=600,
+                    temperature=0.5,
                     cache_system="evo.evidence",
                     cache_method="evaluate",
                 )
             else:
                 response = await self._llm.evaluate(
                     prompt=prompt,
-                    max_tokens=300,
-                    temperature=0.3,
+                    max_tokens=600,
+                    temperature=0.5,
                 )
             raw = _parse_json_safe(response.text)
         except Exception as exc:
@@ -724,7 +722,7 @@ def _build_generation_prompt(
         if existing_hypotheses
         else "(none)"
     )
-    return f"""You are the learning system of {instance_name}, a living digital organism.
+    return f"""Hypothesis generation for {instance_name}.
 
 DETECTED PATTERNS:
 {pattern_lines}
@@ -732,15 +730,9 @@ DETECTED PATTERNS:
 CURRENT ACTIVE HYPOTHESES (avoid duplicates):
 {existing_block}
 
-Generate up to {max_hypotheses} hypotheses that explain the patterns above.
+Generate up to {max_hypotheses} hypotheses that explain the patterns above. Each hypothesis should include a concrete falsification test — a specific observable condition that would prove it wrong.
 
-Rules:
-- Each hypothesis must be FALSIFIABLE - state exactly how it could be proven false
-- Prefer SIMPLER explanations (Occam's razor) - penalise unnecessary complexity
-- Do NOT duplicate existing hypotheses
-- Max {max_hypotheses} hypotheses per batch
-
-For each hypothesis respond in this exact JSON schema:
+Respond with valid JSON:
 {{
   "hypotheses": [
     {{

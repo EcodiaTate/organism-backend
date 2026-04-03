@@ -33,25 +33,33 @@ async def interoception_loop(
     """
     Periodically query log analyzer and inject signals into Soma.
 
-    Runs continuously in background. Every N seconds:
-    1. Query analyzer for aggregate interoceptive signals
-    2. Inject into Soma's signal buffer
-    3. Log if signals indicate high severity
+    The polling interval adapts to signal severity:
+    - Under critical/high pressure: polls every 3s
+    - Under medium pressure: polls every 7s
+    - Calm: uses the configured interval (default 10s)
 
-    Args:
-        soma: The Soma system (interoceptive controller)
-        analyzer: The LogAnalyzer instance
-        poll_interval_s: How often to poll for signals (default 10s)
+    The analysis window also adapts: under pressure, a shorter window
+    captures recent spikes more accurately than a stale 5-minute average.
     """
     bound_logger = logger.bind(system="interoception", component="loop")
+
+    import os as _os
+    # Adaptive interval bounds — configurable via env for deployment tuning
+    _URGENT_INTERVAL_S = float(_os.environ.get("INTEROCEPTION_URGENT_S", "3.0"))
+    _ELEVATED_INTERVAL_S = float(_os.environ.get("INTEROCEPTION_ELEVATED_S", "7.0"))
+    _CALM_INTERVAL_S = poll_interval_s
+
+    current_interval = _CALM_INTERVAL_S
 
     try:
         while True:
             try:
-                # Query analyzer for 5-minute window of log data
-                signals = await analyzer.compute_interoceptive_signals(minutes=5)
+                # Window adapts: urgent = 1 min (fresh), calm = 5 min (stable avg)
+                analysis_minutes = 1 if current_interval <= _URGENT_INTERVAL_S else (
+                    3 if current_interval <= _ELEVATED_INTERVAL_S else 5
+                )
+                signals = await analyzer.compute_interoceptive_signals(minutes=analysis_minutes)
 
-                # Inject into Soma's signal buffer
                 for signal in signals:
                     _inject_signal(soma, signal)
                     bound_logger.info(
@@ -61,11 +69,15 @@ async def interoception_loop(
                         value=signal.get("value"),
                     )
 
-                # Log if organism is under high pressure; emit bus alerts
                 high_severity = [
                     s for s in signals
                     if s.get("severity") in ("critical", "high")
                 ]
+                medium_severity = [
+                    s for s in signals
+                    if s.get("severity") == "medium"
+                ]
+
                 if high_severity:
                     bound_logger.warning(
                         "organism_high_pressure",
@@ -74,18 +86,24 @@ async def interoception_loop(
                     )
                     if event_bus is not None:
                         await _emit_interoceptive_alerts(event_bus, high_severity)
+                    # Under fire: poll fast
+                    current_interval = _URGENT_INTERVAL_S
+                elif medium_severity:
+                    # Elevated: poll somewhat faster
+                    current_interval = _ELEVATED_INTERVAL_S
+                else:
+                    # All quiet: relax back toward configured baseline
+                    current_interval = min(
+                        _CALM_INTERVAL_S,
+                        current_interval + 1.0,  # Ease off gradually
+                    )
 
             except Exception as exc:
-                bound_logger.warning(
-                    "interoception_poll_failed",
-                    error=str(exc),
-                )
-                # Continue polling even on errors
-                await asyncio.sleep(poll_interval_s)
+                bound_logger.warning("interoception_poll_failed", error=str(exc))
+                await asyncio.sleep(current_interval)
                 continue
 
-            # Wait before next poll
-            await asyncio.sleep(poll_interval_s)
+            await asyncio.sleep(current_interval)
 
     except asyncio.CancelledError:
         bound_logger.info("interoception_loop_cancelled")

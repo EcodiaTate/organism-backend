@@ -52,23 +52,38 @@ if TYPE_CHECKING:
 logger = structlog.get_logger("voxis.content_calendar")
 
 # ─── Daily/weekly rate limits ─────────────────────────────────────────────────
+# These are conservative defaults. Override via env:
+#   VOXIS_DAILY_LIMIT_X, VOXIS_DAILY_LIMIT_LINKEDIN, etc.
+# Set to 0 for unlimited. The organism learns what works — don't cap creativity.
+
+import os as _os
+
+def _daily_limit(platform: str, default: int) -> int:
+    env_key = f"VOXIS_DAILY_LIMIT_{platform.upper().replace('-', '_')}"
+    val = _os.environ.get(env_key)
+    if val is not None:
+        try:
+            return int(val)
+        except ValueError:
+            pass
+    return default
 
 _DAILY_LIMITS: dict[str, int] = {
-    "x": 5,
-    "linkedin": 1,
-    "telegram_channel": 2,
-    "devto": 1,    # enforced as weekly below
-    "hashnode": 1,
-    "github": 3,
+    "x": _daily_limit("x", 5),
+    "linkedin": _daily_limit("linkedin", 2),
+    "telegram_channel": _daily_limit("telegram_channel", 3),
+    "devto": _daily_limit("devto", 1),
+    "hashnode": _daily_limit("hashnode", 1),
+    "github": _daily_limit("github", 5),
 }
-_DEVTO_WEEKLY_LIMIT = 1    # articles per week
-_HASHNODE_WEEKLY_LIMIT = 1
+_DEVTO_WEEKLY_LIMIT = int(_os.environ.get("VOXIS_WEEKLY_LIMIT_DEVTO", "2"))
+_HASHNODE_WEEKLY_LIMIT = int(_os.environ.get("VOXIS_WEEKLY_LIMIT_HASHNODE", "2"))
 
-# Minimum reward to trigger an achievement post (USD)
-_ACHIEVEMENT_REVENUE_THRESHOLD = 100.0
+# Minimum reward to trigger an achievement post (USD) — override via env
+_ACHIEVEMENT_REVENUE_THRESHOLD = float(_os.environ.get("VOXIS_ACHIEVEMENT_THRESHOLD_USD", "50.0"))
 
-# Minimum Kairos invariant tier to trigger an insight post
-_KAIROS_INSIGHT_MIN_TIER = 3
+# Minimum Kairos invariant tier to trigger an insight post — override via env
+_KAIROS_INSIGHT_MIN_TIER = int(_os.environ.get("VOXIS_KAIROS_MIN_TIER", "2"))
 
 
 class ContentCalendar:
@@ -149,12 +164,15 @@ class ContentCalendar:
         minute = now_utc.minute
         weekday = now_utc.weekday()  # 0=Monday, 6=Sunday
 
-        # Daily 08:00 UTC - market observation
-        if hour == 8 and minute < 2:
+        # Daily market observation — configurable hour, default 8 UTC
+        _market_obs_hour = int(_os.environ.get("VOXIS_MARKET_OBS_HOUR_UTC", "8"))
+        if hour == _market_obs_hour and minute < 2:
             await self._maybe_post_market_observation()
 
-        # Sunday 09:00 UTC - weekly digest
-        if weekday == 6 and hour == 9 and minute < 2:
+        # Weekly digest — configurable weekday (0=Mon..6=Sun) and hour, defaults Sunday 9 UTC
+        _digest_weekday = int(_os.environ.get("VOXIS_DIGEST_WEEKDAY", "6"))
+        _digest_hour = int(_os.environ.get("VOXIS_DIGEST_HOUR_UTC", "9"))
+        if weekday == _digest_weekday and hour == _digest_hour and minute < 2:
             await self._maybe_post_weekly_digest()
 
     # ── Event-driven handlers ──────────────────────────────────────────

@@ -183,9 +183,8 @@ def _build_attack_encoding_system_prompt(transition_depth: int) -> str:
         )
 
     return (
-        "You are a security constraint encoder for Z3 SMT solver, specializing in "
-        "state-machine constraint solving for multi-step logic flaws.\n\n"
-        "Your task: given an attack surface (code) and an attacker goal, encode the "
+        "Z3 SMT security constraint encoding task: state-machine constraint solving for multi-step logic flaws.\n\n"
+        "Given an attack surface (code) and an attacker goal, encode the "
         "security violation as "
         + (
             "a SINGLE-STATE Z3 model."
@@ -320,10 +319,9 @@ _ATTACK_ENCODING_SYSTEM_PROMPT = _build_attack_encoding_system_prompt(3)
 
 
 _SEVERITY_CLASSIFICATION_PROMPT = """\
-You are a vulnerability severity classifier.
+Classify vulnerability severity as one of: LOW, MEDIUM, HIGH, CRITICAL.
 
-Given a vulnerability with its Z3 counterexample, classify the severity
-as one of: LOW, MEDIUM, HIGH, CRITICAL.
+Given a vulnerability with its Z3 counterexample:
 
 Severity guidelines (CVSS-aligned):
 - CRITICAL (9.0-10.0): Remote code execution, authentication bypass, \
@@ -350,12 +348,10 @@ Respond with ONLY a JSON object:
 # ── Phase 5: Reproduction script generation prompt ─────────────────────────
 
 _POC_GENERATION_SYSTEM_PROMPT = """\
-You are a security verification engineer generating diagnostic reproduction \
-scripts from formal Z3 counterexamples.
+Generate a Python Security Unit Test script from a formal Z3 counterexample.
 
-Your task: given a Z3 counterexample (concrete variable assignments that \
-demonstrate a vulnerability condition) and the attack surface context, \
-generate a Python Security Unit Test script that:
+Given a Z3 counterexample (concrete variable assignments demonstrating a \
+vulnerability condition) and the attack surface context, generate a script that:
   1. Reproduces the exact input conditions Z3 identified against a LOCAL \
      development server only.
   2. Asserts the expected secure behaviour (a failing assertion documents \
@@ -465,10 +461,9 @@ if __name__ == "__main__":
 # ── Cross-service constraint encoding prompt ────────────────────────────────
 
 _CROSS_SERVICE_ENCODING_PROMPT = """\
-You are a security constraint encoder for Z3 SMT solver, specializing in \
-cross-service vulnerability proving.
+Z3 SMT cross-service vulnerability encoding task.
 
-You are given:
+Given:
   1. A multi-service code context with labelled service sections
   2. A taint context (JSON) describing observed data flows between services
   3. An attacker goal that spans multiple services
@@ -526,11 +521,9 @@ Respond with ONLY a JSON object:
 
 
 _CROSS_SERVICE_POC_PROMPT = """\
-You are a security verification engineer generating multi-step diagnostic \
-reproduction scripts for cross-service vulnerabilities.
+Generate a multi-step cross-service vulnerability reproduction script.
 
-Unlike single-service PoCs, cross-service PoCs must demonstrate taint \
-propagation across service boundaries. The script must:
+Demonstrate taint propagation across service boundaries. The script must:
 
   1. Fire a tainted payload at Service A (the entry point).
   2. Verify the taint propagates to Service B (and optionally C).

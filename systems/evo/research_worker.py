@@ -276,17 +276,13 @@ class ArxivScientist:
         """
 
         prompt = (
-            "You are evaluating an arXiv paper for relevance to EcodiaOS, "
-            "a self-evolving AI organism with subsystems for: code generation "
-            "(Simula), learning/hypothesis (Evo), perception (Atune), "
-            "goal planning (Nova), ethics (Equor), memory, and embodiment (Soma).\n\n"
+            "Rate this arXiv paper's relevance to EcodiaOS — a self-evolving AI organism with "
+            "subsystems: Simula (code generation), Evo (learning/hypothesis), Atune (perception), "
+            "Nova (goal planning), Equor (ethics), Memory, Soma (embodiment).\n\n"
             f"Paper: {paper['title']}\n"
             f"Abstract: {paper.get('abstract', '')[:600]}\n\n"
             "Respond with ONLY a JSON object (no markdown):\n"
-            '{"relevance_score": 0.0-1.0, "technique_name": "short name of the core technique"}\n\n'
-            "Score 0.8+ if directly applicable to a subsystem. "
-            "Score 0.5-0.7 if tangentially useful. "
-            "Score below 0.5 if not relevant."
+            '{"relevance_score": 0.0-1.0, "technique_name": "short name of the core technique"}'
         )
 
         resp = await self._llm.evaluate(prompt, max_tokens=150, temperature=0.1)

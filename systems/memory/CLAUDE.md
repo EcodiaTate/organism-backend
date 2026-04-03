@@ -35,7 +35,7 @@
 - `export_training_batch(stream_id, since, limit)` - RE training data extraction (all 5 streams)
 - `export_genome()` - **SG1 resolved** - genome export for Mitosis child spawning (delegates to `MemoryGenomeExtractor` v2: includes drive_weight_history + floor_threshold_snapshots)
 - `update_affect()` - writes 6 affect scalars to Self node; emits `SELF_AFFECT_UPDATED`
-- `update_conscience_fields(last_conscience_activation, compliance_score)` - **NEW (2026-03-07)** - writes `last_conscience_activation` (datetime) and `avg_compliance_score` (EMA α=0.05 rolling 24h mean) to Self node; called by Equor after every constitutional review
+- `update_conscience_fields(last_conscience_activation, compliance_score)` - - writes `last_conscience_activation` (datetime) and `avg_compliance_score` (EMA α=0.05 rolling 24h mean) to Self node; called by Equor after every constitutional review
 - `set_soma()` / `set_event_bus()` - dependency injection points
 
 **Do not call internal modules directly.** All writes must go through `MemoryService`. Cross-system callers that bypass the service layer are architecture violations (see AV3–AV6 below).
@@ -46,7 +46,7 @@
 
 **Emitted**: `EPISODE_STORED` · `BELIEF_CONSOLIDATED` (with real `beliefs_created` count from promotion) · `SELF_AFFECT_UPDATED` · `MEMORY_PRESSURE` (episode_count > 10k or unconsolidated lag > 500; lag is now a real count of consolidation_level=0 episodes) · `SELF_STATE_DRIFTED` (contradictions > 5 during consolidation, or compliance drop > 0.1 from EQUOR_CONSTITUTIONAL_SNAPSHOT) · `MEMORY_EPISODES_DECAYED` (degradation soft-deletes) · `EVOLUTIONARY_OBSERVABLE` (entity_discovered, relation_formed, consolidation_pattern, community_emerged, genome_exported, **memory_graph_utilization** - graph health KPI for Benchmarks) · `INCIDENT_DETECTED` (temporal chain integrity failure → Thymos) · `SYSTEM_MODULATION_ACK`
 
-**Self node conscience fields (2026-03-07)**:
+**Self node conscience fields**:
 - `last_conscience_activation` - datetime of last Equor review
 - `avg_compliance_score` - EMA (α=0.05) of `composite_alignment` across all reviews; proxy for constitutional health over time
 
@@ -58,9 +58,9 @@
 - `METABOLIC_PRESSURE` → `_on_metabolic_pressure()`: updates `_starvation_level`
 - `SYSTEM_MODULATION` → `_on_system_modulation()`: applies Skia austerity directives; emits ACK
 
-**Constitutional Snapshot tracking (2026-03-07)**: `_last_compliance_score: float | None` on `MemoryService` tracks the previous snapshot's compliance for drift detection. Persists `(:ConstitutionalSnapshot)` nodes so Thread can walk constitutional evolution history.
+**Constitutional Snapshot tracking**: `_last_compliance_score: float | None` on `MemoryService` tracks the previous snapshot's compliance for drift detection. Persists `(:ConstitutionalSnapshot)` nodes so Thread can walk constitutional evolution history.
 
-**Graph health KPI (2026-03-08)**: `emit_graph_health_kpi()` emits `EVOLUTIONARY_OBSERVABLE` with `observable_type="memory_graph_utilization"` at the end of every consolidation cycle. Benchmarks subscribes to `EVOLUTIONARY_OBSERVABLE` and can track episode/entity/node counts as population fitness metrics.
+**Graph health KPI**: `emit_graph_health_kpi()` emits `EVOLUTIONARY_OBSERVABLE` with `observable_type="memory_graph_utilization"` at the end of every consolidation cycle. Benchmarks subscribes to `EVOLUTIONARY_OBSERVABLE` and can track episode/entity/node counts as population fitness metrics.
 
 ---
 
@@ -95,7 +95,7 @@
 | **GAP-M5** | `SLEEP_INITIATED` subscription added - `_on_sleep_initiated()` auto-triggers `consolidate()` at every Oneiros sleep cycle |
 | **GAP-KPI** | `emit_graph_health_kpi()` added - emits `EVOLUTIONARY_OBSERVABLE` (`memory_graph_utilization`) at end of every consolidation; Benchmarks can now observe memory load |
 
-### Resolved (2026-03-07)
+### Resolved
 | # | Resolution |
 |---|------------|
 | AV3 | `store_expression_episode()` added to MemoryService |

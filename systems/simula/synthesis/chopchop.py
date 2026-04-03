@@ -43,24 +43,21 @@ logger = structlog.get_logger().bind(system="simula.synthesis.chopchop")
 
 # ── System prompt ───────────────────────────────────────────────────────────
 
-CHUNK_GENERATION_PROMPT = """You are a precise Python code generator for EcodiaOS.
-Generate EXACTLY the requested code chunk, respecting all type constraints.
+CHUNK_GENERATION_PROMPT = """Generate the next {chunk_size} lines of Python code.
 
-## Constraints
-{constraints}
+Constraints: {constraints}
 
-## Context (preceding code)
+Context (preceding code):
 ```python
 {preceding}
 ```
 
-## Task
-Generate the next {chunk_size} lines of Python code that:
-1. Follow naturally from the preceding context
-2. Satisfy ALL listed constraints
-3. Use EOS conventions (structlog, type hints, async/await, EOSBaseModel)
+The code must:
+- Follow naturally from the preceding context
+- Satisfy ALL listed constraints
+- Use EOS conventions (structlog, type hints, async/await, EOSBaseModel)
 
-Respond with ONLY the code lines - no explanation, no fences, no line numbers."""
+Respond with ONLY the code lines — no explanation, no fences, no line numbers."""
 
 
 class ChopChopEngine:
@@ -284,7 +281,7 @@ class ChopChopEngine:
                 prompt += f"\n\nThis is chunk {chunk_idx + 1} of ~{total_chunks}."
 
             response = await self._llm.complete(  # type: ignore[attr-defined]
-                system="You are a precise Python code generator.",
+                system=None,
                 messages=[Message(role="user", content=prompt)],
                 max_tokens=1024,
             )

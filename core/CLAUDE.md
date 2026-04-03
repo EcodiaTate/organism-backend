@@ -45,7 +45,6 @@
 
 ## RE Training Exporter (`re_training_exporter.py`)
 
-**Implemented:** 2026-03-07
 **Status:** Wired in Phase 11 of `registry.py`
 
 ### What it does
@@ -120,7 +119,6 @@ Two new event subscriptions in `attach()`:
 
 ## RE Post-Training Evaluator (`re_evaluator.py`)
 
-**Implemented:** 2026-03-09
 **Status:** Wired in Phase 11 of `registry.py`, immediately after RE Training Exporter
 
 ### What it does
@@ -136,7 +134,7 @@ Two new event subscriptions in `attach()`:
 - If `delta < -0.05` → emits `INCIDENT_DETECTED` severity=HIGH ("RE model regressed on {category}")
 - If `delta > 0.10` → emits `RE_TRAINING_EXAMPLE` with `outcome_quality=1.0, category="model_improvement"` (organism celebrates its learning)
 - Computes `health_score = weighted average` across all categories; emits `BENCHMARK_RE_PROGRESS` with `kpi_name=re_model.health_score`
-- **Delta fix (2026-03-09)**: `_emit_health_score()` now loads the previous `re_eval:health_score:{instance_id}` from Redis before persisting the new value, computes `delta = current - previous`, and sets `direction = "up"/"down"/"flat"`. Previously always emitted `delta=0.0` which prevented Thread's `_on_re_model_improved` from firing (requires `delta > 0.05`).
+-: `_emit_health_score()` now loads the previous `re_eval:health_score:{instance_id}` from Redis before persisting the new value, computes `delta = current - previous`, and sets `direction = "up"/"down"/"flat"`. Previously always emitted `delta=0.0` which prevented Thread's `_on_re_model_improved` from firing (requires `delta > 0.05`).
 - Persists health score to Redis: `"re_eval:health_score:{instance_id}"`
 - If `health_score > 0.85` → emits `NOVA_GOAL_INJECTED` (priority=0.6): "RE model performing at X% - organism is learning"
 - Skipped silently if RE service is not available (`is_available == False`)
@@ -213,7 +211,6 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 
 ## Red-Team Monthly Background Task
 
-**Implemented:** 2026-03-07 (Round 4D)
 **Status:** Wired in Phase 11 of `registry.py`, after Continual Learning Orchestrator
 
 ### What it does
@@ -241,7 +238,6 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 
 ## Tier 3 Quarterly Cron (`_run_tier3_cron` in `registry.py`)
 
-**Implemented:** 2026-03-07 (Round 5A)
 **Status:** Wired in Phase 11, after Continual Learning Orchestrator, before red-team cron
 
 ### What it does
@@ -265,7 +261,6 @@ All tasks are started via `utils.supervision.supervised_task()` with auto-restar
 
 ## Runtime Introspection API (`registry.py`)
 
-**Implemented:** 2026-03-08
 
 Three methods added to `SystemRegistry` for live observability without restarting the organism.
 
@@ -291,7 +286,6 @@ Class-level constant. 27 systems. Topology: memory → logos → equor → …; 
 
 ## Runtime Config Query API (`config.py`)
 
-**Implemented:** 2026-03-08
 
 Three functions exported from `config.py` for introspecting the live config at runtime.
 
