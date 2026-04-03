@@ -133,22 +133,22 @@ class SelfModificationEngine:
         records: list[SelfModificationRecord] = []
 
         # 1. Detector evolution — all failing detectors, no per-cycle cap
-            detector_proposals = self._check_detector_evolution(detector_stats)
-            for proposal in detector_proposals:
-                record = SelfModificationRecord(
-                    proposal_type="detector_replacement",
-                    description=(
-                        f"Replace detector '{proposal.old_detector_name}' - "
-                        f"effectiveness below {_DETECTOR_FAIL_THRESHOLD} for "
-                        f"{_DETECTOR_FAIL_CYCLES} cycles. "
-                        f"Spec: {proposal.specification[:200]}"
-                    ),
-                    applied=False,
-                    outcome="pending",
-                )
-                records.append(record)
-                self._pending_proposals.append(proposal)
-                self._modification_records.append(record)
+        detector_proposals = self._check_detector_evolution(detector_stats)
+        for proposal in detector_proposals:
+            record = SelfModificationRecord(
+                proposal_type="detector_replacement",
+                description=(
+                    f"Replace detector '{proposal.old_detector_name}' - "
+                    f"effectiveness below {_DETECTOR_FAIL_THRESHOLD} for "
+                    f"{_DETECTOR_FAIL_CYCLES} cycles. "
+                    f"Spec: {proposal.specification[:200]}"
+                ),
+                applied=False,
+                outcome="pending",
+            )
+            records.append(record)
+            self._pending_proposals.append(proposal)
+            self._modification_records.append(record)
 
         # 2. Evidence function adaptation
         if hypothesis_outcomes:
