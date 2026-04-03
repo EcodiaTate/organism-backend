@@ -943,7 +943,7 @@ class SystemRegistry:
 
         infra_cost_poller = InfrastructureCostPoller(
             metabolism=synapse.metabolism,
-            poll_interval_s=float(cfg.synapse.infra_cost_poll_interval_s),
+            poll_interval_s=float(config.synapse.infra_cost_poll_interval_s),
             event_bus=synapse.event_bus,
         )
         infra_cost_poller.start()
