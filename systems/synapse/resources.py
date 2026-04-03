@@ -33,7 +33,7 @@ except ImportError:
 
 # Default per-system budgets (from Synapse spec)
 _DEFAULT_BUDGETS: dict[str, SystemBudget] = {
-    "atune": SystemBudget(system_id="atune", cpu_share=0.20, memory_mb=512, io_priority=1),
+    "fovea": SystemBudget(system_id="fovea", cpu_share=0.20, memory_mb=512, io_priority=1),
     "memory": SystemBudget(system_id="memory", cpu_share=0.20, memory_mb=2048, io_priority=1),
     "nova": SystemBudget(system_id="nova", cpu_share=0.20, memory_mb=512, io_priority=2),
     "equor": SystemBudget(system_id="equor", cpu_share=0.10, memory_mb=256, io_priority=2),

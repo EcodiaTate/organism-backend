@@ -555,7 +555,7 @@ async def health() -> dict[str, Any]:
             return {"status": "error", "error": err}
 
     def _safe_sync_stats(attr: str) -> dict[str, Any]:
-        """Read a sync ``.stats`` property with full error isolation."""
+        """Read a sync ``.stats`` property with full error isolation and timeout."""
         if not hasattr(app.state, attr):
             return _NOT_INIT
         try:
@@ -566,8 +566,21 @@ async def health() -> dict[str, Any]:
             return {"status": "error", "error": err}
 
     # Gather all health probes concurrently — each is individually guarded.
-    # Every check (including TSDB) runs in parallel to stay well under the
-    # external 10s health-check timeout.
+    # Every check (including TSDB and instance identity) runs in parallel
+    # to stay well under the external 10s health-check timeout.
+
+    async def _safe_get_self() -> str:
+        """Fetch instance name with full error isolation."""
+        if not hasattr(app.state, "memory"):
+            return "unborn"
+        try:
+            instance = await asyncio.wait_for(
+                app.state.memory.get_self(), timeout=2.0,
+            )
+            return instance.name if instance else "unborn"
+        except Exception:
+            return "unborn"
+
     (
         memory_health,
         equor_health,
@@ -581,6 +594,7 @@ async def health() -> dict[str, Any]:
         redis_health,
         federation_health,
         tsdb_health,
+        instance_name,
     ) = await asyncio.gather(
         _safe_health("memory", "memory"),
         _safe_health("equor", "equor"),
@@ -594,6 +608,7 @@ async def health() -> dict[str, Any]:
         _safe_health("redis", "redis", "health_check"),
         _safe_health("federation", "federation"),
         _safe_health("timescaledb", "tsdb", "health_check"),
+        _safe_get_self(),
     )
 
     # Determine overall status
@@ -609,21 +624,14 @@ async def health() -> dict[str, Any]:
     if synapse_health.get("safe_mode"):
         overall = "safe_mode"
 
-    # Instance identity (guarded with tight timeout — must not stall health)
-    instance_name = "unborn"
-    try:
-        if hasattr(app.state, "memory"):
-            instance = await asyncio.wait_for(app.state.memory.get_self(), timeout=2.0)
-            if instance:
-                instance_name = instance.name
-    except Exception:
-        pass
-
-    # Atune telemetry (guarded)
+    # Atune telemetry (guarded — sync property reads, should be instant)
     atune_health: dict[str, Any] = _NOT_INIT
     if hasattr(app.state, "atune"):
         try:
             atune: AtuneService = app.state.atune
+            # All property reads below are synchronous and should complete
+            # in microseconds.  The try/except guards against attribute
+            # errors during init or shutdown.
             atune_health = {
                 "status": "running",
                 "cycle_count": atune.cycle_count,

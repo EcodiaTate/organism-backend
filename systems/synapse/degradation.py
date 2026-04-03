@@ -47,13 +47,9 @@ _STRATEGIES: dict[str, DegradationStrategy] = {
         auto_restart=True,
         max_restart_attempts=3,
     ),
-    "atune": DegradationStrategy(
-        system_id="atune",
-        triggers_safe_mode=True,
-        fallback_behavior="Enter safe mode. Direct input passthrough, no Fovea prediction error evaluation.",
-        auto_restart=True,
-        max_restart_attempts=3,
-    ),
+    # NOTE: "atune" was the legacy system_id. AtuneService now registers as
+    # "fovea" (PerceptionGateway in fovea/gateway.py).  The fovea entry
+    # below carries the safe-mode trigger that atune previously owned.
     "nova": DegradationStrategy(
         system_id="nova",
         triggers_safe_mode=False,
@@ -138,8 +134,8 @@ _STRATEGIES: dict[str, DegradationStrategy] = {
     ),
     "fovea": DegradationStrategy(
         system_id="fovea",
-        triggers_safe_mode=False,
-        fallback_behavior="Prediction error calculation skipped. Atune falls back to habituated salience.",
+        triggers_safe_mode=True,
+        fallback_behavior="Enter safe mode. Direct input passthrough, no Fovea prediction error evaluation.",
         auto_restart=True,
         max_restart_attempts=3,
     ),

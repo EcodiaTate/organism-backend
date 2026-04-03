@@ -74,7 +74,7 @@ class TestMemoryHealthResilience:
         result = await svc.health()
         assert result["status"] == "degraded"
         assert result["neo4j"]["status"] == "error"
-        assert "TimeoutError" in result["neo4j"]["error"]
+        assert "timed out" in result["neo4j"]["error"]
 
     @pytest.mark.asyncio
     async def test_neo4j_healthy_returns_healthy(self):
@@ -142,11 +142,11 @@ class TestHealthEndpointTimeout:
             result = await health()
             elapsed = time.monotonic() - start
 
-            # All checks run in parallel with 2s timeout, plus get_self 2s
+            # All checks (including get_self) run in parallel with 2s timeout.
             # Total should be well under 10s (the external timeout)
-            assert elapsed < 6.0, (
+            assert elapsed < 4.0, (
                 f"Health endpoint took {elapsed:.1f}s — must stay under 10s "
-                f"external timeout (target <6s)"
+                f"external timeout (target <4s with full parallelism)"
             )
 
             # Individual timeouts should be reported, not crash the endpoint

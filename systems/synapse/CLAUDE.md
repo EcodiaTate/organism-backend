@@ -28,7 +28,7 @@
 - 5-second polling, 2-second per-system timeout
 - State machine: STOPPED → STARTING → HEALTHY ← DEGRADED ← FAILED (with OVERLOADED)
 - FAILED: 3 consecutive missed heartbeats; FAILED recovery requires 3 successes; DEGRADED/OVERLOADED recover on first success
-- Critical systems (equor, memory, atune) → safe mode; safe mode exits when all critical systems healthy
+- Critical systems (equor, memory, fovea) → safe mode; safe mode exits when all critical systems healthy
 - Infrastructure checks: Redis and Neo4j every 15s
 - Supervised background task with 3-restart exponential backoff
 - **M8 (Phase 2 Chat 7)**: `SYSTEM_HEALTH_CHANGED` emitted on every status transition - STARTING→HEALTHY, HEALTHY→DEGRADED, HEALTHY→OVERLOADED, any→FAILED. Previously only FAILED and RECOVERED were visible on the bus.

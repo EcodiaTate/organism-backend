@@ -9,6 +9,7 @@ Memory is the substrate of selfhood.
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
@@ -1914,7 +1915,11 @@ class MemoryService:
     async def health(self) -> dict[str, Any]:
         """Health check for the memory system (must complete within 2s)."""
         try:
-            neo4j_health = await self._neo4j.health_check()
+            neo4j_health = await asyncio.wait_for(
+                self._neo4j.health_check(), timeout=1.5,
+            )
+        except (TimeoutError, asyncio.TimeoutError):
+            neo4j_health = {"status": "error", "error": "neo4j health check timed out (1.5s)"}
         except Exception as exc:
             error_msg = str(exc) or f"{type(exc).__name__} (no message)"
             neo4j_health = {"status": "error", "error": error_msg}
