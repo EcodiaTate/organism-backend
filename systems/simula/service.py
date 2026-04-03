@@ -3761,7 +3761,7 @@ class SimulaService:
 
             # Emit RE_TRAINING_EXAMPLE
             try:
-                from primitives.evolution import RETrainingExample
+                from primitives.re_training import RETrainingExample
                 from systems.synapse.types import SynapseEvent, SynapseEventType
 
                 example = RETrainingExample(

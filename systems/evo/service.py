@@ -5212,7 +5212,7 @@ class EvoService:
 
                 # Emit RE_TRAINING_EXAMPLE (category=exploration_success)
                 try:
-                    from primitives.evolution import RETrainingExample
+                    from primitives.re_training import RETrainingExample
 
                     example = RETrainingExample(
                         episode_id=hypothesis_id,
@@ -5274,7 +5274,7 @@ class EvoService:
 
                 # Emit RE_TRAINING_EXAMPLE (category=exploration_failed)
                 try:
-                    from primitives.evolution import RETrainingExample
+                    from primitives.re_training import RETrainingExample
 
                     example = RETrainingExample(
                         episode_id=hypothesis_id,

@@ -18,7 +18,7 @@ import pytest
 from primitives.common import utc_now
 from systems.evo.consolidation import (
     _CONSOLIDATION_CYCLE_THRESHOLD,
-    _CONSOLIDATION_INTERVAL_HOURS,
+    _CONSOLIDATION_MAX_INTERVAL_HOURS,
     ConsolidationOrchestrator,
 )
 from systems.evo.hypothesis import HypothesisEngine
@@ -143,7 +143,7 @@ class TestShouldRun:
 
     def test_runs_exactly_at_time_threshold(self):
         orchestrator = make_orchestrator()
-        orchestrator._last_run_at = utc_now() - timedelta(hours=_CONSOLIDATION_INTERVAL_HOURS)
+        orchestrator._last_run_at = utc_now() - timedelta(hours=_CONSOLIDATION_MAX_INTERVAL_HOURS)
         assert orchestrator.should_run(cycle_count=0, cycles_since_last=0) is True
 
     def test_runs_exactly_at_cycle_threshold(self):

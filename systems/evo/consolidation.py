@@ -1506,7 +1506,7 @@ class ConsolidationOrchestrator:
 
                 # Emit RE_TRAINING_EXAMPLE for exploration proposal
                 try:
-                    from primitives.evolution import RETrainingExample
+                    from primitives.re_training import RETrainingExample
 
                     example = RETrainingExample(
                         episode_id=h.id,
