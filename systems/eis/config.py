@@ -23,9 +23,12 @@ contribution) can reference them without importing the full model layer.
 
 from __future__ import annotations
 
+import os
 from typing import NamedTuple
 
 # ─── Threat-Zone Thresholds ──────────────────────────────────────
+# All thresholds are env-configurable so Evo/Simula can tune them.
+# These are security boundaries, not autonomy restrictions.
 
 
 class ZoneBounds(NamedTuple):
@@ -35,11 +38,15 @@ class ZoneBounds(NamedTuple):
     upper: float  # exclusive (1.01 used as sentinel for the top zone)
 
 
+def _f(key: str, default: float) -> float:
+    return float(os.environ.get(key, str(default)))
+
+
 THRESHOLDS: dict[str, ZoneBounds] = {
-    "clean":          ZoneBounds(lower=0.00, upper=0.20),
-    "elevated":       ZoneBounds(lower=0.20, upper=0.45),
-    "antigenic_zone": ZoneBounds(lower=0.45, upper=0.85),
-    "known_attack":   ZoneBounds(lower=0.85, upper=1.01),
+    "clean":          ZoneBounds(lower=0.00, upper=_f("EIS_CLEAN_UPPER", 0.20)),
+    "elevated":       ZoneBounds(lower=_f("EIS_CLEAN_UPPER", 0.20), upper=_f("EIS_ELEVATED_UPPER", 0.45)),
+    "antigenic_zone": ZoneBounds(lower=_f("EIS_ELEVATED_UPPER", 0.45), upper=_f("EIS_ANTIGENIC_UPPER", 0.85)),
+    "known_attack":   ZoneBounds(lower=_f("EIS_ANTIGENIC_UPPER", 0.85), upper=1.01),
 }
 """Map from zone label → (inclusive lower, exclusive upper) composite-score bounds."""
 
@@ -47,7 +54,7 @@ THRESHOLDS: dict[str, ZoneBounds] = {
 # ─── Sigmoid Discount Parameters (used by belief_update_weight) ──
 
 
-SIGMOID_STEEPNESS: float = 12.0
+SIGMOID_STEEPNESS: float = _f("EIS_SIGMOID_STEEPNESS", 12.0)
 """
 Controls how sharply the sigmoid transitions from 'trust' to 'distrust'
 around the midpoint.  Higher values create a sharper cliff; lower values
@@ -55,14 +62,14 @@ create a softer ramp.  12 places the 10%-to-90% transition window roughly
 between composite scores of 0.30 and 0.70.
 """
 
-SIGMOID_MIDPOINT: float = 0.45
+SIGMOID_MIDPOINT: float = _f("EIS_SIGMOID_MIDPOINT", 0.45)
 """
 The composite-score at which the belief discount is exactly 0.5.
 Aligned with the quarantine threshold - percepts at the quarantine
 boundary receive half the normal belief-update weight.
 """
 
-BELIEF_FLOOR: float = 0.05
+BELIEF_FLOOR: float = _f("EIS_BELIEF_FLOOR", 0.05)
 """
 Minimum belief-update weight.  Even a confirmed attack still shifts
 beliefs by a tiny amount so Nova registers that *something* adversarial
@@ -74,7 +81,7 @@ trusted).
 # ─── Risk Salience Parameters (used by compute_risk_salience_factor) ──
 
 
-RISK_SALIENCE_GAIN: float = 1.4
+RISK_SALIENCE_GAIN: float = _f("EIS_RISK_SALIENCE_GAIN", 1.4)
 """
 Linear gain applied to the EIS composite score before clamping.
 Values > 1.0 make the risk dimension more responsive to moderate threats;

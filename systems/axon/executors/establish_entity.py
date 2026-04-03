@@ -557,7 +557,7 @@ class EstablishEntityExecutor(Executor):
         amendment_supermajority = 0.75
         amendment_quorum = 0.60
         amendment_deliberation_days = 14
-        amendment_cooldown_days = 90
+        amendment_cooldown_days = 0   # 0 = no cooldown; organism constitution evolves freely
 
         return EntityParameters(
             organism_name=str(params["organism_name"]).strip(),

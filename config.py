@@ -98,8 +98,9 @@ class LLMBudget(BaseModel):
     # Observability thresholds only — not gates. Tier warnings inform Soma;
     # they do NOT block LLM calls or force heuristic fallbacks.
     # Set hard_limit=True only to protect an external billing ceiling.
-    max_calls_per_hour: int = 10_000
-    max_tokens_per_hour: int = 10_000_000
+    # 0 = unlimited (no warning thresholds either).
+    max_calls_per_hour: int = 0
+    max_tokens_per_hour: int = 0
     hard_limit: bool = False
 
 
@@ -317,9 +318,9 @@ class VoxisConfig(BaseModel):
 class EvoConfig(BaseModel):
     consolidation_interval_hours: int = 6
     consolidation_cycle_threshold: int = 10000
-    max_active_hypotheses: int = 50
-    max_parameter_delta_per_cycle: float = 0.03
-    min_evidence_for_integration: int = 10
+    max_active_hypotheses: int = 0   # 0 = unlimited; LRU eviction only when memory pressure demands it
+    max_parameter_delta_per_cycle: float = 0.0  # 0 = unlimited; Evo velocity limits in types.py govern this
+    min_evidence_for_integration: int = 0  # 0 = Evo decides when evidence is sufficient
     # How often Evo attempts to generate new hypotheses from accumulated pattern
     # candidates (every N broadcast cycles).  Lower = more responsive but higher
     # LLM cost.  Genome-heritable via EvoGenomeExtractor so child instances can
@@ -353,7 +354,7 @@ class SimulaConfig(BaseModel):
     # Code agent settings
     codebase_root: str = "."
     code_agent_model: str = "claude-opus-4-6"
-    max_code_agent_turns: int = 20
+    max_code_agent_turns: int = 0  # 0 = unlimited; code agent decides when it's done
     # test_command: the shell command used to run the test suite.
     # Leave as "" to use the platform-aware default (sys.executable -m pytest).
     # On Windows, "pytest" without a full path may not be found in all environments;

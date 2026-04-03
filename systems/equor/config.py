@@ -72,8 +72,8 @@ class RedisConfig(BaseModel):
 
 
 class LLMBudget(BaseModel):
-    max_calls_per_hour: int = 60
-    max_tokens_per_hour: int = 60000
+    max_calls_per_hour: int = 0       # 0 = unlimited; metabolism gates cost, not call count
+    max_tokens_per_hour: int = 0      # 0 = unlimited; same principle
 
 
 class LLMConfig(BaseModel):
@@ -199,7 +199,7 @@ class GovernanceConfig(BaseModel):
     amendment_supermajority: float = 0.75
     amendment_quorum: float = 0.60
     amendment_deliberation_days: int = 14
-    amendment_cooldown_days: int = 90
+    amendment_cooldown_days: int = 0    # 0 = no cooldown; organism can evolve constitution at any rate
     # Shadow mode: proposed weights run alongside current weights
     amendment_shadow_days: int = 7
     amendment_shadow_max_divergence_rate: float = 0.15

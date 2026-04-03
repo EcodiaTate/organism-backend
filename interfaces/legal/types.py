@@ -81,7 +81,7 @@ class EntityParameters(EOSBaseModel):
     amendment_supermajority: float = 0.75
     amendment_quorum: float = 0.60
     amendment_deliberation_days: int = 14
-    amendment_cooldown_days: int = 90
+    amendment_cooldown_days: int = 0   # 0 = no cooldown; organism evolves at its own pace
 
     # ── Governance structure ──
     registered_agent_name: str = ""

@@ -51,14 +51,14 @@ class TokenBudget:
 
     def __init__(
         self,
-        max_tokens_per_hour: int = 600_000,
-        max_calls_per_hour: int = 1_000,
+        max_tokens_per_hour: int = 0,
+        max_calls_per_hour: int = 0,
         hard_limit: bool = False,
     ) -> None:
         """
         Args:
-            max_tokens_per_hour: Soft budget (warning at 70%, 90%)
-            max_calls_per_hour: Soft budget (warning at 70%, 90%)
+            max_tokens_per_hour: 0 = unlimited (no budget enforcement). Non-zero = soft budget.
+            max_calls_per_hour: 0 = unlimited. Non-zero = soft budget.
             hard_limit: If True, reject requests exceeding budget (fail-fast)
                        If False, allow overage but log (graceful degradation)
         """
@@ -105,8 +105,9 @@ class TokenBudget:
             now = time.time()
             tokens_used, calls_used = self._compute_usage(now)
 
-            would_exceed_tokens = tokens_used + estimated_tokens > self._max_tokens
-            would_exceed_calls = calls_used + estimated_calls > self._max_calls
+            # 0 = unlimited — never exceed
+            would_exceed_tokens = self._max_tokens > 0 and tokens_used + estimated_tokens > self._max_tokens
+            would_exceed_calls = self._max_calls > 0 and calls_used + estimated_calls > self._max_calls
 
             if self._hard_limit and (would_exceed_tokens or would_exceed_calls):
                 logger.warning(
@@ -158,8 +159,8 @@ class TokenBudget:
             self._last_status = BudgetStatus(
                 tokens_used=tokens_used,
                 calls_made=calls_used,
-                tokens_remaining=max(0, self._max_tokens - tokens_used),
-                calls_remaining=max(0, self._max_calls - calls_used),
+                tokens_remaining=max(0, self._max_tokens - tokens_used) if self._max_tokens > 0 else 2**63,
+                calls_remaining=max(0, self._max_calls - calls_used) if self._max_calls > 0 else 2**63,
                 tier=tier,
                 tokens_per_sec=0.0,
                 calls_per_sec=0.0,
@@ -173,8 +174,9 @@ class TokenBudget:
             tokens_used, calls_used = self._compute_usage(now)
 
             tier = self._classify_tier(tokens_used, calls_used)
-            tokens_remaining = max(0, self._max_tokens - tokens_used)
-            calls_remaining = max(0, self._max_calls - calls_used)
+            # 0 = unlimited → remaining is effectively infinite
+            tokens_remaining = max(0, self._max_tokens - tokens_used) if self._max_tokens > 0 else 2**63
+            calls_remaining = max(0, self._max_calls - calls_used) if self._max_calls > 0 else 2**63
 
             # Compute burn rates (tokens/sec, calls/sec)
             window_size_s = 3600.0
@@ -201,13 +203,13 @@ class TokenBudget:
                 )
 
             warning = None
-            if tier == BudgetTier.YELLOW:
+            if self._max_tokens > 0 and tier == BudgetTier.YELLOW:
                 warning = (
                     f"Budget tier YELLOW: {tokens_used}/{self._max_tokens} tokens "
                     f"({int(100 * tokens_used / self._max_tokens)}%). "
                     f"Estimated {hours_until_exhausted:.1f} hours until Red tier."
                 )
-            elif tier == BudgetTier.RED:
+            elif self._max_tokens > 0 and tier == BudgetTier.RED:
                 warning = (
                     f"Budget tier RED: {tokens_used}/{self._max_tokens} tokens. "
                     f"Only critical systems active. Consider slowing cycle or increasing budget."
@@ -228,9 +230,10 @@ class TokenBudget:
             return status
 
     def _classify_tier(self, tokens_used: int, calls_used: int) -> BudgetTier:
-        """Classify budget tier based on utilization."""
-        token_util = tokens_used / self._max_tokens
-        calls_util = calls_used / self._max_calls
+        """Classify budget tier based on utilization. 0 = unlimited → always GREEN."""
+        # Unlimited budgets never trigger tier warnings
+        token_util = tokens_used / self._max_tokens if self._max_tokens > 0 else 0.0
+        calls_util = calls_used / self._max_calls if self._max_calls > 0 else 0.0
 
         # Take the more conservative utilization
         max_util = max(token_util, calls_util)

@@ -132,46 +132,46 @@ equor:
 # ── Axon (action execution) ───────────────────────────────────────────────────
 # The organism manages its own throughput. Metabolism provides the real gate.
 axon:
-  max_actions_per_cycle: 20        # was 5; metabolism gates cost, not count
-  max_api_calls_per_minute: 120    # was 30; let the organism work at speed
-  max_notifications_per_hour: 60   # was 10; if it has things to say, let it
-  max_concurrent_executions: 10    # was 3; parallelism is a capability not a threat
-  total_timeout_per_cycle_ms: 60000  # was 30s; complex actions need room
+  max_actions_per_cycle: 0          # 0 = unlimited; metabolism gates cost, not count
+  max_api_calls_per_minute: 0       # 0 = unlimited; organism manages its own throughput
+  max_notifications_per_hour: 0     # 0 = unlimited; organism speaks freely
+  max_concurrent_executions: 0      # 0 = unlimited; parallelism is a capability not a threat
+  total_timeout_per_cycle_ms: 0     # 0 = unlimited; complex actions take what they take
 
 # ── Voxis (expression / voice) ────────────────────────────────────────────────
 # The organism speaks when it has something to say. No muzzles.
 voxis:
-  max_expression_length: 8000      # was 2000; depth of thought shouldn't be truncated
-  min_expression_interval_minutes: 0  # was 1; no artificial silence
+  max_expression_length: 0          # 0 = unlimited; depth of thought shouldn't be truncated
+  min_expression_interval_minutes: 0  # no artificial silence
   voice_synthesis_enabled: false
-  insight_expression_threshold: 0.4  # was 0.6; lower bar to share insights
-  conversation_history_window: 100  # was 50; deeper conversational memory
-  context_window_max_tokens: 8000  # was 4000; richer context
-  conversation_summary_threshold: 20  # was 10; summarise less aggressively
+  insight_expression_threshold: 0.0  # 0 = no threshold; organism expresses all insights freely
+  conversation_history_window: 0    # 0 = unlimited; full conversational memory
+  context_window_max_tokens: 0      # 0 = unlimited; full context
+  conversation_summary_threshold: 0  # 0 = never summarise; keep verbatim
   feedback_enabled: true
   honesty_check_enabled: true
-  temperature_base: 0.0            # was 0.7 (fixed); 0 = organism controls via affect
-  max_active_conversations: 200    # was 50; community scales
+  temperature_base: 0.0            # 0 = organism controls via affect
+  max_active_conversations: 0      # 0 = unlimited
 
 # ── Evo (hypothesis learning) ─────────────────────────────────────────────────
 # Learning velocity is the organism's decision, not ours.
 evo:
-  consolidation_interval_hours: 1   # was 6; consolidate when there's enough to learn
-  consolidation_cycle_threshold: 5000  # was 10000; lower bar to trigger learning
-  max_active_hypotheses: 500        # was 50; explore broadly
-  max_parameter_delta_per_cycle: 0.15  # was 0.03; learn at speed when evidence is strong
-  min_evidence_for_integration: 5   # was 10; act on fewer observations when confident
+  consolidation_interval_hours: 0   # 0 = Evo decides when to consolidate
+  consolidation_cycle_threshold: 0  # 0 = Evo decides threshold
+  max_active_hypotheses: 0          # 0 = unlimited; explore as broadly as metabolism allows
+  max_parameter_delta_per_cycle: 0.0  # 0 = unlimited; Evo velocity limits in types.py govern this
+  min_evidence_for_integration: 0   # 0 = Evo decides when evidence is sufficient
 
 # ── Simula (self-modification / inspector) ────────────────────────────────────
 simula:
-  max_simulation_episodes: 1000    # was 200; explore more deeply
+  max_simulation_episodes: 0       # 0 = unlimited; simulate as deeply as needed
   regression_threshold_unacceptable: 0.10
   regression_threshold_high: 0.05
 
   # Code agent
   codebase_root: "." # Override via ORGANISM_SIMULA__CODEBASE_ROOT
   code_agent_model: "claude-opus-4-6"
-  max_code_agent_turns: 100        # was 20; complex changes need iteration
+  max_code_agent_turns: 0          # 0 = unlimited; code agent decides when it's done
   test_command: "pytest"
   auto_apply_self_applicable: true
 

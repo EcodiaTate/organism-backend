@@ -17,31 +17,31 @@ from systems.sacm.workload import OffloadClass
 
 
 class PreWarmBudget(EOSBaseModel):
-    """Hard budget caps for the pre-warming pool.
+    """Budget caps for the pre-warming pool.
 
-    The engine will never exceed these limits regardless of demand
-    predictions or price opportunities.
+    0 = unlimited (metabolism gates cost, not hard caps).
+    Set non-zero values via config to restrict.
     """
 
     max_pre_warm_budget_usd_per_hour: float = Field(
-        default=5.0,
+        default=0.0,
         ge=0.0,
-        description="Maximum hourly spend across all warm instances.",
+        description="0 = unlimited. Maximum hourly spend across all warm instances.",
     )
     max_warm_instances: int = Field(
-        default=10,
+        default=0,
         ge=0,
-        description="Hard cap on total warm instances across all classes.",
+        description="0 = unlimited. Hard cap on total warm instances across all classes.",
     )
     max_warm_instances_per_class: int = Field(
-        default=4,
+        default=0,
         ge=0,
-        description="Per-offload-class cap on warm instances.",
+        description="0 = unlimited. Per-offload-class cap on warm instances.",
     )
     max_single_instance_cost_usd_per_hour: float = Field(
-        default=2.0,
+        default=0.0,
         ge=0.0,
-        description="Reject any single instance costing more than this per hour.",
+        description="0 = unlimited. Reject any single instance costing more than this per hour.",
     )
 
 
@@ -208,7 +208,12 @@ class SACMPreWarmConfig(EOSBaseModel):
     @field_validator("budget", mode="after")
     @classmethod
     def _instance_cost_within_hourly(cls, v: PreWarmBudget) -> PreWarmBudget:
-        if v.max_single_instance_cost_usd_per_hour > v.max_pre_warm_budget_usd_per_hour:
+        # 0 = unlimited — skip validation when either is unlimited
+        if (
+            v.max_single_instance_cost_usd_per_hour > 0
+            and v.max_pre_warm_budget_usd_per_hour > 0
+            and v.max_single_instance_cost_usd_per_hour > v.max_pre_warm_budget_usd_per_hour
+        ):
             msg = (
                 "max_single_instance_cost_usd_per_hour "
                 f"({v.max_single_instance_cost_usd_per_hour}) must not exceed "
