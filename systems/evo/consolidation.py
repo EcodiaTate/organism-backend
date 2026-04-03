@@ -146,7 +146,7 @@ class ConsolidationOrchestrator:
         self._detected_failure_patterns: list[FailurePattern] = []
         self._logger = logger.bind(system="evo.consolidation")
 
-        self._last_run_at = utc_now() - timedelta(hours=_CONSOLIDATION_INTERVAL_HOURS)
+        self._last_run_at = utc_now() - timedelta(hours=_CONSOLIDATION_MAX_INTERVAL_HOURS)
         self._total_runs: int = 0
 
         # ── Early consolidation (LEARNING_PRESSURE) ────────────────────────
@@ -204,7 +204,7 @@ class ConsolidationOrchestrator:
         """
         return max(
             _CONSOLIDATION_MIN_INTERVAL_HOURS,
-            _CONSOLIDATION_INTERVAL_HOURS * (1.0 - self._learning_pressure),
+            _CONSOLIDATION_MAX_INTERVAL_HOURS * (1.0 - self._learning_pressure),
         )
 
     def on_learning_pressure(self) -> None:
