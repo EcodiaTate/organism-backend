@@ -37,7 +37,9 @@ logger = structlog.get_logger("systems.synapse.health")
 _HEALTH_CHECK_TIMEOUT_S: float = 2.0
 
 # Critical systems - failure triggers safe mode
-_CRITICAL_SYSTEMS: frozenset[str] = frozenset({"equor", "memory", "atune"})
+# NOTE: AtuneService registers with system_id="fovea" (PerceptionGateway in
+# fovea/gateway.py), so we must use "fovea" here, not "atune".
+_CRITICAL_SYSTEMS: frozenset[str] = frozenset({"equor", "memory", "fovea"})
 
 # Statuses reported by system.health() that indicate the system is alive
 # and responding.  "degraded" means reduced capability but still functional -

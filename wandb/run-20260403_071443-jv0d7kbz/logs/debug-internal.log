@@ -1,0 +1,9 @@
+{"time":"2026-04-03T07:14:43.107278437Z","level":"INFO","msg":"wandb-core"}
+{"time":"2026-04-03T07:14:43.107725086Z","level":"INFO","msg":"stream: starting","core version":"0.25.1"}
+{"time":"2026-04-03T07:14:43.317053885Z","level":"INFO","msg":"stream: created new stream","id":"jv0d7kbz"}
+{"time":"2026-04-03T07:14:43.317125254Z","level":"INFO","msg":"handler: started"}
+{"time":"2026-04-03T07:14:43.31720932Z","level":"INFO","msg":"stream: started"}
+{"time":"2026-04-03T07:14:43.317233297Z","level":"INFO","msg":"writer: started","stream_id":"jv0d7kbz"}
+{"time":"2026-04-03T07:14:43.317258545Z","level":"INFO","msg":"sender: started"}
+{"time":"2026-04-03T07:14:43.750232199Z","level":"ERROR","msg":"api: HTTP error","status":400,"method":"POST","url":"https://api.wandb.ai/graphql"}
+{"time":"2026-04-03T07:14:43.750349123Z","level":"ERROR","msg":"runupserter: failed to init run","error":"returned error 400: {\"data\":{\"upsertBucket\":null},\"errors\":[{\"message\":\"you may not log runs directly to your organization, please try using your team entity\",\"path\":[\"upsertBucket\"]}]}"}

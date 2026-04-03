@@ -550,8 +550,9 @@ async def health() -> dict[str, Any]:
             logger.warning("health_check_timeout", system=name)
             return {"status": "timeout", "error": f"{name} health check timed out"}
         except Exception as exc:
-            logger.warning("health_check_failed", system=name, error=str(exc))
-            return {"status": "error", "error": str(exc)}
+            error_msg = str(exc) or f"{type(exc).__name__} (no message)"
+            logger.warning("health_check_failed", system=name, error=error_msg)
+            return {"status": "error", "error": error_msg}
 
     def _safe_sync_stats(attr: str) -> dict[str, Any]:
         """Read a sync ``.stats`` property with full error isolation."""
@@ -560,8 +561,9 @@ async def health() -> dict[str, Any]:
         try:
             return getattr(app.state, attr).stats
         except Exception as exc:
-            logger.warning("health_check_failed", system=attr, error=str(exc))
-            return {"status": "error", "error": str(exc)}
+            error_msg = str(exc) or f"{type(exc).__name__} (no message)"
+            logger.warning("health_check_failed", system=attr, error=error_msg)
+            return {"status": "error", "error": error_msg}
 
     # Gather all health probes concurrently — each is individually guarded
     (
@@ -598,8 +600,9 @@ async def health() -> dict[str, Any]:
             logger.warning("health_check_timeout", system="timescaledb")
             tsdb_health = {"status": "timeout", "error": "timescaledb health check timed out"}
         except Exception as exc:
-            logger.warning("health_check_failed", system="timescaledb", error=str(exc))
-            tsdb_health = {"status": "error", "error": str(exc)}
+            error_msg = str(exc) or f"{type(exc).__name__} (no message)"
+            logger.warning("health_check_failed", system="timescaledb", error=error_msg)
+            tsdb_health = {"status": "error", "error": error_msg}
     else:
         tsdb_health = {"status": "not_configured"}
 
@@ -645,7 +648,8 @@ async def health() -> dict[str, Any]:
                 },
             }
         except Exception as exc:
-            atune_health = {"status": "error", "error": str(exc)}
+            error_msg = str(exc) or f"{type(exc).__name__} (no message)"
+            atune_health = {"status": "error", "error": error_msg}
 
     instance_id = getattr(getattr(app.state, "config", None), "instance_id", "unknown")
 
