@@ -39,20 +39,34 @@ _chat_logger = structlog.get_logger("chat")
 _registry = SystemRegistry()
 
 
+# Maximum time allowed for the full startup sequence (seconds).
+# If startup hangs beyond this, the HTTP server starts anyway in degraded
+# mode so the /health endpoint remains reachable and external monitors
+# see "degraded" instead of "organism unresponsive".
+STARTUP_TIMEOUT_S: float = float(os.environ.get("ORGANISM_STARTUP_TIMEOUT_S", "120"))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Startup and shutdown sequence.
     Delegates entirely to SystemRegistry - see core/registry.py.
 
-    Startup failures are non-fatal: if any phase crashes, the organism
-    starts in degraded mode so the /health endpoint remains reachable.
-    This prevents "organism unresponsive" incidents caused by transient
-    infrastructure outages (Neo4j, Redis) that crash the process before
-    any HTTP handler can respond.
+    Startup failures are non-fatal: if any phase crashes or hangs beyond
+    STARTUP_TIMEOUT_S, the organism starts in degraded mode so the /health
+    endpoint remains reachable.  This prevents "organism unresponsive"
+    incidents caused by transient infrastructure outages or hanging
+    service initializations that block the HTTP server from starting.
     """
     try:
-        await _registry.startup(app)
+        await asyncio.wait_for(_registry.startup(app), timeout=STARTUP_TIMEOUT_S)
+    except (TimeoutError, asyncio.TimeoutError):
+        logger.critical(
+            "startup_timeout",
+            timeout_s=STARTUP_TIMEOUT_S,
+            note="Startup exceeded timeout; organism starting in degraded mode",
+        )
+        app.state.startup_error = f"Startup timed out after {STARTUP_TIMEOUT_S}s"
     except Exception as exc:
         logger.critical(
             "startup_partial_failure",
@@ -632,6 +646,17 @@ async def health() -> dict[str, Any]:
     overall = "healthy"
     if startup_error:
         overall = "degraded"
+
+    # Check if core systems are actually initialized — reporting "healthy"
+    # when all systems are not_initialized is misleading and causes external
+    # monitors to think the organism is operational when it isn't.
+    _core_healths = [memory_health, equor_health, synapse_health, nova_health]
+    _all_core_uninit = all(
+        h.get("status") == "not_initialized" for h in _core_healths
+    )
+    if _all_core_uninit:
+        overall = "degraded"
+
     if any(
         h.get("status") not in ("connected", "healthy", "running")
         for h in [neo4j_health, tsdb_health, redis_health]

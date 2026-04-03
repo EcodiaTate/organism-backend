@@ -343,3 +343,143 @@ class TestCriticalSystemIds:
         assert "healthy" in _ALIVE_STATUSES
         assert "running" in _ALIVE_STATUSES
         assert "safe_mode" in _ALIVE_STATUSES
+
+
+class TestHealthEndpointDegradedWhenUninit:
+    """Verify /health reports degraded when all core systems are not_initialized."""
+
+    @pytest.mark.asyncio
+    async def test_all_uninit_returns_degraded(self):
+        """When all core systems are not_initialized, overall must be 'degraded'."""
+        class FakeState:
+            config = MagicMock(instance_id="test")
+
+        with patch("main.app") as mock_app:
+            mock_app.state = FakeState()
+
+            from main import health
+            result = await health()
+
+            assert result["status"] == "degraded", (
+                f"Expected 'degraded' when all systems are not_initialized, "
+                f"got '{result['status']}'"
+            )
+
+    @pytest.mark.asyncio
+    async def test_some_systems_running_returns_healthy(self):
+        """When core systems are healthy, overall should be 'healthy'."""
+        class FakeSystem:
+            async def health(self):
+                return {"status": "healthy"}
+
+            async def health_check(self):
+                return {"status": "connected"}
+
+            @property
+            def stats(self):
+                return {"status": "running"}
+
+        class FakeState:
+            memory = FakeSystem()
+            equor = FakeSystem()
+            voxis = FakeSystem()
+            nova = FakeSystem()
+            synapse = FakeSystem()
+            thymos = FakeSystem()
+            oneiros = FakeSystem()
+            thread = FakeSystem()
+            neo4j = FakeSystem()
+            redis = FakeSystem()
+            federation = FakeSystem()
+            tsdb = FakeSystem()
+            axon = FakeSystem()
+            evo = FakeSystem()
+            simula = FakeSystem()
+            atune = None  # not all systems need to be present
+            config = MagicMock(instance_id="test")
+
+        with patch("main.app") as mock_app:
+            mock_app.state = FakeState()
+
+            from main import health
+            result = await health()
+
+            assert result["status"] == "healthy", (
+                f"Expected 'healthy' when core systems are running, "
+                f"got '{result['status']}'"
+            )
+
+
+class TestStartupTimeout:
+    """Verify the lifespan startup timeout prevents indefinite hangs."""
+
+    def test_startup_timeout_constant_exists(self):
+        """STARTUP_TIMEOUT_S should be defined and reasonable."""
+        from main import STARTUP_TIMEOUT_S
+        assert STARTUP_TIMEOUT_S > 0
+        assert STARTUP_TIMEOUT_S <= 300  # max 5 minutes
+
+    @pytest.mark.asyncio
+    async def test_startup_timeout_sets_error(self):
+        """If startup times out, app.state.startup_error should be set."""
+        from main import lifespan, STARTUP_TIMEOUT_S
+        import main
+
+        original_timeout = main.STARTUP_TIMEOUT_S
+        main.STARTUP_TIMEOUT_S = 0.1  # Very short timeout for testing
+
+        async def hang_forever(app):
+            await asyncio.sleep(3600)
+
+        mock_app = MagicMock()
+        mock_app.state = MagicMock(spec=[])
+
+        with patch.object(main._registry, "startup", side_effect=hang_forever), \
+             patch.object(main._registry, "shutdown", new_callable=AsyncMock):
+            try:
+                async with lifespan(mock_app):
+                    # Startup should have timed out
+                    assert hasattr(mock_app.state, "startup_error"), (
+                        "startup_error should be set after timeout"
+                    )
+                    assert "timed out" in mock_app.state.startup_error.lower()
+            finally:
+                main.STARTUP_TIMEOUT_S = original_timeout
+
+
+class TestSystemInitTimeouts:
+    """Verify _safe_init and system init timeouts in registry.py."""
+
+    @pytest.mark.asyncio
+    async def test_safe_init_timeout_returns_none(self):
+        """_safe_init should return None when init hangs."""
+        from core.registry import _safe_init
+
+        async def hang():
+            await asyncio.sleep(3600)
+            return "should not reach"
+
+        result = await _safe_init("test_system", hang(), timeout_s=0.1)
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_safe_init_exception_returns_none(self):
+        """_safe_init should return None when init raises."""
+        from core.registry import _safe_init
+
+        async def explode():
+            raise RuntimeError("init failed")
+
+        result = await _safe_init("test_system", explode())
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_safe_init_success_returns_value(self):
+        """_safe_init should return the value on success."""
+        from core.registry import _safe_init
+
+        async def succeed():
+            return {"status": "ok"}
+
+        result = await _safe_init("test_system", succeed())
+        assert result == {"status": "ok"}

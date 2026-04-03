@@ -45,6 +45,37 @@ from utils.supervision import supervised_task
 
 logger = structlog.get_logger()
 
+# Per-system init timeout (seconds).  Prevents a single system from
+# hanging the entire startup sequence.
+_SYSTEM_INIT_TIMEOUT_S: float = 30.0
+
+
+async def _safe_init(name: str, coro: Any, timeout_s: float = _SYSTEM_INIT_TIMEOUT_S) -> Any:
+    """Run a system init coroutine with timeout and error isolation.
+
+    Returns the initialised system on success, or None on failure/timeout.
+    The caller must guard on None and skip wiring for that system.
+    """
+    try:
+        return await asyncio.wait_for(coro, timeout=timeout_s)
+    except (TimeoutError, asyncio.TimeoutError):
+        logger.error(
+            "system_init_timeout",
+            system=name,
+            timeout_s=timeout_s,
+            note=f"{name} init timed out; system will be unavailable",
+        )
+        return None
+    except Exception as exc:
+        logger.error(
+            "system_init_failed",
+            system=name,
+            error=str(exc),
+            note=f"{name} init failed; system will be unavailable",
+            exc_info=True,
+        )
+        return None
+
 
 class SystemRegistry:
     """
@@ -1623,7 +1654,23 @@ class SystemRegistry:
 
         memory = MemoryService(infra.neo4j, infra.embedding)
         if infra.neo4j is not None:
-            await memory.initialize()
+            try:
+                await asyncio.wait_for(
+                    memory.initialize(), timeout=_SYSTEM_INIT_TIMEOUT_S,
+                )
+            except (TimeoutError, asyncio.TimeoutError):
+                logger.error(
+                    "memory_initialize_timeout",
+                    timeout_s=_SYSTEM_INIT_TIMEOUT_S,
+                    note="Memory schema init timed out; continuing in degraded mode",
+                )
+            except Exception as exc:
+                logger.error(
+                    "memory_initialize_failed",
+                    error=str(exc),
+                    note="Memory init failed; continuing in degraded mode",
+                    exc_info=True,
+                )
         else:
             logger.warning(
                 "memory_init_skipped_no_neo4j",
@@ -1654,7 +1701,23 @@ class SystemRegistry:
             neuroplasticity_bus=infra.neuroplasticity_bus,
             redis=infra.redis,
         )
-        await equor.initialize()
+        try:
+            await asyncio.wait_for(
+                equor.initialize(), timeout=_SYSTEM_INIT_TIMEOUT_S,
+            )
+        except (TimeoutError, asyncio.TimeoutError):
+            logger.error(
+                "equor_initialize_timeout",
+                timeout_s=_SYSTEM_INIT_TIMEOUT_S,
+                note="Equor init timed out; continuing with uninitialized constitution",
+            )
+        except Exception as exc:
+            logger.error(
+                "equor_initialize_failed",
+                error=str(exc),
+                note="Equor init failed; continuing with defaults",
+                exc_info=True,
+            )
         return equor
 
     def _init_atune(self, config: Any, infra: InfraClients, memory: Any) -> Any:
@@ -2775,7 +2838,24 @@ class SystemRegistry:
     async def _birth_or_load(
         self, config: Any, infra: InfraClients, memory: Any, equor: Any, atune: Any
     ) -> None:
-        instance = await memory.get_self()
+        try:
+            instance = await asyncio.wait_for(
+                memory.get_self(), timeout=_SYSTEM_INIT_TIMEOUT_S,
+            )
+        except (TimeoutError, asyncio.TimeoutError):
+            logger.error(
+                "birth_or_load_timeout",
+                timeout_s=_SYSTEM_INIT_TIMEOUT_S,
+                note="get_self() timed out; skipping birth/load",
+            )
+            return
+        except Exception as exc:
+            logger.error(
+                "birth_or_load_failed",
+                error=str(exc),
+                note="get_self() failed; skipping birth/load",
+            )
+            return
         if instance is None:
             seed_path = os.environ.get("ORGANISM_SEED_PATH", "config/seeds/example_seed.yaml")
             try:
