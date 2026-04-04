@@ -130,21 +130,6 @@ class HypothesisEngine:
         """Return all completed experiment results."""
         return dict(self._experiment_results)
 
-    def _find_duplicate(self, statement: str, threshold: float = 0.75) -> Hypothesis | None:
-        """Check if an active hypothesis has a very similar statement (Jaccard similarity)."""
-        words = set(statement.lower().split())
-        if not words:
-            return None
-        for existing in self._active.values():
-            existing_words = set(existing.statement.lower().split())
-            if not existing_words:
-                continue
-            intersection = len(words & existing_words)
-            union = len(words | existing_words)
-            if union > 0 and (intersection / union) >= threshold:
-                return existing
-        return None
-
     def _compute_novelty_scores(self, new_hypotheses: list[Hypothesis]) -> None:
         """
         Compute novelty_score for each new hypothesis as
@@ -252,20 +237,6 @@ class HypothesisEngine:
         for item in raw.get("hypotheses", [])[:_MAX_PER_BATCH]:
             try:
                 h = _build_hypothesis(item)
-                # Deduplication: check if an existing hypothesis has a very similar statement
-                duplicate_of = self._find_duplicate(h.statement)
-                if duplicate_of is not None:
-                    self._logger.info(
-                        "hypothesis_deduplicated",
-                        new_statement=h.statement[:80],
-                        existing_id=duplicate_of.id,
-                    )
-                    # Boost existing hypothesis evidence instead of creating duplicate
-                    duplicate_of.supporting_count += 1
-                    duplicate_of.evidence_score = min(
-                        duplicate_of.evidence_score + 0.5, 20.0,
-                    )
-                    continue
                 self._active[h.id] = h
                 self._total_proposed += 1
                 hypotheses.append(h)

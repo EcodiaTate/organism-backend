@@ -3462,21 +3462,8 @@ class ThreadService:
         pattern_id: str = "",
         confidence: float = 0.5,
         source_episodes: list[str] | None = None,
-    ) -> IdentitySchema | None:
-        """Crystallise a pattern into an identity schema. Returns None if duplicate."""
-        # Deduplication: check for existing schemas with identical or very similar statements
-        normalised = pattern_statement.strip().lower()
-        for existing in self._schemas:
-            if existing.statement.strip().lower() == normalised:
-                self._logger.debug(
-                    "schema_formation_duplicate_exact",
-                    existing_id=existing.id,
-                    statement=pattern_statement[:80],
-                )
-                # Boost the existing schema's confidence instead
-                existing.confidence = min(1.0, existing.confidence + 0.05)
-                return None
-
+    ) -> IdentitySchema:
+        """Crystallise a pattern into an identity schema."""
         schema = IdentitySchema(
             statement=pattern_statement,
             status=SchemaStatus.FORMING,
@@ -3491,24 +3478,6 @@ class ThreadService:
                 schema.embedding = embedding
             except Exception:
                 self._logger.debug("schema_embedding_failed", exc_info=True)
-
-        # Embedding-based similarity dedup (if engine available with cosine check)
-        if schema.embedding and self._schema_engine is not None:
-            for existing in self._schema_engine._active_schemas:
-                if existing.embedding:
-                    try:
-                        from systems.thread.identity_schema_engine import cosine_similarity
-                        sim = cosine_similarity(schema.embedding, existing.embedding)
-                        if sim > 0.85:
-                            self._logger.debug(
-                                "schema_formation_duplicate_embedding",
-                                existing_id=existing.id,
-                                similarity=round(sim, 3),
-                            )
-                            existing.confidence = min(1.0, existing.confidence + 0.05)
-                            return None
-                    except ImportError:
-                        break
 
         self._schemas.append(schema)
         self._schemas_formed += 1
